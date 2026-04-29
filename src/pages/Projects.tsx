@@ -202,7 +202,7 @@ const Projects = () => {
       }
     });
     return arr;
-  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads]);
+  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived]);
 
   const filtersActive =
     !!search.trim() ||
