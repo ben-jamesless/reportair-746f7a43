@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, FolderPlus, FolderOpen, ImagePlus, Trash2, Activity } from "lucide-react";
+import { FolderPlus, FolderOpen, ImagePlus, Trash2, Activity } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ActivityFeedSkeleton } from "@/components/Skeletons";
+import { EmptyState } from "@/components/EmptyState";
 
 type Event = {
   id: string;
