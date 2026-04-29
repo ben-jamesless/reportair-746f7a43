@@ -162,6 +162,21 @@ export const ProjectEditForm = ({
     navigate("/projects");
   };
 
+  const confirmArchive = async () => {
+    setArchiving(true);
+    const { error } = await supabase
+      .from("projects")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", projectId);
+    setArchiving(false);
+    if (error) { toast.error(error.message); return; }
+    setConfirmingArchive(false);
+    toast.success("Project archived");
+    onSaved?.();
+    onClose?.();
+    navigate("/projects");
+  };
+
   if (confirmingDelete) {
     return (
       <div className="space-y-4">
