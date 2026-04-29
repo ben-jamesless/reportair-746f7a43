@@ -19,6 +19,7 @@ export const AppSidebar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
 
   const handleSignOut = async () => {
