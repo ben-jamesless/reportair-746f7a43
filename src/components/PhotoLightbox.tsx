@@ -103,6 +103,31 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
               {photo.caption && <p className="mt-2 text-sm text-foreground">{photo.caption}</p>}
             </div>
 
+            <div>
+              <p className="mb-1 flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground">
+                <MapPinned className="h-3 w-3" /> Area
+              </p>
+              <Select
+                value={photo.area_id ?? UNASSIGNED}
+                onValueChange={async (val) => {
+                  const newAreaId = val === UNASSIGNED ? null : val;
+                  const { error } = await supabase.from("photos").update({ area_id: newAreaId }).eq("id", photo.id);
+                  if (error) { toast.error(error.message); return; }
+                  onAreaChanged?.(photo.id, newAreaId);
+                }}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Unassigned" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+                  {areas.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-3 text-sm">
               {photo.captured_at && (
                 <Row icon={<Calendar className="h-4 w-4" />} label="Captured">
