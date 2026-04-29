@@ -10,6 +10,7 @@ import { ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
+import { ActivityFeed } from "@/components/ActivityFeed";
 
 type Project = {
   id: string;
