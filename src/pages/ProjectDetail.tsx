@@ -22,7 +22,8 @@ import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import { CommentsPanel } from "@/components/CommentsPanel";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
-import { type ProjectStatus } from "@/lib/projectStatus";
+import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
