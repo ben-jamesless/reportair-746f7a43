@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppHeader } from "@/components/AppHeader";
 import { NewProjectDialog } from "@/components/NewProjectDialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Camera, FolderOpen, Loader2, Plus } from "lucide-react";
+import { Camera, FolderOpen, Plus } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
+import { ProjectGridSkeleton } from "@/components/Skeletons";
 
 type Project = {
   id: string;
