@@ -381,6 +381,7 @@ const ProjectDetail = () => {
           {project.description && (
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
           )}
+          <ProjectMetaRow project={project} lastUploadAt={photos[0]?.created_at ?? null} />
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
           <div className="flex flex-wrap items-center gap-2">
@@ -420,9 +421,14 @@ const ProjectDetail = () => {
             </Button>
             <EditProjectDialog
               projectId={project.id}
-              initialName={project.name}
-              initialDescription={project.description}
-              initialColor={project.color}
+              name={project.name}
+              description={project.description}
+              color={project.color}
+              event_date={project.event_date}
+              event_location={project.event_location}
+              overall_status={project.overall_status}
+              event_type={project.event_type}
+              client_name={project.client_name}
               onChanged={loadAll}
             />
             <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
