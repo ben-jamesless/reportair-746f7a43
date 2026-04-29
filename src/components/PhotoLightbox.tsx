@@ -41,16 +41,35 @@ interface Props {
   albums?: LightboxAlbum[];
   onAreaChanged?: (photoId: string, areaId: string | null) => void;
   onAlbumChanged?: (photoId: string, albumId: string | null) => void;
+  projectId?: string;
 }
 
 const UNASSIGNED = "__unassigned__";
 
-export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged }: Props) => {
+type GuestNote = { id: string; guest_name: string; guest_email: string | null; body: string; created_at: string };
+
+export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId }: Props) => {
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
   const photo = index !== null ? photos[i] : null;
   const url = useSignedUrl(photo?.storage_path ?? null);
+  const [notes, setNotes] = useState<GuestNote[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    if (!photo || !projectId) { setNotes([]); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("guest_notes")
+        .select("id, guest_name, guest_email, body, created_at")
+        .eq("project_id", projectId)
+        .eq("photo_id", photo.id)
+        .order("created_at", { ascending: false });
+      if (alive) setNotes((data ?? []) as GuestNote[]);
+    })();
+    return () => { alive = false; };
+  }, [photo?.id, projectId]);
 
   useEffect(() => {
     if (index === null) return;
@@ -100,7 +119,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
             </Button>
           </div>
 
-          <aside className="flex flex-col gap-4 border-l bg-card p-5">
+          <aside className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto border-l bg-card p-5">
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
               <h3 className="mt-1 break-all text-sm font-semibold">{photo.file_name}</h3>
@@ -183,6 +202,31 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 <Badge variant="secondary" className="font-normal">{photo.width} × {photo.height}</Badge>
               )}
             </div>
+
+            {projectId && (
+              <div className="border-t pt-4">
+                <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+                  Client comments <span className="ml-1 text-foreground/60">{notes.length}</span>
+                </p>
+                {notes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No comments on this photo yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {notes.map((n) => (
+                      <li key={n.id} className="rounded-md border border-border bg-background p-2.5 text-sm">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="text-xs font-medium">{n.guest_name}</p>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(n.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="mt-1 whitespace-pre-wrap text-xs">{n.body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </aside>
         </div>
       </DialogContent>

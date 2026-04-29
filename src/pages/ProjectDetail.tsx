@@ -19,6 +19,7 @@ import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
+import { CommentsPanel } from "@/components/CommentsPanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -368,7 +369,7 @@ const ProjectDetail = () => {
           </TabsList>
 
           <TabsContent value="photos" className="mt-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr] xl:grid-cols-[400px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
                 {days.length === 0 && preEventPhotos.length === 0 && (
@@ -653,6 +654,16 @@ const ProjectDetail = () => {
                   </div>
                 )}
               </section>
+
+              <CommentsPanel
+                projectId={project.id}
+                visiblePhotos={visiblePhotos}
+                onOpenPhoto={(photoId) => {
+                  const idx = photoIndexById.get(photoId);
+                  if (idx !== undefined) setLightboxIndex(idx);
+                }}
+                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
+              />
             </div>
           </TabsContent>
 
@@ -671,6 +682,7 @@ const ProjectDetail = () => {
             albums={albums}
             onAreaChanged={handleAreaChanged}
             onAlbumChanged={handleAlbumChanged}
+            projectId={project.id}
           />
         </ErrorBoundary>
 
