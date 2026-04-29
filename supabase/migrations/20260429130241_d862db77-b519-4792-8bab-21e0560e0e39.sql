@@ -1,0 +1,1 @@
+ALTER TABLE public.projects DROP COLUMN IF EXISTS cover_photo_url;
