@@ -91,6 +91,9 @@ Deno.serve(async (req) => {
     const sections: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false, ...(exp.options?.sections ?? {}) };
     const dayKey: string | null = exp.options?.day_key ?? null;
     const dayLabel: string | null = exp.options?.day_label ?? null;
+    const dateFrom: string | null = exp.options?.date_from ?? null; // YYYY-MM-DD
+    const dateTo: string | null = exp.options?.date_to ?? null;     // YYYY-MM-DD
+    const isRange = !!(dateFrom && dateTo);
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
     // Load project + photos + albums + areas + activity + notes + day notes + per-day area status + per-day area notes
@@ -128,6 +131,12 @@ Deno.serve(async (req) => {
     if (dayKey) {
       allPhotos = allPhotos.filter((p) => photoDayKey(p) === dayKey);
       if (allPhotos.length === 0) throw new Error("No photos found for the selected day.");
+    } else if (isRange) {
+      allPhotos = allPhotos.filter((p) => {
+        const k = photoDayKey(p);
+        return k >= dateFrom! && k <= dateTo!;
+      });
+      if (allPhotos.length === 0) throw new Error("No photos found in the selected date range.");
     }
 
     if (allPhotos.length > PHOTO_CAP) {
@@ -237,7 +246,13 @@ Deno.serve(async (req) => {
         } catch (_) { /* skip logo */ }
       }
 
-      const titleText = dayKey && dayLabel ? `${proj.name} — ${dayLabel}` : proj.name;
+      const fmtRangeLabel = (k: string) => {
+        const [yy, mm, dd] = k.split("-").map(Number);
+        return new Date(yy, mm - 1, dd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      };
+      let titleText = proj.name;
+      if (dayKey && dayLabel) titleText = `${proj.name} — ${dayLabel}`;
+      else if (isRange) titleText = `${proj.name} — ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)}`;
       page.drawText(titleText, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
       y -= 60;
       if (proj.description) {
@@ -248,9 +263,12 @@ Deno.serve(async (req) => {
         }
       }
       // Stats footer
+      const exportedOn = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
       const stats = dayKey
-        ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-        : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+        ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${exportedOn}`
+        : isRange
+          ? `${allPhotos.length} photos · ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)} · Exported ${exportedOn}`
+          : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${exportedOn}`;
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 
@@ -258,13 +276,15 @@ Deno.serve(async (req) => {
     if (sections.grid && allPhotos.length > 0) {
       // When day-scoped, group by area (in defined sort_order, then "Unassigned").
       // Otherwise, group by date as before.
-      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string };
+      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string; dayHeader?: string };
       let groups: Group[];
-      if (dayKey) {
-        const sortedAreas = (areas ?? []) as AreaRow[];
+
+      // Helper: split a day's photos into area-sorted subgroups
+      const sortedAreasList = (areas ?? []) as AreaRow[];
+      const splitByArea = (photos: PhotoRow[]): { label: string; photos: PhotoRow[]; areaId?: string }[] => {
         const byArea = new Map<string, PhotoRow[]>();
         const unassigned: PhotoRow[] = [];
-        for (const p of allPhotos) {
+        for (const p of photos) {
           if (!p.area_id) unassigned.push(p);
           else {
             const arr = byArea.get(p.area_id) ?? [];
@@ -272,12 +292,35 @@ Deno.serve(async (req) => {
             byArea.set(p.area_id, arr);
           }
         }
-        groups = [];
-        for (const ar of sortedAreas) {
+        const out: { label: string; photos: PhotoRow[]; areaId?: string }[] = [];
+        for (const ar of sortedAreasList) {
           const list = byArea.get(ar.id);
-          if (list?.length) groups.push({ label: ar.name, photos: list, areaId: ar.id });
+          if (list?.length) out.push({ label: ar.name, photos: list, areaId: ar.id });
         }
-        if (unassigned.length) groups.push({ label: "Unassigned", photos: unassigned });
+        if (unassigned.length) out.push({ label: "Unassigned", photos: unassigned });
+        return out;
+      };
+
+      if (dayKey) {
+        groups = splitByArea(allPhotos);
+      } else if (isRange) {
+        // Group by day (chronological, newest first to match single-project behaviour),
+        // then within each day, by area.
+        const byDay = groupByDate(allPhotos);
+        groups = [];
+        for (const dg of byDay) {
+          const d = dg.date;
+          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const subs = splitByArea(dg.photos);
+          subs.forEach((s, i) => {
+            groups.push({
+              ...s,
+              dateKey: dKey,
+              // First subgroup of the day carries a big day header above it
+              dayHeader: i === 0 ? dg.label : undefined,
+            });
+          });
+        }
       } else {
         groups = groupByDate(allPhotos).map((g) => {
           const d = g.date;
@@ -320,12 +363,35 @@ Deno.serve(async (req) => {
       }
 
       for (const group of groups) {
+        // Big day header (range mode: shown once per day, before its first area subgroup)
+        if (group.dayHeader) {
+          ensureSpace(50);
+          y -= 8;
+          page.drawText(group.dayHeader, { x: M, y: y - 16, size: 16, font: fontBold, color: ACCENT });
+          y -= 24;
+          // Day-level note for this day
+          if (group.dateKey) {
+            const dn = dayNoteByDate.get(group.dateKey);
+            if (dn) {
+              const lines = wrapText(dn, font, 10, PAGE_W - 2 * M);
+              for (const line of lines) {
+                ensureSpace(14);
+                page.drawText(line, { x: M, y: y - 10, size: 10, font, color: TEXT });
+                y -= 14;
+              }
+              y -= 6;
+            }
+          }
+        }
+
         ensureSpace(40);
         page.drawRectangle({ x: M, y: y - 4, width: 24, height: 2, color: ACCENT });
         // Header line: label · count [ · status]
+        // For per-area-per-day status, use dayKey (single-day mode) OR group.dateKey (range mode)
+        const groupDateKey = dayKey ?? group.dateKey ?? null;
         let header = `${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`;
-        if (group.areaId && dayKey) {
-          const st = areaDayStatus.get(`${group.areaId}|${dayKey}`);
+        if (group.areaId && groupDateKey) {
+          const st = areaDayStatus.get(`${group.areaId}|${groupDateKey}`);
           if (st && st !== "no_status") {
             header += `  ·  ${STATUS_LABEL[st] ?? st}`;
           }
@@ -333,9 +399,9 @@ Deno.serve(async (req) => {
         page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
         y -= 32;
 
-        // Per-area, per-day update note (only meaningful in day-scoped exports)
-        if (group.areaId && dayKey) {
-          const note = areaDayNotes.get(`${group.areaId}|${dayKey}`);
+        // Per-area, per-day update note
+        if (group.areaId && groupDateKey) {
+          const note = areaDayNotes.get(`${group.areaId}|${groupDateKey}`);
           if (note && note.trim()) {
             const lines = wrapText(note, font, 9, PAGE_W - 2 * M);
             for (const line of lines) {
@@ -347,8 +413,9 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Day comment in date-grouped exports (full project export)
-        if (group.dateKey) {
+        // Day comment in plain date-grouped exports (full project export, NOT range — range already
+        // rendered the day note under the dayHeader above).
+        if (group.dateKey && !isRange && !group.areaId) {
           const dn = dayNoteByDate.get(group.dateKey);
           if (dn) {
             const lines = wrapText(dn, font, 9, PAGE_W - 2 * M);
@@ -412,7 +479,7 @@ Deno.serve(async (req) => {
               const truncated = caption.length > 40 ? caption.slice(0, 38) + "…" : caption;
               page.drawText(truncated, { x, y: rowTop - imgH - 14, size: 8, font, color: TEXT });
               const meta: string[] = [];
-              if (!dayKey && ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
+              if (!dayKey && !isRange && ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
               if (ph.album_id && albumName.get(ph.album_id)) meta.push(albumName.get(ph.album_id)!);
               if (meta.length) page.drawText(meta.join(" · ").slice(0, 50), { x, y: rowTop - imgH - 24, size: 7, font, color: MUTED });
             }
