@@ -61,7 +61,7 @@ export const ActivityFeed = ({ projectId }: Props) => {
       ]);
       if (cancel) return;
       const evList = (ev ?? []) as Event[];
-      const noteEvents: Event[] = ((notes ?? []) as any[]).map((n) => ({
+      const noteEvents: Event[] = ((notes ?? []) as GuestNoteRow[]).map((n) => ({
         id: `gn-${n.id}`,
         actor_id: null,
         verb: "guest.note",
@@ -102,7 +102,7 @@ export const ActivityFeed = ({ projectId }: Props) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "guest_notes", filter: `project_id=eq.${projectId}` },
         (payload) => {
-          const n = payload.new as any;
+          const n = payload.new as GuestNoteRow;
           const ev: Event = {
             id: `gn-${n.id}`,
             actor_id: null,
