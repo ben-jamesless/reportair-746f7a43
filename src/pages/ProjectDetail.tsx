@@ -401,6 +401,13 @@ const ProjectDetail = () => {
     setExportOpen(true);
   };
 
+  // Days available for the date-range picker (only those with photos).
+  // MUST be declared before any early returns to keep hook order stable across renders.
+  const availableDaysForExport = useMemo(
+    () => days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length })),
+    [days],
+  );
+
   if (loading) {
     return (
       <AppShell crumbs={[{ label: "Projects", to: "/projects" }, { label: "Loading…" }]}>
@@ -470,11 +477,7 @@ const ProjectDetail = () => {
     setExportOpen(true);
   };
 
-  // Days available for the date-range picker (only those with photos)
-  const availableDaysForExport = useMemo(
-    () => days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length })),
-    [days],
-  );
+  // (availableDaysForExport is computed earlier, above the early returns, to keep hook order stable)
 
   const accent = project.color || "#01696F";
 
