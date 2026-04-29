@@ -237,10 +237,10 @@ const SharePage = () => {
                           )}
                         </div>
                       )}
-                      {activeAreaObj?.notes && activeAreaObj.notes.trim() && (
+                      {areaDayNote && (
                         <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
-                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Area comment</p>
-                          <p className="whitespace-pre-wrap">{activeAreaObj.notes}</p>
+                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Daily updates</p>
+                          <p className="whitespace-pre-wrap">{areaDayNote}</p>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
