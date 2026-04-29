@@ -81,6 +81,7 @@ const Projects = () => {
   const [filterEventType, setFilterEventType] = useState<string>(ALL);
   const [filterStatus, setFilterStatus] = useState<string>(ALL);
   const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     if (!user) return;
