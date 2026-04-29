@@ -13,6 +13,7 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { cn } from "@/lib/utils";
+import { groupPhotosByDate } from "@/lib/photoUtils";
 
 type Project = {
   id: string;
