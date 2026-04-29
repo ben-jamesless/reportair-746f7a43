@@ -72,41 +72,31 @@ const Projects = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user?.id]);
 
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen">
-        <AppHeader />
-        <div className="flex h-[60vh] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      </div>
-    );
-  }
+  const showSkeleton = authLoading || loading;
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <AppHeader />
-      <main className="container py-10">
-        <div className="mb-8 flex items-end justify-between">
+      <main className="container py-6 sm:py-10">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
           <div>
-            <p className="text-sm text-muted-foreground">{teamName}</p>
-            <h1 className="text-3xl font-semibold tracking-tight">Projects</h1>
+            {teamName && <p className="text-sm text-muted-foreground">{teamName}</p>}
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
           </div>
-          {projects.length > 0 && <NewProjectDialog teamId={teamId} onCreated={load} />}
+          {!showSkeleton && projects.length > 0 && (
+            <NewProjectDialog teamId={teamId} onCreated={load} />
+          )}
         </div>
 
-        {projects.length === 0 ? (
-          <Card className="mx-auto max-w-xl border-dashed text-center shadow-none">
-            <CardContent className="flex flex-col items-center gap-4 py-16">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Camera className="h-7 w-7" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">No projects yet</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Spin up your first project to start uploading and organising photos.
-                </p>
-              </div>
+        {showSkeleton ? (
+          <ProjectGridSkeleton />
+        ) : projects.length === 0 ? (
+          <EmptyState
+            className="mx-auto max-w-xl"
+            icon={<Camera className="h-6 w-6" />}
+            title="No projects yet"
+            description="Spin up your first project to start uploading and organising photos."
+            action={
               <NewProjectDialog
                 teamId={teamId}
                 onCreated={load}
@@ -117,8 +107,8 @@ const Projects = () => {
                   </Button>
                 }
               />
-            </CardContent>
-          </Card>
+            }
+          />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((p) => (
