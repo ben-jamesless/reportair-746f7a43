@@ -114,9 +114,8 @@ const Projects = () => {
 
     const { data: projs } = await supabase
       .from("projects")
-      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name")
+      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at")
       .eq("team_id", team.id)
-      .is("archived_at", null)
       .order("created_at", { ascending: false });
 
     const list = (projs ?? []) as Project[];
