@@ -22,7 +22,7 @@ interface Props {
  * - Shows a soft animated placeholder until the bitmap finishes decoding,
  *   then fades in (blurhash-style behaviour without requiring a hash payload).
  */
-export const PhotoThumb = ({ path, alt, onClick, priority = false }: Props) => {
+export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = false, selected = false }: Props) => {
   const ref = useRef<HTMLButtonElement | null>(null);
   const [inView, setInView] = useState(priority);
   const [loaded, setLoaded] = useState(false);
