@@ -735,6 +735,18 @@ const ProjectDetail = () => {
           <TabsContent value="activity" className="mt-6">
             <ActivityFeed projectId={project.id} />
           </TabsContent>
+
+          <TabsContent value="details" className="mt-6">
+            <ProjectDetailsTab
+              project={project}
+              lastUploadAt={photos.reduce<string | null>((acc, p) => {
+                const ts = (p as any).created_at as string | undefined;
+                if (!ts) return acc;
+                return !acc || ts > acc ? ts : acc;
+              }, null)}
+              onChanged={loadAll}
+            />
+          </TabsContent>
         </Tabs>
 
         <ErrorBoundary label="lightbox">
@@ -762,52 +774,6 @@ const ProjectDetail = () => {
           trigger={<span className="hidden" />}
         />
     </AppShell>
-  );
-};
-
-const META_DATE_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "long", year: "numeric" });
-const REL_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
-
-const ProjectMetaRow = ({
-  project,
-  lastUploadAt,
-}: {
-  project: Project;
-  lastUploadAt: string | null;
-}) => {
-  const items: { label: string; value: React.ReactNode }[] = [];
-  if (project.client_name) items.push({ label: "Client", value: project.client_name });
-  if (project.event_type) items.push({ label: "Type", value: project.event_type });
-  if (project.event_date) {
-    const [y, m, d] = project.event_date.split("-").map(Number);
-    items.push({ label: "Event date", value: META_DATE_FMT.format(new Date(y, m - 1, d)) });
-  }
-  if (project.event_location) items.push({ label: "Location", value: project.event_location });
-  if (project.overall_status && project.overall_status !== "no_status") {
-    const meta = projectStatusMeta(project.overall_status);
-    items.push({
-      label: "Status",
-      value: (
-        <span className="inline-flex items-center gap-1.5">
-          <span className={cn("h-2 w-2 rounded-full", meta.dotClass)} />
-          {meta.label}
-        </span>
-      ),
-    });
-  }
-  if (lastUploadAt) {
-    items.push({ label: "Last upload", value: REL_FMT.format(new Date(lastUploadAt)) });
-  }
-  if (items.length === 0) return null;
-  return (
-    <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs sm:text-sm">
-      {items.map((it) => (
-        <div key={it.label} className="flex items-center gap-1.5">
-          <dt className="text-muted-foreground">{it.label}:</dt>
-          <dd className="font-medium text-foreground">{it.value}</dd>
-        </div>
-      ))}
-    </dl>
   );
 };
 
