@@ -202,6 +202,39 @@ export type Database = {
         }
         Relationships: []
       }
+      comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          mentions: string[]
+          photo_id: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          photo_id: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          photo_id?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       day_notes: {
         Row: {
           created_at: string
@@ -272,6 +305,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          body: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          photo_id: string | null
+          project_id: string
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          body?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          photo_id?: string | null
+          project_id: string
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          body?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          photo_id?: string | null
+          project_id?: string
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
       }
       photos: {
         Row: {
@@ -768,6 +843,7 @@ export type Database = {
           id: string
         }[]
       }
+      mark_notifications_read: { Args: { _ids?: string[] }; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }
       resolve_share_link: {
         Args: { _password?: string; _token: string }
@@ -778,6 +854,7 @@ export type Database = {
       app_role: "admin" | "user"
       area_status: "no_status" | "on_track" | "requires_discussion" | "concern"
       export_status: "queued" | "processing" | "ready" | "failed"
+      notification_type: "mention" | "reply" | "guest_comment"
       project_role: "owner" | "editor" | "commenter" | "viewer"
       project_status:
         | "no_status"
@@ -918,6 +995,7 @@ export const Constants = {
       app_role: ["admin", "user"],
       area_status: ["no_status", "on_track", "requires_discussion", "concern"],
       export_status: ["queued", "processing", "ready", "failed"],
+      notification_type: ["mention", "reply", "guest_comment"],
       project_role: ["owner", "editor", "commenter", "viewer"],
       project_status: [
         "no_status",
