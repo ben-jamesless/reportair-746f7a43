@@ -392,47 +392,26 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-1 border-l pl-2">
-                          <EditableNote
-                            value={dayNote}
-                            placeholder="Add a comment for this day…"
-                            onSave={(next) => saveDayNote(day.key, next)}
-                          />
+                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
                             const sel = activeDay === day.key && activeArea === ar.id;
+                            const st = getAreaDayStatus(ar.id, day.key);
                             return (
-                              <div key={ar.id} className="space-y-0.5">
-                                <div className={cn(
-                                  "flex items-stretch gap-1 rounded-md transition-colors",
+                              <button
+                                key={ar.id}
+                                onClick={() => selectDayArea(day.key, ar.id)}
+                                className={cn(
+                                  "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                   sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
-                                )}>
-                                  <div className="flex items-center pl-2">
-                                    <AreaStatusPicker
-                                      value={ar.status}
-                                      onChange={(s) => saveAreaStatus(ar.id, s)}
-                                    />
-                                  </div>
-                                  <button
-                                    onClick={() => selectDayArea(day.key, ar.id)}
-                                    className="flex flex-1 items-center justify-between px-2 py-1.5 text-left text-xs"
-                                  >
-                                    <span className="flex items-center gap-1.5 truncate">
-                                      <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
-                                      <span className="truncate">{ar.name}</span>
-                                    </span>
-                                    <span className={cn("ml-2 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
-                                  </button>
-                                </div>
-                                <div className="pl-2">
-                                  <EditableNote
-                                    value={ar.notes}
-                                    placeholder="Add a comment for this area…"
-                                    onSave={(next) => saveAreaNotes(ar.id, next)}
-                                  />
-                                </div>
-                              </div>
+                                )}
+                              >
+                                <AreaStatusDot status={st} className="shrink-0" />
+                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
+                                <span className="flex-1 truncate">{ar.name}</span>
+                                <span className={cn("ml-1 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
+                              </button>
                             );
                           })}
                           {unassigned > 0 && (
