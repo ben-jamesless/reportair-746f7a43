@@ -22,6 +22,7 @@ import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import { CommentsPanel } from "@/components/CommentsPanel";
+import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
