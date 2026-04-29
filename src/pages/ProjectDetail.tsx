@@ -400,7 +400,13 @@ const ProjectDetail = () => {
               {project.template === "event_production" ? "Event production" : "Project"}
             </Badge>
             <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
-              <SelectTrigger className="h-7 w-auto gap-1.5 rounded-full border-muted bg-background px-2.5 text-xs" aria-label="Project status">
+              <SelectTrigger
+                aria-label="Project status"
+                className={cn(
+                  "h-7 w-auto gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                  projectStatusMeta(project.overall_status).pillClass,
+                )}
+              >
                 <span className="flex items-center gap-1.5">
                   <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
                   <span>{projectStatusMeta(project.overall_status).label}</span>

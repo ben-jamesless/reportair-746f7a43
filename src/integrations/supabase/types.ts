@@ -785,6 +785,7 @@ export type Database = {
         | "requires_discussion"
         | "concern"
         | "behind_schedule"
+        | "complete"
       project_template: "event_production" | "blank"
       team_role: "owner" | "admin" | "member"
     }
@@ -924,6 +925,7 @@ export const Constants = {
         "requires_discussion",
         "concern",
         "behind_schedule",
+        "complete",
       ],
       project_template: ["event_production", "blank"],
       team_role: ["owner", "admin", "member"],
