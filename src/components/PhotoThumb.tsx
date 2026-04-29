@@ -96,6 +96,28 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = 
           </div>
         )
       )}
+      {selectable && (
+        <>
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 bg-primary/10 transition-opacity",
+              selected ? "opacity-100" : "opacity-0",
+            )}
+          />
+          <span
+            aria-hidden
+            className={cn(
+              "absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 transition",
+              selected
+                ? "border-primary bg-primary text-primary-foreground opacity-100"
+                : "border-white/80 bg-black/40 text-transparent opacity-0 group-hover:opacity-100",
+            )}
+          >
+            <Check className="h-3.5 w-3.5" />
+          </span>
+        </>
+      )}
     </button>
   );
 };
