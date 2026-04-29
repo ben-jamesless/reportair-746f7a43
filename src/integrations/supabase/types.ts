@@ -295,6 +295,54 @@ export type Database = {
         }
         Relationships: []
       }
+      project_exports: {
+        Row: {
+          accent_color: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          error_message: string | null
+          id: string
+          logo_path: string | null
+          options: Json
+          output_path: string | null
+          photo_count: number | null
+          project_id: string
+          status: Database["public"]["Enums"]["export_status"]
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          id?: string
+          logo_path?: string | null
+          options?: Json
+          output_path?: string | null
+          photo_count?: number | null
+          project_id: string
+          status?: Database["public"]["Enums"]["export_status"]
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          id?: string
+          logo_path?: string | null
+          options?: Json
+          output_path?: string | null
+          photo_count?: number | null
+          project_id?: string
+          status?: Database["public"]["Enums"]["export_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       project_invites: {
         Row: {
           accepted_at: string | null
@@ -601,6 +649,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      export_status: "queued" | "processing" | "ready" | "failed"
       project_role: "owner" | "editor" | "commenter" | "viewer"
       project_template: "event_production" | "blank"
       team_role: "owner" | "admin" | "member"
@@ -732,6 +781,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      export_status: ["queued", "processing", "ready", "failed"],
       project_role: ["owner", "editor", "commenter", "viewer"],
       project_template: ["event_production", "blank"],
       team_role: ["owner", "admin", "member"],

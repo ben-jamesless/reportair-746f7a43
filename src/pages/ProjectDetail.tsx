@@ -12,6 +12,7 @@ import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
+import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { cn } from "@/lib/utils";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 
@@ -156,6 +157,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
+              <ExportPdfDialog projectId={project.id} photoCount={photos.length} />
               <PhotoUploader projectId={project.id} albumId={activeAlbumId} onUploaded={loadAll} />
             </div>
             {activeAlbumId === null && albums.length > 0 && (
