@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, X, MapPin, Calendar, Camera, Aperture } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MapPin, Calendar, Camera, Aperture, MapPinned } from "lucide-react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type LightboxPhoto = {
   id: string;
@@ -22,16 +25,23 @@ export type LightboxPhoto = {
   gps_lng: number | null;
   width: number | null;
   height: number | null;
+  area_id: string | null;
 };
+
+export type LightboxArea = { id: string; name: string };
 
 interface Props {
   photos: LightboxPhoto[];
   index: number | null;
   onClose: () => void;
   onIndexChange: (i: number) => void;
+  areas?: LightboxArea[];
+  onAreaChanged?: (photoId: string, areaId: string | null) => void;
 }
 
-export const PhotoLightbox = ({ photos, index, onClose, onIndexChange }: Props) => {
+const UNASSIGNED = "__unassigned__";
+
+export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], onAreaChanged }: Props) => {
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
@@ -91,6 +101,31 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange }: Props) 
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
               <h3 className="mt-1 break-all text-sm font-semibold">{photo.file_name}</h3>
               {photo.caption && <p className="mt-2 text-sm text-foreground">{photo.caption}</p>}
+            </div>
+
+            <div>
+              <p className="mb-1 flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground">
+                <MapPinned className="h-3 w-3" /> Area
+              </p>
+              <Select
+                value={photo.area_id ?? UNASSIGNED}
+                onValueChange={async (val) => {
+                  const newAreaId = val === UNASSIGNED ? null : val;
+                  const { error } = await supabase.from("photos").update({ area_id: newAreaId }).eq("id", photo.id);
+                  if (error) { toast.error(error.message); return; }
+                  onAreaChanged?.(photo.id, newAreaId);
+                }}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Unassigned" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+                  {areas.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-3 text-sm">
