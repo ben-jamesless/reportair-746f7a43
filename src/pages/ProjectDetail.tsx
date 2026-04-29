@@ -39,6 +39,7 @@ type Project = {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  archived_at: string | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
