@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,16 +19,16 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
   const [editName, setEditName] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const { data } = await supabase
       .from("areas")
       .select("id, project_id, name, sort_order")
       .eq("project_id", projectId)
       .order("sort_order");
     setAreas((data ?? []) as Area[]);
-  };
+  }, [projectId]);
 
-  useEffect(() => { load(); }, [projectId]);
+  useEffect(() => { load(); }, [load]);
 
   const add = async () => {
     const name = newName.trim();
