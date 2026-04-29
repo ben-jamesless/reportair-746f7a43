@@ -102,6 +102,11 @@ const SharePage = () => {
     (data?.area_day_status ?? []).forEach((s) => m.set(`${s.area_id}|${s.date}`, s.status));
     return m;
   }, [data?.area_day_status]);
+  const areaDayNotesMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.area_day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(`${n.area_id}|${n.date}`, n.notes); });
+    return m;
+  }, [data?.area_day_notes]);
   const activeAreaObj = useMemo(
     () => (activeArea !== ALL_AREAS && activeArea !== NO_AREA ? areas.find((a) => a.id === activeArea) ?? null : null),
     [areas, activeArea]
