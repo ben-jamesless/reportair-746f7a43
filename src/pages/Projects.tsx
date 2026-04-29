@@ -220,6 +220,8 @@ const Projects = () => {
   };
 
   const showSkeleton = authLoading || loading;
+  const nonArchivedCount = projects.length - archivedCount;
+  const hasAnyVisibleSource = (showArchived ? projects.length : nonArchivedCount) > 0;
 
   return (
     <AppShell crumbs={[{ label: "Projects" }]}>
@@ -228,12 +230,12 @@ const Projects = () => {
           {teamName && <p className="text-sm text-muted-foreground">{teamName}</p>}
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
         </div>
-        {!showSkeleton && projects.length > 0 && (
+        {!showSkeleton && nonArchivedCount > 0 && (
           <NewProjectDialog teamId={teamId} onCreated={load} />
         )}
       </div>
 
-      {!showSkeleton && projects.length > 0 && (
+      {!showSkeleton && hasAnyVisibleSource && (
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[200px] flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
