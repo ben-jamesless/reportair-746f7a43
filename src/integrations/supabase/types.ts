@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          project_id: string
+          target_id: string | null
+          target_type: string
+          verb: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          project_id: string
+          target_id?: string | null
+          target_type: string
+          verb: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          project_id?: string
+          target_id?: string | null
+          target_type?: string
+          verb?: string
+        }
+        Relationships: []
+      }
       albums: {
         Row: {
           created_at: string
@@ -57,45 +90,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      annotations: {
-        Row: {
-          author_id: string
-          body: string
-          created_at: string
-          id: string
-          kind: string
-          photo_id: string
-          project_id: string
-          updated_at: string
-          x: number | null
-          y: number | null
-        }
-        Insert: {
-          author_id: string
-          body: string
-          created_at?: string
-          id?: string
-          kind?: string
-          photo_id: string
-          project_id: string
-          updated_at?: string
-          x?: number | null
-          y?: number | null
-        }
-        Update: {
-          author_id?: string
-          body?: string
-          created_at?: string
-          id?: string
-          kind?: string
-          photo_id?: string
-          project_id?: string
-          updated_at?: string
-          x?: number | null
-          y?: number | null
-        }
-        Relationships: []
       }
       photos: {
         Row: {
