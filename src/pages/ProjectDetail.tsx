@@ -682,6 +682,7 @@ const ProjectDetail = () => {
             albums={albums}
             onAreaChanged={handleAreaChanged}
             onAlbumChanged={handleAlbumChanged}
+            projectId={project.id}
           />
         </ErrorBoundary>
 
