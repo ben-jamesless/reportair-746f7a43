@@ -81,8 +81,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, i, photos.length]);
+  }, [index, i, photos.length, next, prev, onClose]);
 
   const prev = () => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); };
   const next = () => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); };
