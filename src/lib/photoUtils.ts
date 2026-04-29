@@ -66,6 +66,7 @@ type ExifRaw = {
 
 export async function parseExif(file: File): Promise<ExifData> {
   try {
+    const exifr = await loadExifr();
     const data = (await exifr.parse(file, { gps: true, tiff: true, exif: true })) as ExifRaw | null;
     if (!data) return EMPTY_EXIF;
     const captured = data.DateTimeOriginal || data.CreateDate || data.ModifyDate || null;
