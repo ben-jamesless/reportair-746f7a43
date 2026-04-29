@@ -17,12 +17,13 @@ import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
-import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import { CommentsPanel } from "@/components/CommentsPanel";
-import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
+import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
+import { type ProjectStatus } from "@/lib/projectStatus";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -81,7 +82,7 @@ const ProjectDetail = () => {
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"photos" | "activity">("photos");
+  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">("photos");
 
   const loadAll = useCallback(async () => {
     if (!id) return;
@@ -381,14 +382,6 @@ const ProjectDetail = () => {
           {project.description && (
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
           )}
-          <ProjectMetaRow
-            project={project}
-            lastUploadAt={photos.reduce<string | null>((acc, p) => {
-              const ts = (p as any).created_at as string | undefined;
-              if (!ts) return acc;
-              return !acc || ts > acc ? ts : acc;
-            }, null)}
-          />
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
           <div className="flex flex-wrap items-center gap-2">
@@ -408,12 +401,13 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity")} className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="w-full">
         {/* Top controls row: tabs + settings + export */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
           <TabsList>
             <TabsTrigger value="photos">Photos</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -426,18 +420,15 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
-            <EditProjectDialog
-              projectId={project.id}
-              name={project.name}
-              description={project.description}
-              color={project.color}
-              event_date={project.event_date}
-              event_location={project.event_location}
-              overall_status={project.overall_status}
-              event_type={project.event_type}
-              client_name={project.client_name}
-              onChanged={loadAll}
-            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveTab("details")}
+              title="Edit project details"
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
             <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
           </div>
         </div>
@@ -744,6 +735,18 @@ const ProjectDetail = () => {
           <TabsContent value="activity" className="mt-6">
             <ActivityFeed projectId={project.id} />
           </TabsContent>
+
+          <TabsContent value="details" className="mt-6">
+            <ProjectDetailsTab
+              project={project}
+              lastUploadAt={photos.reduce<string | null>((acc, p) => {
+                const ts = (p as any).created_at as string | undefined;
+                if (!ts) return acc;
+                return !acc || ts > acc ? ts : acc;
+              }, null)}
+              onChanged={loadAll}
+            />
+          </TabsContent>
         </Tabs>
 
         <ErrorBoundary label="lightbox">
@@ -771,52 +774,6 @@ const ProjectDetail = () => {
           trigger={<span className="hidden" />}
         />
     </AppShell>
-  );
-};
-
-const META_DATE_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "long", year: "numeric" });
-const REL_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
-
-const ProjectMetaRow = ({
-  project,
-  lastUploadAt,
-}: {
-  project: Project;
-  lastUploadAt: string | null;
-}) => {
-  const items: { label: string; value: React.ReactNode }[] = [];
-  if (project.client_name) items.push({ label: "Client", value: project.client_name });
-  if (project.event_type) items.push({ label: "Type", value: project.event_type });
-  if (project.event_date) {
-    const [y, m, d] = project.event_date.split("-").map(Number);
-    items.push({ label: "Event date", value: META_DATE_FMT.format(new Date(y, m - 1, d)) });
-  }
-  if (project.event_location) items.push({ label: "Location", value: project.event_location });
-  if (project.overall_status && project.overall_status !== "no_status") {
-    const meta = projectStatusMeta(project.overall_status);
-    items.push({
-      label: "Status",
-      value: (
-        <span className="inline-flex items-center gap-1.5">
-          <span className={cn("h-2 w-2 rounded-full", meta.dotClass)} />
-          {meta.label}
-        </span>
-      ),
-    });
-  }
-  if (lastUploadAt) {
-    items.push({ label: "Last upload", value: REL_FMT.format(new Date(lastUploadAt)) });
-  }
-  if (items.length === 0) return null;
-  return (
-    <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs sm:text-sm">
-      {items.map((it) => (
-        <div key={it.label} className="flex items-center gap-1.5">
-          <dt className="text-muted-foreground">{it.label}:</dt>
-          <dd className="font-medium text-foreground">{it.value}</dd>
-        </div>
-      ))}
-    </dl>
   );
 };
 
