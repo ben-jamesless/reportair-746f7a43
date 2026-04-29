@@ -70,7 +70,7 @@ const updateField = async (
 ): Promise<boolean> => {
   const { error } = await supabase
     .from("projects")
-    .update(patch)
+    .update(patch as never)
     .eq("id", projectId);
   if (error) {
     toast.error(error.message);
