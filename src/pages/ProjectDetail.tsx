@@ -466,8 +466,15 @@ const ProjectDetail = () => {
       setExportDayLabel(null);
       setExportPhotoCount(photos.length);
     }
+    setExportLockMode(null); // top-level allows mode toggle
     setExportOpen(true);
   };
+
+  // Days available for the date-range picker (only those with photos)
+  const availableDaysForExport = useMemo(
+    () => days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length })),
+    [days],
+  );
 
   const accent = project.color || "#01696F";
 
