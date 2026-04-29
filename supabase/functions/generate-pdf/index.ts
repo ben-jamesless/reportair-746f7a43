@@ -179,7 +179,8 @@ Deno.serve(async (req) => {
         } catch (_) { /* skip logo */ }
       }
 
-      page.drawText(proj.name, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
+      const titleText = dayKey && dayLabel ? `${proj.name} — ${dayLabel}` : proj.name;
+      page.drawText(titleText, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
       y -= 60;
       if (proj.description) {
         const lines = wrapText(proj.description, font, 12, PAGE_W - 2 * M);
@@ -189,7 +190,9 @@ Deno.serve(async (req) => {
         }
       }
       // Stats footer
-      const stats = `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+      const stats = dayKey
+        ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+        : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 
