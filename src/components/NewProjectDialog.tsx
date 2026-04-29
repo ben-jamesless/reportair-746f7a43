@@ -307,7 +307,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
 
         <DialogFooter className="gap-2 sm:justify-between">
           <div>
-            {step > 1 && step <= 2 && (
+            {step > 1 && (
               <Button variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={busy}>Back</Button>
             )}
           </div>
@@ -321,14 +321,13 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
                 onClick={goNext}
                 disabled={busy || (step === 2 && !canAdvanceStep1)}
               >
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {step === 2 ? "Create & continue" : "Next"}
+                Next
               </Button>
             )}
             {step === TOTAL_STEPS && (
               <Button onClick={() => finish(false)} disabled={busy}>
                 {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Finish
+                Create project
               </Button>
             )}
           </div>
