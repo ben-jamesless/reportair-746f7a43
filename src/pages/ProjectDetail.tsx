@@ -275,8 +275,13 @@ const ProjectDetail = () => {
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
-              <ExportPdfDialog projectId={project.id} photoCount={photos.length} />
-              <PhotoUploader projectId={project.id} albumId={null} areaId={uploadAreaId} onUploaded={loadAll} />
+              <PhotoUploader
+                projectId={project.id}
+                albumId={uploadAlbumId}
+                areaId={uploadAreaId}
+                areas={areas}
+                onUploaded={loadAll}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               Uploading to: <span className="font-medium">{uploadContextLabel}</span>
