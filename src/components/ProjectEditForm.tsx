@@ -326,6 +326,23 @@ export const ProjectEditForm = ({
       </div>
 
       {!hideDangerZone && isOwner && (
+        <div className="rounded-md border bg-card p-3">
+          <div className="flex items-start gap-2">
+            <Archive className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Archive project</p>
+              <p className="text-xs text-muted-foreground">
+                Hide this project from your Projects page. Nothing is deleted and you can restore it at any time.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setConfirmingArchive(true)}>
+              <Archive className="mr-2 h-4 w-4" /> Archive
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!hideDangerZone && isOwner && (
         <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
@@ -341,6 +358,27 @@ export const ProjectEditForm = ({
           </div>
         </div>
       )}
+
+      <AlertDialog open={confirmingArchive} onOpenChange={(o) => !archiving && setConfirmingArchive(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It will be hidden from your Projects page but nothing will be deleted. You can restore it at any time from the archived view.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archiving}
+              onClick={(e) => { e.preventDefault(); confirmArchive(); }}
+            >
+              {archiving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Archive project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex justify-end gap-2">
         {onClose && (
