@@ -96,11 +96,13 @@ export const EditProjectDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Pencil className="mr-2 h-4 w-4" /> Edit
-        </Button>
-      </DialogTrigger>
+      {!openControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Pencil className="mr-2 h-4 w-4" /> Edit
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Edit project</DialogTitle>
