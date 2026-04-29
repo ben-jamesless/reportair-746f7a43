@@ -159,6 +159,13 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange }: Props) 
                 <Badge variant="secondary" className="font-normal">{photo.width} × {photo.height}</Badge>
               )}
             </div>
+
+            {photo.project_id && (
+              <>
+                <div className="h-px bg-border" />
+                <AnnotationsPanel photoId={photo.id} projectId={photo.project_id} />
+              </>
+            )}
           </aside>
         </div>
       </DialogContent>
