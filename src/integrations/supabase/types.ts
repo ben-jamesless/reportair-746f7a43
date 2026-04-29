@@ -178,7 +178,6 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
-          notes: string | null
           project_id: string
           sort_order: number
           updated_at: string
@@ -188,7 +187,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           name: string
-          notes?: string | null
           project_id: string
           sort_order?: number
           updated_at?: string
@@ -198,7 +196,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           name?: string
-          notes?: string | null
           project_id?: string
           sort_order?: number
           updated_at?: string
