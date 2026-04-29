@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -234,11 +234,11 @@ const ProjectDetail = () => {
   };
 
   // Identify the Pre-event album (if it exists)
-  const preEventAlbum = useMemo(() => albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null, [albums]);
+  const preEventAlbum = albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null;
 
   // Split photos: anything in the Pre-event album goes to the Pre-event bucket;
   // everything else groups by capture/upload date.
-  const { datedPhotos, preEventPhotos } = useMemo(() => {
+  const { datedPhotos, preEventPhotos } = (() => {
     const dated: LightboxPhoto[] = [];
     const pre: LightboxPhoto[] = [];
     for (const p of photos) {
@@ -246,10 +246,10 @@ const ProjectDetail = () => {
       else dated.push(p);
     }
     return { datedPhotos: dated, preEventPhotos: pre };
-  }, [photos, preEventAlbum]);
+  })();
 
   // Build day buckets from dated photos only
-  const days = useMemo(() => {
+  const days = (() => {
     const map = new Map<string, { key: string; label: string; date: Date; photos: LightboxPhoto[] }>();
     for (const ph of datedPhotos) {
       const k = dayKey(ph);
@@ -263,7 +263,7 @@ const ProjectDetail = () => {
       g.photos.push(ph);
     }
     return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [datedPhotos]);
+  })();
 
   // Auto-open first day on load
   useEffect(() => {
@@ -287,7 +287,7 @@ const ProjectDetail = () => {
   );
 
   // Photos shown in main grid
-  const visiblePhotos = useMemo(() => {
+  const visiblePhotos = (() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
     else if (activeDay === PRE_EVENT_DAY) pool = preEventPhotos;
@@ -295,13 +295,13 @@ const ProjectDetail = () => {
     if (activeArea === null) return pool;
     if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
     return pool.filter((p) => p.area_id === activeArea);
-  }, [activeDay, activeArea, days, photos, preEventPhotos]);
+  })();
 
-  const photoIndexById = useMemo(() => {
+  const photoIndexById = (() => {
     const m = new Map<string, number>();
     visiblePhotos.forEach((p, i) => m.set(p.id, i));
     return m;
-  }, [visiblePhotos]);
+  })();
 
   // Deep-link from notifications: ?photo=<id> opens the lightbox once photos load.
   useEffect(() => {
@@ -349,7 +349,7 @@ const ProjectDetail = () => {
   // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
   const uploadAreaId = activeArea && activeArea !== NO_AREA ? activeArea : null;
   const uploadAlbumId = activeDay === PRE_EVENT_DAY && preEventAlbum ? preEventAlbum.id : null;
-  const uploadContextLabel = useMemo(() => {
+  const uploadContextLabel = (() => {
     const parts: string[] = [];
     if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
     else if (activeDay !== ALL_DAYS) {
@@ -363,10 +363,10 @@ const ProjectDetail = () => {
       parts.push("Unassigned");
     }
     return parts.length ? parts.join(" · ") : "Event Gallery";
-  }, [activeDay, activeArea, uploadAreaId, days, areas]);
+  })();
 
   // Selection title
-  const selectionTitle = useMemo(() => {
+  const selectionTitle = (() => {
     if (activeDay === ALL_DAYS && activeArea === null) return "Event Gallery";
     const parts: string[] = [];
     if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
@@ -383,7 +383,7 @@ const ProjectDetail = () => {
       parts.push("Unassigned");
     }
     return parts.join(" · ");
-  }, [activeDay, activeArea, days, areas]);
+  })();
 
   // Export trigger state (shared by per-day icon and top-level button)
   const [exportDayKey, setExportDayKey] = useState<string | null>(null);
@@ -403,10 +403,7 @@ const ProjectDetail = () => {
 
   // Days available for the date-range picker (only those with photos).
   // MUST be declared before any early returns to keep hook order stable across renders.
-  const availableDaysForExport = useMemo(
-    () => days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length })),
-    [days],
-  );
+  const availableDaysForExport = days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length }));
 
   if (loading) {
     return (
