@@ -893,7 +893,13 @@ const ProjectDetail = () => {
                         key={p.id}
                         path={p.storage_path}
                         alt={p.caption || p.file_name}
-                        onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                        selectable={selectMode}
+                        selected={selectedIds.has(p.id)}
+                        onClick={() =>
+                          selectMode
+                            ? toggleSelect(p.id)
+                            : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                        }
                       />
                     ))}
                   </div>
