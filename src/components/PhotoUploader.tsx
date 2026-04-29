@@ -1,30 +1,51 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Upload, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { parseExif, getImageDimensions, sanitizeFileName } from "@/lib/photoUtils";
+
+type AreaOption = { id: string; name: string };
 
 interface Props {
   projectId: string;
   albumId: string | null;
   areaId?: string | null;
+  areas?: AreaOption[];
   onUploaded?: () => void;
 }
 
-export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }: Props) => {
+const NO_AREA = "__no_area__";
+
+export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded }: Props) => {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
+  const [selectedArea, setSelectedArea] = useState<string>(areaId ?? NO_AREA);
 
-  const handleFiles = async (files: FileList | null) => {
-    if (!files || !files.length || !user) return;
+  // Keep dropdown synced if context area changes between opens
+  useEffect(() => { setSelectedArea(areaId ?? NO_AREA); }, [areaId]);
+
+  const onFilesPicked = (files: FileList | null) => {
+    if (!files || !files.length) return;
     const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (!list.length) return toast.error("No image files selected");
+    if (!list.length) { toast.error("No image files selected"); return; }
+    setPendingFiles(list);
+    setSelectedArea(areaId ?? NO_AREA);
+  };
 
+  const runUpload = async () => {
+    if (!pendingFiles || !user) return;
+    const list = pendingFiles;
+    const targetArea = selectedArea === NO_AREA ? null : selectedArea;
+    setPendingFiles(null);
     setBusy(true);
     setProgress({ done: 0, total: list.length });
     let failures = 0;
@@ -49,7 +70,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }:
         const { error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
-          area_id: areaId,
+          area_id: targetArea,
           storage_path: key,
           file_name: file.name,
           mime_type: file.type,
@@ -86,7 +107,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }:
         multiple
         accept="image/*"
         className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
+        onChange={(e) => onFilesPicked(e.target.files)}
       />
       <Button onClick={() => inputRef.current?.click()} disabled={busy}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
@@ -97,6 +118,53 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }:
           <Progress value={(progress.done / progress.total) * 100} />
         </div>
       )}
+
+      <Dialog
+        open={!!pendingFiles}
+        onOpenChange={(open) => { if (!open) { setPendingFiles(null); if (inputRef.current) inputRef.current.value = ""; } }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload {pendingFiles?.length ?? 0} photo{(pendingFiles?.length ?? 0) === 1 ? "" : "s"}</DialogTitle>
+            <DialogDescription>
+              Confirm where these photos belong. The capture day comes from each photo's EXIF data.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex items-center gap-2 rounded-md border bg-muted/40 p-2 text-xs text-muted-foreground">
+              <ImageIcon className="h-4 w-4" />
+              {pendingFiles?.length} file{(pendingFiles?.length ?? 0) === 1 ? "" : "s"} selected
+            </div>
+
+            <div>
+              <Label htmlFor="upload-area">Add to area</Label>
+              <Select value={selectedArea} onValueChange={setSelectedArea}>
+                <SelectTrigger id="upload-area" className="mt-1">
+                  <SelectValue placeholder="Select an area" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_AREA}>Unassigned</SelectItem>
+                  {areas.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Applies to all {pendingFiles?.length ?? 0} photo{(pendingFiles?.length ?? 0) === 1 ? "" : "s"} in this batch.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPendingFiles(null); if (inputRef.current) inputRef.current.value = ""; }}>Cancel</Button>
+            <Button onClick={runUpload}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

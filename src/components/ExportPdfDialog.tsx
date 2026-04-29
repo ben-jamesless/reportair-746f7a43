@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, Loader2, Upload, AlertTriangle, Download, X } from "lucide-react";
+import { FileDown, Loader2, Upload, AlertTriangle, Download, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 const PHOTO_CAP = 300;
@@ -26,8 +26,31 @@ type Sections = {
 
 const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false };
 
-export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; photoCount: number }) => {
-  const [open, setOpen] = useState(false);
+type Props = {
+  projectId: string;
+  photoCount: number;
+  /** When set, scope export to this single day (YYYY-M-D, matches edge function dayKey) and label. */
+  dayKey?: string | null;
+  dayLabel?: string | null;
+  /** Render a custom trigger instead of the default "Export PDF" button. */
+  trigger?: React.ReactNode;
+  /** Controlled open (optional). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+export const ExportPdfDialog = ({
+  projectId,
+  photoCount,
+  dayKey = null,
+  dayLabel = null,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: Props) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
   const [accent, setAccent] = useState("#01696F");
   const [logoFile, setLogoFile] = useState<File | null>(null);
