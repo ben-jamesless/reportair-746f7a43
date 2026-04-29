@@ -1,8 +1,4 @@
-import {
-  PROJECT_STATUSES,
-  projectStatusMeta,
-  type ProjectStatus,
-} from "@/lib/projectStatus";
+import { projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
