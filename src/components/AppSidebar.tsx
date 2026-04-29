@@ -4,9 +4,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, FolderKanban, LogOut } from "lucide-react";
+import { Camera, FolderKanban, LogOut, Moon, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/useTheme";
 
 type NavItem = { label: string; to: string; icon: React.ComponentType<{ className?: string }> };
 
@@ -18,6 +19,7 @@ export const AppSidebar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
 
   const handleSignOut = async () => {
@@ -64,7 +66,25 @@ export const AppSidebar = () => {
         </nav>
 
         {/* User */}
-        <div className="border-t p-2 lg:p-3">
+        <div className="space-y-1 border-t p-2 lg:p-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                onClick={toggleTheme}
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                className="h-auto w-full justify-start gap-3 px-2 py-2 text-muted-foreground hover:text-foreground lg:px-3"
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
+                <span className="hidden text-sm lg:inline">
+                  {theme === "dark" ? "Light mode" : "Dark mode"}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="lg:hidden">
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </TooltipContent>
+          </Tooltip>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-auto w-full justify-start gap-3 px-2 py-2 lg:px-3">
