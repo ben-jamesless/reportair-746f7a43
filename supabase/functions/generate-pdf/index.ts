@@ -176,7 +176,7 @@ Deno.serve(async (req) => {
         "\u2013": "-", "\u2014": "-", "\u2212": "-",
         "\u2026": "...", "\u2022": "*", "\u00B7": "-",
       };
-      s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/gu, (c) => map[c] ?? "");
+      s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/gv, (c) => map[c] ?? "");
       // Strip remaining non-WinAnsi characters (keep printable ASCII + Latin-1 supplement).
       // Control characters \x09 (TAB), \x0A (LF), \x0D (CR) are intentionally allowed.
       // eslint-disable-next-line no-control-regex
