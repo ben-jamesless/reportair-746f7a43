@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
     if (sections.grid && allPhotos.length > 0) {
       // When day-scoped, group by area (in defined sort_order, then "Unassigned").
       // Otherwise, group by date as before.
-      type Group = { label: string; photos: any[] };
+      type Group = { label: string; photos: any[]; areaId?: string; dateKey?: string };
       let groups: Group[];
       if (dayKey) {
         const sortedAreas = (areas ?? []) as any[];
@@ -230,11 +230,15 @@ Deno.serve(async (req) => {
         groups = [];
         for (const ar of sortedAreas) {
           const list = byArea.get(ar.id);
-          if (list?.length) groups.push({ label: ar.name, photos: list });
+          if (list?.length) groups.push({ label: ar.name, photos: list, areaId: ar.id });
         }
         if (unassigned.length) groups.push({ label: "Unassigned", photos: unassigned });
       } else {
-        groups = groupByDate(allPhotos).map((g) => ({ label: g.label, photos: g.photos }));
+        groups = groupByDate(allPhotos).map((g) => {
+          const d = g.date;
+          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          return { label: g.label, photos: g.photos, dateKey: dKey };
+        });
       }
 
       // Layout: 3 cols x 3 rows per page = 9 thumbs
@@ -253,11 +257,64 @@ Deno.serve(async (req) => {
         }
       };
 
+      // For day-scoped exports, render the day comment once at the top (under the page header area).
+      if (dayKey) {
+        const note = dayNoteByDate.get(dayKey);
+        if (note) {
+          const lines = wrapText(note, font, 10, PAGE_W - 2 * M);
+          ensureSpace(lines.length * 14 + 18);
+          page.drawText("Day comment", { x: M, y: y - 12, size: 9, font: fontBold, color: ACCENT });
+          y -= 24;
+          for (const line of lines) {
+            ensureSpace(14);
+            page.drawText(line, { x: M, y: y - 10, size: 10, font, color: TEXT });
+            y -= 14;
+          }
+          y -= 10;
+        }
+      }
+
       for (const group of groups) {
         ensureSpace(40);
         page.drawRectangle({ x: M, y: y - 4, width: 24, height: 2, color: ACCENT });
-        page.drawText(`${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
+        // Header line: label · count [ · status]
+        let header = `${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`;
+        if (group.areaId) {
+          const ar = areaById.get(group.areaId) as any;
+          if (ar?.status && ar.status !== "no_status") {
+            header += `  ·  ${STATUS_LABEL[ar.status] ?? ar.status}`;
+          }
+        }
+        page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
         y -= 32;
+
+        // Per-area comment in day-scoped exports
+        if (group.areaId) {
+          const ar = areaById.get(group.areaId) as any;
+          if (ar?.notes && String(ar.notes).trim()) {
+            const lines = wrapText(String(ar.notes), font, 9, PAGE_W - 2 * M);
+            for (const line of lines) {
+              ensureSpace(12);
+              page.drawText(line, { x: M, y: y - 8, size: 9, font, color: MUTED });
+              y -= 12;
+            }
+            y -= 6;
+          }
+        }
+
+        // Day comment in date-grouped exports (full project export)
+        if (group.dateKey) {
+          const dn = dayNoteByDate.get(group.dateKey);
+          if (dn) {
+            const lines = wrapText(dn, font, 9, PAGE_W - 2 * M);
+            for (const line of lines) {
+              ensureSpace(12);
+              page.drawText(line, { x: M, y: y - 8, size: 9, font, color: MUTED });
+              y -= 12;
+            }
+            y -= 6;
+          }
+        }
 
         // Render photos in rows
         for (let i = 0; i < group.photos.length; i += COLS) {
