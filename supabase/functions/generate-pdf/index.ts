@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     const photoDayKey = (p: any) => {
       const raw = p.captured_at || p.created_at;
       const d = new Date(raw);
-      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     };
     if (dayKey) {
       allPhotos = allPhotos.filter((p) => photoDayKey(p) === dayKey);
