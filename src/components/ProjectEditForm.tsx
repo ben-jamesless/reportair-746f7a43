@@ -10,7 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, CalendarIcon, Check, Loader2, Trash2, X } from "lucide-react";
+import { AlertTriangle, Archive, CalendarIcon, Check, Loader2, Trash2, X } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
@@ -85,6 +95,10 @@ export const ProjectEditForm = ({
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Archive state
+  const [confirmingArchive, setConfirmingArchive] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+
   // Sync when the project changes externally
   useEffect(() => {
     setName(initialName);
@@ -143,6 +157,21 @@ export const ProjectEditForm = ({
     setDeleting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Project deleted");
+    onSaved?.();
+    onClose?.();
+    navigate("/projects");
+  };
+
+  const confirmArchive = async () => {
+    setArchiving(true);
+    const { error } = await supabase
+      .from("projects")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", projectId);
+    setArchiving(false);
+    if (error) { toast.error(error.message); return; }
+    setConfirmingArchive(false);
+    toast.success("Project archived");
     onSaved?.();
     onClose?.();
     navigate("/projects");
@@ -297,6 +326,23 @@ export const ProjectEditForm = ({
       </div>
 
       {!hideDangerZone && isOwner && (
+        <div className="rounded-md border bg-card p-3">
+          <div className="flex items-start gap-2">
+            <Archive className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Archive project</p>
+              <p className="text-xs text-muted-foreground">
+                Hide this project from your Projects page. Nothing is deleted and you can restore it at any time.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setConfirmingArchive(true)}>
+              <Archive className="mr-2 h-4 w-4" /> Archive
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!hideDangerZone && isOwner && (
         <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
@@ -312,6 +358,27 @@ export const ProjectEditForm = ({
           </div>
         </div>
       )}
+
+      <AlertDialog open={confirmingArchive} onOpenChange={(o) => !archiving && setConfirmingArchive(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It will be hidden from your Projects page but nothing will be deleted. You can restore it at any time from the archived view.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archiving}
+              onClick={(e) => { e.preventDefault(); confirmArchive(); }}
+            >
+              {archiving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Archive project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex justify-end gap-2">
         {onClose && (

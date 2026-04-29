@@ -6,7 +6,8 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
@@ -39,6 +40,7 @@ type Project = {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  archived_at: string | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
@@ -71,7 +73,9 @@ const dayKey = (p: LightboxPhoto): string => {
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
@@ -90,7 +94,7 @@ const ProjectDetail = () => {
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name, archived_at").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
       supabase
@@ -122,6 +126,27 @@ const ProjectDetail = () => {
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  useEffect(() => {
+    (async () => {
+      if (!user || !id) return;
+      const { data } = await supabase
+        .from("project_members")
+        .select("role")
+        .eq("project_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setIsOwner(data?.role === "owner");
+    })();
+  }, [user, id]);
+
+  const restoreProject = async () => {
+    if (!id) return;
+    const { error } = await supabase.from("projects").update({ archived_at: null }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Project restored");
+    loadAll();
+  };
 
   // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
   const getAreaDayNote = (areaId: string, dateKey: string): string | null =>

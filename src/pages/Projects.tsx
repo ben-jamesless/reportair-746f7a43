@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown } from "lucide-react";
+import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown, Archive, ArchiveRestore } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
@@ -54,6 +55,7 @@ type Project = {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  archived_at: string | null;
 };
 
 type SortKey = "alpha" | "created" | "event_date" | "last_upload";
@@ -79,6 +81,7 @@ const Projects = () => {
   const [filterEventType, setFilterEventType] = useState<string>(ALL);
   const [filterStatus, setFilterStatus] = useState<string>(ALL);
   const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     if (!user) return;
@@ -111,9 +114,8 @@ const Projects = () => {
 
     const { data: projs } = await supabase
       .from("projects")
-      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name")
+      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at")
       .eq("team_id", team.id)
-      .is("archived_at", null)
       .order("created_at", { ascending: false });
 
     const list = (projs ?? []) as Project[];
@@ -155,9 +157,15 @@ const Projects = () => {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [projects]);
 
+  const archivedCount = useMemo(
+    () => projects.filter((p) => p.archived_at).length,
+    [projects],
+  );
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let arr = projects.filter((p) => {
+      if (!showArchived && p.archived_at) return false;
       if (filterClient !== ALL && (p.client_name ?? "") !== filterClient) return false;
       if (filterEventType !== ALL && (p.event_type ?? "") !== filterEventType) return false;
       if (filterStatus !== ALL && (p.overall_status ?? "no_status") !== filterStatus) return false;
@@ -194,7 +202,7 @@ const Projects = () => {
       }
     });
     return arr;
-  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads]);
+  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived]);
 
   const filtersActive =
     !!search.trim() ||
@@ -211,7 +219,19 @@ const Projects = () => {
     setSortKey("created");
   };
 
+  const setProjectArchived = async (p: Project, archived: boolean) => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq("id", p.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(archived ? "Project archived" : "Project restored");
+    load();
+  };
+
   const showSkeleton = authLoading || loading;
+  const nonArchivedCount = projects.length - archivedCount;
+  const hasAnyVisibleSource = (showArchived ? projects.length : nonArchivedCount) > 0;
 
   return (
     <AppShell crumbs={[{ label: "Projects" }]}>
@@ -220,12 +240,12 @@ const Projects = () => {
           {teamName && <p className="text-sm text-muted-foreground">{teamName}</p>}
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
         </div>
-        {!showSkeleton && projects.length > 0 && (
+        {!showSkeleton && nonArchivedCount > 0 && (
           <NewProjectDialog teamId={teamId} onCreated={load} />
         )}
       </div>
 
-      {!showSkeleton && projects.length > 0 && (
+      {!showSkeleton && hasAnyVisibleSource && (
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[200px] flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -307,12 +327,26 @@ const Projects = () => {
               <X className="mr-1.5 h-3.5 w-3.5" /> Clear
             </Button>
           )}
+
+          {archivedCount > 0 && (
+            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <Switch
+                checked={showArchived}
+                onCheckedChange={setShowArchived}
+                aria-label="Show archived projects"
+              />
+              <span>
+                Show archived
+                <span className="ml-1 text-muted-foreground/70">({archivedCount})</span>
+              </span>
+            </label>
+          )}
         </div>
       )}
 
       {showSkeleton ? (
         <ProjectGridSkeleton />
-      ) : projects.length === 0 ? (
+      ) : !hasAnyVisibleSource ? (
         <EmptyState
           className="mx-auto max-w-xl"
           icon={<Camera className="h-6 w-6" />}
@@ -346,18 +380,30 @@ const Projects = () => {
             const lastUpload = lastUploads.get(p.id);
             const statusMeta = projectStatusMeta(p.overall_status);
             const showStatus = (p.overall_status ?? "no_status") !== "no_status";
+            const isArchived = !!p.archived_at;
             return (
-              <div key={p.id} className="group relative">
+              <div key={p.id} className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}>
                 <Link to={`/projects/${p.id}`} className="block">
                   <Card
-                    className="relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40"
+                    className={cn(
+                      "relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40",
+                      isArchived && "bg-muted/30",
+                    )}
                     style={{ borderLeftColor: color }}
                   >
                     <div className="p-5 pr-12">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-                          {p.template === "event_production" ? "Event" : "Project"}
-                        </Badge>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                            {p.template === "event_production" ? "Event" : "Project"}
+                          </Badge>
+                          {isArchived && (
+                            <Badge variant="outline" className="gap-1 text-[10px] uppercase tracking-wide">
+                              <Archive className="h-2.5 w-2.5" />
+                              Archived
+                            </Badge>
+                          )}
+                        </div>
                         {showStatus && (
                           <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                             <span className={cn("h-2 w-2 rounded-full", statusMeta.dotClass)} />
@@ -404,6 +450,15 @@ const Projects = () => {
                       <DropdownMenuItem onSelect={() => setEditingProject(p)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
+                      {isArchived ? (
+                        <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
+                          <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
+                          <Archive className="mr-2 h-4 w-4" /> Archive
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
