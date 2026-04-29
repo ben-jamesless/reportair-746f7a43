@@ -13,6 +13,9 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
+import { EditableNote } from "@/components/EditableNote";
+import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type Project = {
@@ -23,7 +26,8 @@ type Project = {
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
-type Area = { id: string; name: string; sort_order: number };
+type Area = { id: string; name: string; sort_order: number; notes: string | null; status: AreaStatus };
+type DayNote = { date: string; notes: string | null };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
