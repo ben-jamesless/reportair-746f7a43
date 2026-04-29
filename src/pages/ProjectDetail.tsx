@@ -127,6 +127,27 @@ const ProjectDetail = () => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
+  useEffect(() => {
+    (async () => {
+      if (!user || !id) return;
+      const { data } = await supabase
+        .from("project_members")
+        .select("role")
+        .eq("project_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setIsOwner(data?.role === "owner");
+    })();
+  }, [user, id]);
+
+  const restoreProject = async () => {
+    if (!id) return;
+    const { error } = await supabase.from("projects").update({ archived_at: null }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Project restored");
+    loadAll();
+  };
+
   // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
   const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
     areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
