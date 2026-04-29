@@ -31,6 +31,11 @@ type Project = {
   description: string | null;
   template: string;
   color: string | null;
+  event_date: string | null;
+  event_location: string | null;
+  overall_status: ProjectStatus | null;
+  event_type: string | null;
+  client_name: string | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
@@ -80,7 +85,7 @@ const ProjectDetail = () => {
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
       supabase
