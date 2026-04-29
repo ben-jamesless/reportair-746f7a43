@@ -87,9 +87,9 @@ const SharePage = () => {
     setData(r);
   };
 
-  const photos = data?.photos ?? [];
-  const albums = data?.albums ?? [];
-  const areas = data?.areas ?? [];
+  const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
+  const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
+  const areas = useMemo(() => data?.areas ?? [], [data?.areas]);
   const dayNotesMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.day_notes ?? []).forEach((d) => { if (d.notes && d.notes.trim()) m.set(d.date, d.notes); });
