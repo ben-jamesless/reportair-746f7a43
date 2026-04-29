@@ -12,6 +12,7 @@ import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
+import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { cn } from "@/lib/utils";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 
