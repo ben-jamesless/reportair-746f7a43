@@ -157,9 +157,15 @@ const Projects = () => {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [projects]);
 
+  const archivedCount = useMemo(
+    () => projects.filter((p) => p.archived_at).length,
+    [projects],
+  );
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let arr = projects.filter((p) => {
+      if (!showArchived && p.archived_at) return false;
       if (filterClient !== ALL && (p.client_name ?? "") !== filterClient) return false;
       if (filterEventType !== ALL && (p.event_type ?? "") !== filterEventType) return false;
       if (filterStatus !== ALL && (p.overall_status ?? "no_status") !== filterStatus) return false;
