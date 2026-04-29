@@ -562,16 +562,16 @@ const ProjectDetail = () => {
                           const st = getAreaDayStatus(ar.id, activeDay);
                           return (
                             <div key={ar.id}>
-                              <div className="mb-2 flex items-center gap-2">
-                                <AreaStatusPicker
-                                  value={st}
-                                  onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
-                                  size="md"
-                                />
+                              <div className="mb-2 flex flex-wrap items-center gap-2">
                                 <h3 className="text-base font-semibold">{ar.name}</h3>
                                 <span className="text-xs text-muted-foreground">
                                   {list.length} photo{list.length === 1 ? "" : "s"}
                                 </span>
+                                <AreaStatusPicker
+                                  value={st}
+                                  onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
+                                  className="ml-auto"
+                                />
                               </div>
                               <div className="mb-3">
                                 <EditableNote
