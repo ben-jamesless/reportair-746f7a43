@@ -1,22 +1,43 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Pencil, Check, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle, CalendarIcon, Check, Loader2, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
+import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/projectStatus";
 
-interface Props {
+export interface EditProjectInitial {
+  name: string;
+  description: string | null;
+  color: string | null;
+  event_date: string | null; // ISO yyyy-mm-dd
+  event_location: string | null;
+  overall_status: ProjectStatus | null;
+  event_type: string | null;
+  client_name: string | null;
+}
+
+interface Props extends EditProjectInitial {
   projectId: string;
-  initialName: string;
-  initialDescription: string | null;
-  initialColor: string | null;
   onChanged?: () => void;
   /** When true, hides the built-in trigger button and uses controlled open. */
   openControlled?: boolean;
@@ -24,9 +45,35 @@ interface Props {
   onOpenChange?: (next: boolean) => void;
 }
 
+const toIsoDate = (d: Date | undefined): string | null => {
+  if (!d) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const fromIsoDate = (s: string | null): Date | undefined => {
+  if (!s) return undefined;
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return undefined;
+  return new Date(y, m - 1, d);
+};
+
 export const EditProjectDialog = ({
-  projectId, initialName, initialDescription, initialColor, onChanged,
-  openControlled, open: openProp, onOpenChange,
+  projectId,
+  name: initialName,
+  description: initialDescription,
+  color: initialColor,
+  event_date: initialEventDate,
+  event_location: initialEventLocation,
+  overall_status: initialStatus,
+  event_type: initialEventType,
+  client_name: initialClient,
+  onChanged,
+  openControlled,
+  open: openProp,
+  onOpenChange,
 }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -36,9 +83,16 @@ export const EditProjectDialog = ({
     if (openControlled) onOpenChange?.(next);
     else setInternalOpen(next);
   };
+
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
   const [color, setColor] = useState(initialColor || DEFAULT_PROJECT_COLOR);
+  const [eventDate, setEventDate] = useState<Date | undefined>(fromIsoDate(initialEventDate));
+  const [eventLocation, setEventLocation] = useState(initialEventLocation ?? "");
+  const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
+  const [eventType, setEventType] = useState(initialEventType ?? "");
+  const [clientName, setClientName] = useState(initialClient ?? "");
+
   const [busy, setBusy] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
 
@@ -52,6 +106,11 @@ export const EditProjectDialog = ({
     setName(initialName);
     setDescription(initialDescription ?? "");
     setColor(initialColor || DEFAULT_PROJECT_COLOR);
+    setEventDate(fromIsoDate(initialEventDate));
+    setEventLocation(initialEventLocation ?? "");
+    setStatus(initialStatus ?? "no_status");
+    setEventType(initialEventType ?? "");
+    setClientName(initialClient ?? "");
     setConfirmingDelete(false);
     setConfirmText("");
     (async () => {
@@ -64,14 +123,24 @@ export const EditProjectDialog = ({
         .maybeSingle();
       setIsOwner(data?.role === "owner");
     })();
-  }, [open, user, projectId, initialName, initialDescription, initialColor]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const save = async () => {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
     const { error } = await supabase
       .from("projects")
-      .update({ name: name.trim(), description: description.trim() || null, color })
+      .update({
+        name: name.trim(),
+        description: description.trim() || null,
+        color,
+        event_date: toIsoDate(eventDate),
+        event_location: eventLocation.trim() || null,
+        overall_status: status,
+        event_type: eventType.trim() || null,
+        client_name: clientName.trim() || null,
+      })
       .eq("id", projectId);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
@@ -91,6 +160,7 @@ export const EditProjectDialog = ({
     if (error) { toast.error(error.message); return; }
     toast.success("Project deleted");
     setOpen(false);
+    onChanged?.();
     navigate("/projects");
   };
 
@@ -103,49 +173,118 @@ export const EditProjectDialog = ({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit project</DialogTitle>
-          <DialogDescription>Update the name, description, and accent colour.</DialogDescription>
+          <DialogDescription>Update project details and event information.</DialogDescription>
         </DialogHeader>
 
         {!confirmingDelete ? (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Project name</Label>
-              <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-desc">Description</Label>
-              <Textarea id="edit-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-            </div>
-            <div className="space-y-2">
-              <Label>Accent colour</Label>
-              <div className="flex flex-wrap items-center gap-2">
-                {PROJECT_COLOR_PALETTE.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setColor(c)}
-                    aria-label={`Select color ${c}`}
-                    className={cn(
-                      "relative h-7 w-7 rounded-full border transition-transform hover:scale-110",
-                      color === c && "ring-2 ring-offset-2 ring-foreground/40",
-                    )}
-                    style={{ backgroundColor: c }}
-                  >
-                    {color === c && <Check className="absolute inset-0 m-auto h-3.5 w-3.5 text-white drop-shadow" />}
-                  </button>
-                ))}
-                <div className="ml-2 flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                    className="h-8 w-10 cursor-pointer rounded border"
-                    aria-label="Custom color picker"
-                  />
-                  <Input value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-28 font-mono text-xs" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-name">Project name</Label>
+                <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-desc">Description</Label>
+                <Textarea id="edit-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-client">Client</Label>
+                <Input id="edit-client" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. Acme Corp" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-event-type">Event type</Label>
+                <Input id="edit-event-type" value={eventType} onChange={(e) => setEventType(e.target.value)} placeholder="e.g. Conference, Wedding" />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Event date</Label>
+                <div className="flex gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          "flex-1 justify-start text-left font-normal",
+                          !eventDate && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {eventDate ? format(eventDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={eventDate}
+                        onSelect={setEventDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {eventDate && (
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setEventDate(undefined)} aria-label="Clear date">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-location">Event location</Label>
+                <Input id="edit-location" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="e.g. London, UK" />
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Overall status</Label>
+                <Select value={status} onValueChange={(v) => setStatus(v as ProjectStatus)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <span className="flex items-center gap-2">
+                          <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
+                          {s.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Accent colour</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {PROJECT_COLOR_PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setColor(c)}
+                      aria-label={`Select color ${c}`}
+                      className={cn(
+                        "relative h-7 w-7 rounded-full border transition-transform hover:scale-110",
+                        color === c && "ring-2 ring-offset-2 ring-foreground/40",
+                      )}
+                      style={{ backgroundColor: c }}
+                    >
+                      {color === c && <Check className="absolute inset-0 m-auto h-3.5 w-3.5 text-white drop-shadow" />}
+                    </button>
+                  ))}
+                  <div className="ml-2 flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="h-8 w-10 cursor-pointer rounded border"
+                      aria-label="Custom color picker"
+                    />
+                    <Input value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-28 font-mono text-xs" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -160,11 +299,7 @@ export const EditProjectDialog = ({
                       Permanently delete this project and all of its photos, areas, comments, and history. This cannot be undone.
                     </p>
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setConfirmingDelete(true)}
-                  >
+                  <Button variant="destructive" size="sm" onClick={() => setConfirmingDelete(true)}>
                     <Trash2 className="mr-2 h-4 w-4" /> Delete
                   </Button>
                 </div>
