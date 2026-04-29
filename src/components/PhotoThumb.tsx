@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
-import { ImageIcon } from "lucide-react";
+import { Check, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -9,6 +9,10 @@ interface Props {
   onClick?: () => void;
   /** Render priority — if true, loads eagerly (e.g. above-the-fold). Default: lazy via IntersectionObserver. */
   priority?: boolean;
+  /** When true, shows a checkbox overlay (always visible if selected, on hover otherwise). */
+  selectable?: boolean;
+  /** Whether this photo is currently selected. */
+  selected?: boolean;
 }
 
 /**
@@ -18,7 +22,7 @@ interface Props {
  * - Shows a soft animated placeholder until the bitmap finishes decoding,
  *   then fades in (blurhash-style behaviour without requiring a hash payload).
  */
-export const PhotoThumb = ({ path, alt, onClick, priority = false }: Props) => {
+export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = false, selected = false }: Props) => {
   const ref = useRef<HTMLButtonElement | null>(null);
   const [inView, setInView] = useState(priority);
   const [loaded, setLoaded] = useState(false);
@@ -54,7 +58,11 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false }: Props) => {
       type="button"
       onClick={onClick}
       aria-label={alt}
-      className="group relative aspect-square w-full overflow-hidden rounded-md bg-muted ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-pressed={selectable ? selected : undefined}
+      className={cn(
+        "group relative aspect-square w-full overflow-hidden rounded-md bg-muted ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        selectable && selected && "ring-2 ring-primary ring-offset-2",
+      )}
     >
       {/* Animated LQIP placeholder — visible until the image decodes. */}
       <div
@@ -87,6 +95,28 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false }: Props) => {
             <ImageIcon className="h-6 w-6" />
           </div>
         )
+      )}
+      {selectable && (
+        <>
+          <div
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 bg-primary/10 transition-opacity",
+              selected ? "opacity-100" : "opacity-0",
+            )}
+          />
+          <span
+            aria-hidden
+            className={cn(
+              "absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 transition",
+              selected
+                ? "border-primary bg-primary text-primary-foreground opacity-100"
+                : "border-white/80 bg-black/40 text-transparent opacity-0 group-hover:opacity-100",
+            )}
+          >
+            <Check className="h-3.5 w-3.5" />
+          </span>
+        </>
       )}
     </button>
   );

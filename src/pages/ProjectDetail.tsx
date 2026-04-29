@@ -90,6 +90,42 @@ const ProjectDetail = () => {
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">("photos");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }, []);
+
+  const toggleSelect = useCallback((photoId: string) => {
+    setSelectedIds((cur) => {
+      const next = new Set(cur);
+      if (next.has(photoId)) next.delete(photoId);
+      else next.add(photoId);
+      return next;
+    });
+  }, []);
+
+  // Escape exits selection mode
+  useEffect(() => {
+    if (!selectMode) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") exitSelectMode(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectMode, exitSelectMode]);
+
+  const bulkAssignArea = useCallback(async (areaId: string | null) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("photos").update({ area_id: areaId }).in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    const label = areaId === null ? "Unassigned" : (areas.find((a) => a.id === areaId)?.name ?? "area");
+    toast.success(`Assigned ${ids.length} photo${ids.length === 1 ? "" : "s"} to ${label}`);
+    // Optimistically update local photos
+    setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, area_id: areaId } : p)));
+    exitSelectMode();
+  }, [selectedIds, areas, exitSelectMode]);
 
   const loadAll = useCallback(async () => {
     if (!id) return;
@@ -673,12 +709,61 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                <div className="mb-4 flex items-baseline justify-between gap-3">
-                  <h2 className="text-lg font-semibold">{selectionTitle}</h2>
-                  <span className="text-xs text-muted-foreground">
-                    {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                  </span>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-lg font-semibold">{selectionTitle}</h2>
+                    <span className="text-xs text-muted-foreground">
+                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  {visiblePhotos.length > 0 && !selectMode && (
+                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
+                      Select
+                    </Button>
+                  )}
                 </div>
+
+                {/* Bulk-selection toolbar */}
+                {selectMode && (
+                  <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
+                    <span className="text-sm font-medium">
+                      {selectedIds.size} selected
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        const allVisible = visiblePhotos.map((p) => p.id);
+                        const allSelected = allVisible.every((pid) => selectedIds.has(pid));
+                        setSelectedIds(allSelected ? new Set() : new Set(allVisible));
+                      }}
+                    >
+                      {visiblePhotos.every((p) => selectedIds.has(p.id)) && visiblePhotos.length > 0
+                        ? "Clear all"
+                        : "Select all"}
+                    </Button>
+                    <div className="ml-auto flex items-center gap-2">
+                      <Select
+                        value=""
+                        onValueChange={(v) => bulkAssignArea(v === "__none__" ? null : v)}
+                        disabled={selectedIds.size === 0}
+                      >
+                        <SelectTrigger className="h-9 w-[200px]">
+                          <SelectValue placeholder="Assign area…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Unassigned</SelectItem>
+                          {areas.map((ar) => (
+                            <SelectItem key={ar.id} value={ar.id}>{ar.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" variant="outline" onClick={exitSelectMode}>
+                        Done
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Daily updates note shown at the top of the main panel when a dated day is active */}
                 {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
@@ -759,7 +844,13 @@ const ProjectDetail = () => {
                                     key={p.id}
                                     path={p.storage_path}
                                     alt={p.caption || p.file_name}
-                                    onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                                    selectable={selectMode}
+                                    selected={selectedIds.has(p.id)}
+                                    onClick={() =>
+                                      selectMode
+                                        ? toggleSelect(p.id)
+                                        : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                                    }
                                   />
                                 ))}
                               </div>
@@ -780,7 +871,13 @@ const ProjectDetail = () => {
                                   key={p.id}
                                   path={p.storage_path}
                                   alt={p.caption || p.file_name}
-                                  onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                                  selectable={selectMode}
+                                  selected={selectedIds.has(p.id)}
+                                  onClick={() =>
+                                    selectMode
+                                      ? toggleSelect(p.id)
+                                      : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                                  }
                                 />
                               ))}
                             </div>
@@ -796,7 +893,13 @@ const ProjectDetail = () => {
                         key={p.id}
                         path={p.storage_path}
                         alt={p.caption || p.file_name}
-                        onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                        selectable={selectMode}
+                        selected={selectedIds.has(p.id)}
+                        onClick={() =>
+                          selectMode
+                            ? toggleSelect(p.id)
+                            : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                        }
                       />
                     ))}
                   </div>
