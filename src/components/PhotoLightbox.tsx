@@ -54,6 +54,22 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   const photo = index !== null ? photos[i] : null;
   const url = useSignedUrl(photo?.storage_path ?? null);
+  const [notes, setNotes] = useState<GuestNote[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    if (!photo || !projectId) { setNotes([]); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("guest_notes")
+        .select("id, guest_name, guest_email, body, created_at")
+        .eq("project_id", projectId)
+        .eq("photo_id", photo.id)
+        .order("created_at", { ascending: false });
+      if (alive) setNotes((data ?? []) as GuestNote[]);
+    })();
+    return () => { alive = false; };
+  }, [photo?.id, projectId]);
 
   useEffect(() => {
     if (index === null) return;
