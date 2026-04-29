@@ -6,6 +6,7 @@ import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PhotoCommentsThread } from "@/components/PhotoCommentsThread";
 
 export type LightboxPhoto = {
   id: string;
@@ -42,13 +43,15 @@ interface Props {
   onAreaChanged?: (photoId: string, areaId: string | null) => void;
   onAlbumChanged?: (photoId: string, albumId: string | null) => void;
   projectId?: string;
+  /** True when the viewer is the project owner — enables deleting any team comment. */
+  isOwner?: boolean;
 }
 
 const UNASSIGNED = "__unassigned__";
 
 type GuestNote = { id: string; guest_name: string; guest_email: string | null; body: string; created_at: string };
 
-export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId }: Props) => {
+export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId, isOwner = false }: Props) => {
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
@@ -204,6 +207,10 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 </Row>
               )}
             </div>
+
+            {projectId && photo && (
+              <PhotoCommentsThread projectId={projectId} photoId={photo.id} isOwner={isOwner} />
+            )}
 
             {projectId && (
               <div className="border-t pt-4">
