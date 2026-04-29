@@ -49,6 +49,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }:
         const { error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
+          area_id: areaId,
           storage_path: key,
           file_name: file.name,
           mime_type: file.type,
