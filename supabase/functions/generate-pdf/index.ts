@@ -103,6 +103,36 @@ Deno.serve(async (req) => {
     const font = await pdf.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
+    // Sanitize text so pdf-lib's WinAnsi-only standard fonts never throw.
+    // Replaces smart quotes, dashes, exotic spaces, etc. with ASCII equivalents
+    // and strips anything else outside the basic WinAnsi range.
+    const sanitize = (input: unknown): string => {
+      if (input === null || input === undefined) return "";
+      let s = String(input);
+      const map: Record<string, string> = {
+        "\u00A0": " ", "\u2007": " ", "\u2009": " ", "\u200A": " ",
+        "\u202F": " ", "\u205F": " ", "\u3000": " ", "\u200B": "",
+        "\u200C": "", "\u200D": "", "\uFEFF": "",
+        "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
+        "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
+        "\u2013": "-", "\u2014": "-", "\u2212": "-",
+        "\u2026": "...", "\u2022": "*", "\u00B7": "-",
+      };
+      s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
+      // Strip remaining non-WinAnsi characters (keep printable ASCII + Latin-1 supplement)
+      s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
+      return s;
+    };
+
+    // Wrap drawText so every string passes through sanitize()
+    const _wrapDraw = (p: any) => {
+      const orig = p.drawText.bind(p);
+      p.drawText = (text: string, opts: any) => orig(sanitize(text), opts);
+      return p;
+    };
+    const origAddPage = pdf.addPage.bind(pdf);
+    pdf.addPage = ((...args: any[]) => _wrapDraw((origAddPage as any)(...args))) as any;
+
     const PAGE_W = 595.28; // A4
     const PAGE_H = 841.89;
     const M = 40;
