@@ -709,12 +709,61 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                <div className="mb-4 flex items-baseline justify-between gap-3">
-                  <h2 className="text-lg font-semibold">{selectionTitle}</h2>
-                  <span className="text-xs text-muted-foreground">
-                    {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                  </span>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-baseline gap-3">
+                    <h2 className="text-lg font-semibold">{selectionTitle}</h2>
+                    <span className="text-xs text-muted-foreground">
+                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  {visiblePhotos.length > 0 && !selectMode && (
+                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
+                      Select
+                    </Button>
+                  )}
                 </div>
+
+                {/* Bulk-selection toolbar */}
+                {selectMode && (
+                  <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
+                    <span className="text-sm font-medium">
+                      {selectedIds.size} selected
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        const allVisible = visiblePhotos.map((p) => p.id);
+                        const allSelected = allVisible.every((pid) => selectedIds.has(pid));
+                        setSelectedIds(allSelected ? new Set() : new Set(allVisible));
+                      }}
+                    >
+                      {visiblePhotos.every((p) => selectedIds.has(p.id)) && visiblePhotos.length > 0
+                        ? "Clear all"
+                        : "Select all"}
+                    </Button>
+                    <div className="ml-auto flex items-center gap-2">
+                      <Select
+                        value=""
+                        onValueChange={(v) => bulkAssignArea(v === "__none__" ? null : v)}
+                        disabled={selectedIds.size === 0}
+                      >
+                        <SelectTrigger className="h-9 w-[200px]">
+                          <SelectValue placeholder="Assign area…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Unassigned</SelectItem>
+                          {areas.map((ar) => (
+                            <SelectItem key={ar.id} value={ar.id}>{ar.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" variant="outline" onClick={exitSelectMode}>
+                        Done
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Daily updates note shown at the top of the main panel when a dated day is active */}
                 {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
