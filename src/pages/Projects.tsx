@@ -336,7 +336,7 @@ const Projects = () => {
 
       {showSkeleton ? (
         <ProjectGridSkeleton />
-      ) : projects.length === 0 ? (
+      ) : !hasAnyVisibleSource ? (
         <EmptyState
           className="mx-auto max-w-xl"
           icon={<Camera className="h-6 w-6" />}
