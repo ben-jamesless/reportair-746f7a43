@@ -227,12 +227,12 @@ const ProjectDetail = () => {
     } else if (activeArea === NO_AREA) {
       parts.push("Unassigned");
     }
-    return parts.length ? parts.join(" · ") : "All photos";
+    return parts.length ? parts.join(" · ") : "Event Gallery";
   }, [activeDay, activeArea, uploadAreaId, days, areas]);
 
   // Selection title
   const selectionTitle = useMemo(() => {
-    if (activeDay === ALL_DAYS && activeArea === null) return "All photos";
+    if (activeDay === ALL_DAYS && activeArea === null) return "Event Gallery";
     const parts: string[] = [];
     if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
     else if (activeDay !== ALL_DAYS) {
