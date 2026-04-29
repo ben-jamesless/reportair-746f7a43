@@ -145,7 +145,7 @@ const SharePage = () => {
 
         <Tabs value={activeAlbum} onValueChange={setActiveAlbum} className="w-full">
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
-            <TabsTrigger value={ALL} className="data-[state=active]:bg-secondary">All photos <span className="ml-2 text-xs text-muted-foreground">{photos.length}</span></TabsTrigger>
+            <TabsTrigger value={ALL} className="data-[state=active]:bg-secondary">Event Gallery <span className="ml-2 text-xs text-muted-foreground">{photos.length}</span></TabsTrigger>
             {albums.map((a) => (
               <TabsTrigger key={a.id} value={a.id} className="data-[state=active]:bg-secondary">
                 {a.name} <span className="ml-2 text-xs text-muted-foreground">{photos.filter((p) => p.album_id === a.id).length}</span>
