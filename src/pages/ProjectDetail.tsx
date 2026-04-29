@@ -743,8 +743,7 @@ const ProjectDetail = () => {
           onOpenChange={setExportOpen}
           trigger={<span className="hidden" />}
         />
-      </main>
-    </div>
+    </AppShell>
   );
 };
 
