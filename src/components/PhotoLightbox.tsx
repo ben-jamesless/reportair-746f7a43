@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, X, MapPin, Calendar, Camera, Aperture } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MapPin, Calendar, Camera, Aperture, MapPinned } from "lucide-react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type LightboxPhoto = {
   id: string;
@@ -22,16 +25,23 @@ export type LightboxPhoto = {
   gps_lng: number | null;
   width: number | null;
   height: number | null;
+  area_id: string | null;
 };
+
+export type LightboxArea = { id: string; name: string };
 
 interface Props {
   photos: LightboxPhoto[];
   index: number | null;
   onClose: () => void;
   onIndexChange: (i: number) => void;
+  areas?: LightboxArea[];
+  onAreaChanged?: (photoId: string, areaId: string | null) => void;
 }
 
-export const PhotoLightbox = ({ photos, index, onClose, onIndexChange }: Props) => {
+const UNASSIGNED = "__unassigned__";
+
+export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], onAreaChanged }: Props) => {
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
