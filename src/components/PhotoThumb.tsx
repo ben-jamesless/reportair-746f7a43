@@ -58,7 +58,11 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = 
       type="button"
       onClick={onClick}
       aria-label={alt}
-      className="group relative aspect-square w-full overflow-hidden rounded-md bg-muted ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-pressed={selectable ? selected : undefined}
+      className={cn(
+        "group relative aspect-square w-full overflow-hidden rounded-md bg-muted ring-offset-background transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        selectable && selected && "ring-2 ring-primary ring-offset-2",
+      )}
     >
       {/* Animated LQIP placeholder — visible until the image decodes. */}
       <div
