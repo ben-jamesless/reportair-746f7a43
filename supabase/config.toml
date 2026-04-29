@@ -1,1 +1,4 @@
 project_id = "asasikikrapixgznhmzl"
+
+[functions.share-photo-url]
+verify_jwt = false
