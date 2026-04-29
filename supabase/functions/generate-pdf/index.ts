@@ -216,19 +216,31 @@ Deno.serve(async (req) => {
             // placeholder bg
             page.drawRectangle({ x, y: rowTop - imgH, width: colW, height: imgH, color: rgb(0.92, 0.92, 0.92) });
             try {
-              const { data: signed } = await supabase.storage.from("photos").createSignedUrl(ph.storage_path, 600);
-              if (signed?.signedUrl) {
-                const r = await fetch(signed.signedUrl);
+              // Use Supabase image transform to force JPEG output (handles HEIC, WebP, etc.)
+              const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
+                ph.storage_path,
+                600,
+                { transform: { width: 1200, quality: 80, format: "origin" } as any },
+              );
+              // Fallback: also build a transform URL manually since SDK types vary
+              const baseUrl = signed?.signedUrl;
+              const transformedUrl = baseUrl
+                ? baseUrl.replace("/object/sign/", "/render/image/sign/") + "&width=1200&quality=80"
+                : null;
+              if (transformedUrl) {
+                let r = await fetch(transformedUrl);
+                if (!r.ok && baseUrl) r = await fetch(baseUrl); // fall back to original
                 if (r.ok) {
                   const bytes = new Uint8Array(await r.arrayBuffer());
                   const ct = r.headers.get("content-type") || "";
-                  let img;
+                  let img: any = null;
                   try {
                     if (ct.includes("png")) img = await pdf.embedPng(bytes);
                     else img = await pdf.embedJpg(bytes);
                   } catch {
-                    try { img = await pdf.embedJpg(bytes); } catch { img = await pdf.embedPng(bytes); }
+                    try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
                   }
+                  if (!img) continue;
                   // contain
                   const scale = Math.min(colW / img.width, imgH / img.height);
                   const w = img.width * scale, h = img.height * scale;
