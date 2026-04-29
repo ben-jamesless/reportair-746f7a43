@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS color text NOT NULL DEFAULT '#01696F';

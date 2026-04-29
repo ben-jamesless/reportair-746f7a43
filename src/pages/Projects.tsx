@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { AppHeader } from "@/components/AppHeader";
+import { AppShell } from "@/components/AppShell";
 import { NewProjectDialog } from "@/components/NewProjectDialog";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Camera, FolderOpen, Plus } from "lucide-react";
+import { Camera, Plus } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
+import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 
 type Project = {
   id: string;
@@ -17,6 +18,7 @@ type Project = {
   description: string | null;
   template: string;
   created_at: string;
+  color: string | null;
 };
 
 const Projects = () => {
@@ -58,12 +60,12 @@ const Projects = () => {
 
     const { data: projs } = await supabase
       .from("projects")
-      .select("id, name, description, template, created_at")
+      .select("id, name, description, template, created_at, color")
       .eq("team_id", team.id)
       .is("archived_at", null)
       .order("created_at", { ascending: false });
 
-    setProjects(projs ?? []);
+    setProjects((projs ?? []) as Project[]);
     setLoading(false);
   };
 
@@ -75,66 +77,71 @@ const Projects = () => {
   const showSkeleton = authLoading || loading;
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <AppHeader />
-      <main className="container py-6 sm:py-10">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
-          <div>
-            {teamName && <p className="text-sm text-muted-foreground">{teamName}</p>}
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
-          </div>
-          {!showSkeleton && projects.length > 0 && (
-            <NewProjectDialog teamId={teamId} onCreated={load} />
-          )}
+    <AppShell crumbs={[{ label: "Projects" }]}>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
+        <div>
+          {teamName && <p className="text-sm text-muted-foreground">{teamName}</p>}
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
         </div>
+        {!showSkeleton && projects.length > 0 && (
+          <NewProjectDialog teamId={teamId} onCreated={load} />
+        )}
+      </div>
 
-        {showSkeleton ? (
-          <ProjectGridSkeleton />
-        ) : projects.length === 0 ? (
-          <EmptyState
-            className="mx-auto max-w-xl"
-            icon={<Camera className="h-6 w-6" />}
-            title="No projects yet"
-            description="Spin up your first project to start uploading and organising photos."
-            action={
-              <NewProjectDialog
-                teamId={teamId}
-                onCreated={load}
-                trigger={
-                  <Button size="lg">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create your first project
-                  </Button>
-                }
-              />
-            }
-          />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => (
-              <Link key={p.id} to={`/projects/${p.id}`}>
-                <Card className="h-full cursor-pointer transition-all hover:border-primary/40 hover:shadow-soft">
-                  <CardHeader>
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-                        <FolderOpen className="h-4 w-4" />
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {p.template === "event_production" ? "Event" : "Blank"}
+      {showSkeleton ? (
+        <ProjectGridSkeleton />
+      ) : projects.length === 0 ? (
+        <EmptyState
+          className="mx-auto max-w-xl"
+          icon={<Camera className="h-6 w-6" />}
+          title="No projects yet"
+          description="Spin up your first project to start uploading and organising photos."
+          action={
+            <NewProjectDialog
+              teamId={teamId}
+              onCreated={load}
+              trigger={
+                <Button size="lg">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create your first project
+                </Button>
+              }
+            />
+          }
+        />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+          {projects.map((p) => {
+            const color = p.color || DEFAULT_PROJECT_COLOR;
+            return (
+              <Link key={p.id} to={`/projects/${p.id}`} className="group">
+                <Card
+                  className="relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40"
+                  style={{ borderLeftColor: color }}
+                >
+                  <div className="p-5">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                        {p.template === "event_production" ? "Event" : "Project"}
                       </Badge>
+                      <span className="text-[11px] text-muted-foreground">
+                        {new Date(p.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
                     </div>
-                    <CardTitle className="text-base">{p.name}</CardTitle>
-                    {p.description && (
-                      <CardDescription className="line-clamp-2">{p.description}</CardDescription>
+                    <h3 className="truncate text-base font-semibold tracking-tight">{p.name}</h3>
+                    {p.description ? (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
+                    ) : (
+                      <p className="mt-1 text-sm italic text-muted-foreground/60">No description</p>
                     )}
-                  </CardHeader>
+                  </div>
                 </Card>
               </Link>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+            );
+          })}
+        </div>
+      )}
+    </AppShell>
   );
 };
 

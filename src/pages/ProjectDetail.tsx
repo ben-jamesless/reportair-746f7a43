@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AppHeader } from "@/components/AppHeader";
+import { AppShell } from "@/components/AppShell";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
@@ -28,6 +29,7 @@ type Project = {
   name: string;
   description: string | null;
   template: string;
+  color: string | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
@@ -72,11 +74,12 @@ const ProjectDetail = () => {
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"photos" | "activity">("photos");
 
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
       supabase
@@ -285,88 +288,132 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-subtle">
-        <AppHeader />
-        <main className="container py-6 sm:py-10">
-          <Skeleton className="mb-4 h-4 w-32" />
-          <div className="mb-8 space-y-3">
-            <Skeleton className="h-5 w-24 rounded-full" />
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-80" />
-          </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
-            <DayNavSkeleton />
-            <PhotoGridSkeleton count={10} />
-          </div>
-        </main>
-      </div>
+      <AppShell crumbs={[{ label: "Projects", to: "/projects" }, { label: "Loading…" }]}>
+        <Skeleton className="mb-4 h-4 w-32" />
+        <div className="mb-8 space-y-3">
+          <Skeleton className="h-5 w-24 rounded-full" />
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
+          <DayNavSkeleton />
+          <PhotoGridSkeleton count={10} />
+        </div>
+      </AppShell>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen">
-        <AppHeader />
-        <main className="container py-10">
-          <EmptyState
-            className="mx-auto max-w-md"
-            icon={<ArrowLeft className="h-5 w-5" />}
-            title="Project not found"
-            description="It may have been deleted, or you no longer have access."
-            action={
-              <Link to="/projects" className="text-sm text-primary underline-offset-4 hover:underline">
-                Back to projects
-              </Link>
-            }
-          />
-        </main>
-      </div>
+      <AppShell crumbs={[{ label: "Projects", to: "/projects" }, { label: "Not found" }]}>
+        <EmptyState
+          className="mx-auto max-w-md"
+          icon={<ArrowLeft className="h-5 w-5" />}
+          title="Project not found"
+          description="It may have been deleted, or you no longer have access."
+          action={
+            <Link to="/projects" className="text-sm text-primary underline-offset-4 hover:underline">
+              Back to projects
+            </Link>
+          }
+        />
+      </AppShell>
     );
   }
 
+  // Build breadcrumbs reflecting current selection
+  const crumbs: { label: string; to?: string }[] = [
+    { label: "Projects", to: "/projects" },
+    { label: project.name, to: `/projects/${project.id}` },
+  ];
+  if (activeDay === PRE_EVENT_DAY) {
+    crumbs.push({ label: "Pre-event" });
+  } else if (activeDay !== ALL_DAYS) {
+    const d = days.find((x) => x.key === activeDay);
+    if (d) crumbs.push({ label: SHORT_FMT.format(d.date) });
+  }
+  if (activeArea && activeArea !== NO_AREA) {
+    const ar = areas.find((a) => a.id === activeArea);
+    if (ar) crumbs.push({ label: ar.name });
+  } else if (activeArea === NO_AREA) {
+    crumbs.push({ label: "Unassigned" });
+  }
+
+  // Top-level export defaults to most recent day with photos (else whole project)
+  const mostRecentDay = days[0] ?? null;
+  const openTopExport = () => {
+    if (mostRecentDay) {
+      setExportDayKey(mostRecentDay.key);
+      setExportDayLabel(mostRecentDay.label);
+      setExportPhotoCount(mostRecentDay.photos.length);
+    } else {
+      setExportDayKey(null);
+      setExportDayLabel(null);
+      setExportPhotoCount(photos.length);
+    }
+    setExportOpen(true);
+  };
+
+  const accent = project.color || "#01696F";
+
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <AppHeader />
-      <main className="container py-6 sm:py-10">
-        <Link to="/projects" className="mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          All projects
-        </Link>
-
-        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <Badge variant="secondary" className="mb-2">
-              {project.template === "event_production" ? "Event production" : "Blank"}
+    <AppShell crumbs={crumbs}>
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="mb-2 flex items-center gap-2">
+            <span
+              className="inline-block h-3 w-3 rounded-full"
+              style={{ backgroundColor: accent }}
+              aria-hidden
+            />
+            <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+              {project.template === "event_production" ? "Event production" : "Project"}
             </Badge>
-            <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
-            {project.description && (
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
-            )}
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
-            <div className="flex flex-wrap gap-2">
-              <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
-              <ErrorBoundary label="uploader">
-                <PhotoUploader
-                  projectId={project.id}
-                  albumId={uploadAlbumId}
-                  areaId={uploadAreaId}
-                  areas={areas}
-                  onUploaded={loadAll}
-                />
-              </ErrorBoundary>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Uploading to: <span className="font-medium">{uploadContextLabel}</span>
-            </p>
-          </div>
+          <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
+          {project.description && (
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
+          )}
         </div>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <div className="flex flex-wrap items-center gap-2">
+            <ErrorBoundary label="uploader">
+              <PhotoUploader
+                projectId={project.id}
+                albumId={uploadAlbumId}
+                areaId={uploadAreaId}
+                areas={areas}
+                onUploaded={loadAll}
+              />
+            </ErrorBoundary>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Uploading to: <span className="font-medium">{uploadContextLabel}</span>
+          </p>
+        </div>
+      </div>
 
-        <Tabs defaultValue="photos" className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity")} className="w-full">
+        {/* Top controls row: tabs + settings + export */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
           <TabsList>
             <TabsTrigger value="photos">Photos</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={openTopExport}
+              disabled={photos.length === 0}
+              title={mostRecentDay ? `Export ${mostRecentDay.label}` : "Export project"}
+            >
+              <FileDown className="mr-2 h-4 w-4" />
+              Export {mostRecentDay ? "latest day" : "project"}
+            </Button>
+            <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
+          </div>
+        </div>
 
           <TabsContent value="photos" className="mt-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr] xl:grid-cols-[400px_minmax(0,1fr)_320px]">
@@ -696,8 +743,7 @@ const ProjectDetail = () => {
           onOpenChange={setExportOpen}
           trigger={<span className="hidden" />}
         />
-      </main>
-    </div>
+    </AppShell>
   );
 };
 
