@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ImagePlus, Loader2, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
