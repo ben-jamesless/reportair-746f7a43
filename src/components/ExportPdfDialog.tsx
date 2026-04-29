@@ -112,9 +112,19 @@ export const ExportPdfDialog = ({
   };
 
   const downloadExport = async (path: string) => {
-    const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300);
+    const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: true });
     if (error || !data) { toast.error("Could not get download link"); return; }
-    window.open(data.signedUrl, "_blank");
+    // Use a real anchor click so iOS Safari accepts the navigation as a download.
+    const a = document.createElement("a");
+    a.href = data.signedUrl;
+    a.rel = "noopener";
+    a.target = "_self";
+    // Hint a filename — Supabase will also include Content-Disposition when download=true.
+    const name = path.split("/").pop() || "site-story.pdf";
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");

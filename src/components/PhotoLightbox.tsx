@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, X, MapPin, Calendar, Camera, Aperture, MapPinned } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MapPin, Calendar, MapPinned } from "lucide-react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,13 +96,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   if (!photo) return null;
 
-  const camera = [photo.camera_make, photo.camera_model].filter(Boolean).join(" ");
-  const exposure = [
-    photo.aperture ? `f/${photo.aperture}` : null,
-    photo.shutter_speed,
-    photo.iso ? `ISO ${photo.iso}` : null,
-    photo.focal_length ? `${photo.focal_length}mm` : null,
-  ].filter(Boolean).join(" · ");
+  // Camera/lens/exposure intentionally hidden — only date, time, and location are surfaced.
 
   return (
     <Dialog open={index !== null} onOpenChange={(o) => !o && onClose()}>
@@ -123,7 +116,13 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 </Button>
               </>
             )}
-            <Button size="icon" variant="secondary" onClick={onClose} className="absolute right-3 top-3 rounded-full opacity-90 md:hidden">
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-3 top-3 z-10 h-10 w-10 rounded-full bg-background/95 text-foreground shadow-lg ring-1 ring-border hover:bg-background"
+            >
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -193,11 +192,8 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                   {new Date(photo.captured_at).toLocaleString()}
                 </Row>
               )}
-              {camera && <Row icon={<Camera className="h-4 w-4" />} label="Camera">{camera}</Row>}
-              {photo.lens && <Row icon={<Aperture className="h-4 w-4" />} label="Lens">{photo.lens}</Row>}
-              {exposure && <Row icon={<Aperture className="h-4 w-4" />} label="Exposure">{exposure}</Row>}
               {photo.gps_lat !== null && photo.gps_lng !== null && (
-                <Row icon={<MapPin className="h-4 w-4" />} label="GPS">
+                <Row icon={<MapPin className="h-4 w-4" />} label="Location">
                   <a
                     className="text-primary underline-offset-2 hover:underline"
                     href={`https://www.google.com/maps?q=${photo.gps_lat},${photo.gps_lng}`}
@@ -206,9 +202,6 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                     {photo.gps_lat.toFixed(4)}, {photo.gps_lng.toFixed(4)}
                   </a>
                 </Row>
-              )}
-              {photo.width && photo.height && (
-                <Badge variant="secondary" className="font-normal">{photo.width} × {photo.height}</Badge>
               )}
             </div>
 

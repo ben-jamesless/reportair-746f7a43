@@ -67,10 +67,10 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
       </header>
 
       <div className="md:pl-16 lg:pl-56">
-        {/* Breadcrumbs */}
+        {/* Breadcrumbs — height matches the sidebar logo bar (h-14) so the two top edges align. */}
         {crumbs && crumbs.length > 0 && (
           <div className="border-b bg-background/60 backdrop-blur">
-            <div className={cn(fluid ? "px-4 sm:px-6 lg:px-8" : "container", "py-3")}>
+            <div className={cn(fluid ? "px-4 sm:px-6 lg:px-8" : "container", "flex h-14 items-center")}>
               <nav aria-label="Breadcrumb">
                 <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
                   {crumbs.map((c, i) => {

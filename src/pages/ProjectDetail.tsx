@@ -23,7 +23,7 @@ import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/A
 import { CommentsPanel } from "@/components/CommentsPanel";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
 import { type ProjectStatus } from "@/lib/projectStatus";
-import { Pencil } from "lucide-react";
+
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -420,16 +420,7 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setActiveTab("details")}
-              title="Edit project details"
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
+            <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
           </div>
         </div>
 
@@ -744,7 +735,6 @@ const ProjectDetail = () => {
                 if (!ts) return acc;
                 return !acc || ts > acc ? ts : acc;
               }, null)}
-              onChanged={loadAll}
             />
           </TabsContent>
         </Tabs>
