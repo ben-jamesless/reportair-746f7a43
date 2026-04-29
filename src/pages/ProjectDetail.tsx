@@ -5,7 +5,11 @@ import { AppHeader } from "@/components/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ImagePlus, Loader2, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { ArrowLeft, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
+import { EmptyState } from "@/components/EmptyState";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PhotoThumb } from "@/components/PhotoThumb";
