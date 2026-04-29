@@ -70,7 +70,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
       if (alive) setNotes((data ?? []) as GuestNote[]);
     })();
     return () => { alive = false; };
-  }, [photo?.id, projectId]);
+  }, [photo, projectId]);
 
   const prev = useCallback(() => {
     const ni = (i - 1 + photos.length) % photos.length;
