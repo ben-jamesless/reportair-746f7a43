@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
-import { ImageIcon } from "lucide-react";
+import { Check, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -9,6 +9,10 @@ interface Props {
   onClick?: () => void;
   /** Render priority — if true, loads eagerly (e.g. above-the-fold). Default: lazy via IntersectionObserver. */
   priority?: boolean;
+  /** When true, shows a checkbox overlay (always visible if selected, on hover otherwise). */
+  selectable?: boolean;
+  /** Whether this photo is currently selected. */
+  selected?: boolean;
 }
 
 /**
