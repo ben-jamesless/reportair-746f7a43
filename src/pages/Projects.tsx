@@ -55,6 +55,7 @@ type Project = {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  archived_at: string | null;
 };
 
 type SortKey = "alpha" | "created" | "event_date" | "last_upload";
