@@ -504,6 +504,20 @@ const ProjectDetail = () => {
                   </span>
                 </div>
 
+                {/* Day comment shown at the top of the main panel when a dated day is active */}
+                {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
+                  <div className="mb-5">
+                    <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Day comment
+                    </p>
+                    <EditableNote
+                      value={dayNotes.get(activeDay) ?? null}
+                      placeholder="Add a comment for this day…"
+                      onSave={(next) => saveDayNote(activeDay, next)}
+                    />
+                  </div>
+                )}
+
                 {visiblePhotos.length === 0 ? (
                   <Card className="border-dashed shadow-none">
                     <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
@@ -525,6 +539,83 @@ const ProjectDetail = () => {
                       />
                     </CardContent>
                   </Card>
+                ) : activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY ? (
+                  // Dated day view: group by area, with per-area comment + per-day status picker
+                  (() => {
+                    const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
+                    const filtered = activeArea === null
+                      ? dayPool
+                      : activeArea === NO_AREA
+                        ? dayPool.filter((p) => !p.area_id)
+                        : dayPool.filter((p) => p.area_id === activeArea);
+                    const byArea = new Map<string, LightboxPhoto[]>();
+                    const unassigned: LightboxPhoto[] = [];
+                    for (const p of filtered) {
+                      if (!p.area_id) unassigned.push(p);
+                      else { const arr = byArea.get(p.area_id) ?? []; arr.push(p); byArea.set(p.area_id, arr); }
+                    }
+                    const orderedAreas = areas.filter((a) => (byArea.get(a.id)?.length ?? 0) > 0);
+                    return (
+                      <div className="space-y-8">
+                        {orderedAreas.map((ar) => {
+                          const list = byArea.get(ar.id) ?? [];
+                          const st = getAreaDayStatus(ar.id, activeDay);
+                          return (
+                            <div key={ar.id}>
+                              <div className="mb-2 flex items-center gap-2">
+                                <AreaStatusPicker
+                                  value={st}
+                                  onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
+                                  size="md"
+                                />
+                                <h3 className="text-base font-semibold">{ar.name}</h3>
+                                <span className="text-xs text-muted-foreground">
+                                  {list.length} photo{list.length === 1 ? "" : "s"}
+                                </span>
+                              </div>
+                              <div className="mb-3">
+                                <EditableNote
+                                  value={ar.notes}
+                                  placeholder="Add a comment for this area…"
+                                  onSave={(next) => saveAreaNotes(ar.id, next)}
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                {list.map((p) => (
+                                  <PhotoThumb
+                                    key={p.id}
+                                    path={p.storage_path}
+                                    alt={p.caption || p.file_name}
+                                    onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {unassigned.length > 0 && (
+                          <div>
+                            <div className="mb-2 flex items-center gap-2">
+                              <h3 className="text-base font-semibold">Unassigned</h3>
+                              <span className="text-xs text-muted-foreground">
+                                {unassigned.length} photo{unassigned.length === 1 ? "" : "s"}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                              {unassigned.map((p) => (
+                                <PhotoThumb
+                                  key={p.id}
+                                  path={p.storage_path}
+                                  alt={p.caption || p.file_name}
+                                  onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     {visiblePhotos.map((p) => (
