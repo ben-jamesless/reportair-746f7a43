@@ -763,16 +763,20 @@ const ProjectDetail = () => {
           />
         </ErrorBoundary>
 
-        {/* Day-scoped PDF export, opened from the day row in the sidebar */}
-        <ExportPdfDialog
-          projectId={project.id}
-          photoCount={exportPhotoCount}
-          dayKey={exportDayKey}
-          dayLabel={exportDayLabel}
-          open={exportOpen}
-          onOpenChange={setExportOpen}
-          trigger={<span className="hidden" />}
-        />
+        {/* Day-scoped PDF export, opened from the day row in the sidebar.
+            Only mount when open to avoid the polling effect + hidden Dialog
+            being instantiated on every project view. */}
+        {exportOpen && (
+          <ExportPdfDialog
+            projectId={project.id}
+            photoCount={exportPhotoCount}
+            dayKey={exportDayKey}
+            dayLabel={exportDayLabel}
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            trigger={<span className="hidden" />}
+          />
+        )}
     </AppShell>
   );
 };
