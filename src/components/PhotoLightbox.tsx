@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ export type LightboxPhoto = {
   height: number | null;
   area_id: string | null;
   album_id?: string | null;
+  created_at?: string | null;
 };
 
 export type LightboxArea = { id: string; name: string };
@@ -69,7 +70,18 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
       if (alive) setNotes((data ?? []) as GuestNote[]);
     })();
     return () => { alive = false; };
-  }, [photo?.id, projectId]);
+  }, [photo, projectId]);
+
+  const prev = useCallback(() => {
+    const ni = (i - 1 + photos.length) % photos.length;
+    setI(ni);
+    onIndexChange(ni);
+  }, [i, photos.length, onIndexChange]);
+  const next = useCallback(() => {
+    const ni = (i + 1) % photos.length;
+    setI(ni);
+    onIndexChange(ni);
+  }, [i, photos.length, onIndexChange]);
 
   useEffect(() => {
     if (index === null) return;
@@ -80,11 +92,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, i, photos.length]);
-
-  const prev = () => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); };
-  const next = () => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); };
+  }, [index, next, prev, onClose]);
 
   if (!photo) return null;
 

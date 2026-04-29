@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const [role, setRole] = useState<"editor" | "viewer">("viewer");
   const [loading, setLoading] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const [{ data: inv }, { data: pm }] = await Promise.all([
       supabase.from("project_invites").select("id,email,role,token,accepted_at,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
@@ -41,14 +41,15 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     const pmRows = (pm ?? []) as { user_id: string; role: string }[];
     if (pmRows.length) {
       const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", pmRows.map((m) => m.user_id));
-      const map = new Map((profs ?? []).map((p: any) => [p.id, p.full_name]));
+      const profRows = (profs ?? []) as { id: string; full_name: string | null }[];
+      const map = new Map(profRows.map((p) => [p.id, p.full_name]));
       setMembers(pmRows.map((m) => ({ ...m, full_name: map.get(m.user_id) ?? null })));
     } else {
       setMembers([]);
     }
-  };
+  }, [projectId]);
 
-  useEffect(() => { load(); }, [projectId]);
+  useEffect(() => { load(); }, [load]);
 
   const addInvite = async () => {
     const parsed = emailSchema.safeParse(email);
@@ -95,7 +96,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         <h4 className="mb-2 text-sm font-medium">Invite by email</h4>
         <div className="flex gap-2">
           <Input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Select value={role} onValueChange={(v) => setRole(v as any)}>
+          <Select value={role} onValueChange={(v) => setRole(v as "editor" | "viewer")}>
             <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="viewer">Viewer</SelectItem>

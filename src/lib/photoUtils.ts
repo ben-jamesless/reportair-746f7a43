@@ -37,9 +37,29 @@ const formatShutter = (v: unknown): string | null => {
   return `1/${Math.round(1 / n)}`;
 };
 
+type ExifRaw = {
+  DateTimeOriginal?: string | Date;
+  CreateDate?: string | Date;
+  ModifyDate?: string | Date;
+  Make?: string;
+  Model?: string;
+  LensModel?: string;
+  Lens?: string;
+  ISO?: number | string;
+  FNumber?: number | string;
+  ExposureTime?: number | string;
+  FocalLength?: number | string;
+  latitude?: number;
+  longitude?: number;
+  ExifImageWidth?: number;
+  ImageWidth?: number;
+  ExifImageHeight?: number;
+  ImageHeight?: number;
+};
+
 export async function parseExif(file: File): Promise<ExifData> {
   try {
-    const data: any = await exifr.parse(file, { gps: true, tiff: true, exif: true });
+    const data = (await exifr.parse(file, { gps: true, tiff: true, exif: true })) as ExifRaw | null;
     if (!data) return EMPTY_EXIF;
     const captured = data.DateTimeOriginal || data.CreateDate || data.ModifyDate || null;
     return {
@@ -47,10 +67,10 @@ export async function parseExif(file: File): Promise<ExifData> {
       camera_make: data.Make ?? null,
       camera_model: data.Model ?? null,
       lens: data.LensModel ?? data.Lens ?? null,
-      iso: data.ISO ? Number(data.ISO) : null,
-      aperture: data.FNumber ? Number(data.FNumber) : null,
+      iso: data.ISO != null ? Number(data.ISO) : null,
+      aperture: data.FNumber != null ? Number(data.FNumber) : null,
       shutter_speed: formatShutter(data.ExposureTime),
-      focal_length: data.FocalLength ? Number(data.FocalLength) : null,
+      focal_length: data.FocalLength != null ? Number(data.FocalLength) : null,
       gps_lat: typeof data.latitude === "number" ? data.latitude : null,
       gps_lng: typeof data.longitude === "number" ? data.longitude : null,
       width: data.ExifImageWidth ?? data.ImageWidth ?? null,

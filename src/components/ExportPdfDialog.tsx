@@ -50,7 +50,7 @@ export const ExportPdfDialog = ({
 }: Props) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
-  const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
+  const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
   const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
   const [accent, setAccent] = useState("#01696F");
   const [logoFile, setLogoFile] = useState<File | null>(null);

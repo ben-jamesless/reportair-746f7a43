@@ -5,13 +5,29 @@ import { formatDistanceToNow } from "date-fns";
 import { ActivityFeedSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
 
+type EventMetadata = {
+  name?: string;
+  file_name?: string;
+  guest_name?: string;
+  body?: string;
+  [key: string]: unknown;
+};
+
 type Event = {
   id: string;
   actor_id: string | null;
   verb: string;
   target_type: string;
   target_id: string | null;
-  metadata: Record<string, any>;
+  metadata: EventMetadata;
+  created_at: string;
+};
+
+type GuestNoteRow = {
+  id: string;
+  photo_id: string;
+  guest_name: string;
+  body: string;
   created_at: string;
 };
 
@@ -45,7 +61,7 @@ export const ActivityFeed = ({ projectId }: Props) => {
       ]);
       if (cancel) return;
       const evList = (ev ?? []) as Event[];
-      const noteEvents: Event[] = ((notes ?? []) as any[]).map((n) => ({
+      const noteEvents: Event[] = ((notes ?? []) as GuestNoteRow[]).map((n) => ({
         id: `gn-${n.id}`,
         actor_id: null,
         verb: "guest.note",
@@ -86,7 +102,7 @@ export const ActivityFeed = ({ projectId }: Props) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "guest_notes", filter: `project_id=eq.${projectId}` },
         (payload) => {
-          const n = payload.new as any;
+          const n = payload.new as GuestNoteRow;
           const ev: Event = {
             id: `gn-${n.id}`,
             actor_id: null,

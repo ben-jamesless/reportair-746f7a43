@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -87,9 +87,9 @@ const SharePage = () => {
     setData(r);
   };
 
-  const photos = data?.photos ?? [];
-  const albums = data?.albums ?? [];
-  const areas = data?.areas ?? [];
+  const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
+  const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
+  const areas = useMemo(() => data?.areas ?? [], [data?.areas]);
   const dayNotesMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.day_notes ?? []).forEach((d) => { if (d.notes && d.notes.trim()) m.set(d.date, d.notes); });
@@ -321,26 +321,27 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange }: 
   const [notes, setNotes] = useState<{ id: string; guest_name: string; body: string; created_at: string }[]>([]);
   const [body, setBody] = useState("");
 
+  const loadNotes = useCallback(async () => {
+    if (!photo) return;
+    const { data } = await supabase.rpc("list_guest_notes_public", { _token: token, _photo_id: photo.id });
+    setNotes((data ?? []) as { id: string; guest_name: string; body: string; created_at: string }[]);
+  }, [photo, token]);
+
   useEffect(() => {
     if (!photo) return;
     setUrl(null); setBody("");
+    let alive = true;
     (async () => {
       const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-photo-url`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, photo_id: photo.id }),
       });
       const json = await res.json();
-      if (json.url) setUrl(json.url);
+      if (alive && json.url) setUrl(json.url);
     })();
     loadNotes();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photo?.id]);
-
-  const loadNotes = async () => {
-    if (!photo) return;
-    const { data } = await supabase.rpc("list_guest_notes_public", { _token: token, _photo_id: photo.id });
-    setNotes((data ?? []) as any);
-  };
+    return () => { alive = false; };
+  }, [photo, token, loadNotes]);
 
   const submitNote = async () => {
     if (!body.trim()) return;

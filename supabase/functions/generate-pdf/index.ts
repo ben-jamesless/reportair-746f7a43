@@ -1,6 +1,31 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+
+type PhotoRow = {
+  id: string;
+  storage_path: string;
+  file_name?: string | null;
+  caption?: string | null;
+  area_id: string | null;
+  album_id?: string | null;
+  captured_at: string | null;
+  created_at: string;
+  camera_make?: string | null;
+  camera_model?: string | null;
+  lens?: string | null;
+  iso?: number | null;
+  aperture?: number | null;
+  shutter_speed?: string | null;
+  focal_length?: number | null;
+};
+type AreaRow = { id: string; name: string; sort_order: number; notes: string | null };
+type AlbumRow = { id: string; name: string };
+type ActivityRow = { verb: string; target_type: string; metadata: Record<string, unknown> | null; created_at: string; actor_id: string | null };
+type GuestNoteRow = { photo_id: string; guest_name: string; body: string; created_at: string };
+type DayNoteRow = { date: string; notes: string | null };
+type AreaDayStatusRow = { area_id: string; date: string; status: string };
+type ProfileRow = { id: string; full_name: string | null };
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,7 +66,7 @@ function groupByDate<T extends { captured_at: string | null; created_at: string 
   return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-async function fail(supabase: any, exportId: string, msg: string) {
+async function fail(supabase: SupabaseClient, exportId: string, msg: string) {
   await supabase.from("project_exports").update({ status: "failed", error_message: msg.slice(0, 500), completed_at: new Date().toISOString() }).eq("id", exportId);
 }
 
@@ -81,15 +106,15 @@ Deno.serve(async (req) => {
     ]);
     // Map: `${area_id}|${YYYY-MM-DD}` -> status
     const areaDayStatus = new Map<string, string>();
-    for (const r of (areaDayStatusRows ?? []) as any[]) {
+    for (const r of (areaDayStatusRows ?? []) as AreaDayStatusRow[]) {
       areaDayStatus.set(`${r.area_id}|${r.date}`, r.status);
     }
 
     if (!proj) throw new Error("Project not found");
-    let allPhotos = (photos ?? []) as any[];
+    let allPhotos = (photos ?? []) as PhotoRow[];
 
     // Day-scoped export: filter to photos that fall on the chosen day (by EXIF capture date or upload date)
-    const photoDayKey = (p: any) => {
+    const photoDayKey = (p: PhotoRow) => {
       const raw = p.captured_at || p.created_at;
       const d = new Date(raw);
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -103,9 +128,9 @@ Deno.serve(async (req) => {
       throw new Error(`This export contains ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}. Split your project across more days or remove photos before exporting.`);
     }
 
-    const albumName = new Map((albums ?? []).map((a: any) => [a.id, a.name]));
-    const areaName = new Map((areas ?? []).map((a: any) => [a.id, a.name]));
-    const areaById = new Map((areas ?? []).map((a: any) => [a.id, a]));
+    const albumName = new Map(((albums ?? []) as AlbumRow[]).map((a) => [a.id, a.name]));
+    const areaName = new Map(((areas ?? []) as AreaRow[]).map((a) => [a.id, a.name]));
+    const areaById = new Map(((areas ?? []) as AreaRow[]).map((a) => [a.id, a]));
     const dayNoteByDate = new Map<string, string>();
     for (const r of (dayNotesRows ?? [])) {
       // Postgres `date` columns serialize as YYYY-MM-DD already
@@ -117,18 +142,18 @@ Deno.serve(async (req) => {
       requires_discussion: "Requires discussion",
       concern: "Concern / behind schedule",
     };
-    const notesByPhoto = new Map<string, any[]>();
+    const notesByPhoto = new Map<string, GuestNoteRow[]>();
     for (const n of (notes ?? [])) {
       const arr = notesByPhoto.get(n.photo_id) ?? [];
       arr.push(n); notesByPhoto.set(n.photo_id, arr);
     }
 
     // Resolve actor names for activity
-    const actorIds = Array.from(new Set((activity ?? []).map((a: any) => a.actor_id).filter(Boolean)));
+    const actorIds = Array.from(new Set(((activity ?? []) as ActivityRow[]).map((a) => a.actor_id).filter((x): x is string => Boolean(x))));
     const actorMap = new Map<string, string>();
     if (actorIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", actorIds);
-      for (const p of (profs ?? [])) actorMap.set(p.id, p.full_name || "Member");
+      for (const p of (profs ?? []) as ProfileRow[]) actorMap.set(p.id, p.full_name || "Member");
     }
 
     // ============ Build PDF ============
@@ -151,20 +176,28 @@ Deno.serve(async (req) => {
         "\u2013": "-", "\u2014": "-", "\u2212": "-",
         "\u2026": "...", "\u2022": "*", "\u00B7": "-",
       };
+      // The character class intentionally lists ZWJ/ZWNJ/ZWSP codepoints individually
+      // for WinAnsi sanitization; they are not meant to form joined emoji sequences.
+      // eslint-disable-next-line no-misleading-character-class
       s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
-      // Strip remaining non-WinAnsi characters (keep printable ASCII + Latin-1 supplement)
+      // Strip remaining non-WinAnsi characters (keep printable ASCII + Latin-1 supplement).
+      // Control characters \x09 (TAB), \x0A (LF), \x0D (CR) are intentionally allowed.
+      // eslint-disable-next-line no-control-regex
       s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
       return s;
     };
 
     // Wrap drawText so every string passes through sanitize()
-    const _wrapDraw = (p: any) => {
-      const orig = p.drawText.bind(p);
-      p.drawText = (text: string, opts: any) => orig(sanitize(text), opts);
+    type DrawTextFn = PDFPage["drawText"];
+    const _wrapDraw = (p: PDFPage): PDFPage => {
+      const orig = p.drawText.bind(p) as DrawTextFn;
+      p.drawText = ((text: string, opts: Parameters<DrawTextFn>[1]) =>
+        orig(sanitize(text), opts)) as DrawTextFn;
       return p;
     };
     const origAddPage = pdf.addPage.bind(pdf);
-    pdf.addPage = ((...args: any[]) => _wrapDraw((origAddPage as any)(...args))) as any;
+    pdf.addPage = ((...args: Parameters<typeof origAddPage>) =>
+      _wrapDraw(origAddPage(...args))) as typeof pdf.addPage;
 
     const PAGE_W = 595.28; // A4
     const PAGE_H = 841.89;
@@ -219,12 +252,12 @@ Deno.serve(async (req) => {
     if (sections.grid && allPhotos.length > 0) {
       // When day-scoped, group by area (in defined sort_order, then "Unassigned").
       // Otherwise, group by date as before.
-      type Group = { label: string; photos: any[]; areaId?: string; dateKey?: string };
+      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string };
       let groups: Group[];
       if (dayKey) {
-        const sortedAreas = (areas ?? []) as any[];
-        const byArea = new Map<string, any[]>();
-        const unassigned: any[] = [];
+        const sortedAreas = (areas ?? []) as AreaRow[];
+        const byArea = new Map<string, PhotoRow[]>();
+        const unassigned: PhotoRow[] = [];
         for (const p of allPhotos) {
           if (!p.area_id) unassigned.push(p);
           else {
@@ -296,7 +329,7 @@ Deno.serve(async (req) => {
 
         // Per-area comment in day-scoped exports
         if (group.areaId) {
-          const ar = areaById.get(group.areaId) as any;
+          const ar = areaById.get(group.areaId);
           if (ar?.notes && String(ar.notes).trim()) {
             const lines = wrapText(String(ar.notes), font, 9, PAGE_W - 2 * M);
             for (const line of lines) {
@@ -338,7 +371,7 @@ Deno.serve(async (req) => {
               const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
                 ph.storage_path,
                 600,
-                { transform: { width: 1200, quality: 80, format: "origin" } as any },
+                { transform: { width: 1200, quality: 80, format: "origin" as unknown as "png" } },
               );
               const baseUrl = signed?.signedUrl;
               const transformedUrl = baseUrl
@@ -350,7 +383,7 @@ Deno.serve(async (req) => {
                 if (r.ok) {
                   const bytes = new Uint8Array(await r.arrayBuffer());
                   const ct = r.headers.get("content-type") || "";
-                  let img: any = null;
+                  let img: PDFImage | null = null;
                   try {
                     if (ct.includes("png")) img = await pdf.embedPng(bytes);
                     else img = await pdf.embedJpg(bytes);
@@ -487,7 +520,7 @@ Deno.serve(async (req) => {
   }
 });
 
-function wrapText(text: string, font: any, size: number, maxWidth: number): string[] {
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let line = "";
