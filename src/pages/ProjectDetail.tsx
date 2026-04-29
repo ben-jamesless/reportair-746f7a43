@@ -653,6 +653,16 @@ const ProjectDetail = () => {
                   </div>
                 )}
               </section>
+
+              <CommentsPanel
+                projectId={project.id}
+                visiblePhotos={visiblePhotos}
+                onOpenPhoto={(photoId) => {
+                  const idx = photoIndexById.get(photoId);
+                  if (idx !== undefined) setLightboxIndex(idx);
+                }}
+                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
+              />
             </div>
           </TabsContent>
 
