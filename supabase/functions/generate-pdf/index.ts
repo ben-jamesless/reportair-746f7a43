@@ -333,11 +333,11 @@ Deno.serve(async (req) => {
         page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
         y -= 32;
 
-        // Per-area comment in day-scoped exports
-        if (group.areaId) {
-          const ar = areaById.get(group.areaId);
-          if (ar?.notes && String(ar.notes).trim()) {
-            const lines = wrapText(String(ar.notes), font, 9, PAGE_W - 2 * M);
+        // Per-area, per-day update note (only meaningful in day-scoped exports)
+        if (group.areaId && dayKey) {
+          const note = areaDayNotes.get(`${group.areaId}|${dayKey}`);
+          if (note && note.trim()) {
+            const lines = wrapText(note, font, 9, PAGE_W - 2 * M);
             for (const line of lines) {
               ensureSpace(12);
               page.drawText(line, { x: M, y: y - 8, size: 9, font, color: MUTED });
