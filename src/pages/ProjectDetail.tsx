@@ -607,15 +607,12 @@ const ProjectDetail = () => {
                   </span>
                 </div>
 
-                {/* Day comment shown at the top of the main panel when a dated day is active */}
+                {/* Daily updates note shown at the top of the main panel when a dated day is active */}
                 {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
                   <div className="mb-5">
-                    <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Day comment
-                    </p>
                     <EditableNote
                       value={dayNotes.get(activeDay) ?? null}
-                      placeholder="Add a comment for this day…"
+                      placeholder="Daily updates"
                       onSave={(next) => saveDayNote(activeDay, next)}
                     />
                   </div>
