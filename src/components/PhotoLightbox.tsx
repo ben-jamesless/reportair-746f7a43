@@ -132,6 +132,33 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
               </Select>
             </div>
 
+            {albums.length > 0 && (
+              <div>
+                <p className="mb-1 flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground">
+                  Album
+                </p>
+                <Select
+                  value={photo.album_id ?? UNASSIGNED}
+                  onValueChange={async (val) => {
+                    const newAlbumId = val === UNASSIGNED ? null : val;
+                    const { error } = await supabase.from("photos").update({ album_id: newAlbumId }).eq("id", photo.id);
+                    if (error) { toast.error(error.message); return; }
+                    onAlbumChanged?.(photo.id, newAlbumId);
+                  }}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="No album" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={UNASSIGNED}>No album</SelectItem>
+                    {albums.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-3 text-sm">
               {photo.captured_at && (
                 <Row icon={<Calendar className="h-4 w-4" />} label="Captured">
