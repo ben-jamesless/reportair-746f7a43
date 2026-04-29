@@ -390,7 +390,7 @@ const ProjectDetail = () => {
     <AppShell crumbs={crumbs}>
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-2">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             <span
               className="inline-block h-3 w-3 rounded-full"
               style={{ backgroundColor: accent }}
@@ -399,6 +399,24 @@ const ProjectDetail = () => {
             <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
               {project.template === "event_production" ? "Event production" : "Project"}
             </Badge>
+            <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
+              <SelectTrigger className="h-7 w-auto gap-1.5 rounded-full border-muted bg-background px-2.5 text-xs" aria-label="Project status">
+                <span className="flex items-center gap-1.5">
+                  <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
+                  <span>{projectStatusMeta(project.overall_status).label}</span>
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {PROJECT_STATUSES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-2">
+                      <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
+                      {s.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
           {project.description && (
