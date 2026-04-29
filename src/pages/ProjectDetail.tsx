@@ -13,6 +13,7 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { cn } from "@/lib/utils";
+import { groupPhotosByDate } from "@/lib/photoUtils";
 
 type Project = {
   id: string;
@@ -85,6 +86,14 @@ const ProjectDetail = () => {
     if (activeArea === NO_AREA) return albumFilteredPhotos.filter((p) => !p.area_id);
     return albumFilteredPhotos.filter((p) => p.area_id === activeArea);
   }, [albumFilteredPhotos, activeArea]);
+
+  const groupedPhotos = useMemo(() => groupPhotosByDate(visiblePhotos), [visiblePhotos]);
+
+  const photoIndexById = useMemo(() => {
+    const m = new Map<string, number>();
+    visiblePhotos.forEach((p, i) => m.set(p.id, i));
+    return m;
+  }, [visiblePhotos]);
 
   const areaCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -224,14 +233,23 @@ const ProjectDetail = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {visiblePhotos.map((p, i) => (
-                      <PhotoThumb
-                        key={p.id}
-                        path={p.storage_path}
-                        alt={p.caption || p.file_name}
-                        onClick={() => setLightboxIndex(i)}
-                      />
+                  <div className="space-y-8">
+                    {groupedPhotos.map((group) => (
+                      <section key={group.key}>
+                        <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                          {group.label} <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                          {group.photos.map((p) => (
+                            <PhotoThumb
+                              key={p.id}
+                              path={p.storage_path}
+                              alt={p.caption || p.file_name}
+                              onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                            />
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 )}
