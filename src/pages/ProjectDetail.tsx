@@ -472,6 +472,30 @@ const ProjectDetail = () => {
         </div>
       </div>
 
+      {project?.archived_at && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
+          <div className="flex items-center gap-2">
+            <Archive className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden />
+            <span>
+              This project was archived on{" "}
+              <span className="font-medium">
+                {new Date(project.archived_at).toLocaleDateString(undefined, {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+              .
+            </span>
+          </div>
+          {isOwner && (
+            <Button size="sm" variant="outline" onClick={restoreProject}>
+              Restore
+            </Button>
+          )}
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="w-full">
         {/* Top controls row: tabs + settings + export */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
