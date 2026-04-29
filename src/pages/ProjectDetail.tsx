@@ -63,7 +63,7 @@ const SHORT_FMT = new Intl.DateTimeFormat(undefined, {
 });
 
 const dayKey = (p: LightboxPhoto): string => {
-  const raw = p.captured_at || (p as any).created_at;
+  const raw = p.captured_at || p.created_at;
   const d = raw ? new Date(raw) : new Date(0);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
@@ -104,12 +104,12 @@ const ProjectDetail = () => {
     setProject(p ?? null);
     setAlbums(a ?? []);
     setAreas((ar ?? []) as Area[]);
-    setPhotos((ph ?? []) as any);
+    setPhotos((ph ?? []) as LightboxPhoto[]);
     const map = new Map<string, string | null>();
     for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
     setDayNotes(map);
     const sm = new Map<string, AreaStatus>();
-    for (const row of (ads ?? []) as any[]) sm.set(`${row.area_id}|${row.date}`, row.status as AreaStatus);
+    for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
     setAreaDayStatus(sm);
     setLoading(false);
   }, [id]);
@@ -158,7 +158,7 @@ const ProjectDetail = () => {
     const dated: LightboxPhoto[] = [];
     const pre: LightboxPhoto[] = [];
     for (const p of photos) {
-      if (preEventAlbum && (p as any).album_id === preEventAlbum.id) pre.push(p);
+      if (preEventAlbum && p.album_id === preEventAlbum.id) pre.push(p);
       else dated.push(p);
     }
     return { datedPhotos: dated, preEventPhotos: pre };
@@ -169,7 +169,7 @@ const ProjectDetail = () => {
     const map = new Map<string, { key: string; label: string; date: Date; photos: LightboxPhoto[] }>();
     for (const ph of datedPhotos) {
       const k = dayKey(ph);
-      const raw = ph.captured_at || (ph as any).created_at;
+      const raw = ph.captured_at || ph.created_at;
       const d = raw ? new Date(raw) : new Date(0);
       let g = map.get(k);
       if (!g) {
@@ -238,7 +238,7 @@ const ProjectDetail = () => {
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, area_id: areaId } : p)));
   };
   const handleAlbumChanged = (photoId: string, albumId: string | null) => {
-    setPhotos((prev) => prev.map((p) => (p.id === photoId ? ({ ...p, album_id: albumId } as any) : p)));
+    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, album_id: albumId } : p)));
   };
 
   // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
@@ -740,7 +740,7 @@ const ProjectDetail = () => {
             <ProjectDetailsTab
               project={project}
               lastUploadAt={photos.reduce<string | null>((acc, p) => {
-                const ts = (p as any).created_at as string | undefined;
+                const ts = p.created_at ?? null;
                 if (!ts) return acc;
                 return !acc || ts > acc ? ts : acc;
               }, null)}
