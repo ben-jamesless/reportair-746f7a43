@@ -91,6 +91,9 @@ Deno.serve(async (req) => {
     const sections: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false, ...(exp.options?.sections ?? {}) };
     const dayKey: string | null = exp.options?.day_key ?? null;
     const dayLabel: string | null = exp.options?.day_label ?? null;
+    const dateFrom: string | null = exp.options?.date_from ?? null; // YYYY-MM-DD
+    const dateTo: string | null = exp.options?.date_to ?? null;     // YYYY-MM-DD
+    const isRange = !!(dateFrom && dateTo);
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
     // Load project + photos + albums + areas + activity + notes + day notes + per-day area status + per-day area notes
