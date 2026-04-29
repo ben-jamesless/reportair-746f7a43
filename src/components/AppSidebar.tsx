@@ -8,6 +8,7 @@ import { Camera, FolderKanban, LogOut, Moon, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 type NavItem = { label: string; to: string; icon: React.ComponentType<{ className?: string }> };
 
@@ -67,6 +68,7 @@ export const AppSidebar = () => {
 
         {/* User */}
         <div className="space-y-1 border-t p-2 lg:p-3">
+          <NotificationsBell />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

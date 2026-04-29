@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 
@@ -73,6 +73,7 @@ const dayKey = (p: LightboxPhoto): string => {
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [isOwner, setIsOwner] = useState(false);
@@ -301,6 +302,27 @@ const ProjectDetail = () => {
     visiblePhotos.forEach((p, i) => m.set(p.id, i));
     return m;
   }, [visiblePhotos]);
+
+  // Deep-link from notifications: ?photo=<id> opens the lightbox once photos load.
+  useEffect(() => {
+    const target = searchParams.get("photo");
+    if (!target || photos.length === 0) return;
+    const exists = photos.some((p) => p.id === target);
+    if (!exists) return;
+    // Reset filters so the photo is in `visiblePhotos`.
+    if (activeDay !== ALL_DAYS) setActiveDay(ALL_DAYS);
+    if (activeArea !== null) setActiveArea(null);
+    const idx = photoIndexById.get(target);
+    if (idx !== undefined) {
+      setLightboxIndex(idx);
+      // Clear params so refresh/back doesn't re-trigger.
+      const next = new URLSearchParams(searchParams);
+      next.delete("photo");
+      next.delete("comments");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photos, photoIndexById, searchParams]);
 
   const toggleDay = (key: string) => {
     setOpenDays((prev) => {
