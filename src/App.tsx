@@ -57,7 +57,6 @@ const App = () => (
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
-  </QueryClientProvider>
 );
 
 export default App;
