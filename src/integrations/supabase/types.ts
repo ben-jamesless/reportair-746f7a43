@@ -91,10 +91,41 @@ export type Database = {
           },
         ]
       }
+      areas: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          project_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          project_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           album_id: string | null
           aperture: number | null
+          area_id: string | null
           camera_make: string | null
           camera_model: string | null
           caption: string | null
@@ -121,6 +152,7 @@ export type Database = {
         Insert: {
           album_id?: string | null
           aperture?: number | null
+          area_id?: string | null
           camera_make?: string | null
           camera_model?: string | null
           caption?: string | null
@@ -147,6 +179,7 @@ export type Database = {
         Update: {
           album_id?: string | null
           aperture?: number | null
+          area_id?: string | null
           camera_make?: string | null
           camera_model?: string | null
           caption?: string | null
@@ -176,6 +209,13 @@ export type Database = {
             columns: ["album_id"]
             isOneToOne: false
             referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photos_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
             referencedColumns: ["id"]
           },
           {
