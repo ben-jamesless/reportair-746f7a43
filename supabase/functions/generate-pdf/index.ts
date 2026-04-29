@@ -363,12 +363,35 @@ Deno.serve(async (req) => {
       }
 
       for (const group of groups) {
+        // Big day header (range mode: shown once per day, before its first area subgroup)
+        if (group.dayHeader) {
+          ensureSpace(50);
+          y -= 8;
+          page.drawText(group.dayHeader, { x: M, y: y - 16, size: 16, font: fontBold, color: ACCENT });
+          y -= 24;
+          // Day-level note for this day
+          if (group.dateKey) {
+            const dn = dayNoteByDate.get(group.dateKey);
+            if (dn) {
+              const lines = wrapText(dn, font, 10, PAGE_W - 2 * M);
+              for (const line of lines) {
+                ensureSpace(14);
+                page.drawText(line, { x: M, y: y - 10, size: 10, font, color: TEXT });
+                y -= 14;
+              }
+              y -= 6;
+            }
+          }
+        }
+
         ensureSpace(40);
         page.drawRectangle({ x: M, y: y - 4, width: 24, height: 2, color: ACCENT });
         // Header line: label · count [ · status]
+        // For per-area-per-day status, use dayKey (single-day mode) OR group.dateKey (range mode)
+        const groupDateKey = dayKey ?? group.dateKey ?? null;
         let header = `${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`;
-        if (group.areaId && dayKey) {
-          const st = areaDayStatus.get(`${group.areaId}|${dayKey}`);
+        if (group.areaId && groupDateKey) {
+          const st = areaDayStatus.get(`${group.areaId}|${groupDateKey}`);
           if (st && st !== "no_status") {
             header += `  ·  ${STATUS_LABEL[st] ?? st}`;
           }
@@ -376,9 +399,9 @@ Deno.serve(async (req) => {
         page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
         y -= 32;
 
-        // Per-area, per-day update note (only meaningful in day-scoped exports)
-        if (group.areaId && dayKey) {
-          const note = areaDayNotes.get(`${group.areaId}|${dayKey}`);
+        // Per-area, per-day update note
+        if (group.areaId && groupDateKey) {
+          const note = areaDayNotes.get(`${group.areaId}|${groupDateKey}`);
           if (note && note.trim()) {
             const lines = wrapText(note, font, 9, PAGE_W - 2 * M);
             for (const line of lines) {
@@ -390,8 +413,9 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Day comment in date-grouped exports (full project export)
-        if (group.dateKey) {
+        // Day comment in plain date-grouped exports (full project export, NOT range — range already
+        // rendered the day note under the dayHeader above).
+        if (group.dateKey && !isRange && !group.areaId) {
           const dn = dayNoteByDate.get(group.dateKey);
           if (dn) {
             const lines = wrapText(dn, font, 9, PAGE_W - 2 * M);
