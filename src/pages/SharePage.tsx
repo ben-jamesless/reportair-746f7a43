@@ -19,7 +19,9 @@ type SharePhoto = {
   album_id: string | null; area_id: string | null;
 };
 type Album = { id: string; name: string; position: number };
-type Area = { id: string; name: string; sort_order: number };
+type Area = { id: string; name: string; sort_order: number; notes: string | null };
+type DayNote = { date: string; notes: string | null };
+type AreaDayStatus = { area_id: string; date: string; status: string };
 type Resolved = {
   ok: boolean;
   error?: string;
@@ -27,7 +29,22 @@ type Resolved = {
   project?: { id: string; name: string; description: string | null };
   albums?: Album[];
   areas?: Area[];
+  day_notes?: DayNote[];
+  area_day_status?: AreaDayStatus[];
   photos?: SharePhoto[];
+};
+
+const STATUS_META: Record<string, { label: string; dot: string; chip: string }> = {
+  on_track: { label: "On Track", dot: "bg-blue-500", chip: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300" },
+  requires_discussion: { label: "Requires Discussion", dot: "bg-orange-500", chip: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300" },
+  concern: { label: "Concern / Behind Schedule", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+};
+
+const isoDateKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
 
 const ALL = "__all__";
@@ -73,6 +90,20 @@ const SharePage = () => {
   const photos = data?.photos ?? [];
   const albums = data?.albums ?? [];
   const areas = data?.areas ?? [];
+  const dayNotesMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.day_notes ?? []).forEach((d) => { if (d.notes && d.notes.trim()) m.set(d.date, d.notes); });
+    return m;
+  }, [data?.day_notes]);
+  const statusMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.area_day_status ?? []).forEach((s) => m.set(`${s.area_id}|${s.date}`, s.status));
+    return m;
+  }, [data?.area_day_status]);
+  const activeAreaObj = useMemo(
+    () => (activeArea !== ALL_AREAS && activeArea !== NO_AREA ? areas.find((a) => a.id === activeArea) ?? null : null),
+    [areas, activeArea]
+  );
 
   const albumFiltered = useMemo(() => {
     if (activeAlbum === ALL) return photos;
@@ -168,18 +199,50 @@ const SharePage = () => {
               <p className="py-12 text-center text-muted-foreground">No photos in this view.</p>
             ) : (
               <div className="space-y-8">
-                {grouped.map((group) => (
-                  <section key={group.key}>
-                    <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-                      {group.label} <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                      {group.photos.map((p) => (
-                        <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
-                      ))}
-                    </div>
-                  </section>
-                ))}
+                {grouped.map((group) => {
+                  const dateKey = isoDateKey(group.date);
+                  const dayNote = dayNotesMap.get(dateKey);
+                  const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
+                  const statusMeta = statusKey ? STATUS_META[statusKey] : undefined;
+                  return (
+                    <section key={group.key}>
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-medium text-foreground">
+                          {group.label}{" "}
+                          <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
+                        </h3>
+                      </div>
+                      {dayNote && (
+                        <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
+                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Day comment</p>
+                          <p className="whitespace-pre-wrap">{dayNote}</p>
+                        </div>
+                      )}
+                      {activeAreaObj && (
+                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium">{activeAreaObj.name}</span>
+                          {statusMeta && (
+                            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", statusMeta.chip)}>
+                              <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
+                              {statusMeta.label}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {activeAreaObj?.notes && activeAreaObj.notes.trim() && (
+                        <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
+                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Area comment</p>
+                          <p className="whitespace-pre-wrap">{activeAreaObj.notes}</p>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {group.photos.map((p) => (
+                          <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
