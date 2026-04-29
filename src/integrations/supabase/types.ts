@@ -58,6 +58,102 @@ export type Database = {
           },
         ]
       }
+      photos: {
+        Row: {
+          album_id: string | null
+          aperture: number | null
+          camera_make: string | null
+          camera_model: string | null
+          caption: string | null
+          captured_at: string | null
+          created_at: string
+          file_name: string
+          focal_length: number | null
+          gps_lat: number | null
+          gps_lng: number | null
+          height: number | null
+          id: string
+          iso: number | null
+          lens: string | null
+          mime_type: string | null
+          position: number
+          project_id: string
+          shutter_speed: string | null
+          size_bytes: number | null
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+          width: number | null
+        }
+        Insert: {
+          album_id?: string | null
+          aperture?: number | null
+          camera_make?: string | null
+          camera_model?: string | null
+          caption?: string | null
+          captured_at?: string | null
+          created_at?: string
+          file_name: string
+          focal_length?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          height?: number | null
+          id?: string
+          iso?: number | null
+          lens?: string | null
+          mime_type?: string | null
+          position?: number
+          project_id: string
+          shutter_speed?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+          width?: number | null
+        }
+        Update: {
+          album_id?: string | null
+          aperture?: number | null
+          camera_make?: string | null
+          camera_model?: string | null
+          caption?: string | null
+          captured_at?: string | null
+          created_at?: string
+          file_name?: string
+          focal_length?: number | null
+          gps_lat?: number | null
+          gps_lng?: number | null
+          height?: number | null
+          id?: string
+          iso?: number | null
+          lens?: string | null
+          mime_type?: string | null
+          position?: number
+          project_id?: string
+          shutter_speed?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photos_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
