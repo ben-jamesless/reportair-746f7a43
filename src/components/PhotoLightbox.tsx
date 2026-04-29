@@ -41,11 +41,14 @@ interface Props {
   albums?: LightboxAlbum[];
   onAreaChanged?: (photoId: string, areaId: string | null) => void;
   onAlbumChanged?: (photoId: string, albumId: string | null) => void;
+  projectId?: string;
 }
 
 const UNASSIGNED = "__unassigned__";
 
-export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged }: Props) => {
+type GuestNote = { id: string; guest_name: string; guest_email: string | null; body: string; created_at: string };
+
+export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId }: Props) => {
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
