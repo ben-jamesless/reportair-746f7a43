@@ -71,21 +71,17 @@ export const ActivityFeed = ({ projectId }: Props) => {
   }, [projectId]);
 
   if (loading) {
-    return (
-      <div className="flex h-32 items-center justify-center">
-        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ActivityFeedSkeleton />;
   }
 
   if (events.length === 0) {
     return (
-      <Card className="border-dashed shadow-none">
-        <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
-          <Activity className="h-5 w-5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No activity yet.</p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        size="sm"
+        icon={<Activity className="h-5 w-5" />}
+        title="No activity yet"
+        description="Uploads, edits, and team actions will appear here as they happen."
+      />
     );
   }
 
