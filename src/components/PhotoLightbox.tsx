@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,17 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
     return () => { alive = false; };
   }, [photo?.id, projectId]);
 
+  const prev = useCallback(() => {
+    const ni = (i - 1 + photos.length) % photos.length;
+    setI(ni);
+    onIndexChange(ni);
+  }, [i, photos.length, onIndexChange]);
+  const next = useCallback(() => {
+    const ni = (i + 1) % photos.length;
+    setI(ni);
+    onIndexChange(ni);
+  }, [i, photos.length, onIndexChange]);
+
   useEffect(() => {
     if (index === null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -81,10 +92,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [index, i, photos.length, next, prev, onClose]);
-
-  const prev = () => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); };
-  const next = () => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); };
+  }, [index, next, prev, onClose]);
 
   if (!photo) return null;
 
