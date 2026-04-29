@@ -39,7 +39,7 @@ const formatShutter = (v: unknown): string | null => {
 
 export async function parseExif(file: File): Promise<ExifData> {
   try {
-    const data: any = await exifr.parse(file, { gps: true, tiff: true, exif: true, ifd0: true });
+    const data: any = await exifr.parse(file, { gps: true, tiff: true, exif: true });
     if (!data) return EMPTY_EXIF;
     const captured = data.DateTimeOriginal || data.CreateDate || data.ModifyDate || null;
     return {
