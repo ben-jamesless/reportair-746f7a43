@@ -131,6 +131,12 @@ Deno.serve(async (req) => {
     if (dayKey) {
       allPhotos = allPhotos.filter((p) => photoDayKey(p) === dayKey);
       if (allPhotos.length === 0) throw new Error("No photos found for the selected day.");
+    } else if (isRange) {
+      allPhotos = allPhotos.filter((p) => {
+        const k = photoDayKey(p);
+        return k >= dateFrom! && k <= dateTo!;
+      });
+      if (allPhotos.length === 0) throw new Error("No photos found in the selected date range.");
     }
 
     if (allPhotos.length > PHOTO_CAP) {
