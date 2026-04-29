@@ -90,6 +90,20 @@ const SharePage = () => {
   const photos = data?.photos ?? [];
   const albums = data?.albums ?? [];
   const areas = data?.areas ?? [];
+  const dayNotesMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.day_notes ?? []).forEach((d) => { if (d.notes && d.notes.trim()) m.set(d.date, d.notes); });
+    return m;
+  }, [data?.day_notes]);
+  const statusMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.area_day_status ?? []).forEach((s) => m.set(`${s.area_id}|${s.date}`, s.status));
+    return m;
+  }, [data?.area_day_status]);
+  const activeAreaObj = useMemo(
+    () => (activeArea !== ALL_AREAS && activeArea !== NO_AREA ? areas.find((a) => a.id === activeArea) ?? null : null),
+    [areas, activeArea]
+  );
 
   const albumFiltered = useMemo(() => {
     if (activeAlbum === ALL) return photos;
