@@ -99,6 +99,18 @@ Deno.serve(async (req) => {
 
     const albumName = new Map((albums ?? []).map((a: any) => [a.id, a.name]));
     const areaName = new Map((areas ?? []).map((a: any) => [a.id, a.name]));
+    const areaById = new Map((areas ?? []).map((a: any) => [a.id, a]));
+    const dayNoteByDate = new Map<string, string>();
+    for (const r of (dayNotesRows ?? [])) {
+      // Postgres `date` columns serialize as YYYY-MM-DD already
+      if (r.notes && String(r.notes).trim()) dayNoteByDate.set(r.date, String(r.notes));
+    }
+    const STATUS_LABEL: Record<string, string> = {
+      no_status: "No status",
+      on_track: "On track",
+      requires_discussion: "Requires discussion",
+      concern: "Concern / behind schedule",
+    };
     const notesByPhoto = new Map<string, any[]>();
     for (const n of (notes ?? [])) {
       const arr = notesByPhoto.get(n.photo_id) ?? [];
