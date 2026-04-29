@@ -26,7 +26,7 @@ type Project = {
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
-type Area = { id: string; name: string; sort_order: number; notes: string | null; status: AreaStatus };
+type Area = { id: string; name: string; sort_order: number; notes: string | null };
 type DayNote = { date: string; notes: string | null };
 
 const NO_AREA = "__no_area__";
