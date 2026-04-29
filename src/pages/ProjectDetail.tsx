@@ -296,7 +296,7 @@ const ProjectDetail = () => {
           </TabsList>
 
           <TabsContent value="photos" className="mt-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
                 <button
@@ -314,7 +314,7 @@ const ProjectDetail = () => {
                   </span>
                 </button>
 
-                {days.length === 0 && (
+                {days.length === 0 && preEventPhotos.length === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
@@ -324,7 +324,7 @@ const ProjectDetail = () => {
                   const { counts, unassigned } = areaCountsForDay(day.photos);
                   return (
                     <div key={day.key} className="rounded-md">
-                      <div className="flex items-stretch">
+                      <div className="flex items-stretch gap-1">
                         <button
                           onClick={() => toggleDay(day.key)}
                           className="flex items-center px-2 text-muted-foreground hover:text-foreground"
@@ -346,6 +346,14 @@ const ProjectDetail = () => {
                           <span className={cn("text-xs", dayActive ? "opacity-80" : "text-muted-foreground")}>
                             {day.photos.length}
                           </span>
+                        </button>
+                        <button
+                          onClick={(e) => openDayExport(e, day)}
+                          className="flex items-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                          title={`Export ${day.label} as PDF`}
+                          aria-label={`Export ${day.label} as PDF`}
+                        >
+                          <FileDown className="h-3.5 w-3.5" />
                         </button>
                       </div>
 
