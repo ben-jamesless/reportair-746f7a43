@@ -202,6 +202,31 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 <Badge variant="secondary" className="font-normal">{photo.width} × {photo.height}</Badge>
               )}
             </div>
+
+            {projectId && (
+              <div className="border-t pt-4">
+                <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+                  Client comments <span className="ml-1 text-foreground/60">{notes.length}</span>
+                </p>
+                {notes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No comments on this photo yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {notes.map((n) => (
+                      <li key={n.id} className="rounded-md border border-border bg-background p-2.5 text-sm">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="text-xs font-medium">{n.guest_name}</p>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(n.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="mt-1 whitespace-pre-wrap text-xs">{n.body}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </aside>
         </div>
       </DialogContent>
