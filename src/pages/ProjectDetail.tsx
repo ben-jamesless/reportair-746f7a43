@@ -460,7 +460,13 @@ const ProjectDetail = () => {
                           ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
                           : "Upload to this day + area context, or pick a different selection."}
                       </p>
-                      <PhotoUploader projectId={project.id} albumId={null} areaId={uploadAreaId} onUploaded={loadAll} />
+                      <PhotoUploader
+                        projectId={project.id}
+                        albumId={uploadAlbumId}
+                        areaId={uploadAreaId}
+                        areas={areas}
+                        onUploaded={loadAll}
+                      />
                     </CardContent>
                   </Card>
                 ) : (
@@ -493,6 +499,17 @@ const ProjectDetail = () => {
           albums={albums}
           onAreaChanged={handleAreaChanged}
           onAlbumChanged={handleAlbumChanged}
+        />
+
+        {/* Day-scoped PDF export, opened from the day row in the sidebar */}
+        <ExportPdfDialog
+          projectId={project.id}
+          photoCount={exportPhotoCount}
+          dayKey={exportDayKey}
+          dayLabel={exportDayLabel}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          trigger={<span className="hidden" />}
         />
       </main>
     </div>
