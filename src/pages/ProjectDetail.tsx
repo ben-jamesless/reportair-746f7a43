@@ -399,6 +399,8 @@ const ProjectDetail = () => {
     setExportPhotoCount(day.photos.length);
     setExportLockMode("single"); // per-day icon always opens in single-day mode
     setExportOpen(true);
+  };
+
   // Days available for the date-range picker (only those with photos).
   // MUST be declared before any early returns to keep hook order stable across renders.
   const availableDaysForExport = useMemo(
