@@ -125,7 +125,10 @@ export const ActivityFeed = ({ projectId }: Props) => {
   return (
     <ul className="space-y-3">
       {events.map((e) => {
-        const actor = e.actor_id ? actors[e.actor_id]?.full_name ?? "Someone" : "Someone";
+        const isGuest = e.verb === "guest.note";
+        const actor = isGuest
+          ? (e.metadata?.guest_name ?? "A guest")
+          : e.actor_id ? actors[e.actor_id]?.full_name ?? "Someone" : "Someone";
         return (
           <li key={e.id} className="flex items-start gap-3 rounded-md border bg-card p-3">
             <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -136,6 +139,11 @@ export const ActivityFeed = ({ projectId }: Props) => {
                 <span className="font-medium">{actor}</span>{" "}
                 <span className="text-muted-foreground">{describe(e)}</span>
               </p>
+              {isGuest && e.metadata?.body && (
+                <p className="mt-1 whitespace-pre-wrap rounded-md border bg-muted/40 p-2 text-sm">
+                  {e.metadata.body}
+                </p>
+              )}
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}
               </p>
@@ -158,6 +166,8 @@ function describe(e: Event): string {
       return `uploaded ${m.file_name ?? "a photo"}`;
     case "photo.deleted":
       return `deleted ${m.file_name ?? "a photo"}`;
+    case "guest.note":
+      return "left a comment on a photo";
     default:
       return e.verb;
   }
@@ -165,6 +175,7 @@ function describe(e: Event): string {
 
 function VerbIcon({ verb }: { verb: string }) {
   const cls = "h-3.5 w-3.5";
+  if (verb === "guest.note") return <MessageSquare className={cls} />;
   if (verb.startsWith("project.")) return <FolderOpen className={cls} />;
   if (verb.startsWith("album.")) return <FolderPlus className={cls} />;
   if (verb === "photo.uploaded") return <ImagePlus className={cls} />;
