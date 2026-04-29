@@ -59,6 +59,7 @@ const ProjectDetail = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
+  const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string>(ALL_DAYS);
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
@@ -67,10 +68,10 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }] = await Promise.all([
       supabase.from("projects").select("id, name, description, template").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order, notes, status").eq("project_id", id).order("sort_order"),
       supabase
         .from("photos")
         .select(
@@ -79,15 +80,44 @@ const ProjectDetail = () => {
         .eq("project_id", id)
         .order("captured_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false }),
+      supabase.from("day_notes").select("date, notes").eq("project_id", id),
     ]);
     setProject(p ?? null);
     setAlbums(a ?? []);
     setAreas((ar ?? []) as Area[]);
     setPhotos((ph ?? []) as any);
+    const map = new Map<string, string | null>();
+    for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
+    setDayNotes(map);
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // ---- Mutations: area notes/status, day notes ----
+  const saveAreaNotes = async (areaId: string, next: string | null) => {
+    const prev = areas;
+    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, notes: next } : a)));
+    const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
+    if (error) { toast.error(error.message); setAreas(prev); }
+  };
+  const saveAreaStatus = async (areaId: string, next: AreaStatus) => {
+    const prev = areas;
+    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, status: next } : a)));
+    const { error } = await supabase.from("areas").update({ status: next }).eq("id", areaId);
+    if (error) { toast.error(error.message); setAreas(prev); }
+  };
+  const saveDayNote = async (dateKey: string, next: string | null) => {
+    if (!id) return;
+    const prev = new Map(dayNotes);
+    setDayNotes((cur) => { const n = new Map(cur); n.set(dateKey, next); return n; });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("day_notes").upsert(
+      { project_id: id, date: dateKey, notes: next, updated_by: user?.id },
+      { onConflict: "project_id,date" },
+    );
+    if (error) { toast.error(error.message); setDayNotes(prev); }
+  };
 
   // Identify the Pre-event album (if it exists)
   const preEventAlbum = useMemo(() => albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null, [albums]);
