@@ -232,14 +232,23 @@ const ProjectDetail = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {visiblePhotos.map((p, i) => (
-                      <PhotoThumb
-                        key={p.id}
-                        path={p.storage_path}
-                        alt={p.caption || p.file_name}
-                        onClick={() => setLightboxIndex(i)}
-                      />
+                  <div className="space-y-8">
+                    {groupedPhotos.map((group) => (
+                      <section key={group.key}>
+                        <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                          {group.label} <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                          {group.photos.map((p) => (
+                            <PhotoThumb
+                              key={p.id}
+                              path={p.storage_path}
+                              alt={p.caption || p.file_name}
+                              onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                            />
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 )}
