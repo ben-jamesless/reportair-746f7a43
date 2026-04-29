@@ -1,4 +1,11 @@
-import exifr from "exifr";
+// exifr is heavy (~50KB gz). Loaded on demand the first time a user picks a file.
+let exifrModulePromise: Promise<typeof import("exifr").default> | null = null;
+const loadExifr = () => {
+  if (!exifrModulePromise) {
+    exifrModulePromise = import("exifr").then((m) => m.default);
+  }
+  return exifrModulePromise;
+};
 
 export type ExifData = {
   captured_at: string | null;
