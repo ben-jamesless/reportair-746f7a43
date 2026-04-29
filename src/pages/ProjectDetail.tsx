@@ -19,6 +19,7 @@ import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
+import { CommentsPanel } from "@/components/CommentsPanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
