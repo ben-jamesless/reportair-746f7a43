@@ -74,6 +74,7 @@ const ProjectDetail = () => {
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"photos" | "activity">("photos");
 
   const loadAll = useCallback(async () => {
     if (!id) return;
