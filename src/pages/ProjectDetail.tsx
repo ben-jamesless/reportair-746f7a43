@@ -322,7 +322,7 @@ const ProjectDetail = () => {
   }
 
   // Build breadcrumbs reflecting current selection
-  const crumbs = [
+  const crumbs: { label: string; to?: string }[] = [
     { label: "Projects", to: "/projects" },
     { label: project.name, to: `/projects/${project.id}` },
   ];
