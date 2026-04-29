@@ -29,18 +29,38 @@ export const ActivityFeed = ({ projectId }: Props) => {
   useEffect(() => {
     let cancel = false;
     (async () => {
-      const { data } = await supabase
-        .from("activity_events")
-        .select("id, actor_id, verb, target_type, target_id, metadata, created_at")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false })
-        .limit(100);
+      const [{ data: ev }, { data: notes }] = await Promise.all([
+        supabase
+          .from("activity_events")
+          .select("id, actor_id, verb, target_type, target_id, metadata, created_at")
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("guest_notes")
+          .select("id, photo_id, guest_name, body, created_at")
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+      ]);
       if (cancel) return;
-      const list = (data ?? []) as Event[];
-      setEvents(list);
+      const evList = (ev ?? []) as Event[];
+      const noteEvents: Event[] = ((notes ?? []) as any[]).map((n) => ({
+        id: `gn-${n.id}`,
+        actor_id: null,
+        verb: "guest.note",
+        target_type: "photo",
+        target_id: n.photo_id,
+        metadata: { guest_name: n.guest_name, body: n.body },
+        created_at: n.created_at,
+      }));
+      const merged = [...evList, ...noteEvents].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+      setEvents(merged);
       setLoading(false);
 
-      const ids = Array.from(new Set(list.map((e) => e.actor_id).filter(Boolean))) as string[];
+      const ids = Array.from(new Set(evList.map((e) => e.actor_id).filter(Boolean))) as string[];
       if (ids.length) {
         const { data: profs } = await supabase
           .from("profiles")
@@ -59,7 +79,24 @@ export const ActivityFeed = ({ projectId }: Props) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "activity_events", filter: `project_id=eq.${projectId}` },
         (payload) => {
-          setEvents((prev) => [payload.new as Event, ...prev].slice(0, 100));
+          setEvents((prev) => [payload.new as Event, ...prev].slice(0, 200));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "guest_notes", filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          const n = payload.new as any;
+          const ev: Event = {
+            id: `gn-${n.id}`,
+            actor_id: null,
+            verb: "guest.note",
+            target_type: "photo",
+            target_id: n.photo_id,
+            metadata: { guest_name: n.guest_name, body: n.body },
+            created_at: n.created_at,
+          };
+          setEvents((prev) => [ev, ...prev].slice(0, 200));
         },
       )
       .subscribe();
