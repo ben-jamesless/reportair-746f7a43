@@ -482,7 +482,6 @@ export type Database = {
           archived_at: string | null
           client_name: string | null
           color: string
-          cover_photo_url: string | null
           created_at: string
           created_by: string
           description: string | null
@@ -500,7 +499,6 @@ export type Database = {
           archived_at?: string | null
           client_name?: string | null
           color?: string
-          cover_photo_url?: string | null
           created_at?: string
           created_by: string
           description?: string | null
@@ -518,7 +516,6 @@ export type Database = {
           archived_at?: string | null
           client_name?: string | null
           color?: string
-          cover_photo_url?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
