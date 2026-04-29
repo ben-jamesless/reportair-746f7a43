@@ -90,6 +90,42 @@ const ProjectDetail = () => {
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">("photos");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  }, []);
+
+  const toggleSelect = useCallback((photoId: string) => {
+    setSelectedIds((cur) => {
+      const next = new Set(cur);
+      if (next.has(photoId)) next.delete(photoId);
+      else next.add(photoId);
+      return next;
+    });
+  }, []);
+
+  // Escape exits selection mode
+  useEffect(() => {
+    if (!selectMode) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") exitSelectMode(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectMode, exitSelectMode]);
+
+  const bulkAssignArea = useCallback(async (areaId: string | null) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("photos").update({ area_id: areaId }).in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    const label = areaId === null ? "Unassigned" : (areas.find((a) => a.id === areaId)?.name ?? "area");
+    toast.success(`Assigned ${ids.length} photo${ids.length === 1 ? "" : "s"} to ${label}`);
+    // Optimistically update local photos
+    setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, area_id: areaId } : p)));
+    exitSelectMode();
+  }, [selectedIds, areas, exitSelectMode]);
 
   const loadAll = useCallback(async () => {
     if (!id) return;
