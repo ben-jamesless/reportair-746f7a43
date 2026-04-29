@@ -66,7 +66,7 @@ function groupByDate<T extends { captured_at: string | null; created_at: string 
   return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-async function fail(supabase: any, exportId: string, msg: string) {
+async function fail(supabase: SupabaseClient, exportId: string, msg: string) {
   await supabase.from("project_exports").update({ status: "failed", error_message: msg.slice(0, 500), completed_at: new Date().toISOString() }).eq("id", exportId);
 }
 
@@ -106,15 +106,15 @@ Deno.serve(async (req) => {
     ]);
     // Map: `${area_id}|${YYYY-MM-DD}` -> status
     const areaDayStatus = new Map<string, string>();
-    for (const r of (areaDayStatusRows ?? []) as any[]) {
+    for (const r of (areaDayStatusRows ?? []) as AreaDayStatusRow[]) {
       areaDayStatus.set(`${r.area_id}|${r.date}`, r.status);
     }
 
     if (!proj) throw new Error("Project not found");
-    let allPhotos = (photos ?? []) as any[];
+    let allPhotos = (photos ?? []) as PhotoRow[];
 
     // Day-scoped export: filter to photos that fall on the chosen day (by EXIF capture date or upload date)
-    const photoDayKey = (p: any) => {
+    const photoDayKey = (p: PhotoRow) => {
       const raw = p.captured_at || p.created_at;
       const d = new Date(raw);
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -128,9 +128,9 @@ Deno.serve(async (req) => {
       throw new Error(`This export contains ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}. Split your project across more days or remove photos before exporting.`);
     }
 
-    const albumName = new Map((albums ?? []).map((a: any) => [a.id, a.name]));
-    const areaName = new Map((areas ?? []).map((a: any) => [a.id, a.name]));
-    const areaById = new Map((areas ?? []).map((a: any) => [a.id, a]));
+    const albumName = new Map(((albums ?? []) as AlbumRow[]).map((a) => [a.id, a.name]));
+    const areaName = new Map(((areas ?? []) as AreaRow[]).map((a) => [a.id, a.name]));
+    const areaById = new Map(((areas ?? []) as AreaRow[]).map((a) => [a.id, a]));
     const dayNoteByDate = new Map<string, string>();
     for (const r of (dayNotesRows ?? [])) {
       // Postgres `date` columns serialize as YYYY-MM-DD already
@@ -142,14 +142,14 @@ Deno.serve(async (req) => {
       requires_discussion: "Requires discussion",
       concern: "Concern / behind schedule",
     };
-    const notesByPhoto = new Map<string, any[]>();
+    const notesByPhoto = new Map<string, GuestNoteRow[]>();
     for (const n of (notes ?? [])) {
       const arr = notesByPhoto.get(n.photo_id) ?? [];
       arr.push(n); notesByPhoto.set(n.photo_id, arr);
     }
 
     // Resolve actor names for activity
-    const actorIds = Array.from(new Set((activity ?? []).map((a: any) => a.actor_id).filter(Boolean)));
+    const actorIds = Array.from(new Set(((activity ?? []) as ActivityRow[]).map((a) => a.actor_id).filter((x): x is string => Boolean(x))));
     const actorMap = new Map<string, string>();
     if (actorIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", actorIds);
