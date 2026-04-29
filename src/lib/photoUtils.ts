@@ -80,3 +80,39 @@ export async function getImageDimensions(file: File): Promise<{ width: number; h
 export function sanitizeFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120);
 }
+
+type DateGroupablePhoto = {
+  id: string;
+  captured_at?: string | null;
+  created_at?: string | null;
+};
+
+export type PhotoDateGroup<T> = {
+  key: string;
+  label: string;
+  date: Date;
+  photos: T[];
+};
+
+const DATE_FMT = new Intl.DateTimeFormat(undefined, {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+export function groupPhotosByDate<T extends DateGroupablePhoto>(photos: T[]): PhotoDateGroup<T>[] {
+  const groups = new Map<string, PhotoDateGroup<T>>();
+  for (const p of photos) {
+    const raw = p.captured_at || p.created_at;
+    const d = raw ? new Date(raw) : new Date(0);
+    const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    let g = groups.get(key);
+    if (!g) {
+      g = { key, label: raw ? DATE_FMT.format(d) : "Unknown date", date: d, photos: [] };
+      groups.set(key, g);
+    }
+    g.photos.push(p);
+  }
+  return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
+}
