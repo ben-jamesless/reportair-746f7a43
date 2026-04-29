@@ -19,9 +19,11 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const redirect = new URLSearchParams(window.location.search).get("redirect") || "/projects";
+
   useEffect(() => {
-    if (user) navigate("/projects", { replace: true });
-  }, [user, navigate]);
+    if (user) navigate(redirect, { replace: true });
+  }, [user, navigate, redirect]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
