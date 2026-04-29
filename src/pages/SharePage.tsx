@@ -211,6 +211,7 @@ const SharePage = () => {
                   const dayNote = dayNotesMap.get(dateKey);
                   const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                   const statusMeta = statusKey ? STATUS_META[statusKey] : undefined;
+                  const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                   return (
                     <section key={group.key}>
                       <div className="mb-2 flex flex-wrap items-center gap-2">
