@@ -157,6 +157,7 @@ const ProjectDetail = () => {
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
+              <ExportPdfDialog projectId={project.id} photoCount={photos.length} />
               <PhotoUploader projectId={project.id} albumId={activeAlbumId} onUploaded={loadAll} />
             </div>
             {activeAlbumId === null && albums.length > 0 && (
