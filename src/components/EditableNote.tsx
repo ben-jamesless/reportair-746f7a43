@@ -67,8 +67,8 @@ export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, 
       type="button"
       onClick={(e) => { e.stopPropagation(); setEditing(true); }}
       className={cn(
-        "group flex w-full items-start gap-1.5 rounded-md border border-dashed border-transparent px-2 py-1 text-left text-xs transition-colors",
-        hasValue ? "border-border/60 bg-background/40 hover:border-border" : "text-muted-foreground hover:border-border hover:bg-secondary/50",
+        "group flex w-full items-start gap-1.5 rounded-md border border-border bg-background px-3 py-2 text-left text-xs transition-colors hover:border-foreground/30 hover:bg-secondary/40",
+        !hasValue && "text-muted-foreground",
         className,
       )}
       title="Click to edit comment"
