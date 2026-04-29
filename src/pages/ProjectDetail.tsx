@@ -408,6 +408,35 @@ const ProjectDetail = () => {
                     </div>
                   );
                 })}
+
+                {/* Pre-event section: fixed at the bottom, below all dated days */}
+                {preEventAlbum && (
+                  <div className="mt-3 border-t pt-3">
+                    <button
+                      onClick={() => { setActiveDay(PRE_EVENT_DAY); setActiveArea(null); }}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                        activeDay === PRE_EVENT_DAY && activeArea === null
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-secondary"
+                      )}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Layers className={cn(
+                          "h-3.5 w-3.5",
+                          activeDay === PRE_EVENT_DAY && activeArea === null ? "" : "text-muted-foreground"
+                        )} />
+                        <span className="font-medium">Pre-event</span>
+                      </span>
+                      <span className={cn(
+                        "text-xs",
+                        activeDay === PRE_EVENT_DAY && activeArea === null ? "opacity-80" : "text-muted-foreground"
+                      )}>
+                        {preEventPhotos.length}
+                      </span>
+                    </button>
+                  </div>
+                )}
               </aside>
 
               {/* Main grid */}
