@@ -675,9 +675,9 @@ const ProjectDetail = () => {
                               </div>
                               <div className="mb-3">
                                 <EditableNote
-                                  value={ar.notes}
-                                  placeholder="Add a comment for this area…"
-                                  onSave={(next) => saveAreaNotes(ar.id, next)}
+                                  value={getAreaDayNote(ar.id, activeDay)}
+                                  placeholder="Daily updates"
+                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
