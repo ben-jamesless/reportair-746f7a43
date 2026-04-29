@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -234,11 +234,11 @@ const ProjectDetail = () => {
   };
 
   // Identify the Pre-event album (if it exists)
-  const preEventAlbum = useMemo(() => albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null, [albums]);
+  const preEventAlbum = albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null;
 
   // Split photos: anything in the Pre-event album goes to the Pre-event bucket;
   // everything else groups by capture/upload date.
-  const { datedPhotos, preEventPhotos } = useMemo(() => {
+  const { datedPhotos, preEventPhotos } = (() => {
     const dated: LightboxPhoto[] = [];
     const pre: LightboxPhoto[] = [];
     for (const p of photos) {
@@ -246,10 +246,10 @@ const ProjectDetail = () => {
       else dated.push(p);
     }
     return { datedPhotos: dated, preEventPhotos: pre };
-  }, [photos, preEventAlbum]);
+  })();
 
   // Build day buckets from dated photos only
-  const days = useMemo(() => {
+  const days = (() => {
     const map = new Map<string, { key: string; label: string; date: Date; photos: LightboxPhoto[] }>();
     for (const ph of datedPhotos) {
       const k = dayKey(ph);
@@ -263,7 +263,7 @@ const ProjectDetail = () => {
       g.photos.push(ph);
     }
     return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [datedPhotos]);
+  })();
 
   // Auto-open first day on load
   useEffect(() => {
@@ -287,7 +287,7 @@ const ProjectDetail = () => {
   );
 
   // Photos shown in main grid
-  const visiblePhotos = useMemo(() => {
+  const visiblePhotos = (() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
     else if (activeDay === PRE_EVENT_DAY) pool = preEventPhotos;
@@ -295,13 +295,13 @@ const ProjectDetail = () => {
     if (activeArea === null) return pool;
     if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
     return pool.filter((p) => p.area_id === activeArea);
-  }, [activeDay, activeArea, days, photos, preEventPhotos]);
+  })();
 
-  const photoIndexById = useMemo(() => {
+  const photoIndexById = (() => {
     const m = new Map<string, number>();
     visiblePhotos.forEach((p, i) => m.set(p.id, i));
     return m;
-  }, [visiblePhotos]);
+  })();
 
   // Deep-link from notifications: ?photo=<id> opens the lightbox once photos load.
   useEffect(() => {
