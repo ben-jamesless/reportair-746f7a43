@@ -58,6 +58,45 @@ export type Database = {
           },
         ]
       }
+      annotations: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          photo_id: string
+          project_id: string
+          updated_at: string
+          x: number | null
+          y: number | null
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          kind?: string
+          photo_id: string
+          project_id: string
+          updated_at?: string
+          x?: number | null
+          y?: number | null
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          photo_id?: string
+          project_id?: string
+          updated_at?: string
+          x?: number | null
+          y?: number | null
+        }
+        Relationships: []
+      }
       photos: {
         Row: {
           album_id: string | null
