@@ -967,6 +967,7 @@ const ProjectDetail = () => {
             onAreaChanged={handleAreaChanged}
             onAlbumChanged={handleAlbumChanged}
             projectId={project.id}
+            isOwner={isOwner}
           />
         </ErrorBoundary>
 
