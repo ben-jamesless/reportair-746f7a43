@@ -95,6 +95,10 @@ export const ProjectEditForm = ({
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Archive state
+  const [confirmingArchive, setConfirmingArchive] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+
   // Sync when the project changes externally
   useEffect(() => {
     setName(initialName);
