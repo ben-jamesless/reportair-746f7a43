@@ -13,6 +13,9 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
+import { EditableNote } from "@/components/EditableNote";
+import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type Project = {
@@ -23,7 +26,8 @@ type Project = {
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
-type Area = { id: string; name: string; sort_order: number };
+type Area = { id: string; name: string; sort_order: number; notes: string | null; status: AreaStatus };
+type DayNote = { date: string; notes: string | null };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
@@ -55,6 +59,7 @@ const ProjectDetail = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
+  const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string>(ALL_DAYS);
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
@@ -63,10 +68,10 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }] = await Promise.all([
       supabase.from("projects").select("id, name, description, template").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order, notes, status").eq("project_id", id).order("sort_order"),
       supabase
         .from("photos")
         .select(
@@ -75,15 +80,44 @@ const ProjectDetail = () => {
         .eq("project_id", id)
         .order("captured_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false }),
+      supabase.from("day_notes").select("date, notes").eq("project_id", id),
     ]);
     setProject(p ?? null);
     setAlbums(a ?? []);
     setAreas((ar ?? []) as Area[]);
     setPhotos((ph ?? []) as any);
+    const map = new Map<string, string | null>();
+    for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
+    setDayNotes(map);
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // ---- Mutations: area notes/status, day notes ----
+  const saveAreaNotes = async (areaId: string, next: string | null) => {
+    const prev = areas;
+    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, notes: next } : a)));
+    const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
+    if (error) { toast.error(error.message); setAreas(prev); }
+  };
+  const saveAreaStatus = async (areaId: string, next: AreaStatus) => {
+    const prev = areas;
+    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, status: next } : a)));
+    const { error } = await supabase.from("areas").update({ status: next }).eq("id", areaId);
+    if (error) { toast.error(error.message); setAreas(prev); }
+  };
+  const saveDayNote = async (dateKey: string, next: string | null) => {
+    if (!id) return;
+    const prev = new Map(dayNotes);
+    setDayNotes((cur) => { const n = new Map(cur); n.set(dateKey, next); return n; });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("day_notes").upsert(
+      { project_id: id, date: dateKey, notes: next, updated_by: user?.id },
+      { onConflict: "project_id,date" },
+    );
+    if (error) { toast.error(error.message); setDayNotes(prev); }
+  };
 
   // Identify the Pre-event album (if it exists)
   const preEventAlbum = useMemo(() => albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null, [albums]);
@@ -193,12 +227,12 @@ const ProjectDetail = () => {
     } else if (activeArea === NO_AREA) {
       parts.push("Unassigned");
     }
-    return parts.length ? parts.join(" · ") : "All photos";
+    return parts.length ? parts.join(" · ") : "Event Gallery";
   }, [activeDay, activeArea, uploadAreaId, days, areas]);
 
   // Selection title
   const selectionTitle = useMemo(() => {
-    if (activeDay === ALL_DAYS && activeArea === null) return "All photos";
+    if (activeDay === ALL_DAYS && activeArea === null) return "Event Gallery";
     const parts: string[] = [];
     if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
     else if (activeDay !== ALL_DAYS) {
@@ -299,21 +333,6 @@ const ProjectDetail = () => {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
-                <button
-                  onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(null); }}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
-                    activeDay === ALL_DAYS && activeArea === null
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-secondary"
-                  )}
-                >
-                  <span className="font-medium">All photos</span>
-                  <span className={cn("text-xs", activeDay === ALL_DAYS && activeArea === null ? "opacity-80" : "text-muted-foreground")}>
-                    {photos.length}
-                  </span>
-                </button>
-
                 {days.length === 0 && preEventPhotos.length === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
@@ -322,6 +341,7 @@ const ProjectDetail = () => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
+                  const dayNote = dayNotes.get(day.key) ?? null;
                   return (
                     <div key={day.key} className="rounded-md">
                       <div className="flex items-stretch gap-1">
@@ -358,26 +378,47 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
+                        <div className="ml-7 mt-0.5 space-y-1 border-l pl-2">
+                          <EditableNote
+                            value={dayNote}
+                            placeholder="Add a comment for this day…"
+                            onSave={(next) => saveDayNote(day.key, next)}
+                          />
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
                             const sel = activeDay === day.key && activeArea === ar.id;
                             return (
-                              <button
-                                key={ar.id}
-                                onClick={() => selectDayArea(day.key, ar.id)}
-                                className={cn(
-                                  "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
-                                  sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
-                                )}
-                              >
-                                <span className="flex items-center gap-1.5 truncate">
-                                  <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
-                                  <span className="truncate">{ar.name}</span>
-                                </span>
-                                <span className={cn("ml-2 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
-                              </button>
+                              <div key={ar.id} className="space-y-0.5">
+                                <div className={cn(
+                                  "flex items-stretch gap-1 rounded-md transition-colors",
+                                  sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
+                                )}>
+                                  <div className="flex items-center pl-2">
+                                    <AreaStatusPicker
+                                      value={ar.status}
+                                      onChange={(s) => saveAreaStatus(ar.id, s)}
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => selectDayArea(day.key, ar.id)}
+                                    className="flex flex-1 items-center justify-between px-2 py-1.5 text-left text-xs"
+                                  >
+                                    <span className="flex items-center gap-1.5 truncate">
+                                      <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
+                                      <span className="truncate">{ar.name}</span>
+                                    </span>
+                                    <span className={cn("ml-2 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
+                                  </button>
+                                </div>
+                                <div className="pl-2">
+                                  <EditableNote
+                                    value={ar.notes}
+                                    placeholder="Add a comment for this area…"
+                                    onSave={(next) => saveAreaNotes(ar.id, next)}
+                                  />
+                                </div>
+                              </div>
                             );
                           })}
                           {unassigned > 0 && (
@@ -409,9 +450,8 @@ const ProjectDetail = () => {
                   );
                 })}
 
-                {/* Pre-event section: fixed at the bottom, below all dated days */}
-                {preEventAlbum && (
-                  <div className="mt-3 border-t pt-3">
+                <div className="mt-3 space-y-1 border-t pt-3">
+                  {preEventAlbum && (
                     <button
                       onClick={() => { setActiveDay(PRE_EVENT_DAY); setActiveArea(null); }}
                       className={cn(
@@ -435,8 +475,31 @@ const ProjectDetail = () => {
                         {preEventPhotos.length}
                       </span>
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(null); }}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                      activeDay === ALL_DAYS && activeArea === null
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-secondary"
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <ImagePlus className={cn(
+                        "h-3.5 w-3.5",
+                        activeDay === ALL_DAYS && activeArea === null ? "" : "text-muted-foreground"
+                      )} />
+                      <span className="font-medium">Event Gallery</span>
+                    </span>
+                    <span className={cn(
+                      "text-xs",
+                      activeDay === ALL_DAYS && activeArea === null ? "opacity-80" : "text-muted-foreground"
+                    )}>
+                      {photos.length}
+                    </span>
+                  </button>
+                </div>
               </aside>
 
               {/* Main grid */}

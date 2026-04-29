@@ -68,14 +68,15 @@ Deno.serve(async (req) => {
     const dayLabel: string | null = exp.options?.day_label ?? null;
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
-    // Load project + photos + albums + areas + activity + notes
-    const [{ data: proj }, { data: photos }, { data: albums }, { data: areas }, { data: activity }, { data: notes }] = await Promise.all([
+    // Load project + photos + albums + areas + activity + notes + day notes
+    const [{ data: proj }, { data: photos }, { data: albums }, { data: areas }, { data: activity }, { data: notes }, { data: dayNotesRows }] = await Promise.all([
       supabase.from("projects").select("name, description, template").eq("id", projectId).single(),
       supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height").eq("project_id", projectId).order("captured_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
-      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order, notes, status").eq("project_id", projectId).order("sort_order"),
       supabase.from("activity_events").select("verb, target_type, metadata, created_at, actor_id").eq("project_id", projectId).order("created_at", { ascending: false }).limit(200),
       supabase.from("guest_notes").select("photo_id, guest_name, body, created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
+      supabase.from("day_notes").select("date, notes").eq("project_id", projectId),
     ]);
 
     if (!proj) throw new Error("Project not found");
@@ -98,6 +99,18 @@ Deno.serve(async (req) => {
 
     const albumName = new Map((albums ?? []).map((a: any) => [a.id, a.name]));
     const areaName = new Map((areas ?? []).map((a: any) => [a.id, a.name]));
+    const areaById = new Map((areas ?? []).map((a: any) => [a.id, a]));
+    const dayNoteByDate = new Map<string, string>();
+    for (const r of (dayNotesRows ?? [])) {
+      // Postgres `date` columns serialize as YYYY-MM-DD already
+      if (r.notes && String(r.notes).trim()) dayNoteByDate.set(r.date, String(r.notes));
+    }
+    const STATUS_LABEL: Record<string, string> = {
+      no_status: "No status",
+      on_track: "On track",
+      requires_discussion: "Requires discussion",
+      concern: "Concern / behind schedule",
+    };
     const notesByPhoto = new Map<string, any[]>();
     for (const n of (notes ?? [])) {
       const arr = notesByPhoto.get(n.photo_id) ?? [];
@@ -200,7 +213,7 @@ Deno.serve(async (req) => {
     if (sections.grid && allPhotos.length > 0) {
       // When day-scoped, group by area (in defined sort_order, then "Unassigned").
       // Otherwise, group by date as before.
-      type Group = { label: string; photos: any[] };
+      type Group = { label: string; photos: any[]; areaId?: string; dateKey?: string };
       let groups: Group[];
       if (dayKey) {
         const sortedAreas = (areas ?? []) as any[];
@@ -217,11 +230,15 @@ Deno.serve(async (req) => {
         groups = [];
         for (const ar of sortedAreas) {
           const list = byArea.get(ar.id);
-          if (list?.length) groups.push({ label: ar.name, photos: list });
+          if (list?.length) groups.push({ label: ar.name, photos: list, areaId: ar.id });
         }
         if (unassigned.length) groups.push({ label: "Unassigned", photos: unassigned });
       } else {
-        groups = groupByDate(allPhotos).map((g) => ({ label: g.label, photos: g.photos }));
+        groups = groupByDate(allPhotos).map((g) => {
+          const d = g.date;
+          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          return { label: g.label, photos: g.photos, dateKey: dKey };
+        });
       }
 
       // Layout: 3 cols x 3 rows per page = 9 thumbs
@@ -240,11 +257,64 @@ Deno.serve(async (req) => {
         }
       };
 
+      // For day-scoped exports, render the day comment once at the top (under the page header area).
+      if (dayKey) {
+        const note = dayNoteByDate.get(dayKey);
+        if (note) {
+          const lines = wrapText(note, font, 10, PAGE_W - 2 * M);
+          ensureSpace(lines.length * 14 + 18);
+          page.drawText("Day comment", { x: M, y: y - 12, size: 9, font: fontBold, color: ACCENT });
+          y -= 24;
+          for (const line of lines) {
+            ensureSpace(14);
+            page.drawText(line, { x: M, y: y - 10, size: 10, font, color: TEXT });
+            y -= 14;
+          }
+          y -= 10;
+        }
+      }
+
       for (const group of groups) {
         ensureSpace(40);
         page.drawRectangle({ x: M, y: y - 4, width: 24, height: 2, color: ACCENT });
-        page.drawText(`${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
+        // Header line: label · count [ · status]
+        let header = `${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`;
+        if (group.areaId) {
+          const ar = areaById.get(group.areaId) as any;
+          if (ar?.status && ar.status !== "no_status") {
+            header += `  ·  ${STATUS_LABEL[ar.status] ?? ar.status}`;
+          }
+        }
+        page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
         y -= 32;
+
+        // Per-area comment in day-scoped exports
+        if (group.areaId) {
+          const ar = areaById.get(group.areaId) as any;
+          if (ar?.notes && String(ar.notes).trim()) {
+            const lines = wrapText(String(ar.notes), font, 9, PAGE_W - 2 * M);
+            for (const line of lines) {
+              ensureSpace(12);
+              page.drawText(line, { x: M, y: y - 8, size: 9, font, color: MUTED });
+              y -= 12;
+            }
+            y -= 6;
+          }
+        }
+
+        // Day comment in date-grouped exports (full project export)
+        if (group.dateKey) {
+          const dn = dayNoteByDate.get(group.dateKey);
+          if (dn) {
+            const lines = wrapText(dn, font, 9, PAGE_W - 2 * M);
+            for (const line of lines) {
+              ensureSpace(12);
+              page.drawText(line, { x: M, y: y - 8, size: 9, font, color: MUTED });
+              y -= 12;
+            }
+            y -= 6;
+          }
+        }
 
         // Render photos in rows
         for (let i = 0; i < group.photos.length; i += COLS) {

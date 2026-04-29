@@ -97,8 +97,10 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
+          notes: string | null
           project_id: string
           sort_order: number
+          status: Database["public"]["Enums"]["area_status"]
           updated_at: string
         }
         Insert: {
@@ -106,8 +108,10 @@ export type Database = {
           created_by?: string | null
           id?: string
           name: string
+          notes?: string | null
           project_id: string
           sort_order?: number
+          status?: Database["public"]["Enums"]["area_status"]
           updated_at?: string
         }
         Update: {
@@ -115,9 +119,41 @@ export type Database = {
           created_by?: string | null
           id?: string
           name?: string
+          notes?: string | null
           project_id?: string
           sort_order?: number
+          status?: Database["public"]["Enums"]["area_status"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      day_notes: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          project_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          project_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          project_id?: string
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -649,6 +685,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      area_status: "no_status" | "on_track" | "requires_discussion" | "concern"
       export_status: "queued" | "processing" | "ready" | "failed"
       project_role: "owner" | "editor" | "commenter" | "viewer"
       project_template: "event_production" | "blank"
@@ -781,6 +818,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      area_status: ["no_status", "on_track", "requires_discussion", "concern"],
       export_status: ["queued", "processing", "ready", "failed"],
       project_role: ["owner", "editor", "commenter", "viewer"],
       project_template: ["event_production", "blank"],
