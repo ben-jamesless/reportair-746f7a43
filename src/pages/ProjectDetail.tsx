@@ -989,6 +989,8 @@ const ProjectDetail = () => {
             photoCount={exportPhotoCount}
             dayKey={exportDayKey}
             dayLabel={exportDayLabel}
+            availableDays={availableDaysForExport}
+            lockMode={exportLockMode}
             open={exportOpen}
             onOpenChange={setExportOpen}
             trigger={<span className="hidden" />}
