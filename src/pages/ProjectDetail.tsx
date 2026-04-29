@@ -735,7 +735,6 @@ const ProjectDetail = () => {
                 if (!ts) return acc;
                 return !acc || ts > acc ? ts : acc;
               }, null)}
-              onChanged={loadAll}
             />
           </TabsContent>
         </Tabs>
