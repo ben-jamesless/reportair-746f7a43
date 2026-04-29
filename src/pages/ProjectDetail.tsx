@@ -89,10 +89,10 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
       supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
       supabase
         .from("photos")
         .select(
@@ -103,6 +103,7 @@ const ProjectDetail = () => {
         .order("created_at", { ascending: false }),
       supabase.from("day_notes").select("date, notes").eq("project_id", id),
       supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
+      supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
     ]);
     setProject(p ?? null);
     setAlbums(a ?? []);
@@ -114,6 +115,9 @@ const ProjectDetail = () => {
     const sm = new Map<string, AreaStatus>();
     for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
     setAreaDayStatus(sm);
+    const nm = new Map<string, string | null>();
+    for (const row of (adn ?? []) as { area_id: string; date: string; notes: string | null }[]) nm.set(`${row.area_id}|${row.date}`, row.notes ?? null);
+    setAreaDayNotes(nm);
     setLoading(false);
   }, [id]);
 
