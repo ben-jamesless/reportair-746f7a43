@@ -23,7 +23,7 @@ import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/A
 import { CommentsPanel } from "@/components/CommentsPanel";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
 import { type ProjectStatus } from "@/lib/projectStatus";
-import { Pencil } from "lucide-react";
+
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
