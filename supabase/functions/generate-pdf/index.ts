@@ -479,7 +479,7 @@ Deno.serve(async (req) => {
               const truncated = caption.length > 40 ? caption.slice(0, 38) + "…" : caption;
               page.drawText(truncated, { x, y: rowTop - imgH - 14, size: 8, font, color: TEXT });
               const meta: string[] = [];
-              if (!dayKey && ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
+              if (!dayKey && !isRange && ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
               if (ph.album_id && albumName.get(ph.album_id)) meta.push(albumName.get(ph.album_id)!);
               if (meta.length) page.drawText(meta.join(" · ").slice(0, 50), { x, y: rowTop - imgH - 24, size: 7, font, color: MUTED });
             }
