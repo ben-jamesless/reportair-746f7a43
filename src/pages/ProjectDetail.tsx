@@ -326,32 +326,34 @@ const ProjectDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <AppHeader />
-      <main className="container py-10">
+      <main className="container py-6 sm:py-10">
         <Link to="/projects" className="mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-1 h-4 w-4" />
           All projects
         </Link>
 
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <Badge variant="secondary" className="mb-2">
               {project.template === "event_production" ? "Event production" : "Blank"}
             </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight">{project.name}</h1>
+            <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
             {project.description && (
-              <p className="mt-2 max-w-2xl text-muted-foreground">{project.description}</p>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
             )}
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="flex flex-wrap gap-2">
               <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
-              <PhotoUploader
-                projectId={project.id}
-                albumId={uploadAlbumId}
-                areaId={uploadAreaId}
-                areas={areas}
-                onUploaded={loadAll}
-              />
+              <ErrorBoundary label="uploader">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={loadAll}
+                />
+              </ErrorBoundary>
             </div>
             <p className="text-xs text-muted-foreground">
               Uploading to: <span className="font-medium">{uploadContextLabel}</span>
