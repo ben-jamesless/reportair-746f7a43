@@ -445,7 +445,7 @@ const ProjectDetail = () => {
         {/* Top controls row: tabs + settings + export */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
           <TabsList>
-            <TabsTrigger value="photos">Photos</TabsTrigger>
+            <TabsTrigger value="photos">Updates</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
