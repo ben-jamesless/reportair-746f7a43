@@ -4,13 +4,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
 import { NewProjectDialog } from "@/components/NewProjectDialog";
+import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Camera, Plus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Camera, Plus, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 type Project = {
   id: string;
@@ -28,6 +49,10 @@ const Projects = () => {
   const [teamName, setTeamName] = useState<string>("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     if (!user) return;
@@ -114,33 +139,125 @@ const Projects = () => {
           {projects.map((p) => {
             const color = p.color || DEFAULT_PROJECT_COLOR;
             return (
-              <Link key={p.id} to={`/projects/${p.id}`} className="group">
-                <Card
-                  className="relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40"
-                  style={{ borderLeftColor: color }}
-                >
-                  <div className="p-5">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-                        {p.template === "event_production" ? "Event" : "Project"}
-                      </Badge>
-                      <span className="text-[11px] text-muted-foreground">
-                        {new Date(p.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
-                      </span>
+              <div key={p.id} className="group relative">
+                <Link to={`/projects/${p.id}`} className="block">
+                  <Card
+                    className="relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40"
+                    style={{ borderLeftColor: color }}
+                  >
+                    <div className="p-5 pr-12">
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                          {p.template === "event_production" ? "Event" : "Project"}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(p.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                        </span>
+                      </div>
+                      <h3 className="truncate text-base font-semibold tracking-tight">{p.name}</h3>
+                      {p.description ? (
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
+                      ) : (
+                        <p className="mt-1 text-sm italic text-muted-foreground/60">No description</p>
+                      )}
                     </div>
-                    <h3 className="truncate text-base font-semibold tracking-tight">{p.name}</h3>
-                    {p.description ? (
-                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
-                    ) : (
-                      <p className="mt-1 text-sm italic text-muted-foreground/60">No description</p>
-                    )}
-                  </div>
-                </Card>
-              </Link>
+                  </Card>
+                </Link>
+                <div className="absolute right-2 top-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-70 hover:opacity-100"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        aria-label={`Project options for ${p.name}`}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onSelect={() => setEditingProject(p)}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
             );
           })}
         </div>
       )}
+
+      {/* Edit dialog (controlled, opens for any selected project) */}
+      {editingProject && (
+        <EditProjectDialog
+          key={editingProject.id}
+          projectId={editingProject.id}
+          initialName={editingProject.name}
+          initialDescription={editingProject.description}
+          initialColor={editingProject.color}
+          openControlled
+          onOpenChange={(o) => { if (!o) setEditingProject(null); }}
+          onChanged={load}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <AlertDialog
+        open={!!deletingProject}
+        onOpenChange={(o) => { if (!o) { setDeletingProject(null); setDeleteConfirm(""); } }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All albums, areas, photos, comments, share links, and history for{" "}
+              <span className="font-semibold text-foreground">{deletingProject?.name}</span> will be permanently deleted. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="confirm-project-name">
+              Type <span className="font-mono font-semibold">{deletingProject?.name}</span> to confirm
+            </Label>
+            <Input
+              id="confirm-project-name"
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder={deletingProject?.name}
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting || !deletingProject || deleteConfirm.trim() !== deletingProject.name.trim()}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!deletingProject) return;
+                setDeleting(true);
+                const { error } = await supabase.rpc("delete_project", { _project_id: deletingProject.id });
+                setDeleting(false);
+                if (error) { toast.error(error.message); return; }
+                toast.success("Project deleted");
+                setDeletingProject(null);
+                setDeleteConfirm("");
+                load();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete project"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 };
