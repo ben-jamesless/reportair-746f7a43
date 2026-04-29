@@ -17,6 +17,7 @@ import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
+import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
@@ -411,6 +412,13 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
+            <EditProjectDialog
+              projectId={project.id}
+              initialName={project.name}
+              initialDescription={project.description}
+              initialColor={project.color}
+              onChanged={loadAll}
+            />
             <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
           </div>
         </div>
