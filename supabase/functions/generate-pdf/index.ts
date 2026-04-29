@@ -249,12 +249,12 @@ Deno.serve(async (req) => {
     if (sections.grid && allPhotos.length > 0) {
       // When day-scoped, group by area (in defined sort_order, then "Unassigned").
       // Otherwise, group by date as before.
-      type Group = { label: string; photos: any[]; areaId?: string; dateKey?: string };
+      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string };
       let groups: Group[];
       if (dayKey) {
-        const sortedAreas = (areas ?? []) as any[];
-        const byArea = new Map<string, any[]>();
-        const unassigned: any[] = [];
+        const sortedAreas = (areas ?? []) as AreaRow[];
+        const byArea = new Map<string, PhotoRow[]>();
+        const unassigned: PhotoRow[] = [];
         for (const p of allPhotos) {
           if (!p.area_id) unassigned.push(p);
           else {
@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
 
         // Per-area comment in day-scoped exports
         if (group.areaId) {
-          const ar = areaById.get(group.areaId) as any;
+          const ar = areaById.get(group.areaId);
           if (ar?.notes && String(ar.notes).trim()) {
             const lines = wrapText(String(ar.notes), font, 9, PAGE_W - 2 * M);
             for (const line of lines) {
@@ -368,7 +368,7 @@ Deno.serve(async (req) => {
               const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
                 ph.storage_path,
                 600,
-                { transform: { width: 1200, quality: 80, format: "origin" } as any },
+                { transform: { width: 1200, quality: 80, format: "origin" as unknown as "png" } },
               );
               const baseUrl = signed?.signedUrl;
               const transformedUrl = baseUrl
@@ -380,7 +380,7 @@ Deno.serve(async (req) => {
                 if (r.ok) {
                   const bytes = new Uint8Array(await r.arrayBuffer());
                   const ct = r.headers.get("content-type") || "";
-                  let img: any = null;
+                  let img: PDFImage | null = null;
                   try {
                     if (ct.includes("png")) img = await pdf.embedPng(bytes);
                     else img = await pdf.embedJpg(bytes);
@@ -517,7 +517,7 @@ Deno.serve(async (req) => {
   }
 });
 
-function wrapText(text: string, font: any, size: number, maxWidth: number): string[] {
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let line = "";
