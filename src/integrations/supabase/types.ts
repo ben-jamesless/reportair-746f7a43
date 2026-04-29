@@ -121,6 +121,47 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_notes: {
+        Row: {
+          body: string
+          created_at: string
+          guest_email: string | null
+          guest_name: string
+          id: string
+          photo_id: string
+          project_id: string
+          share_link_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          guest_email?: string | null
+          guest_name: string
+          id?: string
+          photo_id: string
+          project_id: string
+          share_link_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string
+          id?: string
+          photo_id?: string
+          project_id?: string
+          share_link_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_notes_share_link_id_fkey"
+            columns: ["share_link_id"]
+            isOneToOne: false
+            referencedRelation: "share_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           album_id: string | null
@@ -254,6 +295,42 @@ export type Database = {
         }
         Relationships: []
       }
+      project_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          project_id: string
+          role: Database["public"]["Enums"]["project_role"]
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          project_id: string
+          role?: Database["public"]["Enums"]["project_role"]
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          project_id?: string
+          role?: Database["public"]["Enums"]["project_role"]
+          token?: string
+        }
+        Relationships: []
+      }
       project_members: {
         Row: {
           created_at: string
@@ -332,6 +409,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      share_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          label: string | null
+          last_accessed_at: string | null
+          password_hash: string | null
+          project_id: string
+          revoked_at: string | null
+          token: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          last_accessed_at?: string | null
+          password_hash?: string | null
+          project_id: string
+          revoked_at?: string | null
+          token?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          last_accessed_at?: string | null
+          password_hash?: string | null
+          project_id?: string
+          revoked_at?: string | null
+          token?: string
+          view_count?: number
+        }
+        Relationships: []
       }
       team_members: {
         Row: {
@@ -418,6 +537,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_project_invite: { Args: { _token: string }; Returns: string }
+      add_guest_note_public: {
+        Args: {
+          _body: string
+          _email: string
+          _name: string
+          _photo_id: string
+          _token: string
+        }
+        Returns: string
+      }
+      get_share_photo_url: {
+        Args: { _photo_id: string; _token: string }
+        Returns: string
+      }
       has_project_role: {
         Args: {
           _project_id: string
@@ -441,6 +575,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_share_password: { Args: { _password: string }; Returns: string }
       is_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
@@ -449,7 +584,20 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      list_guest_notes_public: {
+        Args: { _photo_id: string; _token: string }
+        Returns: {
+          body: string
+          created_at: string
+          guest_name: string
+          id: string
+        }[]
+      }
       project_team_id: { Args: { _project_id: string }; Returns: string }
+      resolve_share_link: {
+        Args: { _password?: string; _token: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"

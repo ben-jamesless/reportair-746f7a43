@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Settings } from "lucide-react";
 import { AreasManager } from "./AreasManager";
+import { InvitesManager } from "./InvitesManager";
+import { ShareLinksManager } from "./ShareLinksManager";
 
 interface Props {
   projectId: string;
@@ -18,15 +21,27 @@ export const ProjectSettingsDialog = ({ projectId, onChanged }: Props) => {
           <Settings className="mr-2 h-4 w-4" /> Settings
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Project settings</DialogTitle>
-          <DialogDescription>Manage areas for this project. Areas are spatial locations independent of albums.</DialogDescription>
+          <DialogDescription>Manage areas, members, and sharing for this project.</DialogDescription>
         </DialogHeader>
-        <div>
-          <h3 className="mb-2 text-sm font-semibold">Areas</h3>
-          <AreasManager projectId={projectId} onChanged={onChanged} />
-        </div>
+        <Tabs defaultValue="areas">
+          <TabsList>
+            <TabsTrigger value="areas">Areas</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="share">Share</TabsTrigger>
+          </TabsList>
+          <TabsContent value="areas" className="mt-4 max-h-[60vh] overflow-y-auto">
+            <AreasManager projectId={projectId} onChanged={onChanged} />
+          </TabsContent>
+          <TabsContent value="members" className="mt-4 max-h-[60vh] overflow-y-auto">
+            <InvitesManager projectId={projectId} />
+          </TabsContent>
+          <TabsContent value="share" className="mt-4 max-h-[60vh] overflow-y-auto">
+            <ShareLinksManager projectId={projectId} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
