@@ -68,6 +68,7 @@ export const AppSidebar = () => {
 
         {/* User */}
         <div className="space-y-1 border-t p-2 lg:p-3">
+          <NotificationsBell />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
