@@ -246,7 +246,13 @@ Deno.serve(async (req) => {
         } catch (_) { /* skip logo */ }
       }
 
-      const titleText = dayKey && dayLabel ? `${proj.name} — ${dayLabel}` : proj.name;
+      const fmtRangeLabel = (k: string) => {
+        const [yy, mm, dd] = k.split("-").map(Number);
+        return new Date(yy, mm - 1, dd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+      };
+      let titleText = proj.name;
+      if (dayKey && dayLabel) titleText = `${proj.name} — ${dayLabel}`;
+      else if (isRange) titleText = `${proj.name} — ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)}`;
       page.drawText(titleText, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
       y -= 60;
       if (proj.description) {
@@ -257,9 +263,12 @@ Deno.serve(async (req) => {
         }
       }
       // Stats footer
+      const exportedOn = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
       const stats = dayKey
-        ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-        : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+        ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${exportedOn}`
+        : isRange
+          ? `${allPhotos.length} photos · ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)} · Exported ${exportedOn}`
+          : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${exportedOn}`;
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 
