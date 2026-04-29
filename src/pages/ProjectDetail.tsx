@@ -349,7 +349,7 @@ const ProjectDetail = () => {
   // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
   const uploadAreaId = activeArea && activeArea !== NO_AREA ? activeArea : null;
   const uploadAlbumId = activeDay === PRE_EVENT_DAY && preEventAlbum ? preEventAlbum.id : null;
-  const uploadContextLabel = useMemo(() => {
+  const uploadContextLabel = (() => {
     const parts: string[] = [];
     if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
     else if (activeDay !== ALL_DAYS) {
@@ -363,10 +363,10 @@ const ProjectDetail = () => {
       parts.push("Unassigned");
     }
     return parts.length ? parts.join(" · ") : "Event Gallery";
-  }, [activeDay, activeArea, uploadAreaId, days, areas]);
+  })();
 
   // Selection title
-  const selectionTitle = useMemo(() => {
+  const selectionTitle = (() => {
     if (activeDay === ALL_DAYS && activeArea === null) return "Event Gallery";
     const parts: string[] = [];
     if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
@@ -383,7 +383,7 @@ const ProjectDetail = () => {
       parts.push("Unassigned");
     }
     return parts.join(" · ");
-  }, [activeDay, activeArea, days, areas]);
+  })();
 
   // Export trigger state (shared by per-day icon and top-level button)
   const [exportDayKey, setExportDayKey] = useState<string | null>(null);
@@ -403,10 +403,7 @@ const ProjectDetail = () => {
 
   // Days available for the date-range picker (only those with photos).
   // MUST be declared before any early returns to keep hook order stable across renders.
-  const availableDaysForExport = useMemo(
-    () => days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length })),
-    [days],
-  );
+  const availableDaysForExport = days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length }));
 
   if (loading) {
     return (
