@@ -33,7 +33,7 @@ function groupByDate<T extends { captured_at: string | null; created_at: string 
   for (const p of photos) {
     const raw = p.captured_at || p.created_at;
     const d = new Date(raw);
-    const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     let g = map.get(key);
     if (!g) { g = { date: d, label: fmtDateGroup(d), photos: [] }; map.set(key, g); }
     g.photos.push(p);
