@@ -89,73 +89,58 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   };
   const removeInvite = (email: string) => setInvites((s) => s.filter((i) => i.email !== email));
 
-  // Create the project (called when leaving step 2)
-  const ensureProjectCreated = async (): Promise<string | null> => {
-    if (createdProjectId) return createdProjectId;
-    if (!user || !teamId) { toast.error("No team available"); return null; }
-    setBusy(true);
-    const { data, error } = await supabase
-      .from("projects")
-      .insert({ team_id: teamId, name, description: description || null, template, color, created_by: user.id })
-      .select("id")
-      .single();
-    setBusy(false);
-    if (error || !data) { toast.error(error?.message ?? "Failed to create project"); return null; }
-    setCreatedProjectId(data.id);
-    onCreated?.();
-    return data.id;
-  };
-
-  // Save areas added in step 3
-  const persistAreas = async (projectId: string) => {
-    if (areas.length === 0) return;
-    const rows = areas.map((name, i) => ({
+  // Persist areas
+  const persistAreas = async (projectId: string, list: string[]) => {
+    if (list.length === 0) return;
+    const rows = list.map((name, i) => ({
       project_id: projectId, name, sort_order: i, created_by: user?.id ?? null,
     }));
     const { error } = await supabase.from("areas").insert(rows);
     if (error) toast.error(`Areas: ${error.message}`);
   };
 
-  // Save invites added in step 4
-  const persistInvites = async (projectId: string) => {
-    if (invites.length === 0) return;
-    const rows = invites.map((i) => ({
+  // Persist invites
+  const persistInvites = async (projectId: string, list: InviteRow[]) => {
+    if (list.length === 0) return;
+    const rows = list.map((i) => ({
       project_id: projectId, email: i.email, role: i.role, invited_by: user?.id ?? null,
     }));
     const { error } = await supabase.from("project_invites").insert(rows);
     if (error) toast.error(`Invites: ${error.message}`);
   };
 
-  const goNext = async () => {
-    if (step === 2) {
-      const id = await ensureProjectCreated();
-      if (!id) return;
-      setStep(3);
-      return;
-    }
-    if (step === 3) {
-      if (createdProjectId) await persistAreas(createdProjectId);
-      setStep(4);
-      return;
-    }
+  const goNext = () => {
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   };
 
   const goSkip = () => {
-    // Same as next, but ignores collected entries for that step
     if (step === 3) { setAreas([]); setStep(4); return; }
     if (step === 4) { finish(true); return; }
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   };
 
   const finish = async (skipInvites = false) => {
-    if (!createdProjectId) return;
+    if (!user || !teamId) { toast.error("No team available"); return; }
     setBusy(true);
-    if (!skipInvites) await persistInvites(createdProjectId);
+    const { data, error } = await supabase
+      .from("projects")
+      .insert({ team_id: teamId, name, description: description || null, template, color, created_by: user.id })
+      .select("id")
+      .single();
+    if (error || !data) {
+      setBusy(false);
+      toast.error(error?.message ?? "Failed to create project");
+      return;
+    }
+    const projectId = data.id;
+    setCreatedProjectId(projectId);
+    await persistAreas(projectId, areas);
+    if (!skipInvites) await persistInvites(projectId, invites);
     setBusy(false);
+    onCreated?.();
     toast.success("Project ready");
     handleClose(false);
-    navigate(`/projects/${createdProjectId}`);
+    navigate(`/projects/${projectId}`);
   };
 
   const canAdvanceStep1 = !!name.trim();
@@ -322,7 +307,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
 
         <DialogFooter className="gap-2 sm:justify-between">
           <div>
-            {step > 1 && step <= 2 && (
+            {step > 1 && (
               <Button variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={busy}>Back</Button>
             )}
           </div>
@@ -336,14 +321,13 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
                 onClick={goNext}
                 disabled={busy || (step === 2 && !canAdvanceStep1)}
               >
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {step === 2 ? "Create & continue" : "Next"}
+                Next
               </Button>
             )}
             {step === TOTAL_STEPS && (
               <Button onClick={() => finish(false)} disabled={busy}>
                 {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Finish
+                Create project
               </Button>
             )}
           </div>
