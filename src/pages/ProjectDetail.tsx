@@ -385,17 +385,19 @@ const ProjectDetail = () => {
     return parts.join(" · ");
   }, [activeDay, activeArea, days, areas]);
 
-  // Day-scoped export trigger state
+  // Export trigger state (shared by per-day icon and top-level button)
   const [exportDayKey, setExportDayKey] = useState<string | null>(null);
   const [exportDayLabel, setExportDayLabel] = useState<string | null>(null);
   const [exportPhotoCount, setExportPhotoCount] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
+  const [exportLockMode, setExportLockMode] = useState<"single" | null>(null);
 
   const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
     e.stopPropagation();
     setExportDayKey(day.key);
     setExportDayLabel(day.label);
     setExportPhotoCount(day.photos.length);
+    setExportLockMode("single"); // per-day icon always opens in single-day mode
     setExportOpen(true);
   };
 
