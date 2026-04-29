@@ -2,10 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ImagePlus, Loader2, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { ArrowLeft, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
+import { EmptyState } from "@/components/EmptyState";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PhotoThumb } from "@/components/PhotoThumb";
@@ -280,11 +284,20 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gradient-subtle">
         <AppHeader />
-        <div className="flex h-[60vh] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <main className="container py-6 sm:py-10">
+          <Skeleton className="mb-4 h-4 w-32" />
+          <div className="mb-8 space-y-3">
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
+            <DayNavSkeleton />
+            <PhotoGridSkeleton count={10} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -294,8 +307,17 @@ const ProjectDetail = () => {
       <div className="min-h-screen">
         <AppHeader />
         <main className="container py-10">
-          <p className="text-muted-foreground">Project not found.</p>
-          <Link to="/projects" className="mt-4 inline-block text-sm text-primary underline">Back to projects</Link>
+          <EmptyState
+            className="mx-auto max-w-md"
+            icon={<ArrowLeft className="h-5 w-5" />}
+            title="Project not found"
+            description="It may have been deleted, or you no longer have access."
+            action={
+              <Link to="/projects" className="text-sm text-primary underline-offset-4 hover:underline">
+                Back to projects
+              </Link>
+            }
+          />
         </main>
       </div>
     );
@@ -304,32 +326,34 @@ const ProjectDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <AppHeader />
-      <main className="container py-10">
+      <main className="container py-6 sm:py-10">
         <Link to="/projects" className="mb-4 inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="mr-1 h-4 w-4" />
           All projects
         </Link>
 
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="min-w-0">
             <Badge variant="secondary" className="mb-2">
               {project.template === "event_production" ? "Event production" : "Blank"}
             </Badge>
-            <h1 className="text-3xl font-semibold tracking-tight">{project.name}</h1>
+            <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
             {project.description && (
-              <p className="mt-2 max-w-2xl text-muted-foreground">{project.description}</p>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
             )}
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="flex flex-wrap gap-2">
               <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
-              <PhotoUploader
-                projectId={project.id}
-                albumId={uploadAlbumId}
-                areaId={uploadAreaId}
-                areas={areas}
-                onUploaded={loadAll}
-              />
+              <ErrorBoundary label="uploader">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={loadAll}
+                />
+              </ErrorBoundary>
             </div>
             <p className="text-xs text-muted-foreground">
               Uploading to: <span className="font-medium">{uploadContextLabel}</span>
@@ -519,26 +543,26 @@ const ProjectDetail = () => {
                 )}
 
                 {visiblePhotos.length === 0 ? (
-                  <Card className="border-dashed shadow-none">
-                    <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <ImagePlus className="h-6 w-6" />
-                      </div>
-                      <h2 className="text-lg font-semibold">No photos here</h2>
-                      <p className="max-w-sm text-sm text-muted-foreground">
-                        {activeDay === ALL_DAYS
-                          ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
-                          : "Upload to this day + area context, or pick a different selection."}
-                      </p>
-                      <PhotoUploader
-                        projectId={project.id}
-                        albumId={uploadAlbumId}
-                        areaId={uploadAreaId}
-                        areas={areas}
-                        onUploaded={loadAll}
-                      />
-                    </CardContent>
-                  </Card>
+                  <EmptyState
+                    icon={<ImagePlus className="h-6 w-6" />}
+                    title="No photos here"
+                    description={
+                      activeDay === ALL_DAYS
+                        ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
+                        : "Upload to this day + area context, or pick a different selection."
+                    }
+                    action={
+                      <ErrorBoundary label="uploader">
+                        <PhotoUploader
+                          projectId={project.id}
+                          albumId={uploadAlbumId}
+                          areaId={uploadAreaId}
+                          areas={areas}
+                          onUploaded={loadAll}
+                        />
+                      </ErrorBoundary>
+                    }
+                  />
                 ) : activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY ? (
                   // Dated day view: group by area, with per-area comment + per-day status picker
                   (() => {
@@ -637,16 +661,18 @@ const ProjectDetail = () => {
           </TabsContent>
         </Tabs>
 
-        <PhotoLightbox
-          photos={visiblePhotos}
-          index={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onIndexChange={setLightboxIndex}
-          areas={areas}
-          albums={albums}
-          onAreaChanged={handleAreaChanged}
-          onAlbumChanged={handleAlbumChanged}
-        />
+        <ErrorBoundary label="lightbox">
+          <PhotoLightbox
+            photos={visiblePhotos}
+            index={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            onIndexChange={setLightboxIndex}
+            areas={areas}
+            albums={albums}
+            onAreaChanged={handleAreaChanged}
+            onAlbumChanged={handleAlbumChanged}
+          />
+        </ErrorBoundary>
 
         {/* Day-scoped PDF export, opened from the day row in the sidebar */}
         <ExportPdfDialog
