@@ -82,7 +82,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           await supabase.storage.from("photos").remove([key]);
           throw insErr;
         }
-      } catch (e: any) {
+      } catch (e) {
         failures++;
         console.error("Upload failed for", file.name, e);
       } finally {

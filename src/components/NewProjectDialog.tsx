@@ -276,7 +276,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
                 onChange={(e) => setInviteEmail(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addInvite(); } }}
               />
-              <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as any)}>
+              <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as "editor" | "viewer")}>
                 <SelectTrigger className="sm:w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="viewer">Viewer</SelectItem>
