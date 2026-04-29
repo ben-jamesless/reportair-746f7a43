@@ -142,11 +142,12 @@ const ProjectDetail = () => {
   const visiblePhotos = useMemo(() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
+    else if (activeDay === PRE_EVENT_DAY) pool = preEventPhotos;
     else pool = days.find((d) => d.key === activeDay)?.photos ?? [];
     if (activeArea === null) return pool;
     if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
     return pool.filter((p) => p.area_id === activeArea);
-  }, [activeDay, activeArea, days, photos]);
+  }, [activeDay, activeArea, days, photos, preEventPhotos]);
 
   const photoIndexById = useMemo(() => {
     const m = new Map<string, number>();
@@ -176,11 +177,13 @@ const ProjectDetail = () => {
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? ({ ...p, album_id: albumId } as any) : p)));
   };
 
-  // Upload context
+  // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
   const uploadAreaId = activeArea && activeArea !== NO_AREA ? activeArea : null;
+  const uploadAlbumId = activeDay === PRE_EVENT_DAY && preEventAlbum ? preEventAlbum.id : null;
   const uploadContextLabel = useMemo(() => {
     const parts: string[] = [];
-    if (activeDay !== ALL_DAYS) {
+    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(SHORT_FMT.format(d.date));
     }
@@ -197,7 +200,8 @@ const ProjectDetail = () => {
   const selectionTitle = useMemo(() => {
     if (activeDay === ALL_DAYS && activeArea === null) return "All photos";
     const parts: string[] = [];
-    if (activeDay !== ALL_DAYS) {
+    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(d.label);
     } else {
@@ -211,6 +215,20 @@ const ProjectDetail = () => {
     }
     return parts.join(" · ");
   }, [activeDay, activeArea, days, areas]);
+
+  // Day-scoped export trigger state
+  const [exportDayKey, setExportDayKey] = useState<string | null>(null);
+  const [exportDayLabel, setExportDayLabel] = useState<string | null>(null);
+  const [exportPhotoCount, setExportPhotoCount] = useState(0);
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
+    e.stopPropagation();
+    setExportDayKey(day.key);
+    setExportDayLabel(day.label);
+    setExportPhotoCount(day.photos.length);
+    setExportOpen(true);
+  };
 
   if (loading) {
     return (
