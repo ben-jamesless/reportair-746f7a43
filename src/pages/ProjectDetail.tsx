@@ -27,6 +27,8 @@ type Area = { id: string; name: string; sort_order: number };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
+const PRE_EVENT_DAY = "__pre_event__";
+const PRE_EVENT_SLUG = "pre-event";
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
@@ -83,10 +85,25 @@ const ProjectDetail = () => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // Build day buckets
+  // Identify the Pre-event album (if it exists)
+  const preEventAlbum = useMemo(() => albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null, [albums]);
+
+  // Split photos: anything in the Pre-event album goes to the Pre-event bucket;
+  // everything else groups by capture/upload date.
+  const { datedPhotos, preEventPhotos } = useMemo(() => {
+    const dated: LightboxPhoto[] = [];
+    const pre: LightboxPhoto[] = [];
+    for (const p of photos) {
+      if (preEventAlbum && (p as any).album_id === preEventAlbum.id) pre.push(p);
+      else dated.push(p);
+    }
+    return { datedPhotos: dated, preEventPhotos: pre };
+  }, [photos, preEventAlbum]);
+
+  // Build day buckets from dated photos only
   const days = useMemo(() => {
     const map = new Map<string, { key: string; label: string; date: Date; photos: LightboxPhoto[] }>();
-    for (const ph of photos) {
+    for (const ph of datedPhotos) {
       const k = dayKey(ph);
       const raw = ph.captured_at || (ph as any).created_at;
       const d = raw ? new Date(raw) : new Date(0);
@@ -98,7 +115,7 @@ const ProjectDetail = () => {
       g.photos.push(ph);
     }
     return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [photos]);
+  }, [datedPhotos]);
 
   // Auto-open first day on load
   useEffect(() => {
