@@ -369,10 +369,8 @@ const Projects = () => {
                       {p.client_name && (
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">{p.client_name}</p>
                       )}
-                      {p.description ? (
+                      {p.description && (
                         <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
-                      ) : (
-                        <p className="mt-2 text-sm italic text-muted-foreground/60">No description</p>
                       )}
                       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                         {p.event_type && <span>{p.event_type}</span>}
