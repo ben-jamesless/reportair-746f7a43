@@ -60,6 +60,8 @@ const ProjectDetail = () => {
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
   const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
+  // status keyed by `${areaId}|${dateKey}` -> AreaStatus
+  const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string>(ALL_DAYS);
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
@@ -68,10 +70,10 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
       supabase.from("projects").select("id, name, description, template").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order, notes, status").eq("project_id", id).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
       supabase
         .from("photos")
         .select(
@@ -81,6 +83,7 @@ const ProjectDetail = () => {
         .order("captured_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false }),
       supabase.from("day_notes").select("date, notes").eq("project_id", id),
+      supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
     ]);
     setProject(p ?? null);
     setAlbums(a ?? []);
@@ -89,23 +92,34 @@ const ProjectDetail = () => {
     const map = new Map<string, string | null>();
     for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
     setDayNotes(map);
+    const sm = new Map<string, AreaStatus>();
+    for (const row of (ads ?? []) as any[]) sm.set(`${row.area_id}|${row.date}`, row.status as AreaStatus);
+    setAreaDayStatus(sm);
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // ---- Mutations: area notes/status, day notes ----
+  // ---- Mutations: area notes, day notes, per-day area status ----
   const saveAreaNotes = async (areaId: string, next: string | null) => {
     const prev = areas;
     setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, notes: next } : a)));
     const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
     if (error) { toast.error(error.message); setAreas(prev); }
   };
-  const saveAreaStatus = async (areaId: string, next: AreaStatus) => {
-    const prev = areas;
-    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, status: next } : a)));
-    const { error } = await supabase.from("areas").update({ status: next }).eq("id", areaId);
-    if (error) { toast.error(error.message); setAreas(prev); }
+  const getAreaDayStatus = (areaId: string, dateKey: string): AreaStatus =>
+    areaDayStatus.get(`${areaId}|${dateKey}`) ?? "no_status";
+  const saveAreaDayStatus = async (areaId: string, dateKey: string, next: AreaStatus) => {
+    if (!id) return;
+    const key = `${areaId}|${dateKey}`;
+    const prev = new Map(areaDayStatus);
+    setAreaDayStatus((cur) => { const n = new Map(cur); n.set(key, next); return n; });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("area_day_status").upsert(
+      { project_id: id, area_id: areaId, date: dateKey, status: next, updated_by: user?.id },
+      { onConflict: "project_id,area_id,date" },
+    );
+    if (error) { toast.error(error.message); setAreaDayStatus(prev); }
   };
   const saveDayNote = async (dateKey: string, next: string | null) => {
     if (!id) return;
