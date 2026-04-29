@@ -317,6 +317,20 @@ const Projects = () => {
               <X className="mr-1.5 h-3.5 w-3.5" /> Clear
             </Button>
           )}
+
+          {archivedCount > 0 && (
+            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <Switch
+                checked={showArchived}
+                onCheckedChange={setShowArchived}
+                aria-label="Show archived projects"
+              />
+              <span>
+                Show archived
+                <span className="ml-1 text-muted-foreground/70">({archivedCount})</span>
+              </span>
+            </label>
+          )}
         </div>
       )}
 
