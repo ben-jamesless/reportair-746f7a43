@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileDown, Loader2, Upload, AlertTriangle, Download, X } from "lucide-react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
 
 const PHOTO_CAP = 300;
 
@@ -19,9 +18,6 @@ type ExportRow = {
   output_path: string | null;
   error_message: string | null;
   photo_count: number | null;
-  created_at: string;
-  completed_at: string | null;
-  options: any;
 };
 
 type Sections = {
@@ -37,29 +33,31 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPath, setLogoPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [exports, setExports] = useState<ExportRow[]>([]);
+  const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const overCap = photoCount > PHOTO_CAP;
 
-  const loadExports = async () => {
-    const { data } = await supabase.from("project_exports")
-      .select("id,status,output_path,error_message,photo_count,created_at,completed_at,options")
-      .eq("project_id", projectId).order("created_at", { ascending: false }).limit(10);
-    setExports((data ?? []) as ExportRow[]);
-  };
-
-  useEffect(() => { if (open) loadExports(); }, [open, projectId]);
-
-  // Poll while any export is in progress
+  // Reset session state whenever the dialog closes
   useEffect(() => {
-    if (!open) return;
-    const inFlight = exports.some((e) => e.status === "queued" || e.status === "processing");
-    if (!inFlight) return;
-    const t = setInterval(loadExports, 3000);
+    if (!open) {
+      setCurrentExport(null);
+      setSubmitting(false);
+    }
+  }, [open]);
+
+  // Poll the active export until it resolves
+  useEffect(() => {
+    if (!open || !currentExport) return;
+    if (currentExport.status === "ready" || currentExport.status === "failed") return;
+    const t = setInterval(async () => {
+      const { data } = await supabase.from("project_exports")
+        .select("id,status,output_path,error_message,photo_count")
+        .eq("id", currentExport.id).maybeSingle();
+      if (data) setCurrentExport(data as ExportRow);
+    }, 3000);
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, exports]);
+  }, [open, currentExport]);
 
   const handleLogoSelect = async (file: File) => {
     if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
@@ -73,6 +71,7 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
   const startExport = async () => {
     if (overCap) { toast.error(`Photo cap exceeded (${PHOTO_CAP}). Split per album first.`); return; }
     setSubmitting(true);
+    setCurrentExport(null);
     const { data: auth } = await supabase.auth.getUser();
     const { data: row, error } = await supabase.from("project_exports").insert({
       project_id: projectId,
@@ -81,15 +80,12 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
       options: { sections },
       logo_path: logoPath,
       accent_color: accent,
-    }).select().single();
+    }).select("id,status,output_path,error_message,photo_count").single();
     if (error || !row) { setSubmitting(false); toast.error(error?.message ?? "Failed"); return; }
 
-    // Fire and forget — edge function processes async
+    setCurrentExport(row as ExportRow);
     supabase.functions.invoke("generate-pdf", { body: { export_id: row.id } }).catch(() => { /* polling will catch failure */ });
-
-    toast.success("Export started");
     setSubmitting(false);
-    loadExports();
   };
 
   const downloadExport = async (path: string) => {
@@ -97,6 +93,8 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
     if (error || !data) { toast.error("Could not get download link"); return; }
     window.open(data.signedUrl, "_blank");
   };
+
+  const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -159,39 +157,33 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
             </div>
           </section>
 
-          <Button className="w-full" onClick={startExport} disabled={submitting || overCap}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Generate PDF
+          <Button className="w-full" onClick={startExport} disabled={submitting || overCap || !!inProgress}>
+            {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {inProgress ? "Generating…" : "Generate PDF"}
           </Button>
 
-          {exports.length > 0 && (
-            <section>
-              <h3 className="mb-2 text-sm font-medium">Recent exports</h3>
-              <div className="space-y-2">
-                {exports.map((e) => (
-                  <Card key={e.id}>
-                    <CardContent className="flex items-center justify-between gap-2 pt-4 text-sm">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={e.status === "ready" ? "default" : e.status === "failed" ? "destructive" : "secondary"} className="capitalize">
-                            {e.status === "processing" || e.status === "queued" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
-                            {e.status}
-                          </Badge>
-                          {e.photo_count != null && <span className="text-xs text-muted-foreground">{e.photo_count} photos</span>}
-                          <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(e.created_at), { addSuffix: true })}</span>
-                        </div>
-                        {e.error_message && <p className="mt-1 truncate text-xs text-destructive">{e.error_message}</p>}
-                      </div>
-                      {e.status === "ready" && e.output_path && (
-                        <Button size="sm" variant="outline" onClick={() => downloadExport(e.output_path!)}>
-                          <Download className="mr-2 h-4 w-4" />Download
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </section>
+          {currentExport && (
+            <Card>
+              <CardContent className="flex items-center justify-between gap-2 pt-4 text-sm">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={currentExport.status === "ready" ? "default" : currentExport.status === "failed" ? "destructive" : "secondary"} className="capitalize">
+                      {(currentExport.status === "processing" || currentExport.status === "queued") && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                      {currentExport.status}
+                    </Badge>
+                    {currentExport.photo_count != null && (
+                      <span className="text-xs text-muted-foreground">{currentExport.photo_count} photos</span>
+                    )}
+                  </div>
+                  {currentExport.error_message && <p className="mt-1 text-xs text-destructive">{currentExport.error_message}</p>}
+                </div>
+                {currentExport.status === "ready" && currentExport.output_path && (
+                  <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)}>
+                    <Download className="mr-2 h-4 w-4" />Download
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       </DialogContent>
