@@ -382,14 +382,6 @@ const ProjectDetail = () => {
           {project.description && (
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
           )}
-          <ProjectMetaRow
-            project={project}
-            lastUploadAt={photos.reduce<string | null>((acc, p) => {
-              const ts = (p as any).created_at as string | undefined;
-              if (!ts) return acc;
-              return !acc || ts > acc ? ts : acc;
-            }, null)}
-          />
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
           <div className="flex flex-wrap items-center gap-2">
