@@ -19,7 +19,9 @@ type SharePhoto = {
   album_id: string | null; area_id: string | null;
 };
 type Album = { id: string; name: string; position: number };
-type Area = { id: string; name: string; sort_order: number };
+type Area = { id: string; name: string; sort_order: number; notes: string | null };
+type DayNote = { date: string; notes: string | null };
+type AreaDayStatus = { area_id: string; date: string; status: string };
 type Resolved = {
   ok: boolean;
   error?: string;
@@ -27,7 +29,22 @@ type Resolved = {
   project?: { id: string; name: string; description: string | null };
   albums?: Album[];
   areas?: Area[];
+  day_notes?: DayNote[];
+  area_day_status?: AreaDayStatus[];
   photos?: SharePhoto[];
+};
+
+const STATUS_META: Record<string, { label: string; dot: string; chip: string }> = {
+  on_track: { label: "On Track", dot: "bg-blue-500", chip: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300" },
+  requires_discussion: { label: "Requires Discussion", dot: "bg-orange-500", chip: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300" },
+  concern: { label: "Concern / Behind Schedule", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+};
+
+const isoDateKey = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
 
 const ALL = "__all__";
