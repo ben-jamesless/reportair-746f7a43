@@ -661,16 +661,18 @@ const ProjectDetail = () => {
           </TabsContent>
         </Tabs>
 
-        <PhotoLightbox
-          photos={visiblePhotos}
-          index={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-          onIndexChange={setLightboxIndex}
-          areas={areas}
-          albums={albums}
-          onAreaChanged={handleAreaChanged}
-          onAlbumChanged={handleAlbumChanged}
-        />
+        <ErrorBoundary label="lightbox">
+          <PhotoLightbox
+            photos={visiblePhotos}
+            index={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            onIndexChange={setLightboxIndex}
+            areas={areas}
+            albums={albums}
+            onAreaChanged={handleAreaChanged}
+            onAlbumChanged={handleAlbumChanged}
+          />
+        </ErrorBoundary>
 
         {/* Day-scoped PDF export, opened from the day row in the sidebar */}
         <ExportPdfDialog
