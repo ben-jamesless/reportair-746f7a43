@@ -193,11 +193,8 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                   {new Date(photo.captured_at).toLocaleString()}
                 </Row>
               )}
-              {camera && <Row icon={<Camera className="h-4 w-4" />} label="Camera">{camera}</Row>}
-              {photo.lens && <Row icon={<Aperture className="h-4 w-4" />} label="Lens">{photo.lens}</Row>}
-              {exposure && <Row icon={<Aperture className="h-4 w-4" />} label="Exposure">{exposure}</Row>}
               {photo.gps_lat !== null && photo.gps_lng !== null && (
-                <Row icon={<MapPin className="h-4 w-4" />} label="GPS">
+                <Row icon={<MapPin className="h-4 w-4" />} label="Location">
                   <a
                     className="text-primary underline-offset-2 hover:underline"
                     href={`https://www.google.com/maps?q=${photo.gps_lat},${photo.gps_lng}`}
@@ -206,9 +203,6 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                     {photo.gps_lat.toFixed(4)}, {photo.gps_lng.toFixed(4)}
                   </a>
                 </Row>
-              )}
-              {photo.width && photo.height && (
-                <Badge variant="secondary" className="font-normal">{photo.width} × {photo.height}</Badge>
               )}
             </div>
 
