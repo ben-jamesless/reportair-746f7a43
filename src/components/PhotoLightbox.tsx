@@ -119,7 +119,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
             </Button>
           </div>
 
-          <aside className="flex flex-col gap-4 border-l bg-card p-5">
+          <aside className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto border-l bg-card p-5">
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
               <h3 className="mt-1 break-all text-sm font-semibold">{photo.file_name}</h3>
