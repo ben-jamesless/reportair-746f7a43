@@ -276,13 +276,15 @@ Deno.serve(async (req) => {
     if (sections.grid && allPhotos.length > 0) {
       // When day-scoped, group by area (in defined sort_order, then "Unassigned").
       // Otherwise, group by date as before.
-      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string };
+      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string; dayHeader?: string };
       let groups: Group[];
-      if (dayKey) {
-        const sortedAreas = (areas ?? []) as AreaRow[];
+
+      // Helper: split a day's photos into area-sorted subgroups
+      const sortedAreasList = (areas ?? []) as AreaRow[];
+      const splitByArea = (photos: PhotoRow[]): { label: string; photos: PhotoRow[]; areaId?: string }[] => {
         const byArea = new Map<string, PhotoRow[]>();
         const unassigned: PhotoRow[] = [];
-        for (const p of allPhotos) {
+        for (const p of photos) {
           if (!p.area_id) unassigned.push(p);
           else {
             const arr = byArea.get(p.area_id) ?? [];
@@ -290,12 +292,35 @@ Deno.serve(async (req) => {
             byArea.set(p.area_id, arr);
           }
         }
-        groups = [];
-        for (const ar of sortedAreas) {
+        const out: { label: string; photos: PhotoRow[]; areaId?: string }[] = [];
+        for (const ar of sortedAreasList) {
           const list = byArea.get(ar.id);
-          if (list?.length) groups.push({ label: ar.name, photos: list, areaId: ar.id });
+          if (list?.length) out.push({ label: ar.name, photos: list, areaId: ar.id });
         }
-        if (unassigned.length) groups.push({ label: "Unassigned", photos: unassigned });
+        if (unassigned.length) out.push({ label: "Unassigned", photos: unassigned });
+        return out;
+      };
+
+      if (dayKey) {
+        groups = splitByArea(allPhotos);
+      } else if (isRange) {
+        // Group by day (chronological, newest first to match single-project behaviour),
+        // then within each day, by area.
+        const byDay = groupByDate(allPhotos);
+        groups = [];
+        for (const dg of byDay) {
+          const d = dg.date;
+          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const subs = splitByArea(dg.photos);
+          subs.forEach((s, i) => {
+            groups.push({
+              ...s,
+              dateKey: dKey,
+              // First subgroup of the day carries a big day header above it
+              dayHeader: i === 0 ? dg.label : undefined,
+            });
+          });
+        }
       } else {
         groups = groupByDate(allPhotos).map((g) => {
           const d = g.date;
