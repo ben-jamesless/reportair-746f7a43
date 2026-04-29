@@ -123,13 +123,7 @@ const ProjectDetail = () => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // ---- Mutations: area notes, day notes, per-day area status ----
-  const saveAreaNotes = async (areaId: string, next: string | null) => {
-    const prev = areas;
-    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, notes: next } : a)));
-    const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
-    if (error) { toast.error(error.message); setAreas(prev); }
-  };
+  // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
   const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
     areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
   const saveAreaDayNote = async (areaId: string, dateKey: string, next: string | null) => {
