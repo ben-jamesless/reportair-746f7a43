@@ -19,9 +19,10 @@ type SharePhoto = {
   album_id: string | null; area_id: string | null;
 };
 type Album = { id: string; name: string; position: number };
-type Area = { id: string; name: string; sort_order: number; notes: string | null };
+type Area = { id: string; name: string; sort_order: number };
 type DayNote = { date: string; notes: string | null };
 type AreaDayStatus = { area_id: string; date: string; status: string };
+type AreaDayNote = { area_id: string; date: string; notes: string | null };
 type Resolved = {
   ok: boolean;
   error?: string;
@@ -31,6 +32,7 @@ type Resolved = {
   areas?: Area[];
   day_notes?: DayNote[];
   area_day_status?: AreaDayStatus[];
+  area_day_notes?: AreaDayNote[];
   photos?: SharePhoto[];
 };
 
