@@ -16,9 +16,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 25 25% 12%;
 
-    --primary: 18 80% 50%;
+    --primary: 184 98% 22%;
     --primary-foreground: 36 33% 98%;
-    --primary-glow: 22 90% 62%;
+    --primary-hover: 186 75% 19%;
+    --primary-glow: 184 70% 32%;
 
     --secondary: 30 20% 94%;
     --secondary-foreground: 25 25% 12%;
@@ -37,7 +38,7 @@
 
     --border: 30 15% 88%;
     --input: 30 15% 88%;
-    --ring: 18 80% 50%;
+    --ring: 184 98% 22%;
 
     --radius: 0.75rem;
 
@@ -48,12 +49,12 @@
 
     --sidebar-background: 36 33% 97%;
     --sidebar-foreground: 25 25% 18%;
-    --sidebar-primary: 18 80% 50%;
+    --sidebar-primary: 184 98% 22%;
     --sidebar-primary-foreground: 36 33% 98%;
     --sidebar-accent: 30 20% 92%;
     --sidebar-accent-foreground: 25 25% 12%;
     --sidebar-border: 30 15% 88%;
-    --sidebar-ring: 18 80% 50%;
+    --sidebar-ring: 184 98% 22%;
   }
 
   .dark {
