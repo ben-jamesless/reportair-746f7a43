@@ -26,7 +26,7 @@ type Project = {
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
-type Area = { id: string; name: string; sort_order: number; notes: string | null; status: AreaStatus };
+type Area = { id: string; name: string; sort_order: number; notes: string | null };
 type DayNote = { date: string; notes: string | null };
 
 const NO_AREA = "__no_area__";
@@ -60,6 +60,8 @@ const ProjectDetail = () => {
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
   const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
+  // status keyed by `${areaId}|${dateKey}` -> AreaStatus
+  const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeDay, setActiveDay] = useState<string>(ALL_DAYS);
   const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
@@ -68,10 +70,10 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
       supabase.from("projects").select("id, name, description, template").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order, notes, status").eq("project_id", id).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
       supabase
         .from("photos")
         .select(
@@ -81,6 +83,7 @@ const ProjectDetail = () => {
         .order("captured_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false }),
       supabase.from("day_notes").select("date, notes").eq("project_id", id),
+      supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
     ]);
     setProject(p ?? null);
     setAlbums(a ?? []);
@@ -89,23 +92,34 @@ const ProjectDetail = () => {
     const map = new Map<string, string | null>();
     for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
     setDayNotes(map);
+    const sm = new Map<string, AreaStatus>();
+    for (const row of (ads ?? []) as any[]) sm.set(`${row.area_id}|${row.date}`, row.status as AreaStatus);
+    setAreaDayStatus(sm);
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // ---- Mutations: area notes/status, day notes ----
+  // ---- Mutations: area notes, day notes, per-day area status ----
   const saveAreaNotes = async (areaId: string, next: string | null) => {
     const prev = areas;
     setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, notes: next } : a)));
     const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
     if (error) { toast.error(error.message); setAreas(prev); }
   };
-  const saveAreaStatus = async (areaId: string, next: AreaStatus) => {
-    const prev = areas;
-    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, status: next } : a)));
-    const { error } = await supabase.from("areas").update({ status: next }).eq("id", areaId);
-    if (error) { toast.error(error.message); setAreas(prev); }
+  const getAreaDayStatus = (areaId: string, dateKey: string): AreaStatus =>
+    areaDayStatus.get(`${areaId}|${dateKey}`) ?? "no_status";
+  const saveAreaDayStatus = async (areaId: string, dateKey: string, next: AreaStatus) => {
+    if (!id) return;
+    const key = `${areaId}|${dateKey}`;
+    const prev = new Map(areaDayStatus);
+    setAreaDayStatus((cur) => { const n = new Map(cur); n.set(key, next); return n; });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("area_day_status").upsert(
+      { project_id: id, area_id: areaId, date: dateKey, status: next, updated_by: user?.id },
+      { onConflict: "project_id,area_id,date" },
+    );
+    if (error) { toast.error(error.message); setAreaDayStatus(prev); }
   };
   const saveDayNote = async (dateKey: string, next: string | null) => {
     if (!id) return;
@@ -341,7 +355,7 @@ const ProjectDetail = () => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
-                  const dayNote = dayNotes.get(day.key) ?? null;
+                  
                   return (
                     <div key={day.key} className="rounded-md">
                       <div className="flex items-stretch gap-1">
@@ -378,47 +392,26 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-1 border-l pl-2">
-                          <EditableNote
-                            value={dayNote}
-                            placeholder="Add a comment for this day…"
-                            onSave={(next) => saveDayNote(day.key, next)}
-                          />
+                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
                             const sel = activeDay === day.key && activeArea === ar.id;
+                            const st = getAreaDayStatus(ar.id, day.key);
                             return (
-                              <div key={ar.id} className="space-y-0.5">
-                                <div className={cn(
-                                  "flex items-stretch gap-1 rounded-md transition-colors",
+                              <button
+                                key={ar.id}
+                                onClick={() => selectDayArea(day.key, ar.id)}
+                                className={cn(
+                                  "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                   sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
-                                )}>
-                                  <div className="flex items-center pl-2">
-                                    <AreaStatusPicker
-                                      value={ar.status}
-                                      onChange={(s) => saveAreaStatus(ar.id, s)}
-                                    />
-                                  </div>
-                                  <button
-                                    onClick={() => selectDayArea(day.key, ar.id)}
-                                    className="flex flex-1 items-center justify-between px-2 py-1.5 text-left text-xs"
-                                  >
-                                    <span className="flex items-center gap-1.5 truncate">
-                                      <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
-                                      <span className="truncate">{ar.name}</span>
-                                    </span>
-                                    <span className={cn("ml-2 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
-                                  </button>
-                                </div>
-                                <div className="pl-2">
-                                  <EditableNote
-                                    value={ar.notes}
-                                    placeholder="Add a comment for this area…"
-                                    onSave={(next) => saveAreaNotes(ar.id, next)}
-                                  />
-                                </div>
-                              </div>
+                                )}
+                              >
+                                <AreaStatusDot status={st} className="shrink-0" />
+                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
+                                <span className="flex-1 truncate">{ar.name}</span>
+                                <span className={cn("ml-1 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
+                              </button>
                             );
                           })}
                           {unassigned > 0 && (
@@ -511,6 +504,20 @@ const ProjectDetail = () => {
                   </span>
                 </div>
 
+                {/* Day comment shown at the top of the main panel when a dated day is active */}
+                {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
+                  <div className="mb-5">
+                    <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Day comment
+                    </p>
+                    <EditableNote
+                      value={dayNotes.get(activeDay) ?? null}
+                      placeholder="Add a comment for this day…"
+                      onSave={(next) => saveDayNote(activeDay, next)}
+                    />
+                  </div>
+                )}
+
                 {visiblePhotos.length === 0 ? (
                   <Card className="border-dashed shadow-none">
                     <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
@@ -532,6 +539,83 @@ const ProjectDetail = () => {
                       />
                     </CardContent>
                   </Card>
+                ) : activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY ? (
+                  // Dated day view: group by area, with per-area comment + per-day status picker
+                  (() => {
+                    const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
+                    const filtered = activeArea === null
+                      ? dayPool
+                      : activeArea === NO_AREA
+                        ? dayPool.filter((p) => !p.area_id)
+                        : dayPool.filter((p) => p.area_id === activeArea);
+                    const byArea = new Map<string, LightboxPhoto[]>();
+                    const unassigned: LightboxPhoto[] = [];
+                    for (const p of filtered) {
+                      if (!p.area_id) unassigned.push(p);
+                      else { const arr = byArea.get(p.area_id) ?? []; arr.push(p); byArea.set(p.area_id, arr); }
+                    }
+                    const orderedAreas = areas.filter((a) => (byArea.get(a.id)?.length ?? 0) > 0);
+                    return (
+                      <div className="space-y-8">
+                        {orderedAreas.map((ar) => {
+                          const list = byArea.get(ar.id) ?? [];
+                          const st = getAreaDayStatus(ar.id, activeDay);
+                          return (
+                            <div key={ar.id}>
+                              <div className="mb-2 flex items-center gap-2">
+                                <AreaStatusPicker
+                                  value={st}
+                                  onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
+                                  size="md"
+                                />
+                                <h3 className="text-base font-semibold">{ar.name}</h3>
+                                <span className="text-xs text-muted-foreground">
+                                  {list.length} photo{list.length === 1 ? "" : "s"}
+                                </span>
+                              </div>
+                              <div className="mb-3">
+                                <EditableNote
+                                  value={ar.notes}
+                                  placeholder="Add a comment for this area…"
+                                  onSave={(next) => saveAreaNotes(ar.id, next)}
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                {list.map((p) => (
+                                  <PhotoThumb
+                                    key={p.id}
+                                    path={p.storage_path}
+                                    alt={p.caption || p.file_name}
+                                    onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {unassigned.length > 0 && (
+                          <div>
+                            <div className="mb-2 flex items-center gap-2">
+                              <h3 className="text-base font-semibold">Unassigned</h3>
+                              <span className="text-xs text-muted-foreground">
+                                {unassigned.length} photo{unassigned.length === 1 ? "" : "s"}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                              {unassigned.map((p) => (
+                                <PhotoThumb
+                                  key={p.id}
+                                  path={p.storage_path}
+                                  alt={p.caption || p.file_name}
+                                  onClick={() => setLightboxIndex(photoIndexById.get(p.id) ?? 0)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                     {visiblePhotos.map((p) => (

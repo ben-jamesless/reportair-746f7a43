@@ -91,6 +91,39 @@ export type Database = {
           },
         ]
       }
+      area_day_status: {
+        Row: {
+          area_id: string
+          created_at: string
+          date: string
+          id: string
+          project_id: string
+          status: Database["public"]["Enums"]["area_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          date: string
+          id?: string
+          project_id: string
+          status?: Database["public"]["Enums"]["area_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["area_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       areas: {
         Row: {
           created_at: string
@@ -100,7 +133,6 @@ export type Database = {
           notes: string | null
           project_id: string
           sort_order: number
-          status: Database["public"]["Enums"]["area_status"]
           updated_at: string
         }
         Insert: {
@@ -111,7 +143,6 @@ export type Database = {
           notes?: string | null
           project_id: string
           sort_order?: number
-          status?: Database["public"]["Enums"]["area_status"]
           updated_at?: string
         }
         Update: {
@@ -122,7 +153,6 @@ export type Database = {
           notes?: string | null
           project_id?: string
           sort_order?: number
-          status?: Database["public"]["Enums"]["area_status"]
           updated_at?: string
         }
         Relationships: []
