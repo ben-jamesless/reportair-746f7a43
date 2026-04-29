@@ -543,26 +543,26 @@ const ProjectDetail = () => {
                 )}
 
                 {visiblePhotos.length === 0 ? (
-                  <Card className="border-dashed shadow-none">
-                    <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <ImagePlus className="h-6 w-6" />
-                      </div>
-                      <h2 className="text-lg font-semibold">No photos here</h2>
-                      <p className="max-w-sm text-sm text-muted-foreground">
-                        {activeDay === ALL_DAYS
-                          ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
-                          : "Upload to this day + area context, or pick a different selection."}
-                      </p>
-                      <PhotoUploader
-                        projectId={project.id}
-                        albumId={uploadAlbumId}
-                        areaId={uploadAreaId}
-                        areas={areas}
-                        onUploaded={loadAll}
-                      />
-                    </CardContent>
-                  </Card>
+                  <EmptyState
+                    icon={<ImagePlus className="h-6 w-6" />}
+                    title="No photos here"
+                    description={
+                      activeDay === ALL_DAYS
+                        ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
+                        : "Upload to this day + area context, or pick a different selection."
+                    }
+                    action={
+                      <ErrorBoundary label="uploader">
+                        <PhotoUploader
+                          projectId={project.id}
+                          albumId={uploadAlbumId}
+                          areaId={uploadAreaId}
+                          areas={areas}
+                          onUploaded={loadAll}
+                        />
+                      </ErrorBoundary>
+                    }
+                  />
                 ) : activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY ? (
                   // Dated day view: group by area, with per-area comment + per-day status picker
                   (() => {
