@@ -64,6 +64,8 @@ Deno.serve(async (req) => {
 
     const projectId = exp.project_id;
     const sections: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false, ...(exp.options?.sections ?? {}) };
+    const dayKey: string | null = exp.options?.day_key ?? null;
+    const dayLabel: string | null = exp.options?.day_label ?? null;
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
     // Load project + photos + albums + areas + activity + notes
@@ -71,15 +73,27 @@ Deno.serve(async (req) => {
       supabase.from("projects").select("name, description, template").eq("id", projectId).single(),
       supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height").eq("project_id", projectId).order("captured_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
-      supabase.from("areas").select("id, name").eq("project_id", projectId),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("activity_events").select("verb, target_type, metadata, created_at, actor_id").eq("project_id", projectId).order("created_at", { ascending: false }).limit(200),
       supabase.from("guest_notes").select("photo_id, guest_name, body, created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
     ]);
 
     if (!proj) throw new Error("Project not found");
-    const allPhotos = (photos ?? []) as any[];
+    let allPhotos = (photos ?? []) as any[];
+
+    // Day-scoped export: filter to photos that fall on the chosen day (by EXIF capture date or upload date)
+    const photoDayKey = (p: any) => {
+      const raw = p.captured_at || p.created_at;
+      const d = new Date(raw);
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    };
+    if (dayKey) {
+      allPhotos = allPhotos.filter((p) => photoDayKey(p) === dayKey);
+      if (allPhotos.length === 0) throw new Error("No photos found for the selected day.");
+    }
+
     if (allPhotos.length > PHOTO_CAP) {
-      throw new Error(`This project has ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}. Split your project across albums and export per album, or remove photos before exporting.`);
+      throw new Error(`This export contains ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}. Split your project across more days or remove photos before exporting.`);
     }
 
     const albumName = new Map((albums ?? []).map((a: any) => [a.id, a.name]));
@@ -165,7 +179,8 @@ Deno.serve(async (req) => {
         } catch (_) { /* skip logo */ }
       }
 
-      page.drawText(proj.name, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
+      const titleText = dayKey && dayLabel ? `${proj.name} — ${dayLabel}` : proj.name;
+      page.drawText(titleText, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
       y -= 60;
       if (proj.description) {
         const lines = wrapText(proj.description, font, 12, PAGE_W - 2 * M);
@@ -175,13 +190,40 @@ Deno.serve(async (req) => {
         }
       }
       // Stats footer
-      const stats = `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
+      const stats = dayKey
+        ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+        : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`;
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 
-    // ---- Photo grid (grouped by date) ----
+    // ---- Photo grid ----
     if (sections.grid && allPhotos.length > 0) {
-      const groups = groupByDate(allPhotos);
+      // When day-scoped, group by area (in defined sort_order, then "Unassigned").
+      // Otherwise, group by date as before.
+      type Group = { label: string; photos: any[] };
+      let groups: Group[];
+      if (dayKey) {
+        const sortedAreas = (areas ?? []) as any[];
+        const byArea = new Map<string, any[]>();
+        const unassigned: any[] = [];
+        for (const p of allPhotos) {
+          if (!p.area_id) unassigned.push(p);
+          else {
+            const arr = byArea.get(p.area_id) ?? [];
+            arr.push(p);
+            byArea.set(p.area_id, arr);
+          }
+        }
+        groups = [];
+        for (const ar of sortedAreas) {
+          const list = byArea.get(ar.id);
+          if (list?.length) groups.push({ label: ar.name, photos: list });
+        }
+        if (unassigned.length) groups.push({ label: "Unassigned", photos: unassigned });
+      } else {
+        groups = groupByDate(allPhotos).map((g) => ({ label: g.label, photos: g.photos }));
+      }
+
       // Layout: 3 cols x 3 rows per page = 9 thumbs
       const COLS = 3;
       const GAP = 12;
@@ -222,14 +264,13 @@ Deno.serve(async (req) => {
                 600,
                 { transform: { width: 1200, quality: 80, format: "origin" } as any },
               );
-              // Fallback: also build a transform URL manually since SDK types vary
               const baseUrl = signed?.signedUrl;
               const transformedUrl = baseUrl
                 ? baseUrl.replace("/object/sign/", "/render/image/sign/") + "&width=1200&quality=80"
                 : null;
               if (transformedUrl) {
                 let r = await fetch(transformedUrl);
-                if (!r.ok && baseUrl) r = await fetch(baseUrl); // fall back to original
+                if (!r.ok && baseUrl) r = await fetch(baseUrl);
                 if (r.ok) {
                   const bytes = new Uint8Array(await r.arrayBuffer());
                   const ct = r.headers.get("content-type") || "";
@@ -256,7 +297,7 @@ Deno.serve(async (req) => {
               const truncated = caption.length > 40 ? caption.slice(0, 38) + "…" : caption;
               page.drawText(truncated, { x, y: rowTop - imgH - 14, size: 8, font, color: TEXT });
               const meta: string[] = [];
-              if (ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
+              if (!dayKey && ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
               if (ph.album_id && albumName.get(ph.album_id)) meta.push(albumName.get(ph.album_id)!);
               if (meta.length) page.drawText(meta.join(" · ").slice(0, 50), { x, y: rowTop - imgH - 24, size: 7, font, color: MUTED });
             }

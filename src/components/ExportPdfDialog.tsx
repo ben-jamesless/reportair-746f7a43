@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, Loader2, Upload, AlertTriangle, Download, X } from "lucide-react";
+import { FileDown, Loader2, Upload, AlertTriangle, Download, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 const PHOTO_CAP = 300;
@@ -26,8 +26,31 @@ type Sections = {
 
 const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false };
 
-export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; photoCount: number }) => {
-  const [open, setOpen] = useState(false);
+type Props = {
+  projectId: string;
+  photoCount: number;
+  /** When set, scope export to this single day (YYYY-M-D, matches edge function dayKey) and label. */
+  dayKey?: string | null;
+  dayLabel?: string | null;
+  /** Render a custom trigger instead of the default "Export PDF" button. */
+  trigger?: React.ReactNode;
+  /** Controlled open (optional). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
+export const ExportPdfDialog = ({
+  projectId,
+  photoCount,
+  dayKey = null,
+  dayLabel = null,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: Props) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
   const [accent, setAccent] = useState("#01696F");
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -77,7 +100,7 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
       project_id: projectId,
       created_by: auth.user!.id,
       status: "queued",
-      options: { sections },
+      options: { sections, day_key: dayKey ?? null, day_label: dayLabel ?? null },
       logo_path: logoPath,
       accent_color: accent,
     }).select("id,status,output_path,error_message,photo_count").single();
@@ -99,15 +122,30 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm"><FileDown className="mr-2 h-4 w-4" />Export PDF</Button>
+        {trigger ?? (
+          <Button variant="outline" size="sm"><FileDown className="mr-2 h-4 w-4" />Export PDF</Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Export project as PDF</DialogTitle>
-          <DialogDescription>Generate a branded PDF of your project. Photos are grouped by date.</DialogDescription>
+          <DialogTitle>{dayKey ? "Export day as PDF" : "Export project as PDF"}</DialogTitle>
+          <DialogDescription>
+            {dayKey
+              ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
+              : "Generate a branded PDF of your project. Photos are grouped by date."}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
+          {dayKey && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="flex items-center gap-2 pt-4 text-sm">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span>Scoped to <span className="font-medium">{dayLabel}</span> · {photoCount} photo{photoCount === 1 ? "" : "s"}</span>
+              </CardContent>
+            </Card>
+          )}
+
           {overCap && (
             <Card className="border-destructive/40 bg-destructive/5">
               <CardContent className="flex gap-3 pt-4 text-sm">
@@ -115,7 +153,9 @@ export const ExportPdfDialog = ({ projectId, photoCount }: { projectId: string; 
                 <div>
                   <p className="font-medium">Too many photos for a single export</p>
                   <p className="mt-1 text-muted-foreground">
-                    This project has {photoCount} photos. The PDF export is capped at {PHOTO_CAP}. Tip: open a single album tab and export from there once we add per-album export, or remove photos before exporting.
+                    {dayKey
+                      ? `This day has ${photoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos or split across more days before exporting.`
+                      : `This project has ${photoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Export day-by-day from the navigation, or remove photos before exporting.`}
                   </p>
                 </div>
               </CardContent>

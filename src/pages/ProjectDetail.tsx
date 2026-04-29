@@ -5,7 +5,8 @@ import { AppHeader } from "@/components/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ImagePlus, Loader2, MapPinned, Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, ImagePlus, Loader2, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
@@ -26,6 +27,8 @@ type Area = { id: string; name: string; sort_order: number };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
+const PRE_EVENT_DAY = "__pre_event__";
+const PRE_EVENT_SLUG = "pre-event";
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
@@ -82,10 +85,25 @@ const ProjectDetail = () => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // Build day buckets
+  // Identify the Pre-event album (if it exists)
+  const preEventAlbum = useMemo(() => albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null, [albums]);
+
+  // Split photos: anything in the Pre-event album goes to the Pre-event bucket;
+  // everything else groups by capture/upload date.
+  const { datedPhotos, preEventPhotos } = useMemo(() => {
+    const dated: LightboxPhoto[] = [];
+    const pre: LightboxPhoto[] = [];
+    for (const p of photos) {
+      if (preEventAlbum && (p as any).album_id === preEventAlbum.id) pre.push(p);
+      else dated.push(p);
+    }
+    return { datedPhotos: dated, preEventPhotos: pre };
+  }, [photos, preEventAlbum]);
+
+  // Build day buckets from dated photos only
   const days = useMemo(() => {
     const map = new Map<string, { key: string; label: string; date: Date; photos: LightboxPhoto[] }>();
-    for (const ph of photos) {
+    for (const ph of datedPhotos) {
       const k = dayKey(ph);
       const raw = ph.captured_at || (ph as any).created_at;
       const d = raw ? new Date(raw) : new Date(0);
@@ -97,7 +115,7 @@ const ProjectDetail = () => {
       g.photos.push(ph);
     }
     return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [photos]);
+  }, [datedPhotos]);
 
   // Auto-open first day on load
   useEffect(() => {
@@ -124,11 +142,12 @@ const ProjectDetail = () => {
   const visiblePhotos = useMemo(() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
+    else if (activeDay === PRE_EVENT_DAY) pool = preEventPhotos;
     else pool = days.find((d) => d.key === activeDay)?.photos ?? [];
     if (activeArea === null) return pool;
     if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
     return pool.filter((p) => p.area_id === activeArea);
-  }, [activeDay, activeArea, days, photos]);
+  }, [activeDay, activeArea, days, photos, preEventPhotos]);
 
   const photoIndexById = useMemo(() => {
     const m = new Map<string, number>();
@@ -158,11 +177,13 @@ const ProjectDetail = () => {
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? ({ ...p, album_id: albumId } as any) : p)));
   };
 
-  // Upload context
+  // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
   const uploadAreaId = activeArea && activeArea !== NO_AREA ? activeArea : null;
+  const uploadAlbumId = activeDay === PRE_EVENT_DAY && preEventAlbum ? preEventAlbum.id : null;
   const uploadContextLabel = useMemo(() => {
     const parts: string[] = [];
-    if (activeDay !== ALL_DAYS) {
+    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(SHORT_FMT.format(d.date));
     }
@@ -179,7 +200,8 @@ const ProjectDetail = () => {
   const selectionTitle = useMemo(() => {
     if (activeDay === ALL_DAYS && activeArea === null) return "All photos";
     const parts: string[] = [];
-    if (activeDay !== ALL_DAYS) {
+    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(d.label);
     } else {
@@ -193,6 +215,20 @@ const ProjectDetail = () => {
     }
     return parts.join(" · ");
   }, [activeDay, activeArea, days, areas]);
+
+  // Day-scoped export trigger state
+  const [exportDayKey, setExportDayKey] = useState<string | null>(null);
+  const [exportDayLabel, setExportDayLabel] = useState<string | null>(null);
+  const [exportPhotoCount, setExportPhotoCount] = useState(0);
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
+    e.stopPropagation();
+    setExportDayKey(day.key);
+    setExportDayLabel(day.label);
+    setExportPhotoCount(day.photos.length);
+    setExportOpen(true);
+  };
 
   if (loading) {
     return (
@@ -239,8 +275,13 @@ const ProjectDetail = () => {
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
               <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
-              <ExportPdfDialog projectId={project.id} photoCount={photos.length} />
-              <PhotoUploader projectId={project.id} albumId={null} areaId={uploadAreaId} onUploaded={loadAll} />
+              <PhotoUploader
+                projectId={project.id}
+                albumId={uploadAlbumId}
+                areaId={uploadAreaId}
+                areas={areas}
+                onUploaded={loadAll}
+              />
             </div>
             <p className="text-xs text-muted-foreground">
               Uploading to: <span className="font-medium">{uploadContextLabel}</span>
@@ -255,7 +296,7 @@ const ProjectDetail = () => {
           </TabsList>
 
           <TabsContent value="photos" className="mt-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
                 <button
@@ -273,7 +314,7 @@ const ProjectDetail = () => {
                   </span>
                 </button>
 
-                {days.length === 0 && (
+                {days.length === 0 && preEventPhotos.length === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
@@ -283,7 +324,7 @@ const ProjectDetail = () => {
                   const { counts, unassigned } = areaCountsForDay(day.photos);
                   return (
                     <div key={day.key} className="rounded-md">
-                      <div className="flex items-stretch">
+                      <div className="flex items-stretch gap-1">
                         <button
                           onClick={() => toggleDay(day.key)}
                           className="flex items-center px-2 text-muted-foreground hover:text-foreground"
@@ -305,6 +346,14 @@ const ProjectDetail = () => {
                           <span className={cn("text-xs", dayActive ? "opacity-80" : "text-muted-foreground")}>
                             {day.photos.length}
                           </span>
+                        </button>
+                        <button
+                          onClick={(e) => openDayExport(e, day)}
+                          className="flex items-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                          title={`Export ${day.label} as PDF`}
+                          aria-label={`Export ${day.label} as PDF`}
+                        >
+                          <FileDown className="h-3.5 w-3.5" />
                         </button>
                       </div>
 
@@ -359,6 +408,35 @@ const ProjectDetail = () => {
                     </div>
                   );
                 })}
+
+                {/* Pre-event section: fixed at the bottom, below all dated days */}
+                {preEventAlbum && (
+                  <div className="mt-3 border-t pt-3">
+                    <button
+                      onClick={() => { setActiveDay(PRE_EVENT_DAY); setActiveArea(null); }}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                        activeDay === PRE_EVENT_DAY && activeArea === null
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-secondary"
+                      )}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Layers className={cn(
+                          "h-3.5 w-3.5",
+                          activeDay === PRE_EVENT_DAY && activeArea === null ? "" : "text-muted-foreground"
+                        )} />
+                        <span className="font-medium">Pre-event</span>
+                      </span>
+                      <span className={cn(
+                        "text-xs",
+                        activeDay === PRE_EVENT_DAY && activeArea === null ? "opacity-80" : "text-muted-foreground"
+                      )}>
+                        {preEventPhotos.length}
+                      </span>
+                    </button>
+                  </div>
+                )}
               </aside>
 
               {/* Main grid */}
@@ -382,7 +460,13 @@ const ProjectDetail = () => {
                           ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
                           : "Upload to this day + area context, or pick a different selection."}
                       </p>
-                      <PhotoUploader projectId={project.id} albumId={null} areaId={uploadAreaId} onUploaded={loadAll} />
+                      <PhotoUploader
+                        projectId={project.id}
+                        albumId={uploadAlbumId}
+                        areaId={uploadAreaId}
+                        areas={areas}
+                        onUploaded={loadAll}
+                      />
                     </CardContent>
                   </Card>
                 ) : (
@@ -415,6 +499,17 @@ const ProjectDetail = () => {
           albums={albums}
           onAreaChanged={handleAreaChanged}
           onAlbumChanged={handleAlbumChanged}
+        />
+
+        {/* Day-scoped PDF export, opened from the day row in the sidebar */}
+        <ExportPdfDialog
+          projectId={project.id}
+          photoCount={exportPhotoCount}
+          dayKey={exportDayKey}
+          dayLabel={exportDayLabel}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          trigger={<span className="hidden" />}
         />
       </main>
     </div>
