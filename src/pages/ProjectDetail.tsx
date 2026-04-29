@@ -280,11 +280,20 @@ const ProjectDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-gradient-subtle">
         <AppHeader />
-        <div className="flex h-[60vh] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <main className="container py-6 sm:py-10">
+          <Skeleton className="mb-4 h-4 w-32" />
+          <div className="mb-8 space-y-3">
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
+            <DayNavSkeleton />
+            <PhotoGridSkeleton count={10} />
+          </div>
+        </main>
       </div>
     );
   }
@@ -294,8 +303,17 @@ const ProjectDetail = () => {
       <div className="min-h-screen">
         <AppHeader />
         <main className="container py-10">
-          <p className="text-muted-foreground">Project not found.</p>
-          <Link to="/projects" className="mt-4 inline-block text-sm text-primary underline">Back to projects</Link>
+          <EmptyState
+            className="mx-auto max-w-md"
+            icon={<ArrowLeft className="h-5 w-5" />}
+            title="Project not found"
+            description="It may have been deleted, or you no longer have access."
+            action={
+              <Link to="/projects" className="text-sm text-primary underline-offset-4 hover:underline">
+                Back to projects
+              </Link>
+            }
+          />
         </main>
       </div>
     );
