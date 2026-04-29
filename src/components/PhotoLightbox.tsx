@@ -208,6 +208,10 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
               )}
             </div>
 
+            {projectId && photo && (
+              <PhotoCommentsThread projectId={projectId} photoId={photo.id} isOwner={isOwner} />
+            )}
+
             {projectId && (
               <div className="border-t pt-4">
                 <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
