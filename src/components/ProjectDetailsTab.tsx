@@ -95,8 +95,6 @@ export const ProjectDetailsTab = ({ project, lastUploadAt }: Props) => {
       <p className="mt-3 px-1 text-xs text-muted-foreground">
         To edit any of these fields, open <span className="font-medium">Settings</span>.
       </p>
-      {/* Reference unused export so build is clean — keep status options exported elsewhere */}
-      <span className="hidden">{PROJECT_STATUSES.length}</span>
     </div>
   );
 };
