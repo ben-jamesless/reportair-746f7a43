@@ -10,10 +10,11 @@ import { parseExif, getImageDimensions, sanitizeFileName } from "@/lib/photoUtil
 interface Props {
   projectId: string;
   albumId: string | null;
+  areaId?: string | null;
   onUploaded?: () => void;
 }
 
-export const PhotoUploader = ({ projectId, albumId, onUploaded }: Props) => {
+export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }: Props) => {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -48,6 +49,7 @@ export const PhotoUploader = ({ projectId, albumId, onUploaded }: Props) => {
         const { error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
+          area_id: areaId,
           storage_path: key,
           file_name: file.name,
           mime_type: file.type,
