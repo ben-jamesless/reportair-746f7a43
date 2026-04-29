@@ -18,12 +18,24 @@ interface Props {
   initialDescription: string | null;
   initialColor: string | null;
   onChanged?: () => void;
+  /** When true, hides the built-in trigger button and uses controlled open. */
+  openControlled?: boolean;
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
 }
 
-export const EditProjectDialog = ({ projectId, initialName, initialDescription, initialColor, onChanged }: Props) => {
+export const EditProjectDialog = ({
+  projectId, initialName, initialDescription, initialColor, onChanged,
+  openControlled, open: openProp, onOpenChange,
+}: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(openControlled ? true : false);
+  const open = openControlled ? (openProp ?? internalOpen) : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (openControlled) onOpenChange?.(next);
+    else setInternalOpen(next);
+  };
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
   const [color, setColor] = useState(initialColor || DEFAULT_PROJECT_COLOR);
