@@ -97,13 +97,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   if (!photo) return null;
 
-  const camera = [photo.camera_make, photo.camera_model].filter(Boolean).join(" ");
-  const exposure = [
-    photo.aperture ? `f/${photo.aperture}` : null,
-    photo.shutter_speed,
-    photo.iso ? `ISO ${photo.iso}` : null,
-    photo.focal_length ? `${photo.focal_length}mm` : null,
-  ].filter(Boolean).join(" · ");
+  // Camera/lens/exposure intentionally hidden — only date, time, and location are surfaced.
 
   return (
     <Dialog open={index !== null} onOpenChange={(o) => !o && onClose()}>
