@@ -22,6 +22,7 @@ import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import { CommentsPanel } from "@/components/CommentsPanel";
+import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,11 @@ type Project = {
   description: string | null;
   template: string;
   color: string | null;
+  event_date: string | null;
+  event_location: string | null;
+  overall_status: ProjectStatus | null;
+  event_type: string | null;
+  client_name: string | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
@@ -80,7 +86,7 @@ const ProjectDetail = () => {
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
       supabase
@@ -375,6 +381,14 @@ const ProjectDetail = () => {
           {project.description && (
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
           )}
+          <ProjectMetaRow
+            project={project}
+            lastUploadAt={photos.reduce<string | null>((acc, p) => {
+              const ts = (p as any).created_at as string | undefined;
+              if (!ts) return acc;
+              return !acc || ts > acc ? ts : acc;
+            }, null)}
+          />
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
           <div className="flex flex-wrap items-center gap-2">
@@ -414,9 +428,14 @@ const ProjectDetail = () => {
             </Button>
             <EditProjectDialog
               projectId={project.id}
-              initialName={project.name}
-              initialDescription={project.description}
-              initialColor={project.color}
+              name={project.name}
+              description={project.description}
+              color={project.color}
+              event_date={project.event_date}
+              event_location={project.event_location}
+              overall_status={project.overall_status}
+              event_type={project.event_type}
+              client_name={project.client_name}
               onChanged={loadAll}
             />
             <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
@@ -752,6 +771,52 @@ const ProjectDetail = () => {
           trigger={<span className="hidden" />}
         />
     </AppShell>
+  );
+};
+
+const META_DATE_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "long", year: "numeric" });
+const REL_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+const ProjectMetaRow = ({
+  project,
+  lastUploadAt,
+}: {
+  project: Project;
+  lastUploadAt: string | null;
+}) => {
+  const items: { label: string; value: React.ReactNode }[] = [];
+  if (project.client_name) items.push({ label: "Client", value: project.client_name });
+  if (project.event_type) items.push({ label: "Type", value: project.event_type });
+  if (project.event_date) {
+    const [y, m, d] = project.event_date.split("-").map(Number);
+    items.push({ label: "Event date", value: META_DATE_FMT.format(new Date(y, m - 1, d)) });
+  }
+  if (project.event_location) items.push({ label: "Location", value: project.event_location });
+  if (project.overall_status && project.overall_status !== "no_status") {
+    const meta = projectStatusMeta(project.overall_status);
+    items.push({
+      label: "Status",
+      value: (
+        <span className="inline-flex items-center gap-1.5">
+          <span className={cn("h-2 w-2 rounded-full", meta.dotClass)} />
+          {meta.label}
+        </span>
+      ),
+    });
+  }
+  if (lastUploadAt) {
+    items.push({ label: "Last upload", value: REL_FMT.format(new Date(lastUploadAt)) });
+  }
+  if (items.length === 0) return null;
+  return (
+    <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs sm:text-sm">
+      {items.map((it) => (
+        <div key={it.label} className="flex items-center gap-1.5">
+          <dt className="text-muted-foreground">{it.label}:</dt>
+          <dd className="font-medium text-foreground">{it.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 };
 

@@ -480,39 +480,54 @@ export type Database = {
       projects: {
         Row: {
           archived_at: string | null
+          client_name: string | null
           color: string
           cover_photo_url: string | null
           created_at: string
           created_by: string
           description: string | null
+          event_date: string | null
+          event_location: string | null
+          event_type: string | null
           id: string
           name: string
+          overall_status: Database["public"]["Enums"]["project_status"]
           team_id: string
           template: Database["public"]["Enums"]["project_template"]
           updated_at: string
         }
         Insert: {
           archived_at?: string | null
+          client_name?: string | null
           color?: string
           cover_photo_url?: string | null
           created_at?: string
           created_by: string
           description?: string | null
+          event_date?: string | null
+          event_location?: string | null
+          event_type?: string | null
           id?: string
           name: string
+          overall_status?: Database["public"]["Enums"]["project_status"]
           team_id: string
           template?: Database["public"]["Enums"]["project_template"]
           updated_at?: string
         }
         Update: {
           archived_at?: string | null
+          client_name?: string | null
           color?: string
           cover_photo_url?: string | null
           created_at?: string
           created_by?: string
           description?: string | null
+          event_date?: string | null
+          event_location?: string | null
+          event_type?: string | null
           id?: string
           name?: string
+          overall_status?: Database["public"]["Enums"]["project_status"]
           team_id?: string
           template?: Database["public"]["Enums"]["project_template"]
           updated_at?: string
@@ -722,6 +737,12 @@ export type Database = {
       area_status: "no_status" | "on_track" | "requires_discussion" | "concern"
       export_status: "queued" | "processing" | "ready" | "failed"
       project_role: "owner" | "editor" | "commenter" | "viewer"
+      project_status:
+        | "no_status"
+        | "on_track"
+        | "requires_discussion"
+        | "concern"
+        | "behind_schedule"
       project_template: "event_production" | "blank"
       team_role: "owner" | "admin" | "member"
     }
@@ -855,6 +876,13 @@ export const Constants = {
       area_status: ["no_status", "on_track", "requires_discussion", "concern"],
       export_status: ["queued", "processing", "ready", "failed"],
       project_role: ["owner", "editor", "commenter", "viewer"],
+      project_status: [
+        "no_status",
+        "on_track",
+        "requires_discussion",
+        "concern",
+        "behind_schedule",
+      ],
       project_template: ["event_production", "blank"],
       team_role: ["owner", "admin", "member"],
     },
