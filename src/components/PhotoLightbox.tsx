@@ -26,9 +26,11 @@ export type LightboxPhoto = {
   width: number | null;
   height: number | null;
   area_id: string | null;
+  album_id?: string | null;
 };
 
 export type LightboxArea = { id: string; name: string };
+export type LightboxAlbum = { id: string; name: string };
 
 interface Props {
   photos: LightboxPhoto[];
@@ -36,12 +38,14 @@ interface Props {
   onClose: () => void;
   onIndexChange: (i: number) => void;
   areas?: LightboxArea[];
+  albums?: LightboxAlbum[];
   onAreaChanged?: (photoId: string, areaId: string | null) => void;
+  onAlbumChanged?: (photoId: string, albumId: string | null) => void;
 }
 
 const UNASSIGNED = "__unassigned__";
 
-export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], onAreaChanged }: Props) => {
+export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged }: Props) => {
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
