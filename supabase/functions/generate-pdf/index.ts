@@ -19,7 +19,7 @@ type PhotoRow = {
   shutter_speed?: string | null;
   focal_length?: number | null;
 };
-type AreaRow = { id: string; name: string; sort_order: number; notes: string | null };
+type AreaRow = { id: string; name: string; sort_order: number };
 type AlbumRow = { id: string; name: string };
 type ActivityRow = { verb: string; target_type: string; metadata: Record<string, unknown> | null; created_at: string; actor_id: string | null };
 type GuestNoteRow = { photo_id: string; guest_name: string; body: string; created_at: string };
