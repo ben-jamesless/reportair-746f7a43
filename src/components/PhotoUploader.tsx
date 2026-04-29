@@ -10,10 +10,11 @@ import { parseExif, getImageDimensions, sanitizeFileName } from "@/lib/photoUtil
 interface Props {
   projectId: string;
   albumId: string | null;
+  areaId?: string | null;
   onUploaded?: () => void;
 }
 
-export const PhotoUploader = ({ projectId, albumId, onUploaded }: Props) => {
+export const PhotoUploader = ({ projectId, albumId, areaId = null, onUploaded }: Props) => {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
