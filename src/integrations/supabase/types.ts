@@ -480,6 +480,7 @@ export type Database = {
       projects: {
         Row: {
           archived_at: string | null
+          color: string
           cover_photo_url: string | null
           created_at: string
           created_by: string
@@ -492,6 +493,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          color?: string
           cover_photo_url?: string | null
           created_at?: string
           created_by: string
@@ -504,6 +506,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          color?: string
           cover_photo_url?: string | null
           created_at?: string
           created_by?: string
