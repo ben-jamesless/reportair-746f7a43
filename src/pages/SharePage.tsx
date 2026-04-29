@@ -199,18 +199,50 @@ const SharePage = () => {
               <p className="py-12 text-center text-muted-foreground">No photos in this view.</p>
             ) : (
               <div className="space-y-8">
-                {grouped.map((group) => (
-                  <section key={group.key}>
-                    <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-                      {group.label} <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                      {group.photos.map((p) => (
-                        <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
-                      ))}
-                    </div>
-                  </section>
-                ))}
+                {grouped.map((group) => {
+                  const dateKey = isoDateKey(group.date);
+                  const dayNote = dayNotesMap.get(dateKey);
+                  const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
+                  const statusMeta = statusKey ? STATUS_META[statusKey] : undefined;
+                  return (
+                    <section key={group.key}>
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-medium text-foreground">
+                          {group.label}{" "}
+                          <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
+                        </h3>
+                      </div>
+                      {dayNote && (
+                        <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
+                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Day comment</p>
+                          <p className="whitespace-pre-wrap">{dayNote}</p>
+                        </div>
+                      )}
+                      {activeAreaObj && (
+                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium">{activeAreaObj.name}</span>
+                          {statusMeta && (
+                            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", statusMeta.chip)}>
+                              <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
+                              {statusMeta.label}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {activeAreaObj?.notes && activeAreaObj.notes.trim() && (
+                        <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
+                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Area comment</p>
+                          <p className="whitespace-pre-wrap">{activeAreaObj.notes}</p>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {group.photos.map((p) => (
+                          <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
