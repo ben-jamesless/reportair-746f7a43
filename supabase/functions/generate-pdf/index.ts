@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     const actorMap = new Map<string, string>();
     if (actorIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", actorIds);
-      for (const p of (profs ?? [])) actorMap.set(p.id, p.full_name || "Member");
+      for (const p of (profs ?? []) as ProfileRow[]) actorMap.set(p.id, p.full_name || "Member");
     }
 
     // ============ Build PDF ============
@@ -176,20 +176,25 @@ Deno.serve(async (req) => {
         "\u2013": "-", "\u2014": "-", "\u2212": "-",
         "\u2026": "...", "\u2022": "*", "\u00B7": "-",
       };
-      s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
-      // Strip remaining non-WinAnsi characters (keep printable ASCII + Latin-1 supplement)
+      s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/gu, (c) => map[c] ?? "");
+      // Strip remaining non-WinAnsi characters (keep printable ASCII + Latin-1 supplement).
+      // Control characters \x09 (TAB), \x0A (LF), \x0D (CR) are intentionally allowed.
+      // eslint-disable-next-line no-control-regex
       s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
       return s;
     };
 
     // Wrap drawText so every string passes through sanitize()
-    const _wrapDraw = (p: any) => {
-      const orig = p.drawText.bind(p);
-      p.drawText = (text: string, opts: any) => orig(sanitize(text), opts);
+    type DrawTextFn = PDFPage["drawText"];
+    const _wrapDraw = (p: PDFPage): PDFPage => {
+      const orig = p.drawText.bind(p) as DrawTextFn;
+      p.drawText = ((text: string, opts: Parameters<DrawTextFn>[1]) =>
+        orig(sanitize(text), opts)) as DrawTextFn;
       return p;
     };
     const origAddPage = pdf.addPage.bind(pdf);
-    pdf.addPage = ((...args: any[]) => _wrapDraw((origAddPage as any)(...args))) as any;
+    pdf.addPage = ((...args: Parameters<typeof origAddPage>) =>
+      _wrapDraw(origAddPage(...args))) as typeof pdf.addPage;
 
     const PAGE_W = 595.28; // A4
     const PAGE_H = 841.89;
