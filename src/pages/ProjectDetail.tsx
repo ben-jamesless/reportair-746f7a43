@@ -401,12 +401,13 @@ const ProjectDetail = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity")} className="w-full">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="w-full">
         {/* Top controls row: tabs + settings + export */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
           <TabsList>
             <TabsTrigger value="photos">Photos</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -419,18 +420,15 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
-            <EditProjectDialog
-              projectId={project.id}
-              name={project.name}
-              description={project.description}
-              color={project.color}
-              event_date={project.event_date}
-              event_location={project.event_location}
-              overall_status={project.overall_status}
-              event_type={project.event_type}
-              client_name={project.client_name}
-              onChanged={loadAll}
-            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveTab("details")}
+              title="Edit project details"
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
             <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
           </div>
         </div>
