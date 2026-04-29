@@ -5,13 +5,29 @@ import { formatDistanceToNow } from "date-fns";
 import { ActivityFeedSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
 
+type EventMetadata = {
+  name?: string;
+  file_name?: string;
+  guest_name?: string;
+  body?: string;
+  [key: string]: unknown;
+};
+
 type Event = {
   id: string;
   actor_id: string | null;
   verb: string;
   target_type: string;
   target_id: string | null;
-  metadata: Record<string, any>;
+  metadata: EventMetadata;
+  created_at: string;
+};
+
+type GuestNoteRow = {
+  id: string;
+  photo_id: string;
+  guest_name: string;
+  body: string;
   created_at: string;
 };
 
