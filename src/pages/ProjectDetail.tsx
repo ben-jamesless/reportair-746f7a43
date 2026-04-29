@@ -333,21 +333,6 @@ const ProjectDetail = () => {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
-                <button
-                  onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(null); }}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
-                    activeDay === ALL_DAYS && activeArea === null
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-secondary"
-                  )}
-                >
-                  <span className="font-medium">All photos</span>
-                  <span className={cn("text-xs", activeDay === ALL_DAYS && activeArea === null ? "opacity-80" : "text-muted-foreground")}>
-                    {photos.length}
-                  </span>
-                </button>
-
                 {days.length === 0 && preEventPhotos.length === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
@@ -356,6 +341,7 @@ const ProjectDetail = () => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
+                  const dayNote = dayNotes.get(day.key) ?? null;
                   return (
                     <div key={day.key} className="rounded-md">
                       <div className="flex items-stretch gap-1">
@@ -392,26 +378,47 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
+                        <div className="ml-7 mt-0.5 space-y-1 border-l pl-2">
+                          <EditableNote
+                            value={dayNote}
+                            placeholder="Add a comment for this day…"
+                            onSave={(next) => saveDayNote(day.key, next)}
+                          />
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
                             const sel = activeDay === day.key && activeArea === ar.id;
                             return (
-                              <button
-                                key={ar.id}
-                                onClick={() => selectDayArea(day.key, ar.id)}
-                                className={cn(
-                                  "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
-                                  sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
-                                )}
-                              >
-                                <span className="flex items-center gap-1.5 truncate">
-                                  <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
-                                  <span className="truncate">{ar.name}</span>
-                                </span>
-                                <span className={cn("ml-2 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
-                              </button>
+                              <div key={ar.id} className="space-y-0.5">
+                                <div className={cn(
+                                  "flex items-stretch gap-1 rounded-md transition-colors",
+                                  sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
+                                )}>
+                                  <div className="flex items-center pl-2">
+                                    <AreaStatusPicker
+                                      value={ar.status}
+                                      onChange={(s) => saveAreaStatus(ar.id, s)}
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => selectDayArea(day.key, ar.id)}
+                                    className="flex flex-1 items-center justify-between px-2 py-1.5 text-left text-xs"
+                                  >
+                                    <span className="flex items-center gap-1.5 truncate">
+                                      <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
+                                      <span className="truncate">{ar.name}</span>
+                                    </span>
+                                    <span className={cn("ml-2 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
+                                  </button>
+                                </div>
+                                <div className="pl-2">
+                                  <EditableNote
+                                    value={ar.notes}
+                                    placeholder="Add a comment for this area…"
+                                    onSave={(next) => saveAreaNotes(ar.id, next)}
+                                  />
+                                </div>
+                              </div>
                             );
                           })}
                           {unassigned > 0 && (
@@ -443,9 +450,8 @@ const ProjectDetail = () => {
                   );
                 })}
 
-                {/* Pre-event section: fixed at the bottom, below all dated days */}
-                {preEventAlbum && (
-                  <div className="mt-3 border-t pt-3">
+                <div className="mt-3 space-y-1 border-t pt-3">
+                  {preEventAlbum && (
                     <button
                       onClick={() => { setActiveDay(PRE_EVENT_DAY); setActiveArea(null); }}
                       className={cn(
@@ -469,8 +475,31 @@ const ProjectDetail = () => {
                         {preEventPhotos.length}
                       </span>
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(null); }}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                      activeDay === ALL_DAYS && activeArea === null
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-secondary"
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <ImagePlus className={cn(
+                        "h-3.5 w-3.5",
+                        activeDay === ALL_DAYS && activeArea === null ? "" : "text-muted-foreground"
+                      )} />
+                      <span className="font-medium">Event Gallery</span>
+                    </span>
+                    <span className={cn(
+                      "text-xs",
+                      activeDay === ALL_DAYS && activeArea === null ? "opacity-80" : "text-muted-foreground"
+                    )}>
+                      {photos.length}
+                    </span>
+                  </button>
+                </div>
               </aside>
 
               {/* Main grid */}
