@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown } from "lucide-react";
+import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown, Archive, ArchiveRestore } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
