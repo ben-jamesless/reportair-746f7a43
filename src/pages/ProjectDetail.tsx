@@ -86,6 +86,14 @@ const ProjectDetail = () => {
     return albumFilteredPhotos.filter((p) => p.area_id === activeArea);
   }, [albumFilteredPhotos, activeArea]);
 
+  const groupedPhotos = useMemo(() => groupPhotosByDate(visiblePhotos), [visiblePhotos]);
+
+  const photoIndexById = useMemo(() => {
+    const m = new Map<string, number>();
+    visiblePhotos.forEach((p, i) => m.set(p.id, i));
+    return m;
+  }, [visiblePhotos]);
+
   const areaCounts = useMemo(() => {
     const counts = new Map<string, number>();
     let unassigned = 0;
