@@ -123,7 +123,13 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 </Button>
               </>
             )}
-            <Button size="icon" variant="secondary" onClick={onClose} className="absolute right-3 top-3 rounded-full opacity-90 md:hidden">
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute right-3 top-3 z-10 h-10 w-10 rounded-full bg-background/95 text-foreground shadow-lg ring-1 ring-border hover:bg-background"
+            >
               <X className="h-5 w-5" />
             </Button>
           </div>
