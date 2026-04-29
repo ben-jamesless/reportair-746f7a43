@@ -130,6 +130,27 @@ const ProjectDetail = () => {
     const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
     if (error) { toast.error(error.message); setAreas(prev); }
   };
+  const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
+    areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
+  const saveAreaDayNote = async (areaId: string, dateKey: string, next: string | null) => {
+    if (!id) return;
+    const key = `${areaId}|${dateKey}`;
+    const prev = new Map(areaDayNotes);
+    setAreaDayNotes((cur) => { const n = new Map(cur); n.set(key, next); return n; });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("area_day_notes").upsert(
+      { project_id: id, area_id: areaId, date: dateKey, notes: next, updated_by: user?.id },
+      { onConflict: "project_id,area_id,date" },
+    );
+    if (error) { toast.error(error.message); setAreaDayNotes(prev); }
+  };
+  const saveProjectStatus = async (next: ProjectStatus) => {
+    if (!id) return;
+    const prev = project;
+    setProject((cur) => (cur ? { ...cur, overall_status: next } : cur));
+    const { error } = await supabase.from("projects").update({ overall_status: next }).eq("id", id);
+    if (error) { toast.error(error.message); setProject(prev); }
+  };
   const getAreaDayStatus = (areaId: string, dateKey: string): AreaStatus =>
     areaDayStatus.get(`${areaId}|${dateKey}`) ?? "no_status";
   const saveAreaDayStatus = async (areaId: string, dateKey: string, next: AreaStatus) => {
