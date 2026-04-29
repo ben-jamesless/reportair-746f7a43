@@ -420,16 +420,7 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setActiveTab("details")}
-              title="Edit project details"
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <ProjectSettingsDialog projectId={project.id} onChanged={loadAll} />
+            <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
           </div>
         </div>
 
