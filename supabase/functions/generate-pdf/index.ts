@@ -307,6 +307,9 @@ Deno.serve(async (req) => {
         y -= 8;
       }
     }
+
+    // ---- EXIF table ----
+    if (sections.exif && allPhotos.length > 0) {
       let page = pdf.addPage([PAGE_W, PAGE_H]);
       let y = PAGE_H - M;
       page.drawText("EXIF data", { x: M, y, size: 16, font: fontBold, color: TEXT }); y -= 24;
