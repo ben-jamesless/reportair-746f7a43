@@ -13,6 +13,8 @@ import Onboarding from "./pages/Onboarding.tsx";
 import Projects from "./pages/Projects.tsx";
 import ProjectDetail from "./pages/ProjectDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import SharePage from "./pages/SharePage.tsx";
+import InviteAccept from "./pages/InviteAccept.tsx";
 
 const queryClient = new QueryClient();
 
