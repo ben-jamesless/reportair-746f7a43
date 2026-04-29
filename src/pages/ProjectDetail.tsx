@@ -355,7 +355,7 @@ const ProjectDetail = () => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
-                  const dayNote = dayNotes.get(day.key) ?? null;
+                  
                   return (
                     <div key={day.key} className="rounded-md">
                       <div className="flex items-stretch gap-1">
