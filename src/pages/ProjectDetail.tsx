@@ -39,7 +39,7 @@ const ProjectDetail = () => {
       supabase
         .from("photos")
         .select(
-          "id, album_id, storage_path, file_name, caption, captured_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
+          "id, project_id, album_id, storage_path, file_name, caption, captured_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
         )
         .eq("project_id", id)
         .order("captured_at", { ascending: false, nullsFirst: false })
