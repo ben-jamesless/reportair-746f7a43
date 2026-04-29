@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, FileText, Loader2, Plus } from "lucide-react";
+import { Calendar, Check, FileText, Loader2, Mail, MapPinned, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
+import { z } from "zod";
 
 type Template = "event_production" | "blank";
+type InviteRow = { email: string; role: "editor" | "viewer" };
 
 interface Props {
   teamId: string | null;
@@ -19,35 +23,145 @@ interface Props {
   onCreated?: () => void;
 }
 
+const emailSchema = z.string().trim().email().max(255);
+const TOTAL_STEPS = 4;
+
 export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState(1);
+
+  // Step 1+2 fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [template, setTemplate] = useState<Template>("event_production");
-  const [busy, setBusy] = useState(false);
+  const [color, setColor] = useState<string>(DEFAULT_PROJECT_COLOR);
 
-  const handleCreate = async () => {
-    if (!user || !teamId) return toast.error("No team available");
+  // Step 3: areas (collected locally; inserted after project create)
+  const [areas, setAreas] = useState<string[]>([]);
+  const [areaInput, setAreaInput] = useState("");
+
+  // Step 4: invites (collected locally; inserted after project create)
+  const [invites, setInvites] = useState<InviteRow[]>([]);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("viewer");
+
+  const [busy, setBusy] = useState(false);
+  const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
+
+  const reset = () => {
+    setStep(1);
+    setName("");
+    setDescription("");
+    setTemplate("event_production");
+    setColor(DEFAULT_PROJECT_COLOR);
+    setAreas([]);
+    setAreaInput("");
+    setInvites([]);
+    setInviteEmail("");
+    setInviteRole("viewer");
+    setCreatedProjectId(null);
+    setBusy(false);
+  };
+
+  const handleClose = (next: boolean) => {
+    setOpen(next);
+    if (!next) setTimeout(reset, 200);
+  };
+
+  const addArea = () => {
+    const n = areaInput.trim();
+    if (!n) return;
+    if (areas.includes(n)) { toast.error("Area already added"); return; }
+    setAreas((a) => [...a, n]);
+    setAreaInput("");
+  };
+  const removeArea = (n: string) => setAreas((a) => a.filter((x) => x !== n));
+
+  const addInvite = () => {
+    const parsed = emailSchema.safeParse(inviteEmail);
+    if (!parsed.success) { toast.error("Enter a valid email"); return; }
+    const email = parsed.data.toLowerCase();
+    if (invites.some((i) => i.email === email)) { toast.error("Already added"); return; }
+    setInvites((s) => [...s, { email, role: inviteRole }]);
+    setInviteEmail("");
+  };
+  const removeInvite = (email: string) => setInvites((s) => s.filter((i) => i.email !== email));
+
+  // Create the project (called when leaving step 2)
+  const ensureProjectCreated = async (): Promise<string | null> => {
+    if (createdProjectId) return createdProjectId;
+    if (!user || !teamId) { toast.error("No team available"); return null; }
     setBusy(true);
     const { data, error } = await supabase
       .from("projects")
-      .insert({ team_id: teamId, name, description: description || null, template, created_by: user.id })
+      .insert({ team_id: teamId, name, description: description || null, template, color, created_by: user.id })
       .select("id")
       .single();
     setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success("Project created");
-    setOpen(false);
-    setName("");
-    setDescription("");
+    if (error || !data) { toast.error(error?.message ?? "Failed to create project"); return null; }
+    setCreatedProjectId(data.id);
     onCreated?.();
-    if (data?.id) navigate(`/projects/${data.id}`);
+    return data.id;
   };
 
+  // Save areas added in step 3
+  const persistAreas = async (projectId: string) => {
+    if (areas.length === 0) return;
+    const rows = areas.map((name, i) => ({
+      project_id: projectId, name, sort_order: i, created_by: user?.id ?? null,
+    }));
+    const { error } = await supabase.from("areas").insert(rows);
+    if (error) toast.error(`Areas: ${error.message}`);
+  };
+
+  // Save invites added in step 4
+  const persistInvites = async (projectId: string) => {
+    if (invites.length === 0) return;
+    const rows = invites.map((i) => ({
+      project_id: projectId, email: i.email, role: i.role, invited_by: user?.id ?? null,
+    }));
+    const { error } = await supabase.from("project_invites").insert(rows);
+    if (error) toast.error(`Invites: ${error.message}`);
+  };
+
+  const goNext = async () => {
+    if (step === 2) {
+      const id = await ensureProjectCreated();
+      if (!id) return;
+      setStep(3);
+      return;
+    }
+    if (step === 3) {
+      if (createdProjectId) await persistAreas(createdProjectId);
+      setStep(4);
+      return;
+    }
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+  };
+
+  const goSkip = () => {
+    // Same as next, but ignores collected entries for that step
+    if (step === 3) { setAreas([]); setStep(4); return; }
+    if (step === 4) { finish(true); return; }
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+  };
+
+  const finish = async (skipInvites = false) => {
+    if (!createdProjectId) return;
+    setBusy(true);
+    if (!skipInvites) await persistInvites(createdProjectId);
+    setBusy(false);
+    toast.success("Project ready");
+    handleClose(false);
+    navigate(`/projects/${createdProjectId}`);
+  };
+
+  const canAdvanceStep1 = !!name.trim();
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         {trigger ?? (
           <Button>
@@ -56,51 +170,202 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create a new project</DialogTitle>
-          <DialogDescription>Pick a template and give it a name.</DialogDescription>
+          <DialogDescription>Step {step} of {TOTAL_STEPS}</DialogDescription>
+          <Stepper step={step} total={TOTAL_STEPS} />
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <TemplateCard
-              icon={<Calendar className="h-5 w-5" />}
-              title="Event production"
-              description="Pre-built albums for an event lifecycle."
-              selected={template === "event_production"}
-              onClick={() => setTemplate("event_production")}
-            />
-            <TemplateCard
-              icon={<FileText className="h-5 w-5" />}
-              title="Blank"
-              description="Start from scratch."
-              selected={template === "blank"}
-              onClick={() => setTemplate("blank")}
-            />
+        {/* STEP 1: Template */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <TemplateCard
+                icon={<Calendar className="h-5 w-5" />}
+                title="Event production"
+                description="Pre-built album for an event lifecycle."
+                selected={template === "event_production"}
+                onClick={() => setTemplate("event_production")}
+              />
+              <TemplateCard
+                icon={<FileText className="h-5 w-5" />}
+                title="Blank"
+                description="Start from scratch."
+                selected={template === "blank"}
+                onClick={() => setTemplate("blank")}
+              />
+            </div>
           </div>
+        )}
 
-          <div className="space-y-2">
-            <Label htmlFor="proj-name">Project name</Label>
-            <Input id="proj-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Spring Gala 2026" />
+        {/* STEP 2: Details */}
+        {step === 2 && (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="proj-name">Project name</Label>
+              <Input id="proj-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Spring Gala 2026" autoFocus />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="proj-desc">Description (optional)</Label>
+              <Textarea id="proj-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+            </div>
+            <div className="space-y-2">
+              <Label>Project colour</Label>
+              <div className="flex flex-wrap items-center gap-2">
+                {PROJECT_COLOR_PALETTE.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    aria-label={`Select color ${c}`}
+                    className={cn(
+                      "relative h-7 w-7 rounded-full border transition-transform hover:scale-110",
+                      color === c && "ring-2 ring-offset-2 ring-foreground/40",
+                    )}
+                    style={{ backgroundColor: c }}
+                  >
+                    {color === c && <Check className="absolute inset-0 m-auto h-3.5 w-3.5 text-white drop-shadow" />}
+                  </button>
+                ))}
+                <div className="ml-2 flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="h-8 w-10 cursor-pointer rounded border"
+                    aria-label="Custom color picker"
+                  />
+                  <Input value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-28 font-mono text-xs" />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="proj-desc">Description (optional)</Label>
-            <Textarea id="proj-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-          </div>
-        </div>
+        )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreate} disabled={busy || !name.trim()}>
-            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create project
-          </Button>
+        {/* STEP 3: Areas */}
+        {step === 3 && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Areas help you organise photos within each event day (e.g. "Main Stage", "VIP Lounge"). You can always add more later.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                placeholder="e.g. 18th Hospitality Suite"
+                value={areaInput}
+                onChange={(e) => setAreaInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addArea(); } }}
+              />
+              <Button onClick={addArea} disabled={!areaInput.trim()} type="button">
+                <Plus className="mr-1 h-4 w-4" /> Add
+              </Button>
+            </div>
+            {areas.length > 0 ? (
+              <ul className="divide-y rounded-md border">
+                {areas.map((a) => (
+                  <li key={a} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <span className="flex items-center gap-2"><MapPinned className="h-3.5 w-3.5 text-muted-foreground" />{a}</span>
+                    <Button size="icon" variant="ghost" onClick={() => removeArea(a)} aria-label={`Remove ${a}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-muted-foreground">No areas added yet. You can skip this step.</p>
+            )}
+          </div>
+        )}
+
+        {/* STEP 4: Invites */}
+        {step === 4 && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Invite team members by email. They'll get access as soon as they sign up.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                type="email"
+                placeholder="email@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addInvite(); } }}
+              />
+              <Select value={inviteRole} onValueChange={(v) => setInviteRole(v as any)}>
+                <SelectTrigger className="sm:w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={addInvite} type="button"><Mail className="mr-2 h-4 w-4" />Add</Button>
+            </div>
+            {invites.length > 0 ? (
+              <ul className="divide-y rounded-md border">
+                {invites.map((inv) => (
+                  <li key={inv.email} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                    <span className="truncate">{inv.email}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xs capitalize">{inv.role}</span>
+                      <Button size="icon" variant="ghost" onClick={() => removeInvite(inv.email)} aria-label={`Remove ${inv.email}`}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-muted-foreground">No invites added yet. You can skip this step.</p>
+            )}
+          </div>
+        )}
+
+        <DialogFooter className="gap-2 sm:justify-between">
+          <div>
+            {step > 1 && step <= 2 && (
+              <Button variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={busy}>Back</Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => handleClose(false)} disabled={busy}>Cancel</Button>
+            {(step === 3 || step === 4) && (
+              <Button variant="ghost" onClick={goSkip} disabled={busy}>Skip</Button>
+            )}
+            {step < TOTAL_STEPS && (
+              <Button
+                onClick={goNext}
+                disabled={busy || (step === 2 && !canAdvanceStep1)}
+              >
+                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {step === 2 ? "Create & continue" : "Next"}
+              </Button>
+            )}
+            {step === TOTAL_STEPS && (
+              <Button onClick={() => finish(false)} disabled={busy}>
+                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Finish
+              </Button>
+            )}
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
+
+const Stepper = ({ step, total }: { step: number; total: number }) => (
+  <div className="mt-2 flex gap-1.5">
+    {Array.from({ length: total }).map((_, i) => (
+      <div
+        key={i}
+        className={cn(
+          "h-1 flex-1 rounded-full transition-colors",
+          i + 1 <= step ? "bg-primary" : "bg-secondary",
+        )}
+      />
+    ))}
+  </div>
+);
 
 const TemplateCard = ({
   icon, title, description, selected, onClick,
