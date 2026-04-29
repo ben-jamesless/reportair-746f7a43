@@ -196,9 +196,34 @@ Deno.serve(async (req) => {
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 
-    // ---- Photo grid (grouped by date) ----
+    // ---- Photo grid ----
     if (sections.grid && allPhotos.length > 0) {
-      const groups = groupByDate(allPhotos);
+      // When day-scoped, group by area (in defined sort_order, then "Unassigned").
+      // Otherwise, group by date as before.
+      type Group = { label: string; photos: any[] };
+      let groups: Group[];
+      if (dayKey) {
+        const sortedAreas = (areas ?? []) as any[];
+        const byArea = new Map<string, any[]>();
+        const unassigned: any[] = [];
+        for (const p of allPhotos) {
+          if (!p.area_id) unassigned.push(p);
+          else {
+            const arr = byArea.get(p.area_id) ?? [];
+            arr.push(p);
+            byArea.set(p.area_id, arr);
+          }
+        }
+        groups = [];
+        for (const ar of sortedAreas) {
+          const list = byArea.get(ar.id);
+          if (list?.length) groups.push({ label: ar.name, photos: list });
+        }
+        if (unassigned.length) groups.push({ label: "Unassigned", photos: unassigned });
+      } else {
+        groups = groupByDate(allPhotos).map((g) => ({ label: g.label, photos: g.photos }));
+      }
+
       // Layout: 3 cols x 3 rows per page = 9 thumbs
       const COLS = 3;
       const GAP = 12;
@@ -239,14 +264,13 @@ Deno.serve(async (req) => {
                 600,
                 { transform: { width: 1200, quality: 80, format: "origin" } as any },
               );
-              // Fallback: also build a transform URL manually since SDK types vary
               const baseUrl = signed?.signedUrl;
               const transformedUrl = baseUrl
                 ? baseUrl.replace("/object/sign/", "/render/image/sign/") + "&width=1200&quality=80"
                 : null;
               if (transformedUrl) {
                 let r = await fetch(transformedUrl);
-                if (!r.ok && baseUrl) r = await fetch(baseUrl); // fall back to original
+                if (!r.ok && baseUrl) r = await fetch(baseUrl);
                 if (r.ok) {
                   const bytes = new Uint8Array(await r.arrayBuffer());
                   const ct = r.headers.get("content-type") || "";
@@ -273,7 +297,7 @@ Deno.serve(async (req) => {
               const truncated = caption.length > 40 ? caption.slice(0, 38) + "…" : caption;
               page.drawText(truncated, { x, y: rowTop - imgH - 14, size: 8, font, color: TEXT });
               const meta: string[] = [];
-              if (ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
+              if (!dayKey && ph.area_id && areaName.get(ph.area_id)) meta.push(areaName.get(ph.area_id)!);
               if (ph.album_id && albumName.get(ph.album_id)) meta.push(albumName.get(ph.album_id)!);
               if (meta.length) page.drawText(meta.join(" · ").slice(0, 50), { x, y: rowTop - imgH - 24, size: 7, font, color: MUTED });
             }
@@ -283,9 +307,6 @@ Deno.serve(async (req) => {
         y -= 8;
       }
     }
-
-    // ---- EXIF table ----
-    if (sections.exif && allPhotos.length > 0) {
       let page = pdf.addPage([PAGE_W, PAGE_H]);
       let y = PAGE_H - M;
       page.drawText("EXIF data", { x: M, y, size: 16, font: fontBold, color: TEXT }); y -= 24;
