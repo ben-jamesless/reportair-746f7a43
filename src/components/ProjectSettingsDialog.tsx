@@ -39,19 +39,19 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
           <Settings className="mr-2 h-4 w-4" /> Settings
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden">
+      <DialogContent className="flex h-[85vh] max-h-[85vh] w-[calc(100%-2rem)] max-w-2xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Project settings</DialogTitle>
           <DialogDescription>Edit details, areas, members, and sharing for this project.</DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue={defaultTab}>
-          <TabsList>
+        <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
+          <TabsList className="self-start">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="areas">Areas</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="share">Share</TabsTrigger>
           </TabsList>
-          <TabsContent value="details" className="mt-4 max-h-[60vh] overflow-y-auto pr-1">
+          <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <ProjectEditForm
               projectId={projectId}
               name={project.name}
@@ -66,13 +66,13 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               onClose={() => setOpen(false)}
             />
           </TabsContent>
-          <TabsContent value="areas" className="mt-4 max-h-[60vh] overflow-y-auto">
+          <TabsContent value="areas" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <AreasManager projectId={projectId} onChanged={onChanged} />
           </TabsContent>
-          <TabsContent value="members" className="mt-4 max-h-[60vh] overflow-y-auto">
+          <TabsContent value="members" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <InvitesManager projectId={projectId} />
           </TabsContent>
-          <TabsContent value="share" className="mt-4 max-h-[60vh] overflow-y-auto">
+          <TabsContent value="share" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <ShareLinksManager projectId={projectId} />
           </TabsContent>
         </Tabs>

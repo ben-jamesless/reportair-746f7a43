@@ -22,7 +22,8 @@ import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import { CommentsPanel } from "@/components/CommentsPanel";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
-import { type ProjectStatus } from "@/lib/projectStatus";
+import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -41,7 +42,7 @@ type Project = {
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
-type Area = { id: string; name: string; sort_order: number; notes: string | null };
+type Area = { id: string; name: string; sort_order: number };
 type DayNote = { date: string; notes: string | null };
 
 const NO_AREA = "__no_area__";
@@ -75,6 +76,8 @@ const ProjectDetail = () => {
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
   const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
+  // per-area, per-day update notes keyed by `${areaId}|${dateKey}` -> string
+  const [areaDayNotes, setAreaDayNotes] = useState<Map<string, string | null>>(new Map());
   // status keyed by `${areaId}|${dateKey}` -> AreaStatus
   const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -86,10 +89,10 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }] = await Promise.all([
+    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
       supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", id).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
       supabase
         .from("photos")
         .select(
@@ -100,6 +103,7 @@ const ProjectDetail = () => {
         .order("created_at", { ascending: false }),
       supabase.from("day_notes").select("date, notes").eq("project_id", id),
       supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
+      supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
     ]);
     setProject(p ?? null);
     setAlbums(a ?? []);
@@ -111,17 +115,35 @@ const ProjectDetail = () => {
     const sm = new Map<string, AreaStatus>();
     for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
     setAreaDayStatus(sm);
+    const nm = new Map<string, string | null>();
+    for (const row of (adn ?? []) as { area_id: string; date: string; notes: string | null }[]) nm.set(`${row.area_id}|${row.date}`, row.notes ?? null);
+    setAreaDayNotes(nm);
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // ---- Mutations: area notes, day notes, per-day area status ----
-  const saveAreaNotes = async (areaId: string, next: string | null) => {
-    const prev = areas;
-    setAreas((cur) => cur.map((a) => (a.id === areaId ? { ...a, notes: next } : a)));
-    const { error } = await supabase.from("areas").update({ notes: next }).eq("id", areaId);
-    if (error) { toast.error(error.message); setAreas(prev); }
+  // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
+  const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
+    areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
+  const saveAreaDayNote = async (areaId: string, dateKey: string, next: string | null) => {
+    if (!id) return;
+    const key = `${areaId}|${dateKey}`;
+    const prev = new Map(areaDayNotes);
+    setAreaDayNotes((cur) => { const n = new Map(cur); n.set(key, next); return n; });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("area_day_notes").upsert(
+      { project_id: id, area_id: areaId, date: dateKey, notes: next, updated_by: user?.id },
+      { onConflict: "project_id,area_id,date" },
+    );
+    if (error) { toast.error(error.message); setAreaDayNotes(prev); }
+  };
+  const saveProjectStatus = async (next: ProjectStatus) => {
+    if (!id) return;
+    const prev = project;
+    setProject((cur) => (cur ? { ...cur, overall_status: next } : cur));
+    const { error } = await supabase.from("projects").update({ overall_status: next }).eq("id", id);
+    if (error) { toast.error(error.message); setProject(prev); }
   };
   const getAreaDayStatus = (areaId: string, dateKey: string): AreaStatus =>
     areaDayStatus.get(`${areaId}|${dateKey}`) ?? "no_status";
@@ -368,7 +390,7 @@ const ProjectDetail = () => {
     <AppShell crumbs={crumbs}>
       <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="mb-2 flex items-center gap-2">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             <span
               className="inline-block h-3 w-3 rounded-full"
               style={{ backgroundColor: accent }}
@@ -377,6 +399,24 @@ const ProjectDetail = () => {
             <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
               {project.template === "event_production" ? "Event production" : "Project"}
             </Badge>
+            <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
+              <SelectTrigger className="h-7 w-auto gap-1.5 rounded-full border-muted bg-background px-2.5 text-xs" aria-label="Project status">
+                <span className="flex items-center gap-1.5">
+                  <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
+                  <span>{projectStatusMeta(project.overall_status).label}</span>
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {PROJECT_STATUSES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-2">
+                      <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
+                      {s.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
           {project.description && (
@@ -405,7 +445,7 @@ const ProjectDetail = () => {
         {/* Top controls row: tabs + settings + export */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
           <TabsList>
-            <TabsTrigger value="photos">Photos</TabsTrigger>
+            <TabsTrigger value="photos">Updates</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
@@ -585,15 +625,12 @@ const ProjectDetail = () => {
                   </span>
                 </div>
 
-                {/* Day comment shown at the top of the main panel when a dated day is active */}
+                {/* Daily updates note shown at the top of the main panel when a dated day is active */}
                 {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
                   <div className="mb-5">
-                    <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Day comment
-                    </p>
                     <EditableNote
                       value={dayNotes.get(activeDay) ?? null}
-                      placeholder="Add a comment for this day…"
+                      placeholder="Daily updates"
                       onSave={(next) => saveDayNote(activeDay, next)}
                     />
                   </div>
@@ -656,9 +693,9 @@ const ProjectDetail = () => {
                               </div>
                               <div className="mb-3">
                                 <EditableNote
-                                  value={ar.notes}
-                                  placeholder="Add a comment for this area…"
-                                  onSave={(next) => saveAreaNotes(ar.id, next)}
+                                  value={getAreaDayNote(ar.id, activeDay)}
+                                  placeholder="Daily updates"
+                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

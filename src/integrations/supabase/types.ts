@@ -91,6 +91,54 @@ export type Database = {
           },
         ]
       }
+      area_day_notes: {
+        Row: {
+          area_id: string
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          project_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          area_id: string
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          project_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          area_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          project_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_day_notes_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_day_notes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       area_day_status: {
         Row: {
           area_id: string
@@ -130,7 +178,6 @@ export type Database = {
           created_by: string | null
           id: string
           name: string
-          notes: string | null
           project_id: string
           sort_order: number
           updated_at: string
@@ -140,7 +187,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           name: string
-          notes?: string | null
           project_id: string
           sort_order?: number
           updated_at?: string
@@ -150,7 +196,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           name?: string
-          notes?: string | null
           project_id?: string
           sort_order?: number
           updated_at?: string

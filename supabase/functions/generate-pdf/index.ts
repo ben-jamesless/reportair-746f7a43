@@ -19,7 +19,7 @@ type PhotoRow = {
   shutter_speed?: string | null;
   focal_length?: number | null;
 };
-type AreaRow = { id: string; name: string; sort_order: number; notes: string | null };
+type AreaRow = { id: string; name: string; sort_order: number };
 type AlbumRow = { id: string; name: string };
 type ActivityRow = { verb: string; target_type: string; metadata: Record<string, unknown> | null; created_at: string; actor_id: string | null };
 type GuestNoteRow = { photo_id: string; guest_name: string; body: string; created_at: string };
@@ -93,21 +93,27 @@ Deno.serve(async (req) => {
     const dayLabel: string | null = exp.options?.day_label ?? null;
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
-    // Load project + photos + albums + areas + activity + notes + day notes + per-day area status
-    const [{ data: proj }, { data: photos }, { data: albums }, { data: areas }, { data: activity }, { data: notes }, { data: dayNotesRows }, { data: areaDayStatusRows }] = await Promise.all([
+    // Load project + photos + albums + areas + activity + notes + day notes + per-day area status + per-day area notes
+    const [{ data: proj }, { data: photos }, { data: albums }, { data: areas }, { data: activity }, { data: notes }, { data: dayNotesRows }, { data: areaDayStatusRows }, { data: areaDayNotesRows }] = await Promise.all([
       supabase.from("projects").select("name, description, template").eq("id", projectId).single(),
       supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height").eq("project_id", projectId).order("captured_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
-      supabase.from("areas").select("id, name, sort_order, notes").eq("project_id", projectId).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("activity_events").select("verb, target_type, metadata, created_at, actor_id").eq("project_id", projectId).order("created_at", { ascending: false }).limit(200),
       supabase.from("guest_notes").select("photo_id, guest_name, body, created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("day_notes").select("date, notes").eq("project_id", projectId),
       supabase.from("area_day_status").select("area_id, date, status").eq("project_id", projectId),
+      supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", projectId),
     ]);
     // Map: `${area_id}|${YYYY-MM-DD}` -> status
     const areaDayStatus = new Map<string, string>();
     for (const r of (areaDayStatusRows ?? []) as AreaDayStatusRow[]) {
       areaDayStatus.set(`${r.area_id}|${r.date}`, r.status);
+    }
+    // Map: `${area_id}|${YYYY-MM-DD}` -> notes
+    const areaDayNotes = new Map<string, string>();
+    for (const r of (areaDayNotesRows ?? []) as { area_id: string; date: string; notes: string | null }[]) {
+      if (r.notes && r.notes.trim()) areaDayNotes.set(`${r.area_id}|${r.date}`, r.notes);
     }
 
     if (!proj) throw new Error("Project not found");
@@ -327,11 +333,11 @@ Deno.serve(async (req) => {
         page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
         y -= 32;
 
-        // Per-area comment in day-scoped exports
-        if (group.areaId) {
-          const ar = areaById.get(group.areaId);
-          if (ar?.notes && String(ar.notes).trim()) {
-            const lines = wrapText(String(ar.notes), font, 9, PAGE_W - 2 * M);
+        // Per-area, per-day update note (only meaningful in day-scoped exports)
+        if (group.areaId && dayKey) {
+          const note = areaDayNotes.get(`${group.areaId}|${dayKey}`);
+          if (note && note.trim()) {
+            const lines = wrapText(note, font, 9, PAGE_W - 2 * M);
             for (const line of lines) {
               ensureSpace(12);
               page.drawText(line, { x: M, y: y - 8, size: 9, font, color: MUTED });

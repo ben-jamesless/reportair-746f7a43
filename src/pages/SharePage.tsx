@@ -19,9 +19,10 @@ type SharePhoto = {
   album_id: string | null; area_id: string | null;
 };
 type Album = { id: string; name: string; position: number };
-type Area = { id: string; name: string; sort_order: number; notes: string | null };
+type Area = { id: string; name: string; sort_order: number };
 type DayNote = { date: string; notes: string | null };
 type AreaDayStatus = { area_id: string; date: string; status: string };
+type AreaDayNote = { area_id: string; date: string; notes: string | null };
 type Resolved = {
   ok: boolean;
   error?: string;
@@ -31,6 +32,7 @@ type Resolved = {
   areas?: Area[];
   day_notes?: DayNote[];
   area_day_status?: AreaDayStatus[];
+  area_day_notes?: AreaDayNote[];
   photos?: SharePhoto[];
 };
 
@@ -100,6 +102,11 @@ const SharePage = () => {
     (data?.area_day_status ?? []).forEach((s) => m.set(`${s.area_id}|${s.date}`, s.status));
     return m;
   }, [data?.area_day_status]);
+  const areaDayNotesMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.area_day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(`${n.area_id}|${n.date}`, n.notes); });
+    return m;
+  }, [data?.area_day_notes]);
   const activeAreaObj = useMemo(
     () => (activeArea !== ALL_AREAS && activeArea !== NO_AREA ? areas.find((a) => a.id === activeArea) ?? null : null),
     [areas, activeArea]
@@ -204,6 +211,7 @@ const SharePage = () => {
                   const dayNote = dayNotesMap.get(dateKey);
                   const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                   const statusMeta = statusKey ? STATUS_META[statusKey] : undefined;
+                  const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                   return (
                     <section key={group.key}>
                       <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -229,10 +237,10 @@ const SharePage = () => {
                           )}
                         </div>
                       )}
-                      {activeAreaObj?.notes && activeAreaObj.notes.trim() && (
+                      {areaDayNote && (
                         <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
-                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Area comment</p>
-                          <p className="whitespace-pre-wrap">{activeAreaObj.notes}</p>
+                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Daily updates</p>
+                          <p className="whitespace-pre-wrap">{areaDayNote}</p>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
