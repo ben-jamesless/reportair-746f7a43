@@ -64,6 +64,8 @@ Deno.serve(async (req) => {
 
     const projectId = exp.project_id;
     const sections: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false, ...(exp.options?.sections ?? {}) };
+    const dayKey: string | null = exp.options?.day_key ?? null;
+    const dayLabel: string | null = exp.options?.day_label ?? null;
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
     // Load project + photos + albums + areas + activity + notes
@@ -71,15 +73,27 @@ Deno.serve(async (req) => {
       supabase.from("projects").select("name, description, template").eq("id", projectId).single(),
       supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height").eq("project_id", projectId).order("captured_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
-      supabase.from("areas").select("id, name").eq("project_id", projectId),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("activity_events").select("verb, target_type, metadata, created_at, actor_id").eq("project_id", projectId).order("created_at", { ascending: false }).limit(200),
       supabase.from("guest_notes").select("photo_id, guest_name, body, created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
     ]);
 
     if (!proj) throw new Error("Project not found");
-    const allPhotos = (photos ?? []) as any[];
+    let allPhotos = (photos ?? []) as any[];
+
+    // Day-scoped export: filter to photos that fall on the chosen day (by EXIF capture date or upload date)
+    const photoDayKey = (p: any) => {
+      const raw = p.captured_at || p.created_at;
+      const d = new Date(raw);
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    };
+    if (dayKey) {
+      allPhotos = allPhotos.filter((p) => photoDayKey(p) === dayKey);
+      if (allPhotos.length === 0) throw new Error("No photos found for the selected day.");
+    }
+
     if (allPhotos.length > PHOTO_CAP) {
-      throw new Error(`This project has ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}. Split your project across albums and export per album, or remove photos before exporting.`);
+      throw new Error(`This export contains ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}. Split your project across more days or remove photos before exporting.`);
     }
 
     const albumName = new Map((albums ?? []).map((a: any) => [a.id, a.name]));
