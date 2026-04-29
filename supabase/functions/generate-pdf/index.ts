@@ -285,10 +285,10 @@ Deno.serve(async (req) => {
         page.drawRectangle({ x: M, y: y - 4, width: 24, height: 2, color: ACCENT });
         // Header line: label · count [ · status]
         let header = `${group.label}  ·  ${group.photos.length} photo${group.photos.length === 1 ? "" : "s"}`;
-        if (group.areaId) {
-          const ar = areaById.get(group.areaId) as any;
-          if (ar?.status && ar.status !== "no_status") {
-            header += `  ·  ${STATUS_LABEL[ar.status] ?? ar.status}`;
+        if (group.areaId && dayKey) {
+          const st = areaDayStatus.get(`${group.areaId}|${dayKey}`);
+          if (st && st !== "no_status") {
+            header += `  ·  ${STATUS_LABEL[st] ?? st}`;
           }
         }
         page.drawText(header, { x: M, y: y - 18, size: 11, font: fontBold, color: TEXT });
