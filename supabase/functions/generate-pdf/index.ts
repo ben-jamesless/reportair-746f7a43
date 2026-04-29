@@ -240,13 +240,13 @@ Deno.serve(async (req) => {
                   } catch {
                     try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
                   }
-                  if (!img) continue;
-                  // contain
-                  const scale = Math.min(colW / img.width, imgH / img.height);
-                  const w = img.width * scale, h = img.height * scale;
-                  const ox = x + (colW - w) / 2;
-                  const oy = rowTop - imgH + (imgH - h) / 2;
-                  page.drawImage(img, { x: ox, y: oy, width: w, height: h });
+                  if (img) {
+                    const scale = Math.min(colW / img.width, imgH / img.height);
+                    const w = img.width * scale, h = img.height * scale;
+                    const ox = x + (colW - w) / 2;
+                    const oy = rowTop - imgH + (imgH - h) / 2;
+                    page.drawImage(img, { x: ox, y: oy, width: w, height: h });
+                  }
                 }
               }
             } catch (_) { /* placeholder remains */ }
