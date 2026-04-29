@@ -70,7 +70,10 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false }: Props) => {
           alt={alt}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          fetchPriority={priority ? "high" : "low"}
+          // React 18 warns on the camelCase `fetchPriority` JSX prop; pass it
+          // through as the lowercase HTML attribute via a spread so it lands
+          // on the DOM correctly without triggering the warning.
+          {...({ fetchpriority: priority ? "high" : "low" } as Record<string, string>)}
           onLoad={() => setLoaded(true)}
           onError={() => setLoaded(false)}
           className={cn(
