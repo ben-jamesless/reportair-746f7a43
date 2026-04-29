@@ -219,6 +219,16 @@ const Projects = () => {
     setSortKey("created");
   };
 
+  const setProjectArchived = async (p: Project, archived: boolean) => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq("id", p.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(archived ? "Project archived" : "Project restored");
+    load();
+  };
+
   const showSkeleton = authLoading || loading;
   const nonArchivedCount = projects.length - archivedCount;
   const hasAnyVisibleSource = (showArchived ? projects.length : nonArchivedCount) > 0;
