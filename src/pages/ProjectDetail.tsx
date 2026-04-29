@@ -121,47 +121,60 @@ const ProjectDetail = () => {
           </div>
         </div>
 
-        <Tabs value={activeAlbum} onValueChange={setActiveAlbum} className="w-full">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
-            <TabsTrigger value={ALL} className="data-[state=active]:bg-secondary">
-              All photos <span className="ml-2 text-xs text-muted-foreground">{photos.length}</span>
-            </TabsTrigger>
-            {albums.map((a) => (
-              <TabsTrigger key={a.id} value={a.id} className="data-[state=active]:bg-secondary">
-                {a.name}
-                <span className="ml-2 text-xs text-muted-foreground">
-                  {(photosByAlbum.get(a.id) ?? []).length}
-                </span>
-              </TabsTrigger>
-            ))}
+        <Tabs defaultValue="photos" className="w-full">
+          <TabsList>
+            <TabsTrigger value="photos">Photos</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
 
-          <TabsContent value={activeAlbum} className="mt-6">
-            {visiblePhotos.length === 0 ? (
-              <Card className="border-dashed shadow-none">
-                <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <ImagePlus className="h-6 w-6" />
-                  </div>
-                  <h2 className="text-lg font-semibold">No photos yet</h2>
-                  <p className="max-w-sm text-sm text-muted-foreground">
-                    Upload images to extract EXIF (capture time, camera, GPS) and start telling the story.
-                  </p>
-                  <PhotoUploader projectId={project.id} albumId={activeAlbumId} onUploaded={loadAll} />
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                {visiblePhotos.map((p, i) => (
-                  <PhotoThumb
-                    key={p.id}
-                    path={p.storage_path}
-                    alt={p.caption || p.file_name}
-                    onClick={() => setLightboxIndex(i)}
-                  />
+          <TabsContent value="photos" className="mt-6">
+            <Tabs value={activeAlbum} onValueChange={setActiveAlbum} className="w-full">
+              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
+                <TabsTrigger value={ALL} className="data-[state=active]:bg-secondary">
+                  All photos <span className="ml-2 text-xs text-muted-foreground">{photos.length}</span>
+                </TabsTrigger>
+                {albums.map((a) => (
+                  <TabsTrigger key={a.id} value={a.id} className="data-[state=active]:bg-secondary">
+                    {a.name}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {(photosByAlbum.get(a.id) ?? []).length}
+                    </span>
+                  </TabsTrigger>
                 ))}
-              </div>
-            )}
+              </TabsList>
+
+              <TabsContent value={activeAlbum} className="mt-6">
+                {visiblePhotos.length === 0 ? (
+                  <Card className="border-dashed shadow-none">
+                    <CardContent className="flex flex-col items-center gap-3 py-16 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <ImagePlus className="h-6 w-6" />
+                      </div>
+                      <h2 className="text-lg font-semibold">No photos yet</h2>
+                      <p className="max-w-sm text-sm text-muted-foreground">
+                        Upload images to extract EXIF (capture time, camera, GPS) and start telling the story.
+                      </p>
+                      <PhotoUploader projectId={project.id} albumId={activeAlbumId} onUploaded={loadAll} />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {visiblePhotos.map((p, i) => (
+                      <PhotoThumb
+                        key={p.id}
+                        path={p.storage_path}
+                        alt={p.caption || p.file_name}
+                        onClick={() => setLightboxIndex(i)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="activity" className="mt-6">
+            <ActivityFeed projectId={project.id} />
           </TabsContent>
         </Tabs>
 
