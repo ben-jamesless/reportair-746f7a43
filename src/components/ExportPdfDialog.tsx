@@ -174,7 +174,7 @@ export const ExportPdfDialog = ({
       project_id: projectId,
       created_by: auth.user!.id,
       status: "queued",
-      options,
+      options: options as never,
       logo_path: logoPath,
       accent_color: accent,
     }).select("id,status,output_path,error_message,photo_count").single();
