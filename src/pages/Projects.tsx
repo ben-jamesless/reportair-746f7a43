@@ -380,18 +380,30 @@ const Projects = () => {
             const lastUpload = lastUploads.get(p.id);
             const statusMeta = projectStatusMeta(p.overall_status);
             const showStatus = (p.overall_status ?? "no_status") !== "no_status";
+            const isArchived = !!p.archived_at;
             return (
-              <div key={p.id} className="group relative">
+              <div key={p.id} className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}>
                 <Link to={`/projects/${p.id}`} className="block">
                   <Card
-                    className="relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40"
+                    className={cn(
+                      "relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40",
+                      isArchived && "bg-muted/30",
+                    )}
                     style={{ borderLeftColor: color }}
                   >
                     <div className="p-5 pr-12">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-                          {p.template === "event_production" ? "Event" : "Project"}
-                        </Badge>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                            {p.template === "event_production" ? "Event" : "Project"}
+                          </Badge>
+                          {isArchived && (
+                            <Badge variant="outline" className="gap-1 text-[10px] uppercase tracking-wide">
+                              <Archive className="h-2.5 w-2.5" />
+                              Archived
+                            </Badge>
+                          )}
+                        </div>
                         {showStatus && (
                           <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                             <span className={cn("h-2 w-2 rounded-full", statusMeta.dotClass)} />
@@ -438,6 +450,15 @@ const Projects = () => {
                       <DropdownMenuItem onSelect={() => setEditingProject(p)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
+                      {isArchived ? (
+                        <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
+                          <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
+                          <Archive className="mr-2 h-4 w-4" /> Archive
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
