@@ -1,6 +1,31 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+
+type PhotoRow = {
+  id: string;
+  storage_path: string;
+  file_name?: string | null;
+  caption?: string | null;
+  area_id: string | null;
+  album_id?: string | null;
+  captured_at: string | null;
+  created_at: string;
+  camera_make?: string | null;
+  camera_model?: string | null;
+  lens?: string | null;
+  iso?: number | null;
+  aperture?: number | null;
+  shutter_speed?: string | null;
+  focal_length?: number | null;
+};
+type AreaRow = { id: string; name: string; sort_order: number; notes: string | null };
+type AlbumRow = { id: string; name: string };
+type ActivityRow = { verb: string; target_type: string; metadata: Record<string, unknown> | null; created_at: string; actor_id: string | null };
+type GuestNoteRow = { photo_id: string; guest_name: string; body: string; created_at: string };
+type DayNoteRow = { date: string; notes: string | null };
+type AreaDayStatusRow = { area_id: string; date: string; status: string };
+type ProfileRow = { id: string; full_name: string | null };
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
