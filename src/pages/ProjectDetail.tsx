@@ -64,6 +64,9 @@ const ALBUM_PREFIX = "album:";
 const isAlbumKey = (k: string) => k.startsWith(ALBUM_PREFIX);
 const albumIdFromKey = (k: string) => (isAlbumKey(k) ? k.slice(ALBUM_PREFIX.length) : null);
 const albumKey = (id: string) => `${ALBUM_PREFIX}${id}`;
+// Legacy aliases — kept temporarily while the dynamic-album refactor is in progress.
+const PRE_EVENT_DAY = "__pre_event__";
+const PRE_EVENT_SLUG = "pre-event";
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
