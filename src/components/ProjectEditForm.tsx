@@ -145,7 +145,7 @@ export const ProjectEditForm = ({
   const save = async () => {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
-    const update: Record<string, unknown> = {
+    const update = {
       name: name.trim(),
       description: description.trim() || null,
       color,
@@ -154,8 +154,8 @@ export const ProjectEditForm = ({
       overall_status: status,
       event_type: eventType.trim() || null,
       client_name: clientName.trim() || null,
+      ...(canChangeDefaultView ? { default_view: defaultView } : {}),
     };
-    if (canChangeDefaultView) update.default_view = defaultView;
     const { error } = await supabase
       .from("projects")
       .update(update)
