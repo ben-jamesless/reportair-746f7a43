@@ -960,8 +960,79 @@ const ProjectDetail = () => {
                   </div>
                 )}
 
-                {/* Daily updates note shown at the top of the main panel when a dated day is active */}
-                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (
+                {/* Daily report header — only when a dated day is active and the effective view is "report". */}
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report" && (() => {
+                  const day = days.find((d) => d.key === activeDay);
+                  if (!day) return null;
+                  const dayPool = day.photos;
+                  const areasOnDay = areas.filter((ar) => dayPool.some((p) => p.area_id === ar.id));
+                  const dayNoteVal = dayNotes.get(activeDay) ?? null;
+                  return (
+                    <div className="mb-6 space-y-4 rounded-lg border border-border bg-card/40 p-5">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-2xl font-bold tracking-tight">{day.label}</h2>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "text-[11px]",
+                            projectStatusMeta(project?.overall_status ?? null).pillClass,
+                          )}
+                        >
+                          <span className={cn("mr-1.5 inline-block h-1.5 w-1.5 rounded-full", projectStatusMeta(project?.overall_status ?? null).dotClass)} />
+                          {projectStatusMeta(project?.overall_status ?? null).label}
+                        </Badge>
+                      </div>
+
+                      {/* Editable day note with rich-text preview */}
+                      <div>
+                        {dayNoteVal && dayNoteVal.trim() && (
+                          <div className="mb-2">
+                            <RichNotes value={dayNoteVal} className="text-foreground" />
+                          </div>
+                        )}
+                        <EditableNote
+                          value={dayNoteVal}
+                          placeholder="Add a day note…"
+                          onSave={(next) => saveDayNote(activeDay, next)}
+                        />
+                      </div>
+
+                      {/* Per-area summary rows */}
+                      {areasOnDay.length > 0 && (
+                        <div className="space-y-1.5 border-t pt-3">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Areas</p>
+                          <div className="space-y-1">
+                            {areasOnDay.map((ar) => {
+                              const st = getAreaDayStatus(ar.id, activeDay);
+                              const meta = projectStatusMeta(st === "no_status" ? null : (st as ProjectStatus));
+                              const note = getAreaDayNote(ar.id, activeDay);
+                              const firstLine = note ? note.split(/\r?\n/).find((l) => l.trim()) ?? "" : "";
+                              return (
+                                <button
+                                  key={ar.id}
+                                  onClick={() => selectDayArea(activeDay, ar.id)}
+                                  className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-secondary/60"
+                                >
+                                  <span className="min-w-0 flex-1 truncate font-medium">{ar.name}</span>
+                                  <Badge variant="secondary" className={cn("shrink-0 text-[10px]", meta.pillClass)}>
+                                    <span className={cn("mr-1 inline-block h-1.5 w-1.5 rounded-full", meta.dotClass)} />
+                                    {meta.label}
+                                  </Badge>
+                                  <span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+                                    {firstLine}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Plain editable note for gallery view + dated day (legacy behaviour). */}
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "gallery" && (
                   <div className="mb-5">
                     <EditableNote
                       value={dayNotes.get(activeDay) ?? null}
