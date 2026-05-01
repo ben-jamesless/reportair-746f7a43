@@ -971,31 +971,14 @@ Deno.serve(async (req) => {
                     try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
                   }
                   if (img) {
-                    // Cover-fit: scale to max(cellW/imgW, cellH/imgH), then crop via clip.
-                    // pdf-lib lacks clipping primitives; emulate cover by scaling to the LARGER ratio
-                    // and centering — overflow will draw outside the cell. Since cells are tightly
-                    // packed with 4pt gutter, we instead use contain to avoid overlap, but spec
-                    // explicitly says cover. To honour cover without bleed, we draw a clipping
-                    // white rectangle band approach is too complex; we use scale = max and accept
-                    // controlled overflow constrained by drawing photos in row order from top down.
-                    // Compromise: use cover scale but draw a white rect AROUND the cell region to
-                    // mask overflow into adjacent cell gutters before next row draws.
-                    const sCover = Math.max(cellW / img.width, cellH / img.height);
-                    const w = img.width * sCover, h = img.height * sCover;
+                    // Contain-fit so the photo never bleeds beyond its cell. This avoids needing
+                    // any mask rectangles in the gutters — empty cells stay completely blank,
+                    // with no border artefacts when a row is partially filled.
+                    const sFit = Math.min(cellW / img.width, cellH / img.height);
+                    const w = img.width * sFit, h = img.height * sFit;
                     const ox = x + (cellW - w) / 2;
                     const oy = yCell + (cellH - h) / 2;
                     page.drawImage(img, { x: ox, y: oy, width: w, height: h });
-                    // Mask overflow on the sides outside the cell with white rectangles
-                    if (w > cellW) {
-                      const overflow = (w - cellW) / 2;
-                      page.drawRectangle({ x: x - overflow - 0.5, y: yCell, width: overflow + 0.5, height: cellH, color: C(TOK.white) });
-                      page.drawRectangle({ x: x + cellW, y: yCell, width: overflow + 0.5, height: cellH, color: C(TOK.white) });
-                    }
-                    if (h > cellH) {
-                      const overflow = (h - cellH) / 2;
-                      page.drawRectangle({ x: x, y: yCell - overflow - 0.5, width: cellW, height: overflow + 0.5, color: C(TOK.white) });
-                      page.drawRectangle({ x: x, y: yCell + cellH, width: cellW, height: overflow + 0.5, color: C(TOK.white) });
-                    }
                   }
                 }
               }
