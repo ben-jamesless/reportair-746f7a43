@@ -68,12 +68,14 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this area? Photos tagged with it will become untagged.")) return;
     const { error } = await supabase.from("areas").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
+    setPendingDeleteId(null);
     await load();
     onChanged?.();
   };
+
+  const pendingDeleteArea = pendingDeleteId ? areas.find((a) => a.id === pendingDeleteId) ?? null : null;
 
   const move = async (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
