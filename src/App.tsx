@@ -18,6 +18,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword.tsx"));
 const Onboarding = lazy(() => import("./pages/Onboarding.tsx"));
 const Projects = lazy(() => import("./pages/Projects.tsx"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail.tsx"));
+const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
@@ -48,6 +49,7 @@ const App = () => (
                   <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                   <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
                   <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/invite/:token" element={<InviteAccept />} />
                   <Route path="/s/:token" element={<SharePage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

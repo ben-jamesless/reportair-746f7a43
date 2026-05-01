@@ -1,17 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2, Mail, Copy, Send } from "lucide-react";
+import { Trash2, Mail, Copy, Send, LogOut } from "lucide-react";
 import { z } from "zod";
+
+type ProjectRole = "owner" | "editor" | "viewer";
 
 type Invite = {
   id: string;
   email: string;
-  role: "owner" | "editor" | "viewer";
+  role: ProjectRole;
   token: string;
   accepted_at: string | null;
   created_at: string;
@@ -19,26 +33,40 @@ type Invite = {
 
 type Member = {
   user_id: string;
-  role: string;
+  role: ProjectRole;
   full_name: string | null;
 };
 
 const emailSchema = z.string().trim().email().max(255);
 
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"editor" | "viewer">("viewer");
   const [loading, setLoading] = useState(false);
+  const [isAppAdmin, setIsAppAdmin] = useState(false);
+
+  // Confirmation state
+  const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [projectName, setProjectName] = useState<string>("");
+
+  const currentUserRole: ProjectRole | null =
+    members.find((m) => m.user_id === user?.id)?.role ?? null;
+  const canManage = currentUserRole === "owner" || isAppAdmin;
 
   const load = useCallback(async () => {
-    const [{ data: inv }, { data: pm }] = await Promise.all([
+    const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
       supabase.from("project_invites").select("id,email,role,token,accepted_at,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
+      supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
     ]);
     setInvites((inv ?? []) as Invite[]);
-    const pmRows = (pm ?? []) as { user_id: string; role: string }[];
+    setProjectName((proj as { name?: string } | null)?.name ?? "");
+    const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
     if (pmRows.length) {
       const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", pmRows.map((m) => m.user_id));
       const profRows = (profs ?? []) as { id: string; full_name: string | null }[];
@@ -50,6 +78,22 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Detect app-level admin (in addition to project owner) for management UI gating.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user?.id) { setIsAppAdmin(false); return; }
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!cancelled) setIsAppAdmin(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const addInvite = async () => {
     const parsed = emailSchema.safeParse(email);
@@ -67,7 +111,6 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     if (error) { toast.error(error.message); return; }
     setEmail("");
     toast.success(`Invite created for ${parsed.data}`);
-    // Fire-and-forget: never block the user's invite flow on email delivery.
     if (inserted?.id) {
       void sendInviteEmail(inserted.id, { silent: true });
     }
@@ -111,35 +154,131 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     toast.success("Invite link copied");
   };
 
+  const changeRole = async (m: Member, newRole: "editor" | "viewer") => {
+    if (m.role === newRole) return;
+    // Optimistic UI
+    setMembers((prev) => prev.map((p) => p.user_id === m.user_id ? { ...p, role: newRole } : p));
+    const { error } = await supabase
+      .from("project_members")
+      .update({ role: newRole })
+      .eq("project_id", projectId)
+      .eq("user_id", m.user_id);
+    if (error) {
+      toast.error(error.message);
+      load();
+      return;
+    }
+    toast.success(`Role updated to ${newRole}`);
+  };
+
+  const confirmRemove = async () => {
+    if (!removeTarget) return;
+    const target = removeTarget;
+    setRemoveTarget(null);
+    const { error } = await supabase
+      .from("project_members")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("user_id", target.user_id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${target.full_name || "Member"} removed`);
+    load();
+  };
+
+  const confirmLeave = async () => {
+    if (!user?.id) return;
+    setLeaveOpen(false);
+    const { error } = await supabase
+      .from("project_members")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("user_id", user.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("You left the project");
+    navigate("/projects");
+  };
+
   return (
     <div className="space-y-4">
       <div>
         <h4 className="mb-2 text-sm font-medium">Members ({members.length})</h4>
         <div className="space-y-1">
-          {members.map((m) => (
-            <div key={m.user_id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-              <span>{m.full_name || m.user_id.slice(0, 8)}</span>
-              <Badge variant="secondary" className="capitalize">{m.role}</Badge>
-            </div>
-          ))}
+          {members.map((m) => {
+            const isSelf = m.user_id === user?.id;
+            const isOwnerRow = m.role === "owner";
+            const showRoleSelect = canManage && !isSelf && !isOwnerRow;
+            const showRemove = canManage && !isSelf && !isOwnerRow;
+            return (
+              <div key={m.user_id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+                <span className="min-w-0 flex-1 truncate">
+                  {m.full_name || m.user_id.slice(0, 8)}
+                  {isSelf && <span className="ml-1 text-xs text-muted-foreground">(you)</span>}
+                </span>
+                {showRoleSelect ? (
+                  <Select
+                    value={m.role}
+                    onValueChange={(v) => changeRole(m, v as "editor" | "viewer")}
+                  >
+                    <SelectTrigger className="h-8 w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant="secondary" className="capitalize">{m.role}</Badge>
+                )}
+                {showRemove && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setRemoveTarget(m)}
+                    title="Remove member"
+                    aria-label={`Remove ${m.full_name || "member"}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* Leave project — for non-owner current member */}
+        {currentUserRole && currentUserRole !== "owner" && (
+          <div className="mt-3 flex justify-end border-t pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setLeaveOpen(true)}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Leave project
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div>
-        <h4 className="mb-2 text-sm font-medium">Invite by email</h4>
-        <div className="flex gap-2">
-          <Input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Select value={role} onValueChange={(v) => setRole(v as "editor" | "viewer")}>
-            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="viewer">Viewer</SelectItem>
-              <SelectItem value="editor">Editor</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={addInvite} disabled={loading}><Mail className="mr-2 h-4 w-4" />Invite</Button>
+      {canManage && (
+        <div>
+          <h4 className="mb-2 text-sm font-medium">Invite by email</h4>
+          <div className="flex gap-2">
+            <Input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Select value={role} onValueChange={(v) => setRole(v as "editor" | "viewer")}>
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="editor">Editor</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={addInvite} disabled={loading}><Mail className="mr-2 h-4 w-4" />Invite</Button>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Invite is auto-accepted when they sign up. Existing users can use the link.</p>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">Invite is auto-accepted when they sign up. Existing users can use the link.</p>
-      </div>
+      )}
 
       {invites.length > 0 && (
         <div>
@@ -186,6 +325,38 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
           </div>
         </div>
       )}
+
+      {/* Remove member confirmation */}
+      <AlertDialog open={!!removeTarget} onOpenChange={(o) => !o && setRemoveTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Remove {removeTarget?.full_name || "this member"} from this project? They will lose access immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemove}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Leave project confirmation */}
+      <AlertDialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Leave {projectName || "this project"}? You will lose access immediately and will need to be re-invited to rejoin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLeave}>Leave</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
