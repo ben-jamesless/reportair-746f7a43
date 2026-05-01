@@ -94,6 +94,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               overall_status={project.overall_status}
               event_type={project.event_type}
               client_name={project.client_name}
+              default_view={project.default_view ?? "report"}
               onSaved={onChanged}
               onClose={() => setOpen(false)}
             />
