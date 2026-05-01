@@ -1172,12 +1172,24 @@ const ProjectDetail = () => {
                 )}
               </section>
 
-              <CommentsPanel
+              <FeedbackPanel
                 projectId={project.id}
                 visiblePhotos={visiblePhotos}
+                allPhotos={photos}
                 onOpenPhoto={(photoId) => {
                   const idx = photoIndexById.get(photoId);
-                  if (idx !== undefined) setLightboxIndex(idx);
+                  if (idx !== undefined) {
+                    setLightboxIndex(idx);
+                  } else {
+                    // Photo isn't in current visible pool — reset filters and re-target.
+                    setActiveDay(ALL_DAYS);
+                    setActiveArea(null);
+                    // Defer to next tick so visiblePhotos updates first.
+                    setTimeout(() => {
+                      const all = photos.findIndex((p) => p.id === photoId);
+                      if (all >= 0) setLightboxIndex(all);
+                    }, 0);
+                  }
                 }}
                 className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
               />
