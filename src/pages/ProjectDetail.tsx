@@ -6,7 +6,18 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
@@ -49,8 +60,10 @@ type DayNote = { date: string; notes: string | null };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
-const PRE_EVENT_DAY = "__pre_event__";
-const PRE_EVENT_SLUG = "pre-event";
+const ALBUM_PREFIX = "album:";
+const isAlbumKey = (k: string) => k.startsWith(ALBUM_PREFIX);
+const albumIdFromKey = (k: string) => (isAlbumKey(k) ? k.slice(ALBUM_PREFIX.length) : null);
+const albumKey = (id: string) => `${ALBUM_PREFIX}${id}`;
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
