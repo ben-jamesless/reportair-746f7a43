@@ -132,6 +132,10 @@ const ProjectDetail = () => {
     if (t === "updates" || t === "photos") return "photos";
     return "photos";
   });
+  // Session-only view toggle (overrides project default for current session). null = use project default.
+  const [viewOverride, setViewOverride] = useState<ProjectView | null>(null);
+  // Whether we've already auto-selected the latest day (only do this once per project load).
+  const [didAutoSelectDay, setDidAutoSelectDay] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
