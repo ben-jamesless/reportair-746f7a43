@@ -282,11 +282,13 @@ const ProjectDetail = () => {
     return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
   })();
 
-  // Auto-open first day on load
+  // Auto-open the active day (from URL) or fall back to the most recent day on first load.
   useEffect(() => {
-    if (days.length > 0 && openDays.size === 0) {
-      setOpenDays(new Set([days[0].key]));
-    }
+    if (days.length === 0 || openDays.size > 0) return;
+    const target = activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && days.some((d) => d.key === activeDay)
+      ? activeDay
+      : days[0].key;
+    setOpenDays(new Set([target]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days.length]);
 
