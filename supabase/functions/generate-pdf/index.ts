@@ -759,7 +759,7 @@ Deno.serve(async (req) => {
             }
           }
           if (statusKey && STATUS_META[statusKey]) {
-            drawStatusPill(page, tableX + colArea, ty - drowH / 2 - 7, statusKey);
+            drawStatusAccent(page, tableX + colArea, ty - drowH / 2 - 7, statusKey);
           }
           // NOTES (first line, truncated)
           let noteText = "";
