@@ -28,6 +28,7 @@ type ShareProject = {
   name: string;
   description: string | null;
   client_name?: string | null;
+  event_type?: string | null;
   event_location?: string | null;
   event_date?: string | null;
   color?: string | null;
@@ -48,14 +49,31 @@ type Resolved = {
   latest_export?: LatestExport | null;
 };
 
-const STATUS_META: Record<string, { label: string; dot: string; chip: string }> = {
-  on_track: { label: "On Track", dot: "bg-emerald-500", chip: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
-  at_risk: { label: "At Risk", dot: "bg-amber-500", chip: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-  delayed: { label: "Delayed", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
-  complete: { label: "Complete", dot: "bg-teal-500", chip: "border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300" },
-  requires_discussion: { label: "Requires Discussion", dot: "bg-orange-500", chip: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300" },
-  concern: { label: "Concern", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
-  behind_schedule: { label: "Behind Schedule", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+// Status pill spec: rounded-full px-2 py-0.5 text-xs font-semibold text-white,
+// background = status colour. Null/missing → render nothing.
+const STATUS_META: Record<string, { label: string; bg: string }> = {
+  on_track: { label: "On Track", bg: "#16a34a" },
+  at_risk: { label: "At Risk", bg: "#d97706" },
+  requires_discussion: { label: "Requires Discussion", bg: "#d97706" },
+  delayed: { label: "Delayed", bg: "#dc2626" },
+  complete: { label: "Complete", bg: "#01696F" },
+  // Legacy values map to closest equivalents:
+  concern: { label: "Delayed", bg: "#dc2626" },
+  behind_schedule: { label: "Delayed", bg: "#dc2626" },
+};
+
+const StatusPill = ({ statusKey }: { statusKey: string | null | undefined }) => {
+  if (!statusKey) return null;
+  const meta = STATUS_META[statusKey];
+  if (!meta) return null;
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+      style={{ backgroundColor: meta.bg }}
+    >
+      {meta.label}
+    </span>
+  );
 };
 
 const isoDateKey = (d: Date) => {
@@ -240,12 +258,9 @@ const SharePage = () => {
   }
 
   const status = project?.overall_status ?? null;
-  const statusMeta = status ? STATUS_META[status] : undefined;
-  const eventDateStr = project?.event_date
-    ? new Date(project.event_date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
-    : null;
 
-  const subtitleBits = [project?.client_name, eventDateStr, project?.event_location].filter(Boolean) as string[];
+  // Subtitle per spec: client · location · event_type
+  const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
 
   const hasLatestExport = !!data?.latest_export;
 
@@ -293,22 +308,13 @@ const SharePage = () => {
             </div>
             {/* Right: status + download */}
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center md:items-center">
-              {statusMeta ? (
-                <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", statusMeta.chip)}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
-                  {statusMeta.label}
-                </span>
-              ) : status ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 bg-muted px-3 py-1 text-xs text-muted-foreground">
-                  {status}
-                </span>
-              ) : null}
+              <StatusPill statusKey={status} />
               {hasLatestExport && (
                 <Button
                   size="sm"
                   onClick={downloadLatestReport}
                   disabled={downloading}
-                  className="w-full text-white sm:w-auto"
+                  className="w-full text-sm font-medium text-white sm:w-auto"
                   style={{ backgroundColor: accentColor }}
                 >
                   {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
@@ -332,8 +338,8 @@ const SharePage = () => {
       <main className="container py-8">
         {project?.description && <p className="mb-6 max-w-2xl text-muted-foreground">{project.description}</p>}
 
-        {/* Coverage section */}
-        {areas.length > 0 && (
+        {/* Coverage section — hide on default Event Gallery view */}
+        {areas.length > 0 && activeAlbum !== ALL && (
           <section className="mb-8 rounded-lg border bg-background p-5">
             <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
               <h2 className="text-base font-bold">Site Coverage</h2>
@@ -344,14 +350,13 @@ const SharePage = () => {
             <div className="space-y-3">
               {coverage.rows.map((r) => {
                 const sKey = latestAreaStatus.get(r.id);
-                const sm = sKey ? STATUS_META[sKey] : undefined;
                 return (
                   <div
                     key={r.id}
                     className="grid grid-cols-1 items-center gap-2 text-sm sm:grid-cols-[1fr_2fr_auto] sm:gap-3"
                   >
                     <span className="truncate font-medium">{r.name}</span>
-                    <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+                    <div className="relative h-2 overflow-hidden rounded-full" style={{ backgroundColor: "#e5e7eb" }}>
                       <div
                         className="h-full transition-all"
                         style={{ width: `${r.pct}%`, backgroundColor: accentColor }}
@@ -365,12 +370,7 @@ const SharePage = () => {
                           {r.photoCount} photo{r.photoCount === 1 ? "" : "s"}
                         </span>
                       )}
-                      {sm && (
-                        <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", sm.chip)}>
-                          <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                          {sm.label}
-                        </span>
-                      )}
+                      <StatusPill statusKey={sKey} />
                     </div>
                   </div>
                 );
@@ -410,7 +410,6 @@ const SharePage = () => {
                       const dateKey = isoDateKey(group.date);
                       const dayNote = dayNotesMap.get(dateKey);
                       const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                      const sm = statusKey ? STATUS_META[statusKey] : undefined;
                       const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                       return (
                         <section key={group.key}>
@@ -419,11 +418,8 @@ const SharePage = () => {
                               {group.label}{" "}
                               <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
                             </h3>
-                            {activeAreaObj && sm && (
-                              <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
-                                <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                                {sm.label}
-                              </span>
+                            {activeAreaObj && statusKey && (
+                              <StatusPill statusKey={statusKey} />
                             )}
                           </div>
                           {dayNote && (
@@ -438,7 +434,7 @@ const SharePage = () => {
                               <RichNotes text={areaDayNote} />
                             </div>
                           )}
-                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                          <div className="grid grid-cols-2 gap-1 md:grid-cols-4">
                             {group.photos.map((p) => (
                               <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
                             ))}
@@ -462,13 +458,7 @@ const SharePage = () => {
                   <p className="font-bold">{activeAreaObj.name}</p>
                   {(() => {
                     const sKey = latestAreaStatus.get(activeAreaObj.id);
-                    const sm = sKey ? STATUS_META[sKey] : undefined;
-                    return sm ? (
-                      <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
-                        <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                        {sm.label}
-                      </span>
-                    ) : null;
+                    return sKey ? <StatusPill statusKey={sKey} /> : null;
                   })()}
                   <div className="border-t" />
                   <div>
@@ -601,8 +591,13 @@ const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: Shar
     return () => { alive = false; };
   }, [token, photo.id]);
   return (
-    <button onClick={onClick} className="group relative aspect-square overflow-hidden rounded-sm" title={photo.caption || undefined}>
-      {url ? <img src={url} alt={photo.caption || ""} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" /> : null}
+    <button onClick={onClick} className="group relative aspect-[4/3] w-full overflow-hidden rounded-sm" title={photo.caption || undefined}>
+      {url ? <img src={url} alt={photo.caption || ""} className="h-full w-full object-cover" loading="lazy" /> : null}
+      {photo.caption && (
+        <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+          {photo.caption}
+        </span>
+      )}
     </button>
   );
 };
