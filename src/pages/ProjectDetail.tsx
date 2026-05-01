@@ -374,7 +374,6 @@ const ProjectDetail = () => {
     const next = new URLSearchParams(searchParams);
     // day
     if (activeDay === ALL_DAYS) next.delete("day");
-    else if (activeDay === PRE_EVENT_DAY) next.set("day", PRE_EVENT_DAY);
     else next.set("day", activeDay);
     // area
     if (activeArea === null) next.delete("area");
