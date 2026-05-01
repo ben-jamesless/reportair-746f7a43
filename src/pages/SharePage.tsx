@@ -341,8 +341,8 @@ const SharePage = () => {
       <main className="container py-8">
         {project?.description && <p className="mb-6 max-w-2xl text-muted-foreground">{project.description}</p>}
 
-        {/* Coverage section */}
-        {areas.length > 0 && (
+        {/* Coverage section — hide on default Event Gallery view */}
+        {areas.length > 0 && activeAlbum !== ALL && (
           <section className="mb-8 rounded-lg border bg-background p-5">
             <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
               <h2 className="text-base font-bold">Site Coverage</h2>
@@ -353,14 +353,13 @@ const SharePage = () => {
             <div className="space-y-3">
               {coverage.rows.map((r) => {
                 const sKey = latestAreaStatus.get(r.id);
-                const sm = sKey ? STATUS_META[sKey] : undefined;
                 return (
                   <div
                     key={r.id}
                     className="grid grid-cols-1 items-center gap-2 text-sm sm:grid-cols-[1fr_2fr_auto] sm:gap-3"
                   >
                     <span className="truncate font-medium">{r.name}</span>
-                    <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+                    <div className="relative h-2 overflow-hidden rounded-full" style={{ backgroundColor: "#e5e7eb" }}>
                       <div
                         className="h-full transition-all"
                         style={{ width: `${r.pct}%`, backgroundColor: accentColor }}
@@ -374,12 +373,7 @@ const SharePage = () => {
                           {r.photoCount} photo{r.photoCount === 1 ? "" : "s"}
                         </span>
                       )}
-                      {sm && (
-                        <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", sm.chip)}>
-                          <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                          {sm.label}
-                        </span>
-                      )}
+                      <StatusPill statusKey={sKey} />
                     </div>
                   </div>
                 );
