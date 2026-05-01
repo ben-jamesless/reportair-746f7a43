@@ -115,36 +115,50 @@ export const ProjectEditForm = ({
     setStatus(initialStatus ?? "no_status");
     setEventType(initialEventType ?? "");
     setClientName(initialClient ?? "");
-  }, [initialName, initialDescription, initialColor, initialEventDate, initialEventLocation, initialStatus, initialEventType, initialClient]);
+    setDefaultView(initialDefaultView ?? "report");
+  }, [initialName, initialDescription, initialColor, initialEventDate, initialEventLocation, initialStatus, initialEventType, initialClient, initialDefaultView]);
 
   useEffect(() => {
     (async () => {
       if (!user) return;
-      const { data } = await supabase
-        .from("project_members")
-        .select("role")
-        .eq("project_id", projectId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setIsOwner(data?.role === "owner");
+      const [{ data: pm }, { data: ar }] = await Promise.all([
+        supabase
+          .from("project_members")
+          .select("role")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle(),
+      ]);
+      setIsOwner(pm?.role === "owner");
+      setIsAdmin(!!ar);
     })();
   }, [user, projectId]);
+
+  const canChangeDefaultView = isOwner || isAdmin;
 
   const save = async () => {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
+    const update: Record<string, unknown> = {
+      name: name.trim(),
+      description: description.trim() || null,
+      color,
+      event_date: toIsoDate(eventDate),
+      event_location: eventLocation.trim() || null,
+      overall_status: status,
+      event_type: eventType.trim() || null,
+      client_name: clientName.trim() || null,
+    };
+    if (canChangeDefaultView) update.default_view = defaultView;
     const { error } = await supabase
       .from("projects")
-      .update({
-        name: name.trim(),
-        description: description.trim() || null,
-        color,
-        event_date: toIsoDate(eventDate),
-        event_location: eventLocation.trim() || null,
-        overall_status: status,
-        event_type: eventType.trim() || null,
-        client_name: clientName.trim() || null,
-      })
+      .update(update)
       .eq("id", projectId);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
