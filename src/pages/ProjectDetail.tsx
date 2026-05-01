@@ -211,6 +211,7 @@ const ProjectDetail = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       setIsOwner(data?.role === "owner");
+      setCanEdit(data?.role === "owner" || data?.role === "editor");
     })();
   }, [user, id]);
 
