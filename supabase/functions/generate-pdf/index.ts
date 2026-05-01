@@ -109,10 +109,10 @@ function sanitize(input: unknown): string {
     "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
     "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
     "\u2013": "-", "\u2014": "-", "\u2212": "-",
-    "\u2026": "...", "\u2022": "*", "\u00B7": "-",
+    "\u2026": "...", "\u2022": "*",
   };
   // eslint-disable-next-line no-misleading-character-class
-  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
+  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022]/g, (c) => map[c] ?? "");
   // eslint-disable-next-line no-control-regex
   s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
   return s;
