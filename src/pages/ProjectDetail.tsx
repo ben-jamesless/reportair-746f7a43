@@ -165,6 +165,32 @@ const ProjectDetail = () => {
     exitSelectMode();
   }, [selectedIds, areas, exitSelectMode]);
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const bulkDeletePhotos = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setDeleting(true);
+    const ids = Array.from(selectedIds);
+    const paths = photos.filter((p) => selectedIds.has(p.id)).map((p) => p.storage_path).filter(Boolean);
+    const { error: dbError } = await supabase.from("photos").delete().in("id", ids);
+    if (dbError) {
+      setDeleting(false);
+      toast.error(dbError.message);
+      return;
+    }
+    if (paths.length > 0) {
+      const { error: storageError } = await supabase.storage.from("photos").remove(paths);
+      // Storage failures are non-fatal — DB rows are the source of truth.
+      if (storageError) console.error("Storage delete partial failure:", storageError);
+    }
+    setPhotos((cur) => cur.filter((p) => !selectedIds.has(p.id)));
+    toast.success(`${ids.length} photo${ids.length === 1 ? "" : "s"} deleted.`);
+    exitSelectMode();
+    setConfirmDeleteOpen(false);
+    setDeleting(false);
+  }, [selectedIds, photos, exitSelectMode]);
+
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
