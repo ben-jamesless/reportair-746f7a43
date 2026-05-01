@@ -754,31 +754,29 @@ const ProjectDetail = () => {
                 })}
 
                 <div className="mt-3 space-y-1 border-t pt-3">
-                  {preEventAlbum && (
-                    <button
-                      onClick={() => { setActiveDay(PRE_EVENT_DAY); setActiveArea(null); }}
-                      className={cn(
-                        "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
-                        activeDay === PRE_EVENT_DAY && activeArea === null
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-secondary"
-                      )}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Layers className={cn(
-                          "h-3.5 w-3.5",
-                          activeDay === PRE_EVENT_DAY && activeArea === null ? "" : "text-muted-foreground"
-                        )} />
-                        <span className="font-medium">Pre-event</span>
-                      </span>
-                      <span className={cn(
-                        "text-xs",
-                        activeDay === PRE_EVENT_DAY && activeArea === null ? "opacity-80" : "text-muted-foreground"
-                      )}>
-                        {preEventPhotos.length}
-                      </span>
-                    </button>
-                  )}
+                  {albums.map((al) => {
+                    const count = albumPhotos.get(al.id)?.length ?? 0;
+                    const key = albumKey(al.id);
+                    const sel = activeDay === key && activeArea === null;
+                    return (
+                      <button
+                        key={al.id}
+                        onClick={() => { setActiveDay(key); setActiveArea(null); }}
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                          sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
+                        )}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Layers className={cn("h-3.5 w-3.5", sel ? "" : "text-muted-foreground")} />
+                          <span className="font-medium">{al.name}</span>
+                        </span>
+                        <span className={cn("text-xs", sel ? "opacity-80" : "text-muted-foreground")}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
                   <button
                     onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(null); }}
                     className={cn(
