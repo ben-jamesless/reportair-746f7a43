@@ -215,7 +215,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
             {projectId && (
               <div className="border-t pt-4">
                 <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
-                  Client comments <span className="ml-1 text-foreground/60">{notes.length}</span>
+                  Client feedback <span className="ml-1 text-foreground/60">{notes.length}</span>
                 </p>
                 {notes.length === 0 ? (
                   <p className="text-xs text-muted-foreground">No comments on this photo yet.</p>
