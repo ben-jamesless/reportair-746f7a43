@@ -437,7 +437,7 @@ const SharePage = () => {
                               <RichNotes text={areaDayNote} />
                             </div>
                           )}
-                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                          <div className="grid grid-cols-2 gap-1 md:grid-cols-4">
                             {group.photos.map((p) => (
                               <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
                             ))}
