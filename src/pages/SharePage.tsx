@@ -311,22 +311,13 @@ const SharePage = () => {
             </div>
             {/* Right: status + download */}
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center md:items-center">
-              {statusMeta ? (
-                <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", statusMeta.chip)}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
-                  {statusMeta.label}
-                </span>
-              ) : status ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 bg-muted px-3 py-1 text-xs text-muted-foreground">
-                  {status}
-                </span>
-              ) : null}
+              <StatusPill statusKey={status} />
               {hasLatestExport && (
                 <Button
                   size="sm"
                   onClick={downloadLatestReport}
                   disabled={downloading}
-                  className="w-full text-white sm:w-auto"
+                  className="w-full text-sm font-medium text-white sm:w-auto"
                   style={{ backgroundColor: accentColor }}
                 >
                   {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
