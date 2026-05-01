@@ -155,8 +155,30 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 </div>
                 {!inv.accepted_at && (
                   <>
-                    <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.token)}><Copy className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => revokeInvite(inv.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => copyInviteLink(inv.token)}
+                      title="Copy invite link"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => sendInviteEmail(inv.id)}
+                      title="Resend invite email"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => revokeInvite(inv.id)}
+                      title="Revoke invite"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </>
                 )}
               </div>
