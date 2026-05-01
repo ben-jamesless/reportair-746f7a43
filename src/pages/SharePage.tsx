@@ -601,8 +601,8 @@ const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: Shar
     return () => { alive = false; };
   }, [token, photo.id]);
   return (
-    <button onClick={onClick} className="group relative aspect-square overflow-hidden rounded-md bg-muted">
-      {url ? <img src={url} alt={photo.caption || photo.file_name} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" /> : null}
+    <button onClick={onClick} className="group relative aspect-square overflow-hidden rounded-sm" title={photo.caption || undefined}>
+      {url ? <img src={url} alt={photo.caption || ""} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" /> : null}
     </button>
   );
 };
