@@ -657,7 +657,7 @@ const ProjectDetail = () => {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr] xl:grid-cols-[400px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
-                {days.length === 0 && preEventPhotos.length === 0 && (
+                {days.length === 0 && albumPhotos.size === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
