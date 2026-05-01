@@ -224,10 +224,38 @@ Deno.serve(async (req) => {
 
     // ============ Build PDF ============
     const pdf = await PDFDocument.create();
-    const fontReg = await pdf.embedFont(StandardFonts.Helvetica);
-    const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
-    const fontItal = await pdf.embedFont(StandardFonts.HelveticaOblique);
-    const fontBoldItal = await pdf.embedFont(StandardFonts.HelveticaBoldOblique);
+    pdf.registerFontkit(fontkit);
+
+    // Try Lato (Google Fonts), fall back to Helvetica family on any failure.
+    const LATO_URLS = {
+      reg: "https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjxAwXiWtFCfQ7A.ttf",
+      bold: "https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTPHh6UVSwiPGQ3q5d0N7w.ttf",
+      ital: "https://fonts.gstatic.com/s/lato/v24/S6u8w4BMUTPHjxsAXC-vNiXg7Q.ttf",
+      boldItal: "https://fonts.gstatic.com/s/lato/v24/S6u_w4BMUTPHjxsI5wq_FQftx9897g.ttf",
+    };
+    const tryFetch = async (url: string): Promise<Uint8Array | null> => {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) return null;
+        return new Uint8Array(await r.arrayBuffer());
+      } catch { return null; }
+    };
+    const [latoRegBytes, latoBoldBytes, latoItalBytes, latoBoldItalBytes] = await Promise.all([
+      tryFetch(LATO_URLS.reg), tryFetch(LATO_URLS.bold), tryFetch(LATO_URLS.ital), tryFetch(LATO_URLS.boldItal),
+    ]);
+
+    let fontReg: PDFFont, fontBold: PDFFont, fontItal: PDFFont, fontBoldItal: PDFFont;
+    if (latoRegBytes && latoBoldBytes && latoItalBytes && latoBoldItalBytes) {
+      fontReg = await pdf.embedFont(latoRegBytes, { subset: true });
+      fontBold = await pdf.embedFont(latoBoldBytes, { subset: true });
+      fontItal = await pdf.embedFont(latoItalBytes, { subset: true });
+      fontBoldItal = await pdf.embedFont(latoBoldItalBytes, { subset: true });
+    } else {
+      fontReg = await pdf.embedFont(StandardFonts.Helvetica);
+      fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+      fontItal = await pdf.embedFont(StandardFonts.HelveticaOblique);
+      fontBoldItal = await pdf.embedFont(StandardFonts.HelveticaBoldOblique);
+    }
 
     const pickFont = (b: boolean, i: boolean) =>
       b && i ? fontBoldItal : b ? fontBold : i ? fontItal : fontReg;
