@@ -400,63 +400,104 @@ const SharePage = () => {
               </div>
             )}
 
-            {grouped.length === 0 ? (
-              <p className="py-12 text-center text-muted-foreground">No photos in this view.</p>
-            ) : (
-              <div className="space-y-8">
-                {grouped.map((group) => {
-                  const dateKey = isoDateKey(group.date);
-                  const dayNote = dayNotesMap.get(dateKey);
-                  const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                  const sm = statusKey ? STATUS_META[statusKey] : undefined;
-                  const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                  return (
-                    <section key={group.key}>
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-medium text-foreground">
-                          {group.label}{" "}
-                          <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
-                        </h3>
-                      </div>
-                      {dayNote && (
-                        <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
-                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Day comment</p>
-                          <p className="whitespace-pre-wrap">{dayNote}</p>
-                        </div>
-                      )}
-                      {activeAreaObj && (
-                        <div className="mb-3 flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium">{activeAreaObj.name}</span>
-                          {sm && (
-                            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
-                              <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                              {sm.label}
-                            </span>
+            <div className={cn("grid gap-6", activeAreaObj ? "lg:grid-cols-[1fr_20%]" : "grid-cols-1")}>
+              <div className="min-w-0">
+                {grouped.length === 0 ? (
+                  <p className="py-12 text-center text-muted-foreground">No photos in this view.</p>
+                ) : (
+                  <div className="space-y-8">
+                    {grouped.map((group) => {
+                      const dateKey = isoDateKey(group.date);
+                      const dayNote = dayNotesMap.get(dateKey);
+                      const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
+                      const sm = statusKey ? STATUS_META[statusKey] : undefined;
+                      const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
+                      return (
+                        <section key={group.key}>
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <h3 className="text-sm font-medium text-foreground">
+                              {group.label}{" "}
+                              <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
+                            </h3>
+                            {activeAreaObj && sm && (
+                              <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
+                                <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
+                                {sm.label}
+                              </span>
+                            )}
+                          </div>
+                          {dayNote && (
+                            <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
+                              <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Day comment</p>
+                              <RichNotes text={dayNote} />
+                            </div>
                           )}
-                        </div>
-                      )}
-                      {areaDayNote && (
-                        <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
-                          <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Daily updates</p>
-                          <p className="whitespace-pre-wrap">{areaDayNote}</p>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                        {group.photos.map((p) => (
-                          <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
-                        ))}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            )}
+                          {areaDayNote && (
+                            <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
+                              <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Daily updates</p>
+                              <RichNotes text={areaDayNote} />
+                            </div>
+                          )}
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                            {group.photos.map((p) => (
+                              <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
+                            ))}
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                )}
 
-            {lastUpdated && (
-              <p className="mt-8 text-center text-xs text-muted-foreground">
-                Last updated {lastUpdated.toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-              </p>
-            )}
+                {lastUpdated && (
+                  <p className="mt-8 text-center text-xs text-muted-foreground">
+                    Last updated {lastUpdated.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                )}
+              </div>
+
+              {/* Area context panel — only when a specific area is selected */}
+              {activeAreaObj && (
+                <aside className="order-last space-y-3 rounded-lg border bg-background p-4 text-sm lg:sticky lg:top-4 lg:self-start">
+                  <p className="font-bold">{activeAreaObj.name}</p>
+                  {(() => {
+                    const sKey = latestAreaStatus.get(activeAreaObj.id);
+                    const sm = sKey ? STATUS_META[sKey] : undefined;
+                    return sm ? (
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
+                        <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
+                        {sm.label}
+                      </span>
+                    ) : null;
+                  })()}
+                  <div className="border-t" />
+                  <div>
+                    <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Latest update</p>
+                    {activeAreaLatestNote ? (
+                      <RichNotes text={activeAreaLatestNote} />
+                    ) : (
+                      <p className="italic text-muted-foreground">No notes for this area</p>
+                    )}
+                  </div>
+                  {(() => {
+                    const captions = visiblePhotos
+                      .map((p) => p.caption?.trim())
+                      .filter((c): c is string => !!c);
+                    if (captions.length === 0) return null;
+                    return (
+                      <div>
+                        <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Captions</p>
+                        <ul className="space-y-1">
+                          {captions.map((c, i) => (
+                            <li key={i} className="flex gap-2"><span aria-hidden>•</span><span>{c}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })()}
+                </aside>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
 
