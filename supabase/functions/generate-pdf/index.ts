@@ -643,7 +643,7 @@ Deno.serve(async (req) => {
       page.drawText("STATUS", { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
       const overallStatus = (proj as { overall_status?: string | null }).overall_status ?? null;
       if (overallStatus && STATUS_META[overallStatus]) {
-        drawStatusPill(page, rightX + rPad + 50, ry - 11, overallStatus);
+        drawStatusAccent(page, rightX + rPad + 50, ry - 11, overallStatus);
       }
       ry -= 10 * MM;
 
