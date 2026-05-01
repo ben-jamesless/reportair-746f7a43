@@ -893,7 +893,7 @@ const ProjectDetail = () => {
                       </ErrorBoundary>
                     }
                   />
-                ) : activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY ? (
+                ) : activeDay !== ALL_DAYS && !isAlbumKey(activeDay) ? (
                   // Dated day view: group by area, with per-area comment + per-day status picker
                   (() => {
                     const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
