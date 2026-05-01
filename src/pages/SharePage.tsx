@@ -49,14 +49,31 @@ type Resolved = {
   latest_export?: LatestExport | null;
 };
 
-const STATUS_META: Record<string, { label: string; dot: string; chip: string }> = {
-  on_track: { label: "On Track", dot: "bg-emerald-500", chip: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
-  at_risk: { label: "At Risk", dot: "bg-amber-500", chip: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-  delayed: { label: "Delayed", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
-  complete: { label: "Complete", dot: "bg-teal-500", chip: "border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300" },
-  requires_discussion: { label: "Requires Discussion", dot: "bg-orange-500", chip: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300" },
-  concern: { label: "Concern", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
-  behind_schedule: { label: "Behind Schedule", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+// Status pill spec: rounded-full px-2 py-0.5 text-xs font-semibold text-white,
+// background = status colour. Null/missing → render nothing.
+const STATUS_META: Record<string, { label: string; bg: string }> = {
+  on_track: { label: "On Track", bg: "#16a34a" },
+  at_risk: { label: "At Risk", bg: "#d97706" },
+  requires_discussion: { label: "Requires Discussion", bg: "#d97706" },
+  delayed: { label: "Delayed", bg: "#dc2626" },
+  complete: { label: "Complete", bg: "#01696F" },
+  // Legacy values map to closest equivalents:
+  concern: { label: "Delayed", bg: "#dc2626" },
+  behind_schedule: { label: "Delayed", bg: "#dc2626" },
+};
+
+const StatusPill = ({ statusKey }: { statusKey: string | null | undefined }) => {
+  if (!statusKey) return null;
+  const meta = STATUS_META[statusKey];
+  if (!meta) return null;
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+      style={{ backgroundColor: meta.bg }}
+    >
+      {meta.label}
+    </span>
+  );
 };
 
 const isoDateKey = (d: Date) => {
