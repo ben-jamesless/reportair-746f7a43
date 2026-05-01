@@ -694,6 +694,38 @@ const ProjectDetail = () => {
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
           <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-md border bg-background p-0.5" role="radiogroup" aria-label="Project view">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={effectiveView === "report"}
+                onClick={() => setViewOverride("report")}
+                title="Daily report view"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                  effectiveView === "report"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary",
+                )}
+              >
+                <FileText className="h-3.5 w-3.5" /> Report
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={effectiveView === "gallery"}
+                onClick={() => setViewOverride("gallery")}
+                title="Gallery view"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                  effectiveView === "gallery"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary",
+                )}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Gallery
+              </button>
+            </div>
             <Button
               variant="default"
               size="sm"
