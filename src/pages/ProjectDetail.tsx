@@ -512,8 +512,8 @@ const ProjectDetail = () => {
     { label: "Projects", to: "/projects" },
     { label: project.name, to: `/projects/${project.id}` },
   ];
-  if (activeDay === PRE_EVENT_DAY) {
-    crumbs.push({ label: "Pre-event" });
+  if (activeAlbum) {
+    crumbs.push({ label: activeAlbum.name });
   } else if (activeDay !== ALL_DAYS) {
     const d = days.find((x) => x.key === activeDay);
     if (d) crumbs.push({ label: SHORT_FMT.format(d.date) });
