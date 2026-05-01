@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2 } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,13 +32,16 @@ import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
-import { CommentsPanel } from "@/components/CommentsPanel";
+import { FeedbackPanel } from "@/components/FeedbackPanel";
+import { RichNotes } from "@/components/RichNotes";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
 import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+type ProjectView = "report" | "gallery";
 
 type Project = {
   id: string;
@@ -52,6 +55,7 @@ type Project = {
   event_type: string | null;
   client_name: string | null;
   archived_at: string | null;
+  default_view: ProjectView | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
@@ -194,7 +198,7 @@ const ProjectDetail = () => {
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name, archived_at").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
       supabase
