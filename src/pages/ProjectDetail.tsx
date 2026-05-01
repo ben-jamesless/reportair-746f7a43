@@ -882,6 +882,18 @@ const ProjectDetail = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setConfirmDeleteOpen(true)}
+                          disabled={selectedIds.size === 0}
+                        >
+                          <Trash2 className="mr-1.5 h-4 w-4" />
+                          Delete
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={exitSelectMode}>
                         Done
                       </Button>
