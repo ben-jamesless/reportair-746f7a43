@@ -338,6 +338,9 @@ export const ProjectEditForm = ({
             </div>
           </div>
         )}
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Accent colour</Label>
           <div className="flex flex-wrap items-center gap-2">
             {PROJECT_COLOR_PALETTE.map((c) => (
               <button
