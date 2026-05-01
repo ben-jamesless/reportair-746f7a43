@@ -658,7 +658,7 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange }: 
       <DialogContent className="max-w-6xl border-0 bg-background p-0">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_340px]">
           <div className="relative flex min-h-[50vh] items-center justify-center bg-black md:min-h-[70vh]">
-            {url && <img src={url} alt={photo.caption || photo.file_name} className="max-h-[70vh] w-full object-contain" />}
+            {url && <img src={url} alt={photo.caption || ""} className="max-h-[70vh] w-full object-contain" />}
             {photos.length > 1 && (
               <>
                 <Button size="icon" variant="secondary" onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full opacity-90"><ChevronLeft className="h-5 w-5" /></Button>
