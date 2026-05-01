@@ -862,7 +862,7 @@ const ProjectDetail = () => {
                 )}
 
                 {/* Daily updates note shown at the top of the main panel when a dated day is active */}
-                {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (
                   <div className="mb-5">
                     <EditableNote
                       value={dayNotes.get(activeDay) ?? null}
