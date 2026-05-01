@@ -354,6 +354,25 @@ const ProjectDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days.length]);
 
+  // On first project load: if no day is in the URL, default to the most recent day with photos.
+  // Falls back silently to Event Gallery (ALL_DAYS) when there are no photos.
+  useEffect(() => {
+    if (didAutoSelectDay) return;
+    if (!project) return;
+    // If the URL pinned a specific day/album already, respect it.
+    const pinned = searchParams.get("day");
+    if (pinned) { setDidAutoSelectDay(true); return; }
+    if (days.length > 0) {
+      setActiveDay(days[0].key);
+      setActiveArea(null);
+    }
+    setDidAutoSelectDay(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, days.length, didAutoSelectDay]);
+
+  // Effective view: session override wins, else project default, else "report".
+  const effectiveView: ProjectView = viewOverride ?? project?.default_view ?? "report";
+
   const areaCountsForDay = useCallback(
     (dayPhotos: LightboxPhoto[]) => {
       const counts = new Map<string, number>();
