@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Trash2, Mail, Copy } from "lucide-react";
+import { Trash2, Mail, Copy, Send } from "lucide-react";
 import { z } from "zod";
 
 type Invite = {
@@ -56,14 +56,47 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     if (!parsed.success) { toast.error("Enter a valid email"); return; }
     setLoading(true);
     const { data: auth } = await supabase.auth.getUser();
-    const { error } = await supabase.from("project_invites").insert({
-      project_id: projectId, email: parsed.data.toLowerCase(), role, invited_by: auth.user?.id,
-    });
+    const { data: inserted, error } = await supabase
+      .from("project_invites")
+      .insert({
+        project_id: projectId, email: parsed.data.toLowerCase(), role, invited_by: auth.user?.id,
+      })
+      .select("id")
+      .single();
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     setEmail("");
     toast.success(`Invite created for ${parsed.data}`);
+    // Fire-and-forget: never block the user's invite flow on email delivery.
+    if (inserted?.id) {
+      void sendInviteEmail(inserted.id, { silent: true });
+    }
     load();
+  };
+
+  const sendInviteEmail = async (
+    inviteId: string,
+    opts: { silent?: boolean } = {},
+  ) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("send-invite-email", {
+        body: { inviteId },
+      });
+      if (error) {
+        console.error("send-invite-email invoke error", error);
+        if (!opts.silent) toast.error("Could not send invite email");
+        return;
+      }
+      if (data && data.ok === false) {
+        console.error("send-invite-email returned error", data);
+        if (!opts.silent) toast.error(data.error || "Email send failed");
+        return;
+      }
+      if (!opts.silent) toast.success("Invite email sent");
+    } catch (e) {
+      console.error("send-invite-email threw", e);
+      if (!opts.silent) toast.error("Could not send invite email");
+    }
   };
 
   const revokeInvite = async (id: string) => {
@@ -122,8 +155,30 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 </div>
                 {!inv.accepted_at && (
                   <>
-                    <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.token)}><Copy className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => revokeInvite(inv.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => copyInviteLink(inv.token)}
+                      title="Copy invite link"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => sendInviteEmail(inv.id)}
+                      title="Resend invite email"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => revokeInvite(inv.id)}
+                      title="Revoke invite"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </>
                 )}
               </div>

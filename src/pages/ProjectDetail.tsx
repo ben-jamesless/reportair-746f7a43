@@ -86,11 +86,28 @@ const ProjectDetail = () => {
   // status keyed by `${areaId}|${dateKey}` -> AreaStatus
   const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [activeDay, setActiveDay] = useState<string>(ALL_DAYS);
-  const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
+  // Initialise filter state from URL so refreshing / sharing a link preserves the view.
+  const [activeDay, setActiveDay] = useState<string>(() => {
+    const d = searchParams.get("day");
+    if (d === PRE_EVENT_DAY || d === "pre-event") return PRE_EVENT_DAY;
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    return ALL_DAYS;
+  });
+  const [activeArea, setActiveArea] = useState<string | null>(() => {
+    const a = searchParams.get("area");
+    if (!a) return null;
+    if (a === NO_AREA || a === "unassigned") return NO_AREA;
+    return a;
+  });
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">("photos");
+  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
+    const t = searchParams.get("tab");
+    if (t === "activity") return "activity";
+    if (t === "details") return "details";
+    if (t === "updates" || t === "photos") return "photos";
+    return "photos";
+  });
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -265,11 +282,13 @@ const ProjectDetail = () => {
     return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
   })();
 
-  // Auto-open first day on load
+  // Auto-open the active day (from URL) or fall back to the most recent day on first load.
   useEffect(() => {
-    if (days.length > 0 && openDays.size === 0) {
-      setOpenDays(new Set([days[0].key]));
-    }
+    if (days.length === 0 || openDays.size > 0) return;
+    const target = activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && days.some((d) => d.key === activeDay)
+      ? activeDay
+      : days[0].key;
+    setOpenDays(new Set([target]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days.length]);
 
@@ -323,6 +342,27 @@ const ProjectDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photos, photoIndexById, searchParams]);
+
+  // Keep URL in sync with filter state (replaceState — don't pollute history).
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    // day
+    if (activeDay === ALL_DAYS) next.delete("day");
+    else if (activeDay === PRE_EVENT_DAY) next.set("day", PRE_EVENT_DAY);
+    else next.set("day", activeDay);
+    // area
+    if (activeArea === null) next.delete("area");
+    else if (activeArea === NO_AREA) next.set("area", NO_AREA);
+    else next.set("area", activeArea);
+    // tab — store as updates|activity|details (user-facing names)
+    if (activeTab === "photos") next.delete("tab");
+    else next.set("tab", activeTab);
+
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDay, activeArea, activeTab]);
 
   const toggleDay = (key: string) => {
     setOpenDays((prev) => {

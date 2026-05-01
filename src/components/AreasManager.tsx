@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowDown, ArrowUp, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export type Area = { id: string; project_id: string; name: string; sort_order: number };
 
@@ -18,6 +28,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -57,12 +68,14 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this area? Photos tagged with it will become untagged.")) return;
     const { error } = await supabase.from("areas").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
+    setPendingDeleteId(null);
     await load();
     onChanged?.();
   };
+
+  const pendingDeleteArea = pendingDeleteId ? areas.find((a) => a.id === pendingDeleteId) ?? null : null;
 
   const move = async (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
@@ -118,7 +131,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
                   <Button size="icon" variant="ghost" onClick={() => { setEditingId(a.id); setEditName(a.name); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => remove(a.id)}>
+                  <Button size="icon" variant="ghost" onClick={() => setPendingDeleteId(a.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </>
@@ -127,6 +140,28 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
           ))}
         </ul>
       )}
+
+      <AlertDialog open={pendingDeleteId !== null} onOpenChange={(o) => !o && setPendingDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {pendingDeleteArea ? `"${pendingDeleteArea.name}"` : "area"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Deleting this area will unassign all photos currently tagged to it. They will appear under Unassigned. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => pendingDeleteId && remove(pendingDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete area
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
