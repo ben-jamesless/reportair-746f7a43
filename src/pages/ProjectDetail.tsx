@@ -335,7 +335,7 @@ const ProjectDetail = () => {
   const visiblePhotos = (() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
-    else if (activeDay === PRE_EVENT_DAY) pool = preEventPhotos;
+    else if (isAlbumKey(activeDay)) pool = albumPhotos.get(albumIdFromKey(activeDay)!) ?? [];
     else pool = days.find((d) => d.key === activeDay)?.photos ?? [];
     if (activeArea === null) return pool;
     if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
