@@ -550,12 +550,8 @@ Deno.serve(async (req) => {
           page.drawText(ln, { x: leftX, y: ly - descSize, size: descSize, font: fontReg, color: C(TOK.body) });
           ly -= descLineH;
         }
-      } else {
-        page.drawText("No project description provided.", {
-          x: leftX, y: ly - descSize, size: descSize, font: fontItal, color: C(TOK.label),
-        });
-        ly -= descLineH;
       }
+      // (else: no description → leave the column blank; the area table fills it)
 
       // 10mm below: 0.5pt rule across left column
       ly -= 10 * MM;
