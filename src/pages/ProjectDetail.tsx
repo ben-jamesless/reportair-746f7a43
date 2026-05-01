@@ -269,20 +269,27 @@ const ProjectDetail = () => {
     if (error) { toast.error(error.message); setDayNotes(prev); }
   };
 
-  // Identify the Pre-event album (if it exists)
-  const preEventAlbum = albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null;
-
-  // Split photos: anything in the Pre-event album goes to the Pre-event bucket;
-  // everything else groups by capture/upload date.
-  const { datedPhotos, preEventPhotos } = (() => {
-    const dated: LightboxPhoto[] = [];
-    const pre: LightboxPhoto[] = [];
+  // Photos in any album are excluded from the date-grouped pool and shown
+  // only when their album is selected from the sidebar.
+  const albumPhotos = (() => {
+    const m = new Map<string, LightboxPhoto[]>();
     for (const p of photos) {
-      if (preEventAlbum && p.album_id === preEventAlbum.id) pre.push(p);
-      else dated.push(p);
+      if (!p.album_id) continue;
+      const arr = m.get(p.album_id) ?? [];
+      arr.push(p);
+      m.set(p.album_id, arr);
     }
-    return { datedPhotos: dated, preEventPhotos: pre };
+    return m;
   })();
+  const datedPhotos = photos.filter((p) => !p.album_id);
+
+  // Resolve the legacy `pre-event` URL value to the matching album once
+  // albums load, so old shared links continue to work.
+  useEffect(() => {
+    if (activeDay !== LEGACY_PRE_EVENT_DAY) return;
+    const a = albums.find((x) => x.slug === LEGACY_PRE_EVENT_SLUG);
+    if (a) setActiveDay(albumKey(a.id));
+  }, [activeDay, albums]);
 
   // Build day buckets from dated photos only
   const days = (() => {
