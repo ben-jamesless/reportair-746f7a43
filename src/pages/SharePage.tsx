@@ -413,7 +413,6 @@ const SharePage = () => {
                       const dateKey = isoDateKey(group.date);
                       const dayNote = dayNotesMap.get(dateKey);
                       const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                      const sm = statusKey ? STATUS_META[statusKey] : undefined;
                       const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                       return (
                         <section key={group.key}>
