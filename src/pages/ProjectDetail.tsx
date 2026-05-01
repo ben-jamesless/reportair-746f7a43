@@ -1101,6 +1101,29 @@ const ProjectDetail = () => {
             trigger={<span className="hidden" />}
           />
         )}
+
+        <AlertDialog open={confirmDeleteOpen} onOpenChange={(o) => !deleting && setConfirmDeleteOpen(o)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Delete {selectedIds.size} photo{selectedIds.size === 1 ? "" : "s"}?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the selected photos and remove them from the project. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => { e.preventDefault(); bulkDeletePhotos(); }}
+                disabled={deleting}
+                className={buttonVariants({ variant: "destructive" })}
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </AppShell>
   );
 };
