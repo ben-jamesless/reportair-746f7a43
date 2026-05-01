@@ -422,11 +422,8 @@ const SharePage = () => {
                               {group.label}{" "}
                               <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
                             </h3>
-                            {activeAreaObj && sm && (
-                              <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
-                                <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                                {sm.label}
-                              </span>
+                            {activeAreaObj && statusKey && (
+                              <StatusPill statusKey={statusKey} />
                             )}
                           </div>
                           {dayNote && (
