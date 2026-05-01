@@ -258,12 +258,12 @@ const SharePage = () => {
   }
 
   const status = project?.overall_status ?? null;
-  const statusMeta = status ? STATUS_META[status] : undefined;
   const eventDateStr = project?.event_date
     ? new Date(project.event_date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
     : null;
 
-  const subtitleBits = [project?.client_name, eventDateStr, project?.event_location].filter(Boolean) as string[];
+  // Subtitle per spec: client · location · event_type
+  const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
 
   const hasLatestExport = !!data?.latest_export;
 
