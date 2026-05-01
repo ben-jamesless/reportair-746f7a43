@@ -341,6 +341,27 @@ const ProjectDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photos, photoIndexById, searchParams]);
 
+  // Keep URL in sync with filter state (replaceState — don't pollute history).
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    // day
+    if (activeDay === ALL_DAYS) next.delete("day");
+    else if (activeDay === PRE_EVENT_DAY) next.set("day", PRE_EVENT_DAY);
+    else next.set("day", activeDay);
+    // area
+    if (activeArea === null) next.delete("area");
+    else if (activeArea === NO_AREA) next.set("area", NO_AREA);
+    else next.set("area", activeArea);
+    // tab — store as updates|activity|details (user-facing names)
+    if (activeTab === "photos") next.delete("tab");
+    else next.set("tab", activeTab);
+
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDay, activeArea, activeTab]);
+
   const toggleDay = (key: string) => {
     setOpenDays((prev) => {
       const next = new Set(prev);
