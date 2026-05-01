@@ -249,43 +249,83 @@ const SharePage = () => {
 
   const hasLatestExport = !!data?.latest_export;
 
+  // Coverage helpers for new section
+  const areasCovered = coverage.rows.filter((r) => r.photoCount > 0).length;
+  // Latest area-day status per area (most recent date)
+  const latestAreaStatus = useMemo(() => {
+    const m = new Map<string, string>();
+    const latestDate = new Map<string, string>();
+    (data?.area_day_status ?? []).forEach((s) => {
+      const prev = latestDate.get(s.area_id);
+      if (!prev || s.date > prev) {
+        latestDate.set(s.area_id, s.date);
+        m.set(s.area_id, s.status);
+      }
+    });
+    return m;
+  }, [data?.area_day_status]);
+
+  // Most recent area-day note for the active area (across all dates)
+  const activeAreaLatestNote = useMemo(() => {
+    if (!activeAreaObj) return null;
+    let bestDate = "";
+    let bestNote: string | null = null;
+    (data?.area_day_notes ?? []).forEach((n) => {
+      if (n.area_id !== activeAreaObj.id) return;
+      if (!n.notes || !n.notes.trim()) return;
+      if (n.date > bestDate) { bestDate = n.date; bestNote = n.notes; }
+    });
+    return bestNote;
+  }, [data?.area_day_notes, activeAreaObj]);
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Top accent strip */}
       <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
       <header className="border-b bg-background">
-        <div className="container flex flex-col gap-3 py-5 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Shared gallery</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold">{project?.name}</h1>
+        <div className="container py-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            {/* Left: logo or project name */}
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: accentColor }}>
+                {project?.name}
+              </h1>
+            </div>
+            {/* Right: status + download */}
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center md:items-center">
               {statusMeta ? (
-                <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs", statusMeta.chip)}>
+                <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium", statusMeta.chip)}>
                   <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
                   {statusMeta.label}
                 </span>
               ) : status ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 bg-muted px-3 py-1 text-xs text-muted-foreground">
                   {status}
                 </span>
               ) : null}
+              {hasLatestExport && (
+                <Button
+                  size="sm"
+                  onClick={downloadLatestReport}
+                  disabled={downloading}
+                  className="w-full text-white sm:w-auto"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                  Download latest report
+                </Button>
+              )}
             </div>
-            {subtitleBits.length > 0 && (
-              <p className="mt-1 text-sm text-muted-foreground">{subtitleBits.join(" · ")}</p>
-            )}
           </div>
-          <div className="flex flex-col items-start gap-2 md:items-end">
-            <div className="text-right text-xs text-muted-foreground">
-              <p>Viewing as</p>
-              <p className="font-medium text-foreground">{guest.name}</p>
-            </div>
-            {hasLatestExport && (
-              <Button size="sm" variant="outline" onClick={downloadLatestReport} disabled={downloading}>
-                {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                Download latest report
-              </Button>
-            )}
-          </div>
+          {subtitleBits.length > 0 && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {subtitleBits.join(" · ")}
+            </p>
+          )}
+          <div className="mt-4 border-t" />
+          <p className="mt-3 text-xs text-muted-foreground">
+            Viewing as <span className="font-medium text-foreground">{guest.name}</span>
+          </p>
         </div>
       </header>
 
@@ -295,29 +335,46 @@ const SharePage = () => {
         {/* Coverage section */}
         {areas.length > 0 && (
           <section className="mb-8 rounded-lg border bg-background p-5">
-            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Site Coverage</h2>
-              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                <span><strong className="text-foreground">{coverage.totalPhotos}</strong> photos</span>
-                <span><strong className="text-foreground">{coverage.totalAreas}</strong> areas</span>
-                <span><strong className="text-foreground">{coverage.overallPct}%</strong> coverage</span>
-              </div>
+            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+              <h2 className="text-base font-bold">Site Coverage</h2>
+              <span className="text-xs text-muted-foreground sm:text-sm">
+                {areasCovered} of {coverage.totalAreas} area{coverage.totalAreas === 1 ? "" : "s"} covered · {coverage.totalPhotos} photo{coverage.totalPhotos === 1 ? "" : "s"}
+              </span>
             </div>
-            <div className="space-y-2">
-              {coverage.rows.map((r) => (
-                <div key={r.id} className="grid grid-cols-[1fr_2fr_auto] items-center gap-3 text-sm">
-                  <span className="truncate font-medium">{r.name}</span>
-                  <div className="relative h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full transition-all"
-                      style={{ width: `${r.pct}%`, backgroundColor: accentColor }}
-                    />
+            <div className="space-y-3">
+              {coverage.rows.map((r) => {
+                const sKey = latestAreaStatus.get(r.id);
+                const sm = sKey ? STATUS_META[sKey] : undefined;
+                return (
+                  <div
+                    key={r.id}
+                    className="grid grid-cols-1 items-center gap-2 text-sm sm:grid-cols-[1fr_2fr_auto] sm:gap-3"
+                  >
+                    <span className="truncate font-medium">{r.name}</span>
+                    <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full transition-all"
+                        style={{ width: `${r.pct}%`, backgroundColor: accentColor }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2 sm:justify-end">
+                      {r.photoCount === 0 ? (
+                        <span className="text-xs italic text-muted-foreground">No photos yet</span>
+                      ) : (
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">
+                          {r.photoCount} photo{r.photoCount === 1 ? "" : "s"}
+                        </span>
+                      )}
+                      {sm && (
+                        <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]", sm.chip)}>
+                          <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
+                          {sm.label}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <span className="whitespace-nowrap text-xs text-muted-foreground">
-                    {r.photoCount === 0 ? "No photos yet" : `${r.photoCount} photo${r.photoCount === 1 ? "" : "s"}`}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
