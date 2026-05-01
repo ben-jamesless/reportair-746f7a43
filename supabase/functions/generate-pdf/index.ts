@@ -681,7 +681,10 @@ Deno.serve(async (req) => {
       dayBuckets = groups.map((g) => ({ key: g.key, date: g.date, label: g.label, photos: g.photos }));
     }
 
-    // Helper: split day photos by area, in sortedAreas order; trailing "Unassigned" if any.
+    // Helper: split day photos by area in sortedAreas order. Photos with no area_id
+    // do NOT get their own "Unassigned" page — they are appended to the last area's
+    // photo grid. If there are no assigned areas at all, they're shown under a single
+    // synthetic group using the day label so the page isn't empty.
     const splitDayByArea = (dayPhotos: PhotoRow[]): { areaId: string | null; name: string; photos: PhotoRow[] }[] => {
       const byArea = new Map<string, PhotoRow[]>();
       const unassigned: PhotoRow[] = [];
@@ -697,7 +700,15 @@ Deno.serve(async (req) => {
         const list = byArea.get(ar.id);
         if (list?.length) out.push({ areaId: ar.id, name: ar.name, photos: list });
       }
-      if (unassigned.length) out.push({ areaId: null, name: "Unassigned", photos: unassigned });
+      if (unassigned.length) {
+        if (out.length > 0) {
+          // Append to the last area's photos (excluded from per-area breakdown / summary table).
+          out[out.length - 1].photos = out[out.length - 1].photos.concat(unassigned);
+        } else {
+          // Edge case: nothing assigned to any area — show under day label.
+          out.push({ areaId: null, name: "Photos", photos: unassigned });
+        }
+      }
       return out;
     };
 
