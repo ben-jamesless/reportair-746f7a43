@@ -542,6 +542,50 @@ const GuestIdentityPrompt = ({ onSubmit }: { onSubmit: (g: { name: string; email
   );
 };
 
+// --- Lightweight markdown-ish renderer for share-page notes ---
+const renderInline = (line: string, keyPrefix: string) => {
+  // Handle **bold** and *italic*
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = regex.exec(line)) !== null) {
+    if (m.index > last) parts.push(<span key={`${keyPrefix}-t-${i++}`}>{line.slice(last, m.index)}</span>);
+    const tok = m[0];
+    if (tok.startsWith("**")) {
+      parts.push(<strong key={`${keyPrefix}-b-${i++}`}>{tok.slice(2, -2)}</strong>);
+    } else {
+      parts.push(<em key={`${keyPrefix}-i-${i++}`}>{tok.slice(1, -1)}</em>);
+    }
+    last = regex.lastIndex;
+  }
+  if (last < line.length) parts.push(<span key={`${keyPrefix}-t-${i++}`}>{line.slice(last)}</span>);
+  return parts;
+};
+
+const RichNotes = ({ text }: { text: string }) => {
+  const lines = text.split("\n");
+  return (
+    <div className="space-y-1 text-sm">
+      {lines.map((raw, idx) => {
+        const line = raw.trim();
+        if (!line) return <div key={idx} className="h-1" />;
+        if (line.startsWith("# ")) {
+          return <p key={idx} className="mt-2 text-sm font-bold">{renderInline(line.slice(2), `h-${idx}`)}</p>;
+        }
+        const bulletStripped = line.startsWith("- ") || line.startsWith("* ") ? line.slice(2) : line;
+        return (
+          <p key={idx} className="flex gap-2">
+            <span aria-hidden className="select-none text-muted-foreground">•</span>
+            <span className="min-w-0">{renderInline(bulletStripped, `l-${idx}`)}</span>
+          </p>
+        );
+      })}
+    </div>
+  );
+};
+
 const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: SharePhoto; onClick: () => void }) => {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
