@@ -275,7 +275,7 @@ export const ExportPdfDialog = ({
     const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
     const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
 
-    const options: Record<string, unknown> = { sections };
+    const options: Record<string, unknown> = { sections, orientation };
     if (mode === "single") {
       options.day_key = dayKey ?? null;
       options.day_label = dayLabel ?? null;
