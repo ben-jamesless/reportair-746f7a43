@@ -436,7 +436,7 @@ const ProjectDetail = () => {
   const selectionTitle = (() => {
     if (activeDay === ALL_DAYS && activeArea === null) return "Event Gallery";
     const parts: string[] = [];
-    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    if (activeAlbum) parts.push(activeAlbum.name);
     else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(d.label);
