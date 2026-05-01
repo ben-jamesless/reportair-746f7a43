@@ -64,9 +64,10 @@ const ALBUM_PREFIX = "album:";
 const isAlbumKey = (k: string) => k.startsWith(ALBUM_PREFIX);
 const albumIdFromKey = (k: string) => (isAlbumKey(k) ? k.slice(ALBUM_PREFIX.length) : null);
 const albumKey = (id: string) => `${ALBUM_PREFIX}${id}`;
-// Legacy aliases — kept temporarily while the dynamic-album refactor is in progress.
-const PRE_EVENT_DAY = "__pre_event__";
-const PRE_EVENT_SLUG = "pre-event";
+// Legacy URL value preserved so old shared links keep working until we can
+// resolve the slug to an album id (handled in an effect below).
+const LEGACY_PRE_EVENT_DAY = "__pre_event__";
+const LEGACY_PRE_EVENT_SLUG = "pre-event";
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, {
   weekday: "long",
@@ -93,6 +94,7 @@ const ProjectDetail = () => {
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
@@ -105,8 +107,10 @@ const ProjectDetail = () => {
   // Initialise filter state from URL so refreshing / sharing a link preserves the view.
   const [activeDay, setActiveDay] = useState<string>(() => {
     const d = searchParams.get("day");
-    if (d === PRE_EVENT_DAY || d === "pre-event") return PRE_EVENT_DAY;
-    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    if (!d) return ALL_DAYS;
+    if (d === LEGACY_PRE_EVENT_DAY || d === LEGACY_PRE_EVENT_SLUG) return LEGACY_PRE_EVENT_DAY;
+    if (isAlbumKey(d)) return d;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
     return ALL_DAYS;
   });
   const [activeArea, setActiveArea] = useState<string | null>(() => {
@@ -161,6 +165,32 @@ const ProjectDetail = () => {
     exitSelectMode();
   }, [selectedIds, areas, exitSelectMode]);
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const bulkDeletePhotos = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setDeleting(true);
+    const ids = Array.from(selectedIds);
+    const paths = photos.filter((p) => selectedIds.has(p.id)).map((p) => p.storage_path).filter(Boolean);
+    const { error: dbError } = await supabase.from("photos").delete().in("id", ids);
+    if (dbError) {
+      setDeleting(false);
+      toast.error(dbError.message);
+      return;
+    }
+    if (paths.length > 0) {
+      const { error: storageError } = await supabase.storage.from("photos").remove(paths);
+      // Storage failures are non-fatal — DB rows are the source of truth.
+      if (storageError) console.error("Storage delete partial failure:", storageError);
+    }
+    setPhotos((cur) => cur.filter((p) => !selectedIds.has(p.id)));
+    toast.success(`${ids.length} photo${ids.length === 1 ? "" : "s"} deleted.`);
+    exitSelectMode();
+    setConfirmDeleteOpen(false);
+    setDeleting(false);
+  }, [selectedIds, photos, exitSelectMode]);
+
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
@@ -207,6 +237,7 @@ const ProjectDetail = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       setIsOwner(data?.role === "owner");
+      setCanEdit(data?.role === "owner" || data?.role === "editor");
     })();
   }, [user, id]);
 
@@ -266,20 +297,27 @@ const ProjectDetail = () => {
     if (error) { toast.error(error.message); setDayNotes(prev); }
   };
 
-  // Identify the Pre-event album (if it exists)
-  const preEventAlbum = albums.find((a) => a.slug === PRE_EVENT_SLUG) ?? null;
-
-  // Split photos: anything in the Pre-event album goes to the Pre-event bucket;
-  // everything else groups by capture/upload date.
-  const { datedPhotos, preEventPhotos } = (() => {
-    const dated: LightboxPhoto[] = [];
-    const pre: LightboxPhoto[] = [];
+  // Photos in any album are excluded from the date-grouped pool and shown
+  // only when their album is selected from the sidebar.
+  const albumPhotos = (() => {
+    const m = new Map<string, LightboxPhoto[]>();
     for (const p of photos) {
-      if (preEventAlbum && p.album_id === preEventAlbum.id) pre.push(p);
-      else dated.push(p);
+      if (!p.album_id) continue;
+      const arr = m.get(p.album_id) ?? [];
+      arr.push(p);
+      m.set(p.album_id, arr);
     }
-    return { datedPhotos: dated, preEventPhotos: pre };
+    return m;
   })();
+  const datedPhotos = photos.filter((p) => !p.album_id);
+
+  // Resolve the legacy `pre-event` URL value to the matching album once
+  // albums load, so old shared links continue to work.
+  useEffect(() => {
+    if (activeDay !== LEGACY_PRE_EVENT_DAY) return;
+    const a = albums.find((x) => x.slug === LEGACY_PRE_EVENT_SLUG);
+    if (a) setActiveDay(albumKey(a.id));
+  }, [activeDay, albums]);
 
   // Build day buckets from dated photos only
   const days = (() => {
@@ -301,7 +339,7 @@ const ProjectDetail = () => {
   // Auto-open the active day (from URL) or fall back to the most recent day on first load.
   useEffect(() => {
     if (days.length === 0 || openDays.size > 0) return;
-    const target = activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && days.some((d) => d.key === activeDay)
+    const target = activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && days.some((d) => d.key === activeDay)
       ? activeDay
       : days[0].key;
     setOpenDays(new Set([target]));
@@ -325,7 +363,7 @@ const ProjectDetail = () => {
   const visiblePhotos = (() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
-    else if (activeDay === PRE_EVENT_DAY) pool = preEventPhotos;
+    else if (isAlbumKey(activeDay)) pool = albumPhotos.get(albumIdFromKey(activeDay)!) ?? [];
     else pool = days.find((d) => d.key === activeDay)?.photos ?? [];
     if (activeArea === null) return pool;
     if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
@@ -364,7 +402,6 @@ const ProjectDetail = () => {
     const next = new URLSearchParams(searchParams);
     // day
     if (activeDay === ALL_DAYS) next.delete("day");
-    else if (activeDay === PRE_EVENT_DAY) next.set("day", PRE_EVENT_DAY);
     else next.set("day", activeDay);
     // area
     if (activeArea === null) next.delete("area");
@@ -402,12 +439,14 @@ const ProjectDetail = () => {
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, album_id: albumId } : p)));
   };
 
-  // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
+  // Upload context: when an album is the active day, uploads land in that album.
+  const activeAlbumId = albumIdFromKey(activeDay);
+  const activeAlbum = activeAlbumId ? albums.find((a) => a.id === activeAlbumId) ?? null : null;
   const uploadAreaId = activeArea && activeArea !== NO_AREA ? activeArea : null;
-  const uploadAlbumId = activeDay === PRE_EVENT_DAY && preEventAlbum ? preEventAlbum.id : null;
+  const uploadAlbumId = activeAlbum?.id ?? null;
   const uploadContextLabel = (() => {
     const parts: string[] = [];
-    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    if (activeAlbum) parts.push(activeAlbum.name);
     else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(SHORT_FMT.format(d.date));
@@ -425,7 +464,7 @@ const ProjectDetail = () => {
   const selectionTitle = (() => {
     if (activeDay === ALL_DAYS && activeArea === null) return "Event Gallery";
     const parts: string[] = [];
-    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    if (activeAlbum) parts.push(activeAlbum.name);
     else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(d.label);
@@ -501,8 +540,8 @@ const ProjectDetail = () => {
     { label: "Projects", to: "/projects" },
     { label: project.name, to: `/projects/${project.id}` },
   ];
-  if (activeDay === PRE_EVENT_DAY) {
-    crumbs.push({ label: "Pre-event" });
+  if (activeAlbum) {
+    crumbs.push({ label: activeAlbum.name });
   } else if (activeDay !== ALL_DAYS) {
     const d = days.find((x) => x.key === activeDay);
     if (d) crumbs.push({ label: SHORT_FMT.format(d.date) });
@@ -646,7 +685,7 @@ const ProjectDetail = () => {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr] xl:grid-cols-[400px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
-                {days.length === 0 && preEventPhotos.length === 0 && (
+                {days.length === 0 && albumPhotos.size === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
@@ -743,31 +782,29 @@ const ProjectDetail = () => {
                 })}
 
                 <div className="mt-3 space-y-1 border-t pt-3">
-                  {preEventAlbum && (
-                    <button
-                      onClick={() => { setActiveDay(PRE_EVENT_DAY); setActiveArea(null); }}
-                      className={cn(
-                        "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
-                        activeDay === PRE_EVENT_DAY && activeArea === null
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-secondary"
-                      )}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Layers className={cn(
-                          "h-3.5 w-3.5",
-                          activeDay === PRE_EVENT_DAY && activeArea === null ? "" : "text-muted-foreground"
-                        )} />
-                        <span className="font-medium">Pre-event</span>
-                      </span>
-                      <span className={cn(
-                        "text-xs",
-                        activeDay === PRE_EVENT_DAY && activeArea === null ? "opacity-80" : "text-muted-foreground"
-                      )}>
-                        {preEventPhotos.length}
-                      </span>
-                    </button>
-                  )}
+                  {albums.map((al) => {
+                    const count = albumPhotos.get(al.id)?.length ?? 0;
+                    const key = albumKey(al.id);
+                    const sel = activeDay === key && activeArea === null;
+                    return (
+                      <button
+                        key={al.id}
+                        onClick={() => { setActiveDay(key); setActiveArea(null); }}
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                          sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
+                        )}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Layers className={cn("h-3.5 w-3.5", sel ? "" : "text-muted-foreground")} />
+                          <span className="font-medium">{al.name}</span>
+                        </span>
+                        <span className={cn("text-xs", sel ? "opacity-80" : "text-muted-foreground")}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
                   <button
                     onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(null); }}
                     className={cn(
@@ -845,6 +882,18 @@ const ProjectDetail = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {canEdit && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setConfirmDeleteOpen(true)}
+                          disabled={selectedIds.size === 0}
+                        >
+                          <Trash2 className="mr-1.5 h-4 w-4" />
+                          Delete
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={exitSelectMode}>
                         Done
                       </Button>
@@ -853,7 +902,7 @@ const ProjectDetail = () => {
                 )}
 
                 {/* Daily updates note shown at the top of the main panel when a dated day is active */}
-                {activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && (
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (
                   <div className="mb-5">
                     <EditableNote
                       value={dayNotes.get(activeDay) ?? null}
@@ -884,7 +933,7 @@ const ProjectDetail = () => {
                       </ErrorBoundary>
                     }
                   />
-                ) : activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY ? (
+                ) : activeDay !== ALL_DAYS && !isAlbumKey(activeDay) ? (
                   // Dated day view: group by area, with per-area comment + per-day status picker
                   (() => {
                     const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
@@ -1052,6 +1101,29 @@ const ProjectDetail = () => {
             trigger={<span className="hidden" />}
           />
         )}
+
+        <AlertDialog open={confirmDeleteOpen} onOpenChange={(o) => !deleting && setConfirmDeleteOpen(o)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Delete {selectedIds.size} photo{selectedIds.size === 1 ? "" : "s"}?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the selected photos and remove them from the project. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => { e.preventDefault(); bulkDeletePhotos(); }}
+                disabled={deleting}
+                className={buttonVariants({ variant: "destructive" })}
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </AppShell>
   );
 };
