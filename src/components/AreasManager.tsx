@@ -131,7 +131,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
                   <Button size="icon" variant="ghost" onClick={() => { setEditingId(a.id); setEditName(a.name); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => remove(a.id)}>
+                  <Button size="icon" variant="ghost" onClick={() => setPendingDeleteId(a.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </>
@@ -140,6 +140,28 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
           ))}
         </ul>
       )}
+
+      <AlertDialog open={pendingDeleteId !== null} onOpenChange={(o) => !o && setPendingDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {pendingDeleteArea ? `"${pendingDeleteArea.name}"` : "area"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Deleting this area will unassign all photos currently tagged to it. They will appear under Unassigned. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => pendingDeleteId && remove(pendingDeleteId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete area
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
