@@ -259,6 +259,7 @@ Deno.serve(async (req) => {
       let titleText = proj.name;
       if (dayKey && dayLabel) titleText = `${proj.name} — ${dayLabel}`;
       else if (isRange) titleText = `${proj.name} — ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)}`;
+      else if (isAlbum) titleText = `${proj.name} — ${albumLabel ?? "Album"}`;
       page.drawText(titleText, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
       y -= 60;
       if (proj.description) {
@@ -274,7 +275,9 @@ Deno.serve(async (req) => {
         ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${exportedOn}`
         : isRange
           ? `${allPhotos.length} photos · ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)} · Exported ${exportedOn}`
-          : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${exportedOn}`;
+          : isAlbum
+            ? `${allPhotos.length} photos · Album: ${albumLabel ?? ""} · Exported ${exportedOn}`
+            : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${exportedOn}`;
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 
