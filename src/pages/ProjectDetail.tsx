@@ -311,7 +311,7 @@ const ProjectDetail = () => {
   // Auto-open the active day (from URL) or fall back to the most recent day on first load.
   useEffect(() => {
     if (days.length === 0 || openDays.size > 0) return;
-    const target = activeDay !== ALL_DAYS && activeDay !== PRE_EVENT_DAY && days.some((d) => d.key === activeDay)
+    const target = activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && days.some((d) => d.key === activeDay)
       ? activeDay
       : days[0].key;
     setOpenDays(new Set([target]));
