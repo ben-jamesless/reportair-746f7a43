@@ -86,11 +86,28 @@ const ProjectDetail = () => {
   // status keyed by `${areaId}|${dateKey}` -> AreaStatus
   const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [activeDay, setActiveDay] = useState<string>(ALL_DAYS);
-  const [activeArea, setActiveArea] = useState<string | null>(null); // null = all areas in day
+  // Initialise filter state from URL so refreshing / sharing a link preserves the view.
+  const [activeDay, setActiveDay] = useState<string>(() => {
+    const d = searchParams.get("day");
+    if (d === PRE_EVENT_DAY || d === "pre-event") return PRE_EVENT_DAY;
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    return ALL_DAYS;
+  });
+  const [activeArea, setActiveArea] = useState<string | null>(() => {
+    const a = searchParams.get("area");
+    if (!a) return null;
+    if (a === NO_AREA || a === "unassigned") return NO_AREA;
+    return a;
+  });
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">("photos");
+  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
+    const t = searchParams.get("tab");
+    if (t === "activity") return "activity";
+    if (t === "details") return "details";
+    if (t === "updates" || t === "photos") return "photos";
+    return "photos";
+  });
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
