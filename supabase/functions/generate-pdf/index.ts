@@ -93,7 +93,10 @@ Deno.serve(async (req) => {
     const dayLabel: string | null = exp.options?.day_label ?? null;
     const dateFrom: string | null = exp.options?.date_from ?? null; // YYYY-MM-DD
     const dateTo: string | null = exp.options?.date_to ?? null;     // YYYY-MM-DD
+    const albumIdFilter: string | null = exp.options?.album_id ?? null;
+    const albumLabel: string | null = exp.options?.album_label ?? null;
     const isRange = !!(dateFrom && dateTo);
+    const isAlbum = !!albumIdFilter;
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
     // Load project + photos + albums + areas + activity + notes + day notes + per-day area status + per-day area notes
@@ -137,6 +140,9 @@ Deno.serve(async (req) => {
         return k >= dateFrom! && k <= dateTo!;
       });
       if (allPhotos.length === 0) throw new Error("No photos found in the selected date range.");
+    } else if (isAlbum) {
+      allPhotos = allPhotos.filter((p) => p.album_id === albumIdFilter);
+      if (allPhotos.length === 0) throw new Error("No photos found in the selected album.");
     }
 
     if (allPhotos.length > PHOTO_CAP) {
@@ -253,6 +259,7 @@ Deno.serve(async (req) => {
       let titleText = proj.name;
       if (dayKey && dayLabel) titleText = `${proj.name} — ${dayLabel}`;
       else if (isRange) titleText = `${proj.name} — ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)}`;
+      else if (isAlbum) titleText = `${proj.name} — ${albumLabel ?? "Album"}`;
       page.drawText(titleText, { x: M, y: y - 30, size: 28, font: fontBold, color: TEXT });
       y -= 60;
       if (proj.description) {
@@ -268,7 +275,9 @@ Deno.serve(async (req) => {
         ? `${allPhotos.length} photos on ${dayLabel ?? "this day"} · Exported ${exportedOn}`
         : isRange
           ? `${allPhotos.length} photos · ${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)} · Exported ${exportedOn}`
-          : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${exportedOn}`;
+          : isAlbum
+            ? `${allPhotos.length} photos · Album: ${albumLabel ?? ""} · Exported ${exportedOn}`
+            : `${allPhotos.length} photos · ${(albums ?? []).length} albums · Exported ${exportedOn}`;
       page.drawText(stats, { x: M, y: 60, size: 10, font, color: MUTED });
     }
 

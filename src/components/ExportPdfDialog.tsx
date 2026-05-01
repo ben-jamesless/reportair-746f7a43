@@ -11,8 +11,36 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { FileDown, Loader2, Upload, AlertTriangle, Download, X, Calendar as CalendarIcon } from "lucide-react";
+import {
+  FileDown,
+  Loader2,
+  Upload,
+  AlertTriangle,
+  Download,
+  X,
+  Calendar as CalendarIcon,
+  ChevronDown,
+  History,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const PHOTO_CAP = 300;
@@ -25,6 +53,16 @@ type ExportRow = {
   photo_count: number | null;
 };
 
+type HistoryRow = {
+  id: string;
+  status: "queued" | "processing" | "ready" | "failed";
+  output_path: string | null;
+  error_message: string | null;
+  photo_count: number | null;
+  created_at: string;
+  options: Record<string, unknown> | null;
+};
+
 type Sections = {
   cover: boolean; grid: boolean; captions: boolean; exif: boolean; notes: boolean; activity: boolean;
 };
@@ -32,6 +70,8 @@ type Sections = {
 const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false };
 
 export type AvailableDay = { key: string; label: string; date: Date; photoCount: number };
+
+type AlbumOption = { id: string; name: string; photoCount: number };
 
 type Props = {
   projectId: string;
@@ -51,7 +91,30 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
 };
 
-type Mode = "single" | "range";
+type Mode = "single" | "range" | "album";
+
+const fmtScope = (opts: Record<string, unknown> | null): string => {
+  if (!opts) return "Export";
+  const dayLabel = (opts.day_label as string | undefined) ?? null;
+  const dayKey = (opts.day_key as string | undefined) ?? null;
+  const dateFrom = (opts.date_from as string | undefined) ?? null;
+  const dateTo = (opts.date_to as string | undefined) ?? null;
+  const albumLabel = (opts.album_label as string | undefined) ?? null;
+  const albumId = (opts.album_id as string | undefined) ?? null;
+  if (dayLabel || dayKey) return `Single day — ${dayLabel ?? dayKey}`;
+  if (dateFrom && dateTo) {
+    const fmt = (k: string) => {
+      const [y, m, d] = k.split("-").map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    };
+    return `Date range — ${fmt(dateFrom)} – ${fmt(dateTo)}`;
+  }
+  if (albumLabel || albumId) return `Album — ${albumLabel ?? "Album"}`;
+  return "Full project";
+};
+
+const fmtCreated = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export const ExportPdfDialog = ({
   projectId,
@@ -75,31 +138,33 @@ export const ExportPdfDialog = ({
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  // Mode state. Default to "single" if dayKey provided or lockMode=single, else "range" only when there are multiple days available.
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
   const [mode, setMode] = useState<Mode>(initialMode);
-  const [rangeFrom, setRangeFrom] = useState<string | null>(null); // YYYY-MM-DD key
+  const [rangeFrom, setRangeFrom] = useState<string | null>(null);
   const [rangeTo, setRangeTo] = useState<string | null>(null);
+
+  // Albums
+  const [albums, setAlbums] = useState<AlbumOption[]>([]);
+  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
+
+  // History
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryRow[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // Sorted ascending for picker convenience
   const daysAsc = useMemo(
     () => [...availableDays].sort((a, b) => a.date.getTime() - b.date.getTime()),
     [availableDays],
   );
-  const dayKeySet = useMemo(() => new Set(daysAsc.map((d) => d.key)), [daysAsc]);
-  const photoCountByDay = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const d of daysAsc) m.set(d.key, d.photoCount);
-    return m;
-  }, [daysAsc]);
 
   // Reset session state whenever the dialog opens/closes
   useEffect(() => {
     if (!open) {
       setCurrentExport(null);
       setSubmitting(false);
+      setHistoryOpen(false);
     } else {
-      // Re-derive defaults each time the dialog opens
       setMode(lockMode === "single" || dayKey ? "single" : "single");
       if (daysAsc.length > 0) {
         setRangeFrom(daysAsc[0].key);
@@ -111,6 +176,29 @@ export const ExportPdfDialog = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Load albums + photo counts when opening
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: alb }, { data: ph }] = await Promise.all([
+        supabase.from("albums").select("id, name, position").eq("project_id", projectId).order("position"),
+        supabase.from("photos").select("album_id").eq("project_id", projectId).not("album_id", "is", null),
+      ]);
+      if (cancelled) return;
+      const counts = new Map<string, number>();
+      for (const r of (ph ?? []) as { album_id: string }[]) {
+        counts.set(r.album_id, (counts.get(r.album_id) ?? 0) + 1);
+      }
+      const opts: AlbumOption[] = (alb ?? []).map((a: { id: string; name: string }) => ({
+        id: a.id, name: a.name, photoCount: counts.get(a.id) ?? 0,
+      }));
+      setAlbums(opts);
+      setSelectedAlbumId((prev) => prev ?? opts[0]?.id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [open, projectId]);
 
   // Poll the active export until it resolves
   useEffect(() => {
@@ -124,6 +212,23 @@ export const ExportPdfDialog = ({
     }, 3000);
     return () => clearInterval(t);
   }, [open, currentExport]);
+
+  // Load history when collapsible opens (or after a new export completes)
+  const loadHistory = async () => {
+    setHistoryLoading(true);
+    const { data } = await supabase
+      .from("project_exports")
+      .select("id, status, output_path, error_message, photo_count, created_at, options")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setHistory((data ?? []) as HistoryRow[]);
+    setHistoryLoading(false);
+  };
+  useEffect(() => {
+    if (open && historyOpen) loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, historyOpen]);
 
   const handleLogoSelect = async (file: File) => {
     if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
@@ -143,8 +248,12 @@ export const ExportPdfDialog = ({
       const total = inRange.reduce((sum, d) => sum + d.photoCount, 0);
       return { effectivePhotoCount: total, rangeDays: inRange };
     }
+    if (mode === "album" && selectedAlbumId) {
+      const a = albums.find((x) => x.id === selectedAlbumId);
+      return { effectivePhotoCount: a?.photoCount ?? 0, rangeDays: [] as AvailableDay[] };
+    }
     return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[] };
-  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount]);
+  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount, selectedAlbumId, albums]);
 
   const overCap = effectivePhotoCount > PHOTO_CAP;
 
@@ -152,6 +261,10 @@ export const ExportPdfDialog = ({
     if (overCap) { toast.error(`Photo cap exceeded (${PHOTO_CAP}). Split per album first.`); return; }
     if (mode === "range" && (!rangeFrom || !rangeTo)) {
       toast.error("Pick a from and to date");
+      return;
+    }
+    if (mode === "album" && !selectedAlbumId) {
+      toast.error("Pick an album to export");
       return;
     }
     setSubmitting(true);
@@ -165,9 +278,13 @@ export const ExportPdfDialog = ({
     if (mode === "single") {
       options.day_key = dayKey ?? null;
       options.day_label = dayLabel ?? null;
-    } else {
+    } else if (mode === "range") {
       options.date_from = lo;
       options.date_to = hi;
+    } else if (mode === "album") {
+      const album = albums.find((a) => a.id === selectedAlbumId);
+      options.album_id = selectedAlbumId;
+      options.album_label = album?.name ?? null;
     }
 
     const { data: row, error } = await supabase.from("project_exports").insert({
@@ -200,10 +317,19 @@ export const ExportPdfDialog = ({
   };
 
   const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");
-  const showModeToggle = !lockMode && daysAsc.length > 0;
+  const showModeToggle = !lockMode && (daysAsc.length > 0 || albums.length > 0);
   const titleText = mode === "range"
     ? "Export date range as PDF"
-    : dayKey ? "Export day as PDF" : "Export project as PDF";
+    : mode === "album"
+      ? "Export album as PDF"
+      : dayKey ? "Export day as PDF" : "Export project as PDF";
+
+  // History excludes the current in-progress row
+  const historyRows = history.filter(
+    (h) => !(currentExport && h.id === currentExport.id),
+  );
+
+  const albumsDisabled = albums.length === 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -218,18 +344,34 @@ export const ExportPdfDialog = ({
           <DialogDescription>
             {mode === "range"
               ? "Photos are grouped by day, then by area within each day."
-              : dayKey
-                ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
-                : "Generate a branded PDF of your project. Photos are grouped by date."}
+              : mode === "album"
+                ? "Photos in the selected album are grouped by date."
+                : dayKey
+                  ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
+                  : "Generate a branded PDF of your project. Photos are grouped by date."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
           {showModeToggle && (
             <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="single">Single day</TabsTrigger>
-                <TabsTrigger value="range">Date range</TabsTrigger>
+                <TabsTrigger value="range" disabled={daysAsc.length === 0}>Date range</TabsTrigger>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={cn(albumsDisabled && "cursor-not-allowed")}>
+                        <TabsTrigger value="album" disabled={albumsDisabled} className="w-full">
+                          By album
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    {albumsDisabled && (
+                      <TooltipContent>No albums in this project.</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </TabsList>
             </Tabs>
           )}
@@ -278,6 +420,34 @@ export const ExportPdfDialog = ({
             </Card>
           )}
 
+          {mode === "album" && (
+            <Card>
+              <CardContent className="space-y-3 pt-4 text-sm">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Album</Label>
+                  <Select
+                    value={selectedAlbumId ?? ""}
+                    onValueChange={(v) => setSelectedAlbumId(v)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Pick an album" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {albums.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.name} · {a.photoCount} photo{a.photoCount === 1 ? "" : "s"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"} in this album
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {overCap && (
             <Card className="border-destructive/40 bg-destructive/5">
               <CardContent className="flex gap-3 pt-4 text-sm">
@@ -287,9 +457,11 @@ export const ExportPdfDialog = ({
                   <p className="mt-1 text-muted-foreground">
                     {mode === "range"
                       ? `This range covers ${effectivePhotoCount} photos across ${rangeDays.length} day${rangeDays.length === 1 ? "" : "s"}. The PDF export is capped at ${PHOTO_CAP}. Narrow the range or split into multiple albums before exporting.`
-                      : dayKey
-                        ? `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos or split across more days before exporting.`
-                        : `This project has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Export day-by-day or a narrower date range, or remove photos before exporting.`}
+                      : mode === "album"
+                        ? `This album contains ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Split into smaller albums or remove photos before exporting.`
+                        : dayKey
+                          ? `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos or split across more days before exporting.`
+                          : `This project has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Export day-by-day or a narrower date range, or remove photos before exporting.`}
                   </p>
                 </div>
               </CardContent>
@@ -338,7 +510,8 @@ export const ExportPdfDialog = ({
               submitting ||
               overCap ||
               !!inProgress ||
-              (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0))
+              (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0)) ||
+              (mode === "album" && (!selectedAlbumId || effectivePhotoCount === 0))
             }
           >
             {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -368,6 +541,61 @@ export const ExportPdfDialog = ({
               </CardContent>
             </Card>
           )}
+
+          <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full justify-between">
+                <span className="flex items-center gap-2 text-sm">
+                  <History className="h-4 w-4" />
+                  Export history
+                </span>
+                <ChevronDown
+                  className={cn("h-4 w-4 transition-transform", historyOpen && "rotate-180")}
+                />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading history…
+                </div>
+              ) : historyRows.length === 0 ? (
+                <p className="px-1 py-3 text-sm text-muted-foreground">No previous exports yet.</p>
+              ) : (
+                <ul className="divide-y rounded-md border">
+                  {historyRows.map((h) => {
+                    const ready = h.status === "ready" && !!h.output_path;
+                    const variant =
+                      h.status === "ready" ? "default" : h.status === "failed" ? "destructive" : "secondary";
+                    return (
+                      <li key={h.id} className="flex items-center gap-3 p-3 text-sm">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium">{fmtScope(h.options)}</div>
+                          <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant={variant} className="capitalize">{h.status}</Badge>
+                            <span>{fmtCreated(h.created_at)}</span>
+                            {h.photo_count != null && <span>· {h.photo_count} photos</span>}
+                          </div>
+                          {h.error_message && (
+                            <p className="mt-1 truncate text-xs text-destructive">{h.error_message}</p>
+                          )}
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          disabled={!ready}
+                          onClick={() => ready && downloadExport(h.output_path!)}
+                          aria-label="Download export"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </DialogContent>
     </Dialog>
@@ -404,7 +632,6 @@ const DayPickerField = ({
   const valueDay = days.find((d) => d.key === value);
   const allowedKeys = useMemo(() => new Set(days.map((d) => d.key)), [days]);
 
-  // For Calendar component, we need a Date; map back via key match
   const selectedDate = valueDay?.date ?? undefined;
   const minDate = days[0]?.date;
   const maxDate = days[days.length - 1]?.date;
