@@ -94,6 +94,7 @@ const ProjectDetail = () => {
   const { user } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
