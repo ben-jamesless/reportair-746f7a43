@@ -21,6 +21,7 @@ interface ProjectForEdit {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  default_view?: "report" | "gallery" | null;
 }
 
 interface Props {
