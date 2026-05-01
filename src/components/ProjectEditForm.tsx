@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/projectStatus";
 
+export type ProjectDefaultView = "report" | "gallery";
+
 export interface ProjectEditValues {
   name: string;
   description: string | null;
@@ -35,6 +37,7 @@ export interface ProjectEditValues {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  default_view?: ProjectDefaultView | null;
 }
 
 interface Props extends ProjectEditValues {
@@ -71,6 +74,7 @@ export const ProjectEditForm = ({
   overall_status: initialStatus,
   event_type: initialEventType,
   client_name: initialClient,
+  default_view: initialDefaultView,
   onSaved,
   onClose,
   hideDangerZone,
@@ -86,9 +90,11 @@ export const ProjectEditForm = ({
   const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
   const [eventType, setEventType] = useState(initialEventType ?? "");
   const [clientName, setClientName] = useState(initialClient ?? "");
+  const [defaultView, setDefaultView] = useState<ProjectDefaultView>(initialDefaultView ?? "report");
 
   const [busy, setBusy] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Delete state
   const [confirmingDelete, setConfirmingDelete] = useState(false);
