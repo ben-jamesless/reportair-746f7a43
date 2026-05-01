@@ -136,6 +136,7 @@ export const ExportPdfDialog = ({
   const [logoPath, setLogoPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
+  const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
   const fileInput = useRef<HTMLInputElement>(null);
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
@@ -274,7 +275,7 @@ export const ExportPdfDialog = ({
     const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
     const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
 
-    const options: Record<string, unknown> = { sections };
+    const options: Record<string, unknown> = { sections, orientation };
     if (mode === "single") {
       options.day_key = dayKey ?? null;
       options.day_label = dayLabel ?? null;
@@ -375,6 +376,19 @@ export const ExportPdfDialog = ({
               </TabsList>
             </Tabs>
           )}
+
+          <div className="flex items-center justify-between rounded-md border p-3">
+            <div>
+              <Label className="text-sm font-medium">Page orientation</Label>
+              <p className="text-xs text-muted-foreground">Landscape fits more photos per row.</p>
+            </div>
+            <Tabs value={orientation} onValueChange={(v) => setOrientation(v as "landscape" | "portrait")}>
+              <TabsList>
+                <TabsTrigger value="landscape">Landscape</TabsTrigger>
+                <TabsTrigger value="portrait">Portrait</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
           {mode === "single" && dayKey && (
             <Card className="border-primary/30 bg-primary/5">

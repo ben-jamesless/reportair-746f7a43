@@ -798,6 +798,7 @@ export type Database = {
         Returns: string
       }
       delete_project: { Args: { _project_id: string }; Returns: undefined }
+      get_share_export_url: { Args: { _token: string }; Returns: string }
       get_share_photo_url: {
         Args: { _photo_id: string; _token: string }
         Returns: string

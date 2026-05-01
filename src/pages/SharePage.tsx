@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, MapPinned, Lock, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, MapPinned, Lock, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -23,23 +23,39 @@ type Area = { id: string; name: string; sort_order: number };
 type DayNote = { date: string; notes: string | null };
 type AreaDayStatus = { area_id: string; date: string; status: string };
 type AreaDayNote = { area_id: string; date: string; notes: string | null };
+type ShareProject = {
+  id: string;
+  name: string;
+  description: string | null;
+  client_name?: string | null;
+  event_location?: string | null;
+  event_date?: string | null;
+  color?: string | null;
+  overall_status?: string | null;
+};
+type LatestExport = { id: string; created_at: string; photo_count: number | null };
 type Resolved = {
   ok: boolean;
   error?: string;
   share_link_id?: string;
-  project?: { id: string; name: string; description: string | null };
+  project?: ShareProject;
   albums?: Album[];
   areas?: Area[];
   day_notes?: DayNote[];
   area_day_status?: AreaDayStatus[];
   area_day_notes?: AreaDayNote[];
   photos?: SharePhoto[];
+  latest_export?: LatestExport | null;
 };
 
 const STATUS_META: Record<string, { label: string; dot: string; chip: string }> = {
-  on_track: { label: "On Track", dot: "bg-blue-500", chip: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300" },
+  on_track: { label: "On Track", dot: "bg-emerald-500", chip: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+  at_risk: { label: "At Risk", dot: "bg-amber-500", chip: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+  delayed: { label: "Delayed", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+  complete: { label: "Complete", dot: "bg-teal-500", chip: "border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300" },
   requires_discussion: { label: "Requires Discussion", dot: "bg-orange-500", chip: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300" },
-  concern: { label: "Concern / Behind Schedule", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+  concern: { label: "Concern", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
+  behind_schedule: { label: "Behind Schedule", dot: "bg-red-500", chip: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300" },
 };
 
 const isoDateKey = (d: Date) => {
@@ -65,6 +81,7 @@ const SharePage = () => {
   const [activeArea, setActiveArea] = useState<string>(ALL_AREAS);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [guest, setGuest] = useState<{ name: string; email: string } | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -92,6 +109,8 @@ const SharePage = () => {
   const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
   const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
   const areas = useMemo(() => data?.areas ?? [], [data?.areas]);
+  const project = data?.project;
+  const accentColor = project?.color || "#01696F";
   const dayNotesMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.day_notes ?? []).forEach((d) => { if (d.notes && d.notes.trim()) m.set(d.date, d.notes); });
@@ -125,6 +144,63 @@ const SharePage = () => {
   const indexById = useMemo(() => {
     const m = new Map<string, number>(); visiblePhotos.forEach((p, i) => m.set(p.id, i)); return m;
   }, [visiblePhotos]);
+
+  // Coverage: % of distinct project days that have a photo in each area
+  const coverage = useMemo(() => {
+    const allDayKeys = new Set<string>();
+    photos.forEach((p) => {
+      const raw = p.captured_at || p.created_at;
+      try { allDayKeys.add(isoDateKey(new Date(raw))); } catch { /* skip */ }
+    });
+    const totalDays = allDayKeys.size;
+    const rows = areas.map((a) => {
+      const photosInArea = photos.filter((p) => p.area_id === a.id);
+      const dayKeys = new Set<string>();
+      photosInArea.forEach((p) => {
+        const raw = p.captured_at || p.created_at;
+        try { dayKeys.add(isoDateKey(new Date(raw))); } catch { /* skip */ }
+      });
+      const pct = totalDays > 0 ? Math.round((dayKeys.size / totalDays) * 100) : 0;
+      return { id: a.id, name: a.name, photoCount: photosInArea.length, pct };
+    });
+    const areasWithAny = rows.filter((r) => r.photoCount > 0).length;
+    const overallPct = areas.length > 0 ? Math.round((areasWithAny / areas.length) * 100) : 0;
+    return { rows, totalDays, overallPct, totalPhotos: photos.length, totalAreas: areas.length };
+  }, [photos, areas]);
+
+  const lastUpdated = useMemo(() => {
+    if (photos.length === 0) return null;
+    let max = 0;
+    for (const p of photos) {
+      const t = new Date(p.created_at).getTime();
+      if (t > max) max = t;
+    }
+    return max ? new Date(max) : null;
+  }, [photos]);
+
+  const downloadLatestReport = async () => {
+    if (!token || downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-export-url`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.url) {
+        toast.error("Could not get download link");
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = json.url; a.rel = "noopener"; a.target = "_self";
+      a.download = "site-story.pdf";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    } catch (e) {
+      toast.error("Download failed");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (loading && !data) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
@@ -163,23 +239,88 @@ const SharePage = () => {
     return <GuestIdentityPrompt onSubmit={(g) => { localStorage.setItem(guestKey(token!), JSON.stringify(g)); setGuest(g); }} />;
   }
 
+  const status = project?.overall_status ?? null;
+  const statusMeta = status ? STATUS_META[status] : undefined;
+  const eventDateStr = project?.event_date
+    ? new Date(project.event_date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    : null;
+
+  const subtitleBits = [project?.client_name, eventDateStr, project?.event_location].filter(Boolean) as string[];
+
+  const hasLatestExport = !!data?.latest_export;
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      {/* Top accent strip */}
+      <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
       <header className="border-b bg-background">
-        <div className="container flex items-center justify-between py-4">
-          <div>
+        <div className="container flex flex-col gap-3 py-5 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Shared gallery</p>
-            <h1 className="text-2xl font-semibold">{data?.project?.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-semibold">{project?.name}</h1>
+              {statusMeta ? (
+                <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs", statusMeta.chip)}>
+                  <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
+                  {statusMeta.label}
+                </span>
+              ) : status ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+                  {status}
+                </span>
+              ) : null}
+            </div>
+            {subtitleBits.length > 0 && (
+              <p className="mt-1 text-sm text-muted-foreground">{subtitleBits.join(" · ")}</p>
+            )}
           </div>
-          <div className="text-right text-xs text-muted-foreground">
-            <p>Viewing as</p>
-            <p className="font-medium text-foreground">{guest.name}</p>
+          <div className="flex flex-col items-start gap-2 md:items-end">
+            <div className="text-right text-xs text-muted-foreground">
+              <p>Viewing as</p>
+              <p className="font-medium text-foreground">{guest.name}</p>
+            </div>
+            {hasLatestExport && (
+              <Button size="sm" variant="outline" onClick={downloadLatestReport} disabled={downloading}>
+                {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Download latest report
+              </Button>
+            )}
           </div>
         </div>
       </header>
 
       <main className="container py-8">
-        {data?.project?.description && <p className="mb-6 max-w-2xl text-muted-foreground">{data.project.description}</p>}
+        {project?.description && <p className="mb-6 max-w-2xl text-muted-foreground">{project.description}</p>}
+
+        {/* Coverage section */}
+        {areas.length > 0 && (
+          <section className="mb-8 rounded-lg border bg-background p-5">
+            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Site Coverage</h2>
+              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                <span><strong className="text-foreground">{coverage.totalPhotos}</strong> photos</span>
+                <span><strong className="text-foreground">{coverage.totalAreas}</strong> areas</span>
+                <span><strong className="text-foreground">{coverage.overallPct}%</strong> coverage</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {coverage.rows.map((r) => (
+                <div key={r.id} className="grid grid-cols-[1fr_2fr_auto] items-center gap-3 text-sm">
+                  <span className="truncate font-medium">{r.name}</span>
+                  <div className="relative h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full transition-all"
+                      style={{ width: `${r.pct}%`, backgroundColor: accentColor }}
+                    />
+                  </div>
+                  <span className="whitespace-nowrap text-xs text-muted-foreground">
+                    {r.photoCount === 0 ? "No photos yet" : `${r.photoCount} photo${r.photoCount === 1 ? "" : "s"}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <Tabs value={activeAlbum} onValueChange={setActiveAlbum} className="w-full">
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
@@ -210,7 +351,7 @@ const SharePage = () => {
                   const dateKey = isoDateKey(group.date);
                   const dayNote = dayNotesMap.get(dateKey);
                   const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                  const statusMeta = statusKey ? STATUS_META[statusKey] : undefined;
+                  const sm = statusKey ? STATUS_META[statusKey] : undefined;
                   const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
                   return (
                     <section key={group.key}>
@@ -229,10 +370,10 @@ const SharePage = () => {
                       {activeAreaObj && (
                         <div className="mb-3 flex flex-wrap items-center gap-2">
                           <span className="text-sm font-medium">{activeAreaObj.name}</span>
-                          {statusMeta && (
-                            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", statusMeta.chip)}>
-                              <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
-                              {statusMeta.label}
+                          {sm && (
+                            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
+                              <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
+                              {sm.label}
                             </span>
                           )}
                         </div>
@@ -252,6 +393,12 @@ const SharePage = () => {
                   );
                 })}
               </div>
+            )}
+
+            {lastUpdated && (
+              <p className="mt-8 text-center text-xs text-muted-foreground">
+                Last updated {lastUpdated.toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </p>
             )}
           </TabsContent>
         </Tabs>
