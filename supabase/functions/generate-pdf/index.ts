@@ -311,7 +311,7 @@ Deno.serve(async (req) => {
       if (!statusKey) return null;
       const meta = STATUS_META[statusKey];
       if (!meta) return null;
-      const size = 7.5;
+      const size = 7;
       const padX = 8;
       const padY = 3;
       const textW = fontBold.widthOfTextAtSize(meta.label, size);
@@ -326,7 +326,23 @@ Deno.serve(async (req) => {
       if (!statusKey) return 0;
       const meta = STATUS_META[statusKey];
       if (!meta) return 0;
-      return fontBold.widthOfTextAtSize(meta.label, 7.5) + 16;
+      return fontBold.widthOfTextAtSize(meta.label, 7) + 16;
+    };
+
+    // Lighter accent variant: 3pt wide vertical bar in status colour, then label text in same colour at 8pt.
+    // Used in scan-light contexts (cover right column, day summary table). y is the baseline-area bottom.
+    const drawStatusAccent = (page: PDFPage, x: number, y: number, statusKey: string | null | undefined): { width: number; height: number } | null => {
+      if (!statusKey) return null;
+      const meta = STATUS_META[statusKey];
+      if (!meta) return null;
+      const size = 8;
+      const barW = 3;
+      const barH = size + 4; // a touch taller than the cap height
+      const gap = 5;
+      page.drawRectangle({ x, y, width: barW, height: barH, color: C(meta.color) });
+      page.drawText(meta.label, { x: x + barW + gap, y: y + 2, size, font: fontReg, color: C(meta.color) });
+      const w = barW + gap + fontReg.widthOfTextAtSize(meta.label, size);
+      return { width: w, height: barH };
     };
 
     // ===== Rich-text bullet renderer =====
