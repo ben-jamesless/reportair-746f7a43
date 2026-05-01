@@ -411,12 +411,14 @@ const ProjectDetail = () => {
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, album_id: albumId } : p)));
   };
 
-  // Upload context: when "Pre-event" is the active day, uploads land in the pre-event album.
+  // Upload context: when an album is the active day, uploads land in that album.
+  const activeAlbumId = albumIdFromKey(activeDay);
+  const activeAlbum = activeAlbumId ? albums.find((a) => a.id === activeAlbumId) ?? null : null;
   const uploadAreaId = activeArea && activeArea !== NO_AREA ? activeArea : null;
-  const uploadAlbumId = activeDay === PRE_EVENT_DAY && preEventAlbum ? preEventAlbum.id : null;
+  const uploadAlbumId = activeAlbum?.id ?? null;
   const uploadContextLabel = (() => {
     const parts: string[] = [];
-    if (activeDay === PRE_EVENT_DAY) parts.push("Pre-event");
+    if (activeAlbum) parts.push(activeAlbum.name);
     else if (activeDay !== ALL_DAYS) {
       const d = days.find((x) => x.key === activeDay);
       if (d) parts.push(SHORT_FMT.format(d.date));
