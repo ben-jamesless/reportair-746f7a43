@@ -313,8 +313,31 @@ export const ProjectEditForm = ({
           </Select>
         </div>
 
-        <div className="space-y-2 sm:col-span-2">
-          <Label>Accent colour</Label>
+        {canChangeDefaultView && (
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Default project view</Label>
+            <p className="text-xs text-muted-foreground">
+              Which layout opens first when this project is loaded. Owners and admins can change this.
+            </p>
+            <div className="inline-flex rounded-md border bg-background p-1" role="radiogroup" aria-label="Default project view">
+              {(["report", "gallery"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={defaultView === v}
+                  onClick={() => setDefaultView(v)}
+                  className={cn(
+                    "rounded px-3 py-1.5 text-xs font-medium transition-colors",
+                    defaultView === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
+                  )}
+                >
+                  {v === "report" ? "Report view" : "Gallery view"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
           <div className="flex flex-wrap items-center gap-2">
             {PROJECT_COLOR_PALETTE.map((c) => (
               <button
