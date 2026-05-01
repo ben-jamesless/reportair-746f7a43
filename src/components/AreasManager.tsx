@@ -28,6 +28,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
