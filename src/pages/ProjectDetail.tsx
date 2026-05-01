@@ -106,8 +106,10 @@ const ProjectDetail = () => {
   // Initialise filter state from URL so refreshing / sharing a link preserves the view.
   const [activeDay, setActiveDay] = useState<string>(() => {
     const d = searchParams.get("day");
-    if (d === PRE_EVENT_DAY || d === "pre-event") return PRE_EVENT_DAY;
-    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    if (!d) return ALL_DAYS;
+    if (d === LEGACY_PRE_EVENT_DAY || d === LEGACY_PRE_EVENT_SLUG) return LEGACY_PRE_EVENT_DAY;
+    if (isAlbumKey(d)) return d;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
     return ALL_DAYS;
   });
   const [activeArea, setActiveArea] = useState<string | null>(() => {
