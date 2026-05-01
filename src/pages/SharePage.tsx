@@ -462,13 +462,7 @@ const SharePage = () => {
                   <p className="font-bold">{activeAreaObj.name}</p>
                   {(() => {
                     const sKey = latestAreaStatus.get(activeAreaObj.id);
-                    const sm = sKey ? STATUS_META[sKey] : undefined;
-                    return sm ? (
-                      <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs", sm.chip)}>
-                        <span className={cn("h-1.5 w-1.5 rounded-full", sm.dot)} />
-                        {sm.label}
-                      </span>
-                    ) : null;
+                    return sKey ? <StatusPill statusKey={sKey} /> : null;
                   })()}
                   <div className="border-t" />
                   <div>
