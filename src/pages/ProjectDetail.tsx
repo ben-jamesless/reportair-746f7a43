@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2 } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,13 +32,16 @@ import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
-import { CommentsPanel } from "@/components/CommentsPanel";
+import { FeedbackPanel } from "@/components/FeedbackPanel";
+import { RichNotes } from "@/components/RichNotes";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
 import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+type ProjectView = "report" | "gallery";
 
 type Project = {
   id: string;
@@ -52,6 +55,7 @@ type Project = {
   event_type: string | null;
   client_name: string | null;
   archived_at: string | null;
+  default_view: ProjectView | null;
 };
 
 type Album = { id: string; name: string; slug: string; position: number };
@@ -128,6 +132,10 @@ const ProjectDetail = () => {
     if (t === "updates" || t === "photos") return "photos";
     return "photos";
   });
+  // Session-only view toggle (overrides project default for current session). null = use project default.
+  const [viewOverride, setViewOverride] = useState<ProjectView | null>(null);
+  // Whether we've already auto-selected the latest day (only do this once per project load).
+  const [didAutoSelectDay, setDidAutoSelectDay] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -194,7 +202,7 @@ const ProjectDetail = () => {
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name, archived_at").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
       supabase
@@ -345,6 +353,25 @@ const ProjectDetail = () => {
     setOpenDays(new Set([target]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days.length]);
+
+  // On first project load: if no day is in the URL, default to the most recent day with photos.
+  // Falls back silently to Event Gallery (ALL_DAYS) when there are no photos.
+  useEffect(() => {
+    if (didAutoSelectDay) return;
+    if (!project) return;
+    // If the URL pinned a specific day/album already, respect it.
+    const pinned = searchParams.get("day");
+    if (pinned) { setDidAutoSelectDay(true); return; }
+    if (days.length > 0) {
+      setActiveDay(days[0].key);
+      setActiveArea(null);
+    }
+    setDidAutoSelectDay(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, days.length, didAutoSelectDay]);
+
+  // Effective view: session override wins, else project default, else "report".
+  const effectiveView: ProjectView = viewOverride ?? project?.default_view ?? "report";
 
   const areaCountsForDay = useCallback(
     (dayPhotos: LightboxPhoto[]) => {
@@ -667,6 +694,38 @@ const ProjectDetail = () => {
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
           <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-md border bg-background p-0.5" role="radiogroup" aria-label="Project view">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={effectiveView === "report"}
+                onClick={() => setViewOverride("report")}
+                title="Daily report view"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                  effectiveView === "report"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary",
+                )}
+              >
+                <FileText className="h-3.5 w-3.5" /> Report
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={effectiveView === "gallery"}
+                onClick={() => setViewOverride("gallery")}
+                title="Gallery view"
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                  effectiveView === "gallery"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary",
+                )}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Gallery
+              </button>
+            </div>
             <Button
               variant="default"
               size="sm"
@@ -901,8 +960,79 @@ const ProjectDetail = () => {
                   </div>
                 )}
 
-                {/* Daily updates note shown at the top of the main panel when a dated day is active */}
-                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (
+                {/* Daily report header — only when a dated day is active and the effective view is "report". */}
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report" && (() => {
+                  const day = days.find((d) => d.key === activeDay);
+                  if (!day) return null;
+                  const dayPool = day.photos;
+                  const areasOnDay = areas.filter((ar) => dayPool.some((p) => p.area_id === ar.id));
+                  const dayNoteVal = dayNotes.get(activeDay) ?? null;
+                  return (
+                    <div className="mb-6 space-y-4 rounded-lg border border-border bg-card/40 p-5">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h2 className="text-2xl font-bold tracking-tight">{day.label}</h2>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "text-[11px]",
+                            projectStatusMeta(project?.overall_status ?? null).pillClass,
+                          )}
+                        >
+                          <span className={cn("mr-1.5 inline-block h-1.5 w-1.5 rounded-full", projectStatusMeta(project?.overall_status ?? null).dotClass)} />
+                          {projectStatusMeta(project?.overall_status ?? null).label}
+                        </Badge>
+                      </div>
+
+                      {/* Editable day note with rich-text preview */}
+                      <div>
+                        {dayNoteVal && dayNoteVal.trim() && (
+                          <div className="mb-2">
+                            <RichNotes value={dayNoteVal} className="text-foreground" />
+                          </div>
+                        )}
+                        <EditableNote
+                          value={dayNoteVal}
+                          placeholder="Add a day note…"
+                          onSave={(next) => saveDayNote(activeDay, next)}
+                        />
+                      </div>
+
+                      {/* Per-area summary rows */}
+                      {areasOnDay.length > 0 && (
+                        <div className="space-y-1.5 border-t pt-3">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Areas</p>
+                          <div className="space-y-1">
+                            {areasOnDay.map((ar) => {
+                              const st = getAreaDayStatus(ar.id, activeDay);
+                              const meta = projectStatusMeta(st === "no_status" ? null : (st as ProjectStatus));
+                              const note = getAreaDayNote(ar.id, activeDay);
+                              const firstLine = note ? note.split(/\r?\n/).find((l) => l.trim()) ?? "" : "";
+                              return (
+                                <button
+                                  key={ar.id}
+                                  onClick={() => selectDayArea(activeDay, ar.id)}
+                                  className="flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-secondary/60"
+                                >
+                                  <span className="min-w-0 flex-1 truncate font-medium">{ar.name}</span>
+                                  <Badge variant="secondary" className={cn("shrink-0 text-[10px]", meta.pillClass)}>
+                                    <span className={cn("mr-1 inline-block h-1.5 w-1.5 rounded-full", meta.dotClass)} />
+                                    {meta.label}
+                                  </Badge>
+                                  <span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+                                    {firstLine}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Plain editable note for gallery view + dated day (legacy behaviour). */}
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "gallery" && (
                   <div className="mb-5">
                     <EditableNote
                       value={dayNotes.get(activeDay) ?? null}
@@ -1042,12 +1172,24 @@ const ProjectDetail = () => {
                 )}
               </section>
 
-              <CommentsPanel
+              <FeedbackPanel
                 projectId={project.id}
                 visiblePhotos={visiblePhotos}
+                allPhotos={photos}
                 onOpenPhoto={(photoId) => {
                   const idx = photoIndexById.get(photoId);
-                  if (idx !== undefined) setLightboxIndex(idx);
+                  if (idx !== undefined) {
+                    setLightboxIndex(idx);
+                  } else {
+                    // Photo isn't in current visible pool — reset filters and re-target.
+                    setActiveDay(ALL_DAYS);
+                    setActiveArea(null);
+                    // Defer to next tick so visiblePhotos updates first.
+                    setTimeout(() => {
+                      const all = photos.findIndex((p) => p.id === photoId);
+                      if (all >= 0) setLightboxIndex(all);
+                    }, 0);
+                  }
                 }}
                 className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
               />

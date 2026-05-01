@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/projectStatus";
 
+export type ProjectDefaultView = "report" | "gallery";
+
 export interface ProjectEditValues {
   name: string;
   description: string | null;
@@ -35,6 +37,7 @@ export interface ProjectEditValues {
   overall_status: ProjectStatus | null;
   event_type: string | null;
   client_name: string | null;
+  default_view?: ProjectDefaultView | null;
 }
 
 interface Props extends ProjectEditValues {
@@ -71,6 +74,7 @@ export const ProjectEditForm = ({
   overall_status: initialStatus,
   event_type: initialEventType,
   client_name: initialClient,
+  default_view: initialDefaultView,
   onSaved,
   onClose,
   hideDangerZone,
@@ -86,9 +90,11 @@ export const ProjectEditForm = ({
   const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
   const [eventType, setEventType] = useState(initialEventType ?? "");
   const [clientName, setClientName] = useState(initialClient ?? "");
+  const [defaultView, setDefaultView] = useState<ProjectDefaultView>(initialDefaultView ?? "report");
 
   const [busy, setBusy] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Delete state
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -109,36 +115,50 @@ export const ProjectEditForm = ({
     setStatus(initialStatus ?? "no_status");
     setEventType(initialEventType ?? "");
     setClientName(initialClient ?? "");
-  }, [initialName, initialDescription, initialColor, initialEventDate, initialEventLocation, initialStatus, initialEventType, initialClient]);
+    setDefaultView(initialDefaultView ?? "report");
+  }, [initialName, initialDescription, initialColor, initialEventDate, initialEventLocation, initialStatus, initialEventType, initialClient, initialDefaultView]);
 
   useEffect(() => {
     (async () => {
       if (!user) return;
-      const { data } = await supabase
-        .from("project_members")
-        .select("role")
-        .eq("project_id", projectId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setIsOwner(data?.role === "owner");
+      const [{ data: pm }, { data: ar }] = await Promise.all([
+        supabase
+          .from("project_members")
+          .select("role")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle(),
+      ]);
+      setIsOwner(pm?.role === "owner");
+      setIsAdmin(!!ar);
     })();
   }, [user, projectId]);
+
+  const canChangeDefaultView = isOwner || isAdmin;
 
   const save = async () => {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
+    const update = {
+      name: name.trim(),
+      description: description.trim() || null,
+      color,
+      event_date: toIsoDate(eventDate),
+      event_location: eventLocation.trim() || null,
+      overall_status: status,
+      event_type: eventType.trim() || null,
+      client_name: clientName.trim() || null,
+      ...(canChangeDefaultView ? { default_view: defaultView } : {}),
+    };
     const { error } = await supabase
       .from("projects")
-      .update({
-        name: name.trim(),
-        description: description.trim() || null,
-        color,
-        event_date: toIsoDate(eventDate),
-        event_location: eventLocation.trim() || null,
-        overall_status: status,
-        event_type: eventType.trim() || null,
-        client_name: clientName.trim() || null,
-      })
+      .update(update)
       .eq("id", projectId);
     setBusy(false);
     if (error) { toast.error(error.message); return; }
@@ -292,6 +312,32 @@ export const ProjectEditForm = ({
             </SelectContent>
           </Select>
         </div>
+
+        {canChangeDefaultView && (
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Default project view</Label>
+            <p className="text-xs text-muted-foreground">
+              Which layout opens first when this project is loaded. Owners and admins can change this.
+            </p>
+            <div className="inline-flex rounded-md border bg-background p-1" role="radiogroup" aria-label="Default project view">
+              {(["report", "gallery"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={defaultView === v}
+                  onClick={() => setDefaultView(v)}
+                  className={cn(
+                    "rounded px-3 py-1.5 text-xs font-medium transition-colors",
+                    defaultView === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
+                  )}
+                >
+                  {v === "report" ? "Report view" : "Gallery view"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2 sm:col-span-2">
           <Label>Accent colour</Label>

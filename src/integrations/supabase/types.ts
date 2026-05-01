@@ -604,6 +604,7 @@ export type Database = {
           color: string
           created_at: string
           created_by: string
+          default_view: Database["public"]["Enums"]["project_default_view"]
           description: string | null
           event_date: string | null
           event_location: string | null
@@ -621,6 +622,7 @@ export type Database = {
           color?: string
           created_at?: string
           created_by: string
+          default_view?: Database["public"]["Enums"]["project_default_view"]
           description?: string | null
           event_date?: string | null
           event_location?: string | null
@@ -638,6 +640,7 @@ export type Database = {
           color?: string
           created_at?: string
           created_by?: string
+          default_view?: Database["public"]["Enums"]["project_default_view"]
           description?: string | null
           event_date?: string | null
           event_location?: string | null
@@ -856,6 +859,7 @@ export type Database = {
       area_status: "no_status" | "on_track" | "requires_discussion" | "concern"
       export_status: "queued" | "processing" | "ready" | "failed"
       notification_type: "mention" | "reply" | "guest_comment"
+      project_default_view: "report" | "gallery"
       project_role: "owner" | "editor" | "commenter" | "viewer"
       project_status:
         | "no_status"
@@ -997,6 +1001,7 @@ export const Constants = {
       area_status: ["no_status", "on_track", "requires_discussion", "concern"],
       export_status: ["queued", "processing", "ready", "failed"],
       notification_type: ["mention", "reply", "guest_comment"],
+      project_default_view: ["report", "gallery"],
       project_role: ["owner", "editor", "commenter", "viewer"],
       project_status: [
         "no_status",
