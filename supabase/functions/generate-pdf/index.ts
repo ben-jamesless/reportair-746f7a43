@@ -2,6 +2,7 @@
 // Layout follows the approved Site Story V2 design templates.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 
 type PhotoRow = {
   id: string;
@@ -108,10 +109,10 @@ function sanitize(input: unknown): string {
     "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
     "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
     "\u2013": "-", "\u2014": "-", "\u2212": "-",
-    "\u2026": "...", "\u2022": "*", "\u00B7": "-",
+    "\u2026": "...", "\u2022": "*",
   };
   // eslint-disable-next-line no-misleading-character-class
-  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
+  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022]/g, (c) => map[c] ?? "");
   // eslint-disable-next-line no-control-regex
   s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
   return s;
@@ -223,10 +224,38 @@ Deno.serve(async (req) => {
 
     // ============ Build PDF ============
     const pdf = await PDFDocument.create();
-    const fontReg = await pdf.embedFont(StandardFonts.Helvetica);
-    const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
-    const fontItal = await pdf.embedFont(StandardFonts.HelveticaOblique);
-    const fontBoldItal = await pdf.embedFont(StandardFonts.HelveticaBoldOblique);
+    pdf.registerFontkit(fontkit);
+
+    // Try Lato (Google Fonts), fall back to Helvetica family on any failure.
+    const LATO_URLS = {
+      reg: "https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjxAwXiWtFCfQ7A.ttf",
+      bold: "https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTPHh6UVSwiPGQ3q5d0N7w.ttf",
+      ital: "https://fonts.gstatic.com/s/lato/v24/S6u8w4BMUTPHjxsAXC-vNiXg7Q.ttf",
+      boldItal: "https://fonts.gstatic.com/s/lato/v24/S6u_w4BMUTPHjxsI5wq_FQftx9897g.ttf",
+    };
+    const tryFetch = async (url: string): Promise<Uint8Array | null> => {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) return null;
+        return new Uint8Array(await r.arrayBuffer());
+      } catch { return null; }
+    };
+    const [latoRegBytes, latoBoldBytes, latoItalBytes, latoBoldItalBytes] = await Promise.all([
+      tryFetch(LATO_URLS.reg), tryFetch(LATO_URLS.bold), tryFetch(LATO_URLS.ital), tryFetch(LATO_URLS.boldItal),
+    ]);
+
+    let fontReg: PDFFont, fontBold: PDFFont, fontItal: PDFFont, fontBoldItal: PDFFont;
+    if (latoRegBytes && latoBoldBytes && latoItalBytes && latoBoldItalBytes) {
+      fontReg = await pdf.embedFont(latoRegBytes, { subset: true });
+      fontBold = await pdf.embedFont(latoBoldBytes, { subset: true });
+      fontItal = await pdf.embedFont(latoItalBytes, { subset: true });
+      fontBoldItal = await pdf.embedFont(latoBoldItalBytes, { subset: true });
+    } else {
+      fontReg = await pdf.embedFont(StandardFonts.Helvetica);
+      fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+      fontItal = await pdf.embedFont(StandardFonts.HelveticaOblique);
+      fontBoldItal = await pdf.embedFont(StandardFonts.HelveticaBoldOblique);
+    }
 
     const pickFont = (b: boolean, i: boolean) =>
       b && i ? fontBoldItal : b ? fontBold : i ? fontItal : fontReg;
@@ -282,7 +311,7 @@ Deno.serve(async (req) => {
       if (!statusKey) return null;
       const meta = STATUS_META[statusKey];
       if (!meta) return null;
-      const size = 7.5;
+      const size = 7;
       const padX = 8;
       const padY = 3;
       const textW = fontBold.widthOfTextAtSize(meta.label, size);
@@ -297,7 +326,23 @@ Deno.serve(async (req) => {
       if (!statusKey) return 0;
       const meta = STATUS_META[statusKey];
       if (!meta) return 0;
-      return fontBold.widthOfTextAtSize(meta.label, 7.5) + 16;
+      return fontBold.widthOfTextAtSize(meta.label, 7) + 16;
+    };
+
+    // Lighter accent variant: 3pt wide vertical bar in status colour, then label text in same colour at 8pt.
+    // Used in scan-light contexts (cover right column, day summary table). y is the baseline-area bottom.
+    const drawStatusAccent = (page: PDFPage, x: number, y: number, statusKey: string | null | undefined): { width: number; height: number } | null => {
+      if (!statusKey) return null;
+      const meta = STATUS_META[statusKey];
+      if (!meta) return null;
+      const size = 8;
+      const barW = 3;
+      const barH = size + 4; // a touch taller than the cap height
+      const gap = 5;
+      page.drawRectangle({ x, y, width: barW, height: barH, color: C(meta.color) });
+      page.drawText(meta.label, { x: x + barW + gap, y: y + 2, size, font: fontReg, color: C(meta.color) });
+      const w = barW + gap + fontReg.widthOfTextAtSize(meta.label, size);
+      return { width: w, height: barH };
     };
 
     // ===== Rich-text bullet renderer =====
@@ -505,12 +550,8 @@ Deno.serve(async (req) => {
           page.drawText(ln, { x: leftX, y: ly - descSize, size: descSize, font: fontReg, color: C(TOK.body) });
           ly -= descLineH;
         }
-      } else {
-        page.drawText("No project description provided.", {
-          x: leftX, y: ly - descSize, size: descSize, font: fontItal, color: C(TOK.label),
-        });
-        ly -= descLineH;
       }
+      // (else: no description → leave the column blank; the area table fills it)
 
       // 10mm below: 0.5pt rule across left column
       ly -= 10 * MM;
@@ -602,7 +643,7 @@ Deno.serve(async (req) => {
       page.drawText("STATUS", { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
       const overallStatus = (proj as { overall_status?: string | null }).overall_status ?? null;
       if (overallStatus && STATUS_META[overallStatus]) {
-        drawStatusPill(page, rightX + rPad + 50, ry - 11, overallStatus);
+        drawStatusAccent(page, rightX + rPad + 50, ry - 11, overallStatus);
       }
       ry -= 10 * MM;
 
@@ -640,7 +681,10 @@ Deno.serve(async (req) => {
       dayBuckets = groups.map((g) => ({ key: g.key, date: g.date, label: g.label, photos: g.photos }));
     }
 
-    // Helper: split day photos by area, in sortedAreas order; trailing "Unassigned" if any.
+    // Helper: split day photos by area in sortedAreas order. Photos with no area_id
+    // do NOT get their own "Unassigned" page — they are appended to the last area's
+    // photo grid. If there are no assigned areas at all, they're shown under a single
+    // synthetic group using the day label so the page isn't empty.
     const splitDayByArea = (dayPhotos: PhotoRow[]): { areaId: string | null; name: string; photos: PhotoRow[] }[] => {
       const byArea = new Map<string, PhotoRow[]>();
       const unassigned: PhotoRow[] = [];
@@ -656,7 +700,15 @@ Deno.serve(async (req) => {
         const list = byArea.get(ar.id);
         if (list?.length) out.push({ areaId: ar.id, name: ar.name, photos: list });
       }
-      if (unassigned.length) out.push({ areaId: null, name: "Unassigned", photos: unassigned });
+      if (unassigned.length) {
+        if (out.length > 0) {
+          // Append to the last area's photos (excluded from per-area breakdown / summary table).
+          out[out.length - 1].photos = out[out.length - 1].photos.concat(unassigned);
+        } else {
+          // Edge case: nothing assigned to any area — show under day label.
+          out.push({ areaId: null, name: "Photos", photos: unassigned });
+        }
+      }
       return out;
     };
 
@@ -718,7 +770,7 @@ Deno.serve(async (req) => {
             }
           }
           if (statusKey && STATUS_META[statusKey]) {
-            drawStatusPill(page, tableX + colArea, ty - drowH / 2 - 7, statusKey);
+            drawStatusAccent(page, tableX + colArea, ty - drowH / 2 - 7, statusKey);
           }
           // NOTES (first line, truncated)
           let noteText = "";
@@ -919,31 +971,14 @@ Deno.serve(async (req) => {
                     try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
                   }
                   if (img) {
-                    // Cover-fit: scale to max(cellW/imgW, cellH/imgH), then crop via clip.
-                    // pdf-lib lacks clipping primitives; emulate cover by scaling to the LARGER ratio
-                    // and centering — overflow will draw outside the cell. Since cells are tightly
-                    // packed with 4pt gutter, we instead use contain to avoid overlap, but spec
-                    // explicitly says cover. To honour cover without bleed, we draw a clipping
-                    // white rectangle band approach is too complex; we use scale = max and accept
-                    // controlled overflow constrained by drawing photos in row order from top down.
-                    // Compromise: use cover scale but draw a white rect AROUND the cell region to
-                    // mask overflow into adjacent cell gutters before next row draws.
-                    const sCover = Math.max(cellW / img.width, cellH / img.height);
-                    const w = img.width * sCover, h = img.height * sCover;
+                    // Contain-fit so the photo never bleeds beyond its cell. This avoids needing
+                    // any mask rectangles in the gutters — empty cells stay completely blank,
+                    // with no border artefacts when a row is partially filled.
+                    const sFit = Math.min(cellW / img.width, cellH / img.height);
+                    const w = img.width * sFit, h = img.height * sFit;
                     const ox = x + (cellW - w) / 2;
                     const oy = yCell + (cellH - h) / 2;
                     page.drawImage(img, { x: ox, y: oy, width: w, height: h });
-                    // Mask overflow on the sides outside the cell with white rectangles
-                    if (w > cellW) {
-                      const overflow = (w - cellW) / 2;
-                      page.drawRectangle({ x: x - overflow - 0.5, y: yCell, width: overflow + 0.5, height: cellH, color: C(TOK.white) });
-                      page.drawRectangle({ x: x + cellW, y: yCell, width: overflow + 0.5, height: cellH, color: C(TOK.white) });
-                    }
-                    if (h > cellH) {
-                      const overflow = (h - cellH) / 2;
-                      page.drawRectangle({ x: x, y: yCell - overflow - 0.5, width: cellW, height: overflow + 0.5, color: C(TOK.white) });
-                      page.drawRectangle({ x: x, y: yCell + cellH, width: cellW, height: overflow + 0.5, color: C(TOK.white) });
-                    }
                   }
                 }
               }
