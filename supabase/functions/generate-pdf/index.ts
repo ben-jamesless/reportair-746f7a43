@@ -1,4 +1,5 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
+// Layout follows the approved Site Story V2 design templates.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 
@@ -11,63 +12,130 @@ type PhotoRow = {
   album_id?: string | null;
   captured_at: string | null;
   created_at: string;
-  camera_make?: string | null;
-  camera_model?: string | null;
-  lens?: string | null;
-  iso?: number | null;
-  aperture?: number | null;
-  shutter_speed?: string | null;
-  focal_length?: number | null;
 };
 type AreaRow = { id: string; name: string; sort_order: number };
 type AlbumRow = { id: string; name: string };
-type ActivityRow = { verb: string; target_type: string; metadata: Record<string, unknown> | null; created_at: string; actor_id: string | null };
-type GuestNoteRow = { photo_id: string; guest_name: string; body: string; created_at: string };
 type DayNoteRow = { date: string; notes: string | null };
 type AreaDayStatusRow = { area_id: string; date: string; status: string };
-type ProfileRow = { id: string; full_name: string | null };
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type Sections = {
-  cover: boolean;
-  grid: boolean;
-  captions: boolean;
-  exif: boolean;
-  notes: boolean;
-  activity: boolean;
-};
-
 const PHOTO_CAP = 300;
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
+// ============ Design tokens ============
+const MM = 2.83465; // 1mm in points
+const TOK = {
+  accent: { r: 0x01 / 255, g: 0x69 / 255, b: 0x6f / 255 },     // #01696F
+  nearBlack: { r: 0x1a / 255, g: 0x1a / 255, b: 0x1a / 255 },  // #1a1a1a
+  body: { r: 0x37 / 255, g: 0x41 / 255, b: 0x51 / 255 },       // #374151
+  muted: { r: 0x6b / 255, g: 0x72 / 255, b: 0x80 / 255 },      // #6b7280
+  label: { r: 0x9c / 255, g: 0xa3 / 255, b: 0xaf / 255 },      // #9ca3af
+  divider: { r: 0xe5 / 255, g: 0xe7 / 255, b: 0xeb / 255 },    // #e5e7eb
+  rowStripe: { r: 0xf9 / 255, g: 0xfa / 255, b: 0xfb / 255 },  // #f9fafb
+  rowDivider: { r: 0xf3 / 255, g: 0xf4 / 255, b: 0xf6 / 255 }, // #f3f4f6
+  white: { r: 1, g: 1, b: 1 },
+};
+
+// Status pill spec: rounded rect with white text. null/missing → omit.
+const STATUS_META: Record<string, { label: string; color: { r: number; g: number; b: number } }> = {
+  on_track: { label: "On Track", color: { r: 0x16 / 255, g: 0xa3 / 255, b: 0x4a / 255 } },           // #16a34a
+  at_risk: { label: "At Risk", color: { r: 0xd9 / 255, g: 0x77 / 255, b: 0x06 / 255 } },             // #d97706
+  requires_discussion: { label: "Requires Discussion", color: { r: 0xd9 / 255, g: 0x77 / 255, b: 0x06 / 255 } },
+  delayed: { label: "Delayed", color: { r: 0xdc / 255, g: 0x26 / 255, b: 0x26 / 255 } },             // #dc2626
+  complete: { label: "Complete", color: { r: 0x01 / 255, g: 0x69 / 255, b: 0x6f / 255 } },           // #01696F
+  // Legacy values map to closest equivalents:
+  concern: { label: "Delayed", color: { r: 0xdc / 255, g: 0x26 / 255, b: 0x26 / 255 } },
+  behind_schedule: { label: "Delayed", color: { r: 0xdc / 255, g: 0x26 / 255, b: 0x26 / 255 } },
+};
+
+function hexToRgbObj(hex: string): { r: number; g: number; b: number } {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
-  if (!m) return { r: 1 / 255, g: 105 / 255, b: 111 / 255 };
+  if (!m) return TOK.accent;
   return { r: parseInt(m[1], 16) / 255, g: parseInt(m[2], 16) / 255, b: parseInt(m[3], 16) / 255 };
 }
 
-function fmtDateGroup(d: Date) {
+function fmtDateLong(d: Date) {
   return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+function fmtDayMonthYear(d: Date) {
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+function fmtDayMonth(d: Date) {
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+}
+
+function dateKeyOf(p: { captured_at: string | null; created_at: string }) {
+  const d = new Date(p.captured_at || p.created_at);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function parseDateKey(k: string) {
+  const [y, m, dd] = k.split("-").map(Number);
+  return new Date(y, m - 1, dd);
 }
 
 function groupByDate<T extends { captured_at: string | null; created_at: string }>(photos: T[]) {
-  const map = new Map<string, { date: Date; label: string; photos: T[] }>();
+  const map = new Map<string, { date: Date; key: string; label: string; photos: T[] }>();
   for (const p of photos) {
-    const raw = p.captured_at || p.created_at;
-    const d = new Date(raw);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const key = dateKeyOf(p);
     let g = map.get(key);
-    if (!g) { g = { date: d, label: fmtDateGroup(d), photos: [] }; map.set(key, g); }
+    if (!g) {
+      const d = parseDateKey(key);
+      g = { date: d, key, label: fmtDateLong(d), photos: [] };
+      map.set(key, g);
+    }
     g.photos.push(p);
   }
-  return Array.from(map.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
+  return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
 async function fail(supabase: SupabaseClient, exportId: string, msg: string) {
-  await supabase.from("project_exports").update({ status: "failed", error_message: msg.slice(0, 500), completed_at: new Date().toISOString() }).eq("id", exportId);
+  await supabase
+    .from("project_exports")
+    .update({ status: "failed", error_message: msg.slice(0, 500), completed_at: new Date().toISOString() })
+    .eq("id", exportId);
+}
+
+function sanitize(input: unknown): string {
+  if (input === null || input === undefined) return "";
+  let s = String(input);
+  const map: Record<string, string> = {
+    "\u00A0": " ", "\u2007": " ", "\u2009": " ", "\u200A": " ",
+    "\u202F": " ", "\u205F": " ", "\u3000": " ", "\u200B": "",
+    "\u200C": "", "\u200D": "", "\uFEFF": "",
+    "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
+    "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
+    "\u2013": "-", "\u2014": "-", "\u2212": "-",
+    "\u2026": "...", "\u2022": "*", "\u00B7": "-",
+  };
+  // eslint-disable-next-line no-misleading-character-class
+  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
+  // eslint-disable-next-line no-control-regex
+  s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
+  return s;
+}
+
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  const words = sanitize(text).split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
+      lines.push(line); line = w;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function truncate(s: string, n: number) {
+  const t = sanitize(s);
+  return t.length <= n ? t : t.slice(0, n - 1).trimEnd() + "...";
 }
 
 Deno.serve(async (req) => {
@@ -87,9 +155,7 @@ Deno.serve(async (req) => {
     if (expErr || !exp) throw new Error("Export row not found");
 
     const projectId = exp.project_id;
-    const sections: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false, ...(exp.options?.sections ?? {}) };
     const dayKey: string | null = exp.options?.day_key ?? null;
-    const dayLabel: string | null = exp.options?.day_label ?? null;
     const dateFrom: string | null = exp.options?.date_from ?? null;
     const dateTo: string | null = exp.options?.date_to ?? null;
     const albumIdFilter: string | null = exp.options?.album_id ?? null;
@@ -97,43 +163,35 @@ Deno.serve(async (req) => {
     const orientation: "landscape" | "portrait" = exp.options?.orientation === "portrait" ? "portrait" : "landscape";
     const isRange = !!(dateFrom && dateTo);
     const isAlbum = !!albumIdFilter;
-    const accent = hexToRgb(exp.accent_color || "#01696F");
+    const accentOverride = hexToRgbObj(exp.accent_color || "#01696F");
 
-    const [{ data: proj }, { data: photos }, { data: albums }, { data: areas }, { data: activity }, { data: notes }, { data: dayNotesRows }, { data: areaDayStatusRows }, { data: areaDayNotesRows }] = await Promise.all([
-      supabase.from("projects").select("name, description, template, client_name, event_location, event_date").eq("id", projectId).single(),
-      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height").eq("project_id", projectId).order("captured_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }),
+    const [
+      { data: proj },
+      { data: photos },
+      { data: albums },
+      { data: areas },
+      { data: dayNotesRows },
+      { data: areaDayStatusRows },
+      { data: areaDayNotesRows },
+    ] = await Promise.all([
+      supabase.from("projects").select("name, description, template, client_name, event_type, event_location, event_date, overall_status").eq("id", projectId).single(),
+      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
-      supabase.from("activity_events").select("verb, target_type, metadata, created_at, actor_id").eq("project_id", projectId).order("created_at", { ascending: false }).limit(200),
-      supabase.from("guest_notes").select("photo_id, guest_name, body, created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("day_notes").select("date, notes").eq("project_id", projectId),
       supabase.from("area_day_status").select("area_id, date, status").eq("project_id", projectId),
       supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", projectId),
     ]);
 
-    const areaDayStatus = new Map<string, string>();
-    for (const r of (areaDayStatusRows ?? []) as AreaDayStatusRow[]) {
-      areaDayStatus.set(`${r.area_id}|${r.date}`, r.status);
-    }
-    const areaDayNotes = new Map<string, string>();
-    for (const r of (areaDayNotesRows ?? []) as { area_id: string; date: string; notes: string | null }[]) {
-      if (r.notes && r.notes.trim()) areaDayNotes.set(`${r.area_id}|${r.date}`, r.notes);
-    }
-
     if (!proj) throw new Error("Project not found");
     let allPhotos = (photos ?? []) as PhotoRow[];
 
-    const photoDayKey = (p: PhotoRow) => {
-      const raw = p.captured_at || p.created_at;
-      const d = new Date(raw);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    };
     if (dayKey) {
-      allPhotos = allPhotos.filter((p) => photoDayKey(p) === dayKey);
+      allPhotos = allPhotos.filter((p) => dateKeyOf(p) === dayKey);
       if (allPhotos.length === 0) throw new Error("No photos found for the selected day.");
     } else if (isRange) {
       allPhotos = allPhotos.filter((p) => {
-        const k = photoDayKey(p);
+        const k = dateKeyOf(p);
         return k >= dateFrom! && k <= dateTo!;
       });
       if (allPhotos.length === 0) throw new Error("No photos found in the selected date range.");
@@ -146,80 +204,70 @@ Deno.serve(async (req) => {
       throw new Error(`This export contains ${allPhotos.length} photos. The PDF export is limited to ${PHOTO_CAP}.`);
     }
 
-    const albumName = new Map(((albums ?? []) as AlbumRow[]).map((a) => [a.id, a.name]));
-    const areaName = new Map(((areas ?? []) as AreaRow[]).map((a) => [a.id, a.name]));
-    const dayNoteByDate = new Map<string, string>();
-    for (const r of (dayNotesRows ?? [])) {
-      if (r.notes && String(r.notes).trim()) dayNoteByDate.set(r.date, String(r.notes));
+    // Maps
+    const _albumName = new Map(((albums ?? []) as AlbumRow[]).map((a) => [a.id, a.name]));
+    const sortedAreas = ((areas ?? []) as AreaRow[]);
+    const areaName = new Map(sortedAreas.map((a) => [a.id, a.name]));
+    const _dayNoteByDate = new Map<string, string>();
+    for (const r of (dayNotesRows ?? []) as DayNoteRow[]) {
+      if (r.notes && String(r.notes).trim()) _dayNoteByDate.set(r.date, String(r.notes));
     }
-    const STATUS_LABEL: Record<string, string> = {
-      no_status: "No status",
-      on_track: "On track",
-      requires_discussion: "Requires discussion",
-      concern: "Concern / behind schedule",
-    };
-    const notesByPhoto = new Map<string, GuestNoteRow[]>();
-    for (const n of (notes ?? [])) {
-      const arr = notesByPhoto.get(n.photo_id) ?? [];
-      arr.push(n); notesByPhoto.set(n.photo_id, arr);
+    const areaDayStatus = new Map<string, string>();
+    for (const r of (areaDayStatusRows ?? []) as AreaDayStatusRow[]) {
+      areaDayStatus.set(`${r.area_id}|${r.date}`, r.status);
     }
-
-    const actorIds = Array.from(new Set(((activity ?? []) as ActivityRow[]).map((a) => a.actor_id).filter((x): x is string => Boolean(x))));
-    const actorMap = new Map<string, string>();
-    if (actorIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", actorIds);
-      for (const p of (profs ?? []) as ProfileRow[]) actorMap.set(p.id, p.full_name || "Member");
+    const areaDayNotes = new Map<string, string>();
+    for (const r of (areaDayNotesRows ?? []) as { area_id: string; date: string; notes: string | null }[]) {
+      if (r.notes && r.notes.trim()) areaDayNotes.set(`${r.area_id}|${r.date}`, r.notes);
     }
 
     // ============ Build PDF ============
     const pdf = await PDFDocument.create();
-    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    const fontReg = await pdf.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+    const fontItal = await pdf.embedFont(StandardFonts.HelveticaOblique);
+    const fontBoldItal = await pdf.embedFont(StandardFonts.HelveticaBoldOblique);
 
-    const sanitize = (input: unknown): string => {
-      if (input === null || input === undefined) return "";
-      let s = String(input);
-      const map: Record<string, string> = {
-        "\u00A0": " ", "\u2007": " ", "\u2009": " ", "\u200A": " ",
-        "\u202F": " ", "\u205F": " ", "\u3000": " ", "\u200B": "",
-        "\u200C": "", "\u200D": "", "\uFEFF": "",
-        "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
-        "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
-        "\u2013": "-", "\u2014": "-", "\u2212": "-",
-        "\u2026": "...", "\u2022": "*", "\u00B7": "-",
-      };
-      // eslint-disable-next-line no-misleading-character-class
-      s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022\u00B7]/g, (c) => map[c] ?? "");
-      // eslint-disable-next-line no-control-regex
-      s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
-      return s;
-    };
+    const pickFont = (b: boolean, i: boolean) =>
+      b && i ? fontBoldItal : b ? fontBold : i ? fontItal : fontReg;
 
+    // Page size — A4 (mm-correct in pt: 595.28 x 841.89)
+    const PAGE_W = orientation === "landscape" ? 841.89 : 595.28;
+    const PAGE_H = orientation === "landscape" ? 595.28 : 841.89;
+    const MARGIN = 20 * MM;          // 20mm left/right
+    const FOOTER_Y = 8 * MM;         // 8mm from bottom (baseline-ish)
+    const FOOTER_RULE_Y = FOOTER_Y + 10; // hairline above footer text
+    const FOOTER_RESERVE = FOOTER_RULE_Y + 8;
+
+    const C = (c: { r: number; g: number; b: number }) => rgb(c.r, c.g, c.b);
+    const ACCENT = C(accentOverride);
+    const ACCENT_DEFAULT = C(TOK.accent);
+
+    // Track which pages are "content" (eligible for footer & numbering)
+    const contentPageIndices = new Set<number>();
+
+    // Cover stats: photo date range from filtered set
+    const photoDateRangeLabel = (() => {
+      if (allPhotos.length === 0) return "";
+      const dates = allPhotos.map((p) => parseDateKey(dateKeyOf(p)).getTime()).sort((a, b) => a - b);
+      const first = new Date(dates[0]);
+      const last = new Date(dates[dates.length - 1]);
+      const sameDay = dates[0] === dates[dates.length - 1];
+      if (sameDay) return fmtDayMonthYear(first);
+      const sameYear = first.getFullYear() === last.getFullYear();
+      return sameYear ? `${fmtDayMonth(first)} - ${fmtDayMonthYear(last)}` : `${fmtDayMonthYear(first)} - ${fmtDayMonthYear(last)}`;
+    })();
+
+    // Wrapper to sanitise drawText input
     type DrawTextFn = PDFPage["drawText"];
-    const _wrapDraw = (p: PDFPage): PDFPage => {
+    const wrapDraw = (p: PDFPage): PDFPage => {
       const orig = p.drawText.bind(p) as DrawTextFn;
       p.drawText = ((text: string, opts: Parameters<DrawTextFn>[1]) =>
         orig(sanitize(text), opts)) as DrawTextFn;
       return p;
     };
     const origAddPage = pdf.addPage.bind(pdf);
-    // Track which pages are "content pages" (eligible for footer)
-    const contentPageIndices = new Set<number>();
-    let pageCounter = 0;
-    pdf.addPage = ((...args: Parameters<typeof origAddPage>) => {
-      const p = _wrapDraw(origAddPage(...args));
-      pageCounter += 1;
-      return p;
-    }) as typeof pdf.addPage;
-
-    // Page dimensions based on orientation. A4: 595.28 x 841.89.
-    const PAGE_W = orientation === "landscape" ? 841.89 : 595.28;
-    const PAGE_H = orientation === "landscape" ? 595.28 : 841.89;
-    const M = 40;
-    const TEXT = rgb(0.1, 0.1, 0.1);
-    const MUTED = rgb(0.45, 0.45, 0.45);
-    const ACCENT = rgb(accent.r, accent.g, accent.b);
-    const WHITE = rgb(1, 1, 1);
+    pdf.addPage = ((...args: Parameters<typeof origAddPage>) => wrapDraw(origAddPage(...args))) as typeof pdf.addPage;
 
     const addContentPage = (): PDFPage => {
       const p = pdf.addPage([PAGE_W, PAGE_H]);
@@ -227,418 +275,690 @@ Deno.serve(async (req) => {
       return p;
     };
 
-    // ---- Cover ----
-    if (sections.cover) {
-      const page = pdf.addPage([PAGE_W, PAGE_H]); // Cover is NOT a content page
-      const BAND_H = 180;
-      // Full-bleed accent band at top
+    // ===== Status pill drawing (rectangle with white bold text) =====
+    // Spec: 3pt corner radius (pdf-lib has no native rounded rect → use rectangle; visual difference negligible at this size),
+    // 8pt horizontal padding, 3pt vertical padding, 7.5pt bold white text.
+    const drawStatusPill = (page: PDFPage, x: number, y: number, statusKey: string | null | undefined): { width: number; height: number } | null => {
+      if (!statusKey) return null;
+      const meta = STATUS_META[statusKey];
+      if (!meta) return null;
+      const size = 7.5;
+      const padX = 8;
+      const padY = 3;
+      const textW = fontBold.widthOfTextAtSize(meta.label, size);
+      const w = textW + padX * 2;
+      const h = size + padY * 2;
+      page.drawRectangle({ x, y, width: w, height: h, color: C(meta.color) });
+      page.drawText(meta.label, { x: x + padX, y: y + padY + 1, size, font: fontBold, color: C(TOK.white) });
+      return { width: w, height: h };
+    };
+
+    const pillWidth = (statusKey: string | null | undefined): number => {
+      if (!statusKey) return 0;
+      const meta = STATUS_META[statusKey];
+      if (!meta) return 0;
+      return fontBold.widthOfTextAtSize(meta.label, 7.5) + 16;
+    };
+
+    // ===== Rich-text bullet renderer =====
+    // Splits on \n. Each line gets a teal • prefix + 8pt indent.
+    // - or * prefix is treated as bullet (stripped). **bold**, *italic*, # heading supported.
+    type Token = { text: string; bold: boolean; italic: boolean };
+    const parseInline = (s: string): Token[] => {
+      const tokens: Token[] = [];
+      const re = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+      let last = 0;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(s)) !== null) {
+        if (m.index > last) tokens.push({ text: s.slice(last, m.index), bold: false, italic: false });
+        const t = m[0];
+        if (t.startsWith("**")) tokens.push({ text: t.slice(2, -2), bold: true, italic: false });
+        else tokens.push({ text: t.slice(1, -1), bold: false, italic: true });
+        last = re.lastIndex;
+      }
+      if (last < s.length) tokens.push({ text: s.slice(last), bold: false, italic: false });
+      return tokens;
+    };
+
+    // Wrap a sequence of styled tokens into lines that fit maxWidth at the given size.
+    type StyledLine = Token[];
+    const wrapTokens = (tokens: Token[], size: number, maxWidth: number): StyledLine[] => {
+      const lines: StyledLine[] = [];
+      let cur: StyledLine = [];
+      let curW = 0;
+      for (const tok of tokens) {
+        const f = pickFont(tok.bold, tok.italic);
+        const words = sanitize(tok.text).split(/(\s+)/); // keep spaces
+        for (const w of words) {
+          if (!w) continue;
+          const ww = f.widthOfTextAtSize(w, size);
+          if (curW + ww > maxWidth && cur.length > 0) {
+            lines.push(cur);
+            cur = [];
+            curW = 0;
+            if (/^\s+$/.test(w)) continue;
+          }
+          cur.push({ text: w, bold: tok.bold, italic: tok.italic });
+          curW += ww;
+        }
+      }
+      if (cur.length) lines.push(cur);
+      return lines;
+    };
+
+    const drawStyledLine = (page: PDFPage, line: StyledLine, x: number, y: number, size: number, color = C(TOK.body)) => {
+      let cx = x;
+      for (const tok of line) {
+        const f = pickFont(tok.bold, tok.italic);
+        page.drawText(tok.text, { x: cx, y, size, font: f, color });
+        cx += f.widthOfTextAtSize(tok.text, size);
+      }
+    };
+
+    // Returns how much vertical space the rendered notes consume.
+    const renderRichNotes = (
+      page: PDFPage,
+      raw: string,
+      x: number,
+      yTop: number,
+      maxWidth: number,
+      opts: { size?: number; color?: ReturnType<typeof rgb>; lineH?: number; bulletColor?: ReturnType<typeof rgb> } = {},
+    ): number => {
+      const size = opts.size ?? 9;
+      const color = opts.color ?? C(TOK.body);
+      const lineH = opts.lineH ?? 14;
+      const bulletColor = opts.bulletColor ?? C(TOK.accent);
+      const indent = 10;
+      const rawLines = String(raw).split(/\r?\n/);
+      let y = yTop;
+      for (const lnRaw of rawLines) {
+        const ln = lnRaw.trim();
+        if (!ln) { y -= 4; continue; }
+        if (ln.startsWith("# ")) {
+          // Heading: 10pt bold with 4pt space above
+          y -= 4;
+          const headSize = 10;
+          const tokens = [{ text: ln.slice(2), bold: true, italic: false }];
+          const wrapped = wrapTokens(tokens, headSize, maxWidth);
+          for (const wln of wrapped) {
+            drawStyledLine(page, wln, x, y - headSize, headSize, C(TOK.nearBlack));
+            y -= headSize + 4;
+          }
+          continue;
+        }
+        const isBullet = ln.startsWith("- ") || ln.startsWith("* ");
+        const content = isBullet ? ln.slice(2) : ln;
+        const tokens = parseInline(content);
+        const wrapped = wrapTokens(tokens, size, maxWidth - indent);
+        for (let i = 0; i < wrapped.length; i++) {
+          if (i === 0) {
+            page.drawText("•", { x, y: y - size, size, font: fontBold, color: bulletColor });
+          }
+          drawStyledLine(page, wrapped[i], x + indent, y - size, size, color);
+          y -= lineH;
+        }
+      }
+      return yTop - y;
+    };
+
+    // ============ COVER PAGE ============
+    {
+      const page = pdf.addPage([PAGE_W, PAGE_H]); // NOT a content page (no footer pagination but spec says cover has footer)
+      // Spec says "Footer (all pages including cover)" — include cover in content pages set.
+      contentPageIndices.add(pdf.getPageCount() - 1);
+
+      // Zone 1 — Accent band (28mm tall, flush top)
+      const BAND_H = 28 * MM;
       page.drawRectangle({ x: 0, y: PAGE_H - BAND_H, width: PAGE_W, height: BAND_H, color: ACCENT });
 
-      // Logo or project name in band
+      // Logo placeholder (left): 22mm × 8mm white rounded rect, vertically centred, 20mm from left
+      const logoW = 22 * MM;
+      const logoH = 8 * MM;
+      const logoX = 20 * MM;
+      const logoY = PAGE_H - BAND_H + (BAND_H - logoH) / 2;
+
       let logoDrawn = false;
       if (exp.logo_path) {
         try {
           const { data: logoBlob } = await supabase.storage.from("export-assets").download(exp.logo_path);
           if (logoBlob) {
             const bytes = new Uint8Array(await logoBlob.arrayBuffer());
-            let img;
+            let img: PDFImage;
             try { img = await pdf.embedPng(bytes); } catch { img = await pdf.embedJpg(bytes); }
-            const maxW = 320, maxH = 120;
-            const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+            const scale = Math.min(logoW / img.width, logoH / img.height);
             const w = img.width * scale, h = img.height * scale;
-            const cx = (PAGE_W - w) / 2;
-            const cy = PAGE_H - BAND_H + (BAND_H - h) / 2;
-            page.drawImage(img, { x: cx, y: cy, width: w, height: h });
+            page.drawImage(img, { x: logoX + (logoW - w) / 2, y: logoY + (logoH - h) / 2, width: w, height: h });
             logoDrawn = true;
           }
         } catch (_) { /* fall through */ }
       }
       if (!logoDrawn) {
-        const titleSize = 36;
-        const titleW = fontBold.widthOfTextAtSize(sanitize(proj.name), titleSize);
-        const tx = (PAGE_W - titleW) / 2;
-        const ty = PAGE_H - BAND_H + (BAND_H - titleSize) / 2 + titleSize * 0.2;
-        page.drawText(proj.name, { x: tx, y: ty, size: titleSize, font: fontBold, color: WHITE });
+        // White rounded rect placeholder (drawn as rectangle)
+        page.drawRectangle({ x: logoX, y: logoY, width: logoW, height: logoH, color: C(TOK.white) });
       }
 
-      // Below the band, project metadata
-      let y = PAGE_H - BAND_H - 50;
-      page.drawText(proj.name, { x: M, y, size: 26, font: fontBold, color: TEXT });
-      y -= 32;
+      // Project name in band (right, 12pt bold white, right-aligned, 20mm from right)
+      const bandTitleSize = 12;
+      const bandTitleW = fontBold.widthOfTextAtSize(sanitize(proj.name), bandTitleSize);
+      const bandTitleY = PAGE_H - BAND_H + (BAND_H - bandTitleSize) / 2 + 1;
+      page.drawText(proj.name, {
+        x: PAGE_W - 20 * MM - bandTitleW,
+        y: bandTitleY,
+        size: bandTitleSize,
+        font: fontBold,
+        color: C(TOK.white),
+      });
 
-      const fmtRangeLabel = (k: string) => {
-        const [yy, mm, dd] = k.split("-").map(Number);
-        return new Date(yy, mm - 1, dd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-      };
-      let scopeLine: string | null = null;
-      if (dayKey && dayLabel) scopeLine = dayLabel;
-      else if (isRange) scopeLine = `${fmtRangeLabel(dateFrom!)} – ${fmtRangeLabel(dateTo!)}`;
-      else if (isAlbum) scopeLine = `Album: ${albumLabel ?? "Album"}`;
-      if (scopeLine) {
-        page.drawText(scopeLine, { x: M, y, size: 14, font, color: MUTED });
-        y -= 24;
+      // Zone 2 — Title block (starts 12mm below band)
+      let y = PAGE_H - BAND_H - 12 * MM;
+      // Project name 20pt bold
+      const titleSize = 20;
+      page.drawText(proj.name, { x: MARGIN, y: y - titleSize, size: titleSize, font: fontBold, color: C(TOK.nearBlack) });
+      y -= titleSize + 3 * MM;
+
+      // Subtitle: client · location · event_type (omit nulls)
+      const subtitleParts: string[] = [];
+      if (proj.client_name) subtitleParts.push(proj.client_name as string);
+      if (proj.event_location) subtitleParts.push(proj.event_location as string);
+      if ((proj as { event_type?: string | null }).event_type) subtitleParts.push((proj as { event_type: string }).event_type);
+      if (subtitleParts.length) {
+        page.drawText(subtitleParts.join(" · "), { x: MARGIN, y: y - 9, size: 9, font: fontReg, color: C(TOK.muted) });
+        y -= 9;
       }
 
-      const metaLines: string[] = [];
-      if (proj.client_name) metaLines.push(`Client: ${proj.client_name}`);
-      if (proj.event_date) {
-        try {
-          const d = new Date(proj.event_date as string);
-          metaLines.push(`Event date: ${d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`);
-        } catch { /* ignore */ }
-      }
-      if (proj.event_location) metaLines.push(`Location: ${proj.event_location}`);
-      const exportedOn = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-      metaLines.push(`Exported: ${exportedOn}`);
+      // 10mm below: full-width 0.5pt #e5e7eb rule
+      y -= 10 * MM;
+      page.drawLine({
+        start: { x: MARGIN, y },
+        end: { x: PAGE_W - MARGIN, y },
+        thickness: 0.5,
+        color: C(TOK.divider),
+      });
 
-      for (const line of metaLines) {
-        page.drawText(line, { x: M, y, size: 12, font, color: TEXT });
-        y -= 18;
-      }
+      // Zone 3 — Two columns (10mm below rule)
+      const zoneTop = y - 10 * MM;
+      const contentW = PAGE_W - 2 * MARGIN;
+      const leftW = contentW * 0.58;
+      const rightW = contentW * 0.42;
+      const leftX = MARGIN;
+      const rightX = MARGIN + leftW;
+      const colBottom = FOOTER_RESERVE + 4;
 
-      if (proj.description) {
-        y -= 10;
-        const lines = wrapText(proj.description, font, 11, PAGE_W - 2 * M);
-        for (const line of lines.slice(0, 8)) {
-          page.drawText(line, { x: M, y, size: 11, font, color: MUTED });
-          y -= 16;
-        }
-      }
-    }
+      // Vertical separator
+      page.drawLine({
+        start: { x: rightX, y: zoneTop },
+        end: { x: rightX, y: colBottom },
+        thickness: 0.5,
+        color: C(TOK.divider),
+      });
 
-    // Helpers for bullet rendering
-    const drawBullets = (
-      page: PDFPage,
-      text: string,
-      yStart: number,
-      maxWidth: number,
-      size = 10,
-      color = TEXT,
-      onNewPage?: () => { page: PDFPage; y: number },
-    ): { page: PDFPage; y: number } => {
-      let y = yStart;
-      let p = page;
-      const lineH = size + 4;
-      const indent = 12;
-      const lines = String(text).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      for (const ln of lines) {
-        const wrapped = wrapText(ln, font, size, maxWidth - indent);
-        for (let i = 0; i < wrapped.length; i++) {
-          if (y - lineH < M + 30 && onNewPage) {
-            const next = onNewPage();
-            p = next.page; y = next.y;
-          }
-          if (i === 0) {
-            p.drawText("•", { x: M, y: y - size, size, font, color });
-          }
-          p.drawText(wrapped[i], { x: M + indent, y: y - size, size, font, color });
-          y -= lineH;
-        }
-        y -= 2;
-      }
-      return { page: p, y };
-    };
-
-    // Section divider page (full-bleed accent)
-    const drawDivider = (title: string, summary: string) => {
-      const page = pdf.addPage([PAGE_W, PAGE_H]); // Dividers are NOT content pages
-      page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: ACCENT });
-      const titleSize = 32;
-      const summarySize = 14;
-      // wrap title to fit
-      const maxW = PAGE_W - 2 * M;
-      const titleLines = wrapText(title, fontBold, titleSize, maxW);
-      const summaryLines = wrapText(summary, font, summarySize, maxW);
-      const totalH = titleLines.length * (titleSize + 8) + 14 + summaryLines.length * (summarySize + 4);
-      let y = PAGE_H / 2 + totalH / 2;
-      for (const tl of titleLines) {
-        const w = fontBold.widthOfTextAtSize(sanitize(tl), titleSize);
-        page.drawText(tl, { x: (PAGE_W - w) / 2, y: y - titleSize, size: titleSize, font: fontBold, color: WHITE });
-        y -= titleSize + 8;
-      }
-      y -= 6;
-      for (const sl of summaryLines) {
-        const w = font.widthOfTextAtSize(sanitize(sl), summarySize);
-        page.drawText(sl, { x: (PAGE_W - w) / 2, y: y - summarySize, size: summarySize, font, color: WHITE });
-        y -= summarySize + 4;
-      }
-    };
-
-    // ---- Photo grid ----
-    if (sections.grid && allPhotos.length > 0) {
-      type Group = { label: string; photos: PhotoRow[]; areaId?: string; dateKey?: string; dayHeader?: string };
-      let groups: Group[];
-
-      const sortedAreasList = (areas ?? []) as AreaRow[];
-      const splitByArea = (photos: PhotoRow[]): { label: string; photos: PhotoRow[]; areaId?: string }[] => {
-        const byArea = new Map<string, PhotoRow[]>();
-        const unassigned: PhotoRow[] = [];
-        for (const p of photos) {
-          if (!p.area_id) unassigned.push(p);
-          else {
-            const arr = byArea.get(p.area_id) ?? [];
-            arr.push(p);
-            byArea.set(p.area_id, arr);
-          }
-        }
-        const out: { label: string; photos: PhotoRow[]; areaId?: string }[] = [];
-        for (const ar of sortedAreasList) {
-          const list = byArea.get(ar.id);
-          if (list?.length) out.push({ label: ar.name, photos: list, areaId: ar.id });
-        }
-        if (unassigned.length) out.push({ label: "Unassigned", photos: unassigned });
-        return out;
-      };
-
-      // Build day-grouped structure for divider insertion
-      type DayBucket = { label: string; dateKey: string; photos: PhotoRow[]; subgroups: { label: string; photos: PhotoRow[]; areaId?: string; dateKey: string }[] };
-      const dayBuckets: DayBucket[] = [];
-
-      if (dayKey) {
-        const subs = splitByArea(allPhotos).map((s) => ({ ...s, dateKey: dayKey! }));
-        dayBuckets.push({ label: dayLabel ?? dayKey, dateKey: dayKey, photos: allPhotos, subgroups: subs });
-      } else if (isRange) {
-        const byDay = groupByDate(allPhotos);
-        for (const dg of byDay) {
-          const d = dg.date;
-          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const subs = splitByArea(dg.photos).map((s) => ({ ...s, dateKey: dKey }));
-          dayBuckets.push({ label: dg.label, dateKey: dKey, photos: dg.photos, subgroups: subs });
-        }
-      } else if (isAlbum) {
-        const byDay = groupByDate(allPhotos);
-        for (const dg of byDay) {
-          const d = dg.date;
-          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          dayBuckets.push({
-            label: dg.label,
-            dateKey: dKey,
-            photos: dg.photos,
-            subgroups: [{ label: dg.label, photos: dg.photos, dateKey: dKey }],
-          });
+      // ----- LEFT column -----
+      let ly = zoneTop;
+      // Project description (9pt body, line height 14pt) or italic placeholder
+      const descMaxW = leftW - 4;
+      const descSize = 9;
+      const descLineH = 14;
+      if (proj.description && String(proj.description).trim()) {
+        const lines = wrapText(proj.description as string, fontReg, descSize, descMaxW);
+        for (const ln of lines) {
+          if (ly - descLineH < zoneTop - 60 * MM) break; // keep room for table
+          page.drawText(ln, { x: leftX, y: ly - descSize, size: descSize, font: fontReg, color: C(TOK.body) });
+          ly -= descLineH;
         }
       } else {
-        const byDay = groupByDate(allPhotos);
-        for (const dg of byDay) {
-          const d = dg.date;
-          const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          dayBuckets.push({
-            label: dg.label,
-            dateKey: dKey,
-            photos: dg.photos,
-            subgroups: [{ label: dg.label, photos: dg.photos, dateKey: dKey }],
-          });
+        page.drawText("No project description provided.", {
+          x: leftX, y: ly - descSize, size: descSize, font: fontItal, color: C(TOK.label),
+        });
+        ly -= descLineH;
+      }
+
+      // 10mm below: 0.5pt rule across left column
+      ly -= 10 * MM;
+      page.drawLine({
+        start: { x: leftX, y: ly },
+        end: { x: leftX + leftW - 8, y: ly },
+        thickness: 0.5,
+        color: C(TOK.divider),
+      });
+
+      // 8mm below: area coverage mini-table
+      ly -= 8 * MM;
+      // Headers
+      page.drawText("AREA", { x: leftX, y: ly - 7, size: 7, font: fontBold, color: C(TOK.label) });
+      page.drawText("STATUS", { x: leftX + leftW * 0.6, y: ly - 7, size: 7, font: fontBold, color: C(TOK.label) });
+      ly -= 12;
+
+      const rowH = 9 * MM;
+      // Compute "latest area status" from area_day_status (most recent date per area)
+      const latestStatus = new Map<string, string>();
+      const latestDate = new Map<string, string>();
+      for (const r of (areaDayStatusRows ?? []) as AreaDayStatusRow[]) {
+        const prev = latestDate.get(r.area_id);
+        if (!prev || r.date > prev) {
+          latestDate.set(r.area_id, r.date);
+          latestStatus.set(r.area_id, r.status);
         }
       }
 
-      // Layout: orientation-aware columns
-      const COLS = orientation === "landscape" ? 4 : 3;
-      const GAP = 7;
-      const FOOTER_H = 30;
-      const colW = (PAGE_W - 2 * M - GAP * (COLS - 1)) / COLS;
-      const imgH = colW * 0.75;
-      // captions add a small block underneath; no filename anymore
-      const captionBlock = sections.captions ? 22 : 0;
-      const cellH = imgH + captionBlock;
+      let stripe = false;
+      for (const ar of sortedAreas) {
+        if (ly - rowH < colBottom + 8) break;
+        if (stripe) {
+          page.drawRectangle({ x: leftX, y: ly - rowH, width: leftW - 8, height: rowH, color: C(TOK.rowStripe) });
+        }
+        page.drawText(truncate(ar.name, 40), {
+          x: leftX + 4, y: ly - rowH / 2 - 3, size: 9, font: fontReg, color: C(TOK.nearBlack),
+        });
+        const sk = latestStatus.get(ar.id);
+        if (sk && STATUS_META[sk]) {
+          const pw = pillWidth(sk);
+          drawStatusPill(page, leftX + leftW * 0.6, ly - rowH / 2 - 7, sk);
+          void pw;
+        }
+        // Row divider
+        page.drawLine({
+          start: { x: leftX, y: ly - rowH },
+          end: { x: leftX + leftW - 8, y: ly - rowH },
+          thickness: 0.5,
+          color: C(TOK.rowDivider),
+        });
+        ly -= rowH;
+        stripe = !stripe;
+      }
 
-      for (const day of dayBuckets) {
-        // Day divider page
-        const areaCount = day.subgroups.filter((s) => s.areaId).length;
-        const summary = `${day.photos.length} photo${day.photos.length === 1 ? "" : "s"}${areaCount > 0 ? ` · ${areaCount} area${areaCount === 1 ? "" : "s"}` : ""}`;
-        drawDivider(day.label, summary);
+      // ----- RIGHT column -----
+      const rPad = 16; // left padding inside right column
+      let ry = zoneTop;
+      page.drawText("REPORT DETAILS", { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+      ry -= 14;
 
-        for (let si = 0; si < day.subgroups.length; si++) {
-          const sub = day.subgroups[si];
-          // Area divider page (only when this day has multiple area subgroups and the subgroup represents an area)
-          if (day.subgroups.length > 1 && sub.areaId) {
-            drawDivider(`Area: ${sub.label}`, `${sub.photos.length} photo${sub.photos.length === 1 ? "" : "s"}`);
+      const drawMetaPair = (label: string, value: string) => {
+        page.drawText(label, { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+        ry -= 9;
+        page.drawText(truncate(value, 40), { x: rightX + rPad, y: ry - 10, size: 10, font: fontBold, color: C(TOK.nearBlack) });
+        ry -= 7 * MM;
+      };
+
+      drawMetaPair("REPORT DATE", photoDateRangeLabel || "—");
+      if (proj.event_date) {
+        try {
+          drawMetaPair("EVENT DATE", fmtDayMonthYear(new Date(proj.event_date as string)));
+        } catch { /* ignore */ }
+      }
+      if (proj.event_location) drawMetaPair("LOCATION", String(proj.event_location));
+      if (proj.client_name) drawMetaPair("CLIENT", String(proj.client_name));
+
+      // 12mm below last row: rule
+      ry -= 12 * MM - 7 * MM;
+      page.drawLine({
+        start: { x: rightX + rPad, y: ry },
+        end: { x: PAGE_W - MARGIN, y: ry },
+        thickness: 0.5,
+        color: C(TOK.divider),
+      });
+      ry -= 10;
+
+      // STATUS label · pill
+      page.drawText("STATUS", { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+      const overallStatus = (proj as { overall_status?: string | null }).overall_status ?? null;
+      if (overallStatus && STATUS_META[overallStatus]) {
+        drawStatusPill(page, rightX + rPad + 50, ry - 11, overallStatus);
+      }
+      ry -= 10 * MM;
+
+      // 0.5pt rule
+      page.drawLine({
+        start: { x: rightX + rPad, y: ry },
+        end: { x: PAGE_W - MARGIN, y: ry },
+        thickness: 0.5,
+        color: C(TOK.divider),
+      });
+      ry -= 10;
+
+      // PREPARED BY
+      page.drawText("PREPARED BY", { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+      ry -= 12;
+      page.drawText("Site Story", { x: rightX + rPad, y: ry - 10, size: 10, font: fontBold, color: C(TOK.nearBlack) });
+      ry -= 12;
+      page.drawText("sitestory.app", { x: rightX + rPad, y: ry - 8, size: 8, font: fontReg, color: ACCENT_DEFAULT });
+    }
+
+    // ============ DAY SUMMARY + PHOTO PAGES ============
+    type DayBucket = { key: string; date: Date; label: string; photos: PhotoRow[] };
+    let dayBuckets: DayBucket[] = [];
+    if (isAlbum) {
+      // Album: single "day" bucket containing all album photos. We still produce summary + photo pages per area.
+      const lbl = albumLabel ?? "Album";
+      dayBuckets = [{
+        key: "album",
+        date: new Date(),
+        label: lbl,
+        photos: allPhotos,
+      }];
+    } else {
+      const groups = groupByDate(allPhotos);
+      dayBuckets = groups.map((g) => ({ key: g.key, date: g.date, label: g.label, photos: g.photos }));
+    }
+
+    // Helper: split day photos by area, in sortedAreas order; trailing "Unassigned" if any.
+    const splitDayByArea = (dayPhotos: PhotoRow[]): { areaId: string | null; name: string; photos: PhotoRow[] }[] => {
+      const byArea = new Map<string, PhotoRow[]>();
+      const unassigned: PhotoRow[] = [];
+      for (const p of dayPhotos) {
+        if (!p.area_id) unassigned.push(p);
+        else {
+          const arr = byArea.get(p.area_id) ?? [];
+          arr.push(p); byArea.set(p.area_id, arr);
+        }
+      }
+      const out: { areaId: string | null; name: string; photos: PhotoRow[] }[] = [];
+      for (const ar of sortedAreas) {
+        const list = byArea.get(ar.id);
+        if (list?.length) out.push({ areaId: ar.id, name: ar.name, photos: list });
+      }
+      if (unassigned.length) out.push({ areaId: null, name: "Unassigned", photos: unassigned });
+      return out;
+    };
+
+    for (const day of dayBuckets) {
+      const subgroups = splitDayByArea(day.photos);
+
+      // ---- A2: Day Summary Page ----
+      // (For album exports we still render a summary using areas covered by the album.)
+      {
+        const page = addContentPage();
+        // Left accent stripe (10mm wide, full height)
+        const stripeW = 10 * MM;
+        page.drawRectangle({ x: 0, y: 0, width: stripeW, height: PAGE_H, color: ACCENT });
+
+        const contentX = 30 * MM; // 30mm from left
+        const topY = PAGE_H - 12 * MM;
+
+        // Day label
+        page.drawText(day.label, { x: contentX, y: topY - 16, size: 16, font: fontBold, color: C(TOK.nearBlack) });
+
+        // Area summary table 8mm below
+        let ty = topY - 16 - 8 * MM;
+        const tableX = contentX;
+        const tableW = PAGE_W - MARGIN - tableX;
+        const colArea = tableW * 0.30;
+        const colStatus = tableW * 0.20;
+        const colNotes = tableW - colArea - colStatus;
+
+        // Headers
+        page.drawText("AREA", { x: tableX, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
+        page.drawText("STATUS", { x: tableX + colArea, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
+        page.drawText("NOTES", { x: tableX + colArea + colStatus, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
+        ty -= 12;
+
+        const drowH = 8 * MM;
+        let stripe = false;
+        for (const sg of subgroups) {
+          if (ty - drowH < FOOTER_RESERVE) break;
+          if (stripe) {
+            page.drawRectangle({ x: tableX, y: ty - drowH, width: tableW, height: drowH, color: C(TOK.rowStripe) });
           }
-
-          let page = addContentPage();
-          let y = PAGE_H - M;
-
-          const ensureSpace = (needed: number) => {
-            if (y - needed < M + FOOTER_H) {
-              page = addContentPage();
-              y = PAGE_H - M;
+          // AREA
+          page.drawText(truncate(sg.name, 40), {
+            x: tableX + 4, y: ty - drowH / 2 - 3, size: 9, font: fontReg, color: C(TOK.nearBlack),
+          });
+          // STATUS pill (lookup by area+date; if album, use latest)
+          let statusKey: string | null | undefined;
+          if (sg.areaId) {
+            if (isAlbum) {
+              // latest status across album photos' dates for this area
+              let bestDate = "";
+              for (const p of sg.photos) {
+                const k = dateKeyOf(p);
+                const sk = areaDayStatus.get(`${sg.areaId}|${k}`);
+                if (sk && k > bestDate) { bestDate = k; statusKey = sk; }
+              }
+            } else {
+              statusKey = areaDayStatus.get(`${sg.areaId}|${day.key}`);
             }
-          };
-
-          // Day note (once per day, at top of first subgroup)
-          if (si === 0) {
-            const dn = dayNoteByDate.get(day.dateKey);
-            if (dn) {
-              ensureSpace(20);
-              page.drawText("Day notes", { x: M, y: y - 12, size: 10, font: fontBold, color: ACCENT });
-              y -= 22;
-              const res = drawBullets(page, dn, y, PAGE_W - 2 * M, 10, TEXT, () => {
-                const np = addContentPage();
-                return { page: np, y: PAGE_H - M };
-              });
-              page = res.page; y = res.y - 6;
+          }
+          if (statusKey && STATUS_META[statusKey]) {
+            drawStatusPill(page, tableX + colArea, ty - drowH / 2 - 7, statusKey);
+          }
+          // NOTES (first line, truncated)
+          let noteText = "";
+          if (sg.areaId) {
+            if (isAlbum) {
+              // any matching note for this area, latest date
+              let bestDate = "";
+              for (const p of sg.photos) {
+                const k = dateKeyOf(p);
+                const n = areaDayNotes.get(`${sg.areaId}|${k}`);
+                if (n && k > bestDate) { bestDate = k; noteText = n; }
+              }
+            } else {
+              noteText = areaDayNotes.get(`${sg.areaId}|${day.key}`) ?? "";
             }
           }
-
-          // Subgroup header (label · count [· status])
-          ensureSpace(40);
-          page.drawRectangle({ x: M, y: y - 4, width: 24, height: 2, color: ACCENT });
-          let header = `${sub.label}  ·  ${sub.photos.length} photo${sub.photos.length === 1 ? "" : "s"}`;
-          if (sub.areaId) {
-            const st = areaDayStatus.get(`${sub.areaId}|${sub.dateKey}`);
-            if (st && st !== "no_status") header += `  ·  ${STATUS_LABEL[st] ?? st}`;
+          if (noteText) {
+            const firstLine = noteText.split(/\r?\n/)[0]
+              .replace(/^[-*]\s+/, "")
+              .replace(/\*\*/g, "")
+              .replace(/\*/g, "");
+            page.drawText(truncate(firstLine, 60), {
+              x: tableX + colArea + colStatus, y: ty - drowH / 2 - 3,
+              size: 9, font: fontReg, color: C(TOK.muted),
+            });
           }
-          page.drawText(header, { x: M, y: y - 18, size: 12, font: fontBold, color: TEXT });
-          y -= 32;
+          // bottom row divider
+          page.drawLine({
+            start: { x: tableX, y: ty - drowH },
+            end: { x: tableX + tableW, y: ty - drowH },
+            thickness: 0.5,
+            color: C(TOK.rowDivider),
+          });
+          ty -= drowH;
+          stripe = !stripe;
+        }
+      }
 
-          // Per-area, per-day update note (bulleted)
-          if (sub.areaId) {
-            const note = areaDayNotes.get(`${sub.areaId}|${sub.dateKey}`);
-            if (note && note.trim()) {
-              const res = drawBullets(page, note, y, PAGE_W - 2 * M, 9, MUTED, () => {
-                const np = addContentPage();
-                return { page: np, y: PAGE_H - M };
-              });
-              page = res.page; y = res.y - 6;
+      // ---- A3: Photo + Context Page (one per area per day) ----
+      for (const sg of subgroups) {
+        // Layout
+        const contentW = PAGE_W - 2 * MARGIN;
+        const leftW = contentW * 0.78;
+        const rightW = contentW * 0.22 - 10; // 10mm-ish gap accounted by left padding inside right
+        const leftX = MARGIN;
+        const dividerX = MARGIN + leftW;
+        const rightX = dividerX + 10; // 10mm-ish padding inside
+
+        // Photo grid spec
+        const COLS = orientation === "landscape" ? 4 : 3;
+        const GAP = 4;
+        const cellW = (leftW - GAP * (COLS - 1)) / COLS;
+        const cellH = cellW * 0.75;
+
+        let page = addContentPage();
+        let topY = PAGE_H - MARGIN;
+
+        // Vertical divider on each new page
+        const drawDividerRule = (p: PDFPage) => {
+          p.drawLine({
+            start: { x: dividerX, y: FOOTER_RESERVE },
+            end: { x: dividerX, y: PAGE_H - MARGIN },
+            thickness: 0.5,
+            color: C(TOK.divider),
+          });
+        };
+        drawDividerRule(page);
+
+        // Heading row (left col only on first page)
+        const headingY = topY;
+        // Area name 10pt bold, status pill inline, photo count "N photos" 9pt muted
+        page.drawText(sg.name, { x: leftX, y: headingY - 10, size: 10, font: fontBold, color: C(TOK.nearBlack) });
+        const nameW = fontBold.widthOfTextAtSize(sanitize(sg.name), 10);
+        // status inline (per area+day)
+        let inlineStatus: string | null | undefined;
+        if (sg.areaId) {
+          if (isAlbum) {
+            let bestDate = "";
+            for (const p of sg.photos) {
+              const k = dateKeyOf(p);
+              const sk = areaDayStatus.get(`${sg.areaId}|${k}`);
+              if (sk && k > bestDate) { bestDate = k; inlineStatus = sk; }
             }
+          } else {
+            inlineStatus = areaDayStatus.get(`${sg.areaId}|${day.key}`);
           }
+        }
+        let nextX = leftX + nameW + 8;
+        if (inlineStatus && STATUS_META[inlineStatus]) {
+          drawStatusPill(page, nextX, headingY - 13, inlineStatus);
+          nextX += pillWidth(inlineStatus) + 8;
+        }
+        const countLabel = `${sg.photos.length} photo${sg.photos.length === 1 ? "" : "s"}`;
+        page.drawText(countLabel, { x: nextX, y: headingY - 9, size: 9, font: fontReg, color: C(TOK.muted) });
 
-          // Photos: edge-to-edge with small gutter, no border, no filename
-          for (let i = 0; i < sub.photos.length; i += COLS) {
-            ensureSpace(cellH + GAP);
-            const rowPhotos = sub.photos.slice(i, i + COLS);
-            const rowTop = y;
-            for (let c = 0; c < rowPhotos.length; c++) {
-              const ph = rowPhotos[c];
-              const x = M + c * (colW + GAP);
-              try {
-                const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
-                  ph.storage_path,
-                  600,
-                  { transform: { width: 1200, quality: 80, format: "origin" as unknown as "png" } },
-                );
-                const baseUrl = signed?.signedUrl;
-                const transformedUrl = baseUrl
-                  ? baseUrl.replace("/object/sign/", "/render/image/sign/") + "&width=1200&quality=80"
-                  : null;
-                if (transformedUrl) {
-                  let r = await fetch(transformedUrl);
-                  if (!r.ok && baseUrl) r = await fetch(baseUrl);
-                  if (r.ok) {
-                    const bytes = new Uint8Array(await r.arrayBuffer());
-                    const ct = r.headers.get("content-type") || "";
-                    let img: PDFImage | null = null;
-                    try {
-                      if (ct.includes("png")) img = await pdf.embedPng(bytes);
-                      else img = await pdf.embedJpg(bytes);
-                    } catch {
-                      try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
+        // 0.5pt teal rule below heading
+        const ruleY = headingY - 6 * MM;
+        page.drawLine({
+          start: { x: leftX, y: ruleY },
+          end: { x: leftX + leftW - 4, y: ruleY },
+          thickness: 0.5,
+          color: ACCENT,
+        });
+
+        // Right column on first page
+        let ry = headingY;
+        // AREA NOTES label
+        page.drawText("AREA NOTES", { x: rightX, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+        ry -= 5 * MM + 7;
+        // Note body
+        let areaNoteText = "";
+        if (sg.areaId) {
+          if (isAlbum) {
+            let bestDate = "";
+            for (const p of sg.photos) {
+              const k = dateKeyOf(p);
+              const n = areaDayNotes.get(`${sg.areaId}|${k}`);
+              if (n && k > bestDate) { bestDate = k; areaNoteText = n; }
+            }
+          } else {
+            areaNoteText = areaDayNotes.get(`${sg.areaId}|${day.key}`) ?? "";
+          }
+        }
+        if (areaNoteText.trim()) {
+          const used = renderRichNotes(page, areaNoteText, rightX, ry, rightW, { size: 9, lineH: 14, color: C(TOK.body), bulletColor: ACCENT });
+          ry -= used;
+        } else {
+          page.drawText("No notes.", { x: rightX, y: ry - 9, size: 9, font: fontItal, color: C(TOK.label) });
+          ry -= 14;
+        }
+
+        // 8mm below: rule, then STATUS label + pill
+        ry -= 8 * MM;
+        page.drawLine({ start: { x: rightX, y: ry }, end: { x: rightX + rightW, y: ry }, thickness: 0.5, color: C(TOK.divider) });
+        ry -= 10;
+        page.drawText("STATUS", { x: rightX, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+        if (inlineStatus && STATUS_META[inlineStatus]) {
+          drawStatusPill(page, rightX + 45, ry - 11, inlineStatus);
+        }
+        ry -= 8 * MM;
+
+        // CAPTIONS section (omit if none)
+        const captions = sg.photos.map((p) => p.caption?.trim()).filter((c): c is string => !!c);
+        if (captions.length > 0) {
+          page.drawLine({ start: { x: rightX, y: ry }, end: { x: rightX + rightW, y: ry }, thickness: 0.5, color: C(TOK.divider) });
+          ry -= 10;
+          page.drawText("CAPTIONS", { x: rightX, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
+          ry -= 12;
+          for (const cap of captions) {
+            const wrapped = wrapText(cap, fontReg, 8, rightW - 10);
+            for (let i = 0; i < wrapped.length; i++) {
+              if (ry - 11 < FOOTER_RESERVE) break;
+              if (i === 0) {
+                page.drawText("•", { x: rightX, y: ry - 8, size: 8, font: fontBold, color: ACCENT });
+              }
+              page.drawText(wrapped[i], { x: rightX + 8, y: ry - 8, size: 8, font: fontReg, color: C(TOK.muted) });
+              ry -= 11;
+            }
+            if (ry < FOOTER_RESERVE) break;
+          }
+        }
+
+        // ---- Photo grid in left column, flowing rows below the rule ----
+        let gy = ruleY - 6; // start a touch below rule
+        for (let i = 0; i < sg.photos.length; i += COLS) {
+          if (gy - cellH < FOOTER_RESERVE + 4) {
+            // New continuation page (no heading repeated; just photos & divider rule)
+            page = addContentPage();
+            drawDividerRule(page);
+            gy = PAGE_H - MARGIN;
+          }
+          const rowPhotos = sg.photos.slice(i, i + COLS);
+          for (let c = 0; c < rowPhotos.length; c++) {
+            const ph = rowPhotos[c];
+            const x = leftX + c * (cellW + GAP);
+            const yCell = gy - cellH;
+            try {
+              const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
+                ph.storage_path,
+                600,
+                { transform: { width: 1200, quality: 80, format: "origin" as unknown as "png" } },
+              );
+              const baseUrl = signed?.signedUrl;
+              const transformedUrl = baseUrl
+                ? baseUrl.replace("/object/sign/", "/render/image/sign/") + "&width=1200&quality=80"
+                : null;
+              if (transformedUrl) {
+                let r = await fetch(transformedUrl);
+                if (!r.ok && baseUrl) r = await fetch(baseUrl);
+                if (r.ok) {
+                  const bytes = new Uint8Array(await r.arrayBuffer());
+                  const ct = r.headers.get("content-type") || "";
+                  let img: PDFImage | null = null;
+                  try {
+                    if (ct.includes("png")) img = await pdf.embedPng(bytes);
+                    else img = await pdf.embedJpg(bytes);
+                  } catch {
+                    try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
+                  }
+                  if (img) {
+                    // Cover-fit: scale to max(cellW/imgW, cellH/imgH), then crop via clip.
+                    // pdf-lib lacks clipping primitives; emulate cover by scaling to the LARGER ratio
+                    // and centering — overflow will draw outside the cell. Since cells are tightly
+                    // packed with 4pt gutter, we instead use contain to avoid overlap, but spec
+                    // explicitly says cover. To honour cover without bleed, we draw a clipping
+                    // white rectangle band approach is too complex; we use scale = max and accept
+                    // controlled overflow constrained by drawing photos in row order from top down.
+                    // Compromise: use cover scale but draw a white rect AROUND the cell region to
+                    // mask overflow into adjacent cell gutters before next row draws.
+                    const sCover = Math.max(cellW / img.width, cellH / img.height);
+                    const w = img.width * sCover, h = img.height * sCover;
+                    const ox = x + (cellW - w) / 2;
+                    const oy = yCell + (cellH - h) / 2;
+                    page.drawImage(img, { x: ox, y: oy, width: w, height: h });
+                    // Mask overflow on the sides outside the cell with white rectangles
+                    if (w > cellW) {
+                      const overflow = (w - cellW) / 2;
+                      page.drawRectangle({ x: x - overflow - 0.5, y: yCell, width: overflow + 0.5, height: cellH, color: C(TOK.white) });
+                      page.drawRectangle({ x: x + cellW, y: yCell, width: overflow + 0.5, height: cellH, color: C(TOK.white) });
                     }
-                    if (img) {
-                      // Cover-fit: fill the cell, cropping overflow visually by scaling proportionally to the smaller dim
-                      // Use contain to preserve full image. Center within cell. No border drawn.
-                      const scale = Math.min(colW / img.width, imgH / img.height);
-                      const w = img.width * scale, h = img.height * scale;
-                      const ox = x + (colW - w) / 2;
-                      const oy = rowTop - imgH + (imgH - h) / 2;
-                      page.drawImage(img, { x: ox, y: oy, width: w, height: h });
+                    if (h > cellH) {
+                      const overflow = (h - cellH) / 2;
+                      page.drawRectangle({ x: x, y: yCell - overflow - 0.5, width: cellW, height: overflow + 0.5, color: C(TOK.white) });
+                      page.drawRectangle({ x: x, y: yCell + cellH, width: cellW, height: overflow + 0.5, color: C(TOK.white) });
                     }
                   }
                 }
-              } catch (_) { /* skip */ }
-
-              if (sections.captions && ph.caption && ph.caption.trim()) {
-                const truncated = ph.caption.length > 60 ? ph.caption.slice(0, 58) + "…" : ph.caption;
-                page.drawText(truncated, { x, y: rowTop - imgH - 12, size: 8, font, color: TEXT });
               }
-            }
-            y -= cellH + GAP;
+            } catch (_) { /* skip */ }
           }
-          y -= 6;
+          gy -= cellH + GAP;
         }
       }
     }
 
-    // ---- EXIF table ----
-    if (sections.exif && allPhotos.length > 0) {
-      let page = addContentPage();
-      let y = PAGE_H - M;
-      page.drawText("EXIF data", { x: M, y, size: 16, font: fontBold, color: TEXT }); y -= 24;
-
-      const headers = ["File", "Captured", "Camera", "Exposure", "ISO"];
-      const widths = orientation === "landscape" ? [260, 120, 160, 140, 50] : [180, 90, 110, 100, 35];
-      const drawRow = (cells: string[], bold = false) => {
-        let x = M;
-        for (let i = 0; i < cells.length; i++) {
-          const txt = (cells[i] ?? "").slice(0, 60);
-          page.drawText(txt, { x, y, size: 8, font: bold ? fontBold : font, color: bold ? TEXT : rgb(0.2, 0.2, 0.2) });
-          x += widths[i];
-        }
-        y -= 14;
-      };
-      drawRow(headers, true);
-      page.drawLine({ start: { x: M, y: y + 4 }, end: { x: PAGE_W - M, y: y + 4 }, thickness: 0.5, color: MUTED });
-
-      for (const p of allPhotos) {
-        if (y < M + 40) { page = addContentPage(); y = PAGE_H - M; }
-        const cam = [p.camera_make, p.camera_model].filter(Boolean).join(" ");
-        const exp = [p.aperture ? `f/${p.aperture}` : "", p.shutter_speed || ""].filter(Boolean).join(" ");
-        drawRow([
-          p.file_name ?? "",
-          p.captured_at ? new Date(p.captured_at).toLocaleDateString("en-GB") : "",
-          cam,
-          exp,
-          p.iso ? String(p.iso) : "",
-        ]);
-      }
-    }
-
-    // ---- Notes ----
-    if (sections.notes && (notes ?? []).length > 0) {
-      let page = addContentPage();
-      let y = PAGE_H - M;
-      page.drawText("Guest notes", { x: M, y, size: 16, font: fontBold, color: TEXT }); y -= 24;
-
-      for (const ph of allPhotos) {
-        const list = notesByPhoto.get(ph.id);
-        if (!list?.length) continue;
-        if (y < M + 80) { page = addContentPage(); y = PAGE_H - M; }
-        page.drawText(ph.caption || ph.file_name || "Photo", { x: M, y, size: 10, font: fontBold, color: TEXT }); y -= 14;
-        for (const n of list) {
-          const head = `${n.guest_name} · ${new Date(n.created_at).toLocaleDateString("en-GB")}`;
-          page.drawText(head, { x: M, y, size: 8, font: fontBold, color: ACCENT }); y -= 10;
-          for (const line of wrapText(n.body, font, 9, PAGE_W - 2 * M).slice(0, 8)) {
-            if (y < M + 40) { page = addContentPage(); y = PAGE_H - M; }
-            page.drawText(line, { x: M, y, size: 9, font, color: TEXT }); y -= 12;
-          }
-          y -= 6;
-        }
-        y -= 8;
-      }
-    }
-
-    // ---- Activity log ----
-    if (sections.activity && (activity ?? []).length > 0) {
-      let page = addContentPage();
-      let y = PAGE_H - M;
-      page.drawText("Activity log", { x: M, y, size: 16, font: fontBold, color: TEXT }); y -= 24;
-
-      for (const ev of (activity ?? [])) {
-        if (y < M + 40) { page = addContentPage(); y = PAGE_H - M; }
-        const who = ev.actor_id ? (actorMap.get(ev.actor_id) ?? "Member") : "System";
-        const when = new Date(ev.created_at).toLocaleString("en-GB");
-        const meta = (ev.metadata as { name?: string; file_name?: string } | null)?.name
-          || (ev.metadata as { name?: string; file_name?: string } | null)?.file_name
-          || "";
-        const line = `${when}  ·  ${who}  ·  ${ev.verb}${meta ? `  ·  ${meta}` : ""}`;
-        page.drawText(line.slice(0, 140), { x: M, y, size: 8, font, color: TEXT }); y -= 12;
-      }
-    }
-
-    // ---- Footer on every content page ----
-    const exportedDateStr = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    // ============ FOOTER on every content page ============
     const allPages = pdf.getPages();
-    const contentPages = allPages.filter((_, idx) => contentPageIndices.has(idx));
-    const totalContent = contentPages.length;
+    const contentList = allPages.filter((_, idx) => contentPageIndices.has(idx));
+    const totalContent = contentList.length;
+    const clientName = (proj.client_name ?? "client") as string;
     let pageNum = 0;
     for (let idx = 0; idx < allPages.length; idx++) {
       if (!contentPageIndices.has(idx)) continue;
@@ -646,20 +966,25 @@ Deno.serve(async (req) => {
       const p = allPages[idx];
       // Hairline rule above footer
       p.drawLine({
-        start: { x: M, y: 32 },
-        end: { x: PAGE_W - M, y: 32 },
+        start: { x: MARGIN, y: FOOTER_RULE_Y },
+        end: { x: PAGE_W - MARGIN, y: FOOTER_RULE_Y },
         thickness: 0.5,
-        color: rgb(0.85, 0.85, 0.85),
+        color: C(TOK.divider),
       });
-      // Left: project name
-      p.drawText(proj.name, { x: M, y: 18, size: 8, font, color: MUTED });
-      // Center: export date
-      const dateW = font.widthOfTextAtSize(sanitize(exportedDateStr), 8);
-      p.drawText(exportedDateStr, { x: (PAGE_W - dateW) / 2, y: 18, size: 8, font, color: MUTED });
+      const fSize = 7;
+      // Left: Confidential — prepared for [client_name]
+      const left = `Confidential - prepared for ${clientName}`;
+      p.drawText(left, { x: MARGIN, y: FOOTER_Y - 2, size: fSize, font: fontReg, color: C(TOK.label) });
+      // Center: photo date range
+      const center = photoDateRangeLabel;
+      if (center) {
+        const cw = fontReg.widthOfTextAtSize(sanitize(center), fSize);
+        p.drawText(center, { x: (PAGE_W - cw) / 2, y: FOOTER_Y - 2, size: fSize, font: fontReg, color: C(TOK.label) });
+      }
       // Right: Page X of Y
-      const pageStr = `Page ${pageNum} of ${totalContent}`;
-      const pageW = font.widthOfTextAtSize(sanitize(pageStr), 8);
-      p.drawText(pageStr, { x: PAGE_W - M - pageW, y: 18, size: 8, font, color: MUTED });
+      const right = `Page ${pageNum} of ${totalContent}`;
+      const rw = fontReg.widthOfTextAtSize(sanitize(right), fSize);
+      p.drawText(right, { x: PAGE_W - MARGIN - rw, y: FOOTER_Y - 2, size: fSize, font: fontReg, color: C(TOK.label) });
     }
 
     const pdfBytes = await pdf.save();
@@ -677,6 +1002,9 @@ Deno.serve(async (req) => {
       completed_at: new Date().toISOString(),
     }).eq("id", exportId);
 
+    // Suppress unused warnings
+    void areaName; void _albumName; void _dayNoteByDate;
+
     return new Response(JSON.stringify({ ok: true, output_path: outputPath }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("generate-pdf error", e);
@@ -684,19 +1012,3 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: String((e as Error)?.message ?? e) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
-
-function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const words = String(text).split(/\s+/);
-  const lines: string[] = [];
-  let line = "";
-  for (const w of words) {
-    const test = line ? `${line} ${w}` : w;
-    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
-      lines.push(line); line = w;
-    } else {
-      line = test;
-    }
-  }
-  if (line) lines.push(line);
-  return lines;
-}
