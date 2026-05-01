@@ -28,6 +28,7 @@ type ShareProject = {
   name: string;
   description: string | null;
   client_name?: string | null;
+  event_type?: string | null;
   event_location?: string | null;
   event_date?: string | null;
   color?: string | null;
