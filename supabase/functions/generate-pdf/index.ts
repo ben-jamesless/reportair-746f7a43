@@ -140,6 +140,9 @@ Deno.serve(async (req) => {
         return k >= dateFrom! && k <= dateTo!;
       });
       if (allPhotos.length === 0) throw new Error("No photos found in the selected date range.");
+    } else if (isAlbum) {
+      allPhotos = allPhotos.filter((p) => p.album_id === albumIdFilter);
+      if (allPhotos.length === 0) throw new Error("No photos found in the selected album.");
     }
 
     if (allPhotos.length > PHOTO_CAP) {
