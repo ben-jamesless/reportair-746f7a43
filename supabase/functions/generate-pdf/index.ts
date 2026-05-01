@@ -93,7 +93,10 @@ Deno.serve(async (req) => {
     const dayLabel: string | null = exp.options?.day_label ?? null;
     const dateFrom: string | null = exp.options?.date_from ?? null; // YYYY-MM-DD
     const dateTo: string | null = exp.options?.date_to ?? null;     // YYYY-MM-DD
+    const albumIdFilter: string | null = exp.options?.album_id ?? null;
+    const albumLabel: string | null = exp.options?.album_label ?? null;
     const isRange = !!(dateFrom && dateTo);
+    const isAlbum = !!albumIdFilter;
     const accent = hexToRgb(exp.accent_color || "#01696F");
 
     // Load project + photos + albums + areas + activity + notes + day notes + per-day area status + per-day area notes
