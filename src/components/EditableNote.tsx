@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Pencil, Check, X, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RichNotes } from "@/components/RichNotes";
 
 interface Props {
   value: string | null;
@@ -10,9 +11,10 @@ interface Props {
   onSave: (next: string | null) => Promise<void> | void;
   className?: string;
   rows?: number;
+  rich?: boolean;
 }
 
-export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, className, rows = 2 }: Props) => {
+export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, className, rows = 2, rich = false }: Props) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value ?? "");
   const [busy, setBusy] = useState(false);
