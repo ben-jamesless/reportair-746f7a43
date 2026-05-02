@@ -838,6 +838,16 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      list_guest_notes_project_public: {
+        Args: { _token: string }
+        Returns: {
+          body: string
+          created_at: string
+          guest_name: string
+          id: string
+          photo_id: string
+        }[]
+      }
       list_guest_notes_public: {
         Args: { _photo_id: string; _token: string }
         Returns: {
