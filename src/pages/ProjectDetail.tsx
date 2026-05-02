@@ -86,6 +86,17 @@ const SHORT_FMT = new Intl.DateTimeFormat(undefined, {
   month: "short",
 });
 
+/** Hex accent for the 3px left bar on area blocks (matches share view). */
+const areaStatusAccent = (s: AreaStatus | null | undefined): string => {
+  switch (s) {
+    case "on_track": return "#3b82f6";
+    case "requires_discussion": return "#f97316";
+    case "concern": return "#ef4444";
+    case "complete": return "#10b981";
+    default: return "#e5e7eb";
+  }
+};
+
 const dayKey = (p: LightboxPhoto): string => {
   const raw = p.captured_at || p.created_at;
   const d = raw ? new Date(raw) : new Date(0);
@@ -892,43 +903,43 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                {/* Day / selection header — sticky at top of main content */}
-                <div className="sticky top-0 z-20 -mx-1 mb-4 rounded-md border border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-baseline gap-3 min-w-0">
-                      <h2 className="truncate text-lg font-semibold">{selectionTitle}</h2>
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                      </span>
-                    </div>
-                    {visiblePhotos.length > 0 && !selectMode && (
-                      <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                        Select
-                      </Button>
-                    )}
+                {/* Day / selection header — full-width flush strip, sticky */}
+                <div
+                  className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur"
+                  style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}
+                >
+                  <div className="flex items-baseline gap-3 min-w-0">
+                    <h2 className="truncate text-base font-bold" style={{ color: "#1a1a1a" }}>{selectionTitle}</h2>
+                    <span className="shrink-0 text-xs" style={{ color: "#6b7280" }}>
+                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
+                    </span>
+                    {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
+                      const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
+                      const areaIds = new Set<string>();
+                      dayPool.forEach((p) => { if (p.area_id) areaIds.add(p.area_id); });
+                      const counts: Record<AreaStatus, number> = {
+                        no_status: 0, on_track: 0, requires_discussion: 0, concern: 0, complete: 0,
+                      };
+                      areaIds.forEach((aid) => { counts[getAreaDayStatus(aid, activeDay)]++; });
+                      const parts: string[] = [];
+                      if (counts.complete) parts.push(`${counts.complete} Complete`);
+                      if (counts.on_track) parts.push(`${counts.on_track} On Track`);
+                      if (counts.requires_discussion) parts.push(`${counts.requires_discussion} Requires Discussion`);
+                      if (counts.concern) parts.push(`${counts.concern} Concern`);
+                      if (counts.no_status) parts.push(`${counts.no_status} No Status`);
+                      if (parts.length === 0) return null;
+                      return (
+                        <span className="shrink-0 text-xs" style={{ color: "#6b7280" }}>
+                          · {parts.join(" · ")}
+                        </span>
+                      );
+                    })()}
                   </div>
-                  {/* Day-level status summary bar */}
-                  {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
-                    const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
-                    const areaIds = new Set<string>();
-                    dayPool.forEach((p) => { if (p.area_id) areaIds.add(p.area_id); });
-                    const counts: Record<AreaStatus, number> = {
-                      no_status: 0, on_track: 0, requires_discussion: 0, concern: 0, complete: 0,
-                    };
-                    areaIds.forEach((aid) => { counts[getAreaDayStatus(aid, activeDay)]++; });
-                    const parts: string[] = [];
-                    if (counts.complete) parts.push(`${counts.complete} Complete`);
-                    if (counts.on_track) parts.push(`${counts.on_track} On Track`);
-                    if (counts.requires_discussion) parts.push(`${counts.requires_discussion} Requires Discussion`);
-                    if (counts.concern) parts.push(`${counts.concern} Concern`);
-                    if (counts.no_status) parts.push(`${counts.no_status} No Status`);
-                    if (parts.length === 0) return null;
-                    return (
-                      <p className="mt-1.5 text-xs text-muted-foreground">
-                        {parts.join(" · ")}
-                      </p>
-                    );
-                  })()}
+                  {visiblePhotos.length > 0 && !selectMode && (
+                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
+                      Select
+                    </Button>
+                  )}
                 </div>
 
                 {/* Bulk-selection toolbar */}
@@ -985,6 +996,9 @@ const ProjectDetail = () => {
                   </div>
                 )}
 
+                {/* Status accent colors for the 3px left bar (matches share view). */}
+                {(() => null)()}
+
                 {/* REPORT VIEW — written briefing per area, no photo grids. */}
                 {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report" && (() => {
                   const day = days.find((d) => d.key === activeDay);
@@ -995,7 +1009,7 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Day-level note (once, at top of day content) */}
-                      <div className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40">
+                      <div className="px-4 pt-2">
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Day note
                         </p>
@@ -1008,38 +1022,44 @@ const ProjectDetail = () => {
                         />
                       </div>
 
-                      {/* Per-area briefing — status pill + read-only notes, no photos */}
+                      {/* Per-area briefing — flush, no card */}
                       {areasOnDay.length === 0 ? (
                         <p className="px-1 py-6 text-center text-sm text-muted-foreground">
                           No areas with photos on this day yet.
                         </p>
                       ) : (
-                        areasOnDay.map((ar) => {
-                          const st = getAreaDayStatus(ar.id, activeDay);
-                          const note = getAreaDayNote(ar.id, activeDay);
-                          return (
-                            <div
-                              key={ar.id}
-                              className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40"
-                            >
-                              <div className="mb-3 flex flex-wrap items-center gap-2">
-                                <h3 className="text-base font-semibold">{ar.name}</h3>
-                                <AreaStatusPicker
-                                  value={st}
-                                  onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
-                                  className="ml-auto"
-                                />
+                        <div>
+                          {areasOnDay.map((ar, idx) => {
+                            const st = getAreaDayStatus(ar.id, activeDay);
+                            const note = getAreaDayNote(ar.id, activeDay);
+                            const accent = areaStatusAccent(st);
+                            const isLast = idx === areasOnDay.length - 1;
+                            return (
+                              <div key={ar.id}>
+                                <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
+                                  <header className="mb-3 flex flex-wrap items-center gap-2">
+                                    <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
+                                    <AreaStatusPicker
+                                      value={st}
+                                      onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
+                                      className="ml-auto"
+                                    />
+                                  </header>
+                                  <EditableNote
+                                    value={note}
+                                    placeholder="No notes for this area yet."
+                                    onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                    rich
+                                    rows={3}
+                                  />
+                                </article>
+                                {!isLast && (
+                                  <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
+                                )}
                               </div>
-                              <EditableNote
-                                value={note}
-                                placeholder="No notes for this area yet."
-                                onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
-                                rich
-                                rows={3}
-                              />
-                            </div>
-                          );
-                        })
+                            );
+                          })}
+                        </div>
                       )}
                     </div>
                   );
@@ -1084,61 +1104,68 @@ const ProjectDetail = () => {
                       else { const arr = byArea.get(p.area_id) ?? []; arr.push(p); byArea.set(p.area_id, arr); }
                     }
                     const orderedAreas = areas.filter((a) => (byArea.get(a.id)?.length ?? 0) > 0);
+                    const totalBlocks = orderedAreas.length + (unassigned.length > 0 ? 1 : 0);
                     return (
-                      <div className="space-y-6">
-                        {orderedAreas.map((ar) => {
+                      <div>
+                        {orderedAreas.map((ar, idx) => {
                           const list = byArea.get(ar.id) ?? [];
                           const st = getAreaDayStatus(ar.id, activeDay);
+                          const accent = areaStatusAccent(st);
+                          const isLast = idx === totalBlocks - 1;
                           return (
-                            <div
-                              key={ar.id}
-                              className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40"
-                            >
-                              <div className="mb-3 flex flex-wrap items-center gap-2">
-                                <h3 className="text-base font-semibold">{ar.name}</h3>
-                                <span className="text-xs text-muted-foreground">
-                                  {list.length} photo{list.length === 1 ? "" : "s"}
-                                </span>
-                                <AreaStatusPicker
-                                  value={st}
-                                  onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
-                                  className="ml-auto"
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                {list.map((p) => (
-                                  <PhotoThumb
-                                    key={p.id}
-                                    path={p.storage_path}
-                                    alt={p.caption || p.file_name}
-                                    selectable={selectMode}
-                                    selected={selectedIds.has(p.id)}
-                                    onClick={() =>
-                                      selectMode
-                                        ? toggleSelect(p.id)
-                                        : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                                    }
+                            <div key={ar.id}>
+                              <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
+                                <header className="mb-3 flex flex-wrap items-center gap-2">
+                                  <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
+                                  <span className="text-xs" style={{ color: "#6b7280" }}>
+                                    {list.length} photo{list.length === 1 ? "" : "s"}
+                                  </span>
+                                  <AreaStatusPicker
+                                    value={st}
+                                    onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
+                                    className="ml-auto"
                                   />
-                                ))}
-                              </div>
-                              <div className="mt-4">
-                                <EditableNote
-                                  value={getAreaDayNote(ar.id, activeDay)}
-                                  placeholder="Daily updates"
-                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
-                                />
-                              </div>
+                                </header>
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                  {list.map((p) => (
+                                    <PhotoThumb
+                                      key={p.id}
+                                      path={p.storage_path}
+                                      alt={p.caption || p.file_name}
+                                      selectable={selectMode}
+                                      selected={selectedIds.has(p.id)}
+                                      onClick={() =>
+                                        selectMode
+                                          ? toggleSelect(p.id)
+                                          : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                                <div className="mt-4">
+                                  <EditableNote
+                                    value={getAreaDayNote(ar.id, activeDay)}
+                                    placeholder="Daily updates"
+                                    onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                    rich
+                                    rows={3}
+                                  />
+                                </div>
+                              </article>
+                              {!(isLast) && (
+                                <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
+                              )}
                             </div>
                           );
                         })}
                         {unassigned.length > 0 && (
-                          <div className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40">
-                            <div className="mb-2 flex items-center gap-2">
-                              <h3 className="text-base font-semibold">Unassigned</h3>
-                              <span className="text-xs text-muted-foreground">
+                          <article className="py-4 pl-4" style={{ borderLeft: `3px solid #e5e7eb` }}>
+                            <header className="mb-3 flex flex-wrap items-center gap-2">
+                              <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>Unassigned</h3>
+                              <span className="text-xs" style={{ color: "#6b7280" }}>
                                 {unassigned.length} photo{unassigned.length === 1 ? "" : "s"}
                               </span>
-                            </div>
+                            </header>
                             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                               {unassigned.map((p) => (
                                 <PhotoThumb
@@ -1155,7 +1182,7 @@ const ProjectDetail = () => {
                                 />
                               ))}
                             </div>
-                          </div>
+                          </article>
                         )}
                       </div>
                     );
