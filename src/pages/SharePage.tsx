@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, MapPinned, Lock, X, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Loader2, Lock, X, ChevronLeft, ChevronRight, Download, Calendar, Layers, ImagePlus, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -49,30 +48,52 @@ type Resolved = {
   latest_export?: LatestExport | null;
 };
 
-// Status pill spec: rounded-full px-2 py-0.5 text-xs font-semibold text-white,
-// background = status colour. Null/missing → render nothing.
+type GuestNoteRow = { id: string; photo_id: string; guest_name: string; body: string; created_at: string };
+
+// Site Story design tokens
+const TEAL = "#01696F";
+const NEAR_BLACK = "#1a1a1a";
+const BODY = "#374151";
+const MUTED = "#6b7280";
+const DIVIDER = "#e5e7eb";
+const SURFACE = "#f9fafb";
+
+// Status meta — pill backgrounds & dot colors
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On Track", bg: "#16a34a" },
+  on_track: { label: "On Track", bg: "#2563eb" },
   at_risk: { label: "At Risk", bg: "#d97706" },
   requires_discussion: { label: "Requires Discussion", bg: "#d97706" },
   delayed: { label: "Delayed", bg: "#dc2626" },
-  complete: { label: "Complete", bg: "#01696F" },
-  // Legacy values map to closest equivalents:
   concern: { label: "Delayed", bg: "#dc2626" },
   behind_schedule: { label: "Delayed", bg: "#dc2626" },
+  complete: { label: "Complete", bg: TEAL },
+  no_status: { label: "No status", bg: "#9ca3af" },
 };
 
-const StatusPill = ({ statusKey }: { statusKey: string | null | undefined }) => {
+const StatusPill = ({ statusKey, size = "sm" }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
   if (!statusKey) return null;
   const meta = STATUS_META[statusKey];
   if (!meta) return null;
   return (
     <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold text-white"
+      className={cn(
+        "inline-flex items-center rounded-full font-semibold text-white",
+        size === "md" ? "px-3 py-1 text-xs" : "px-2 py-0.5 text-xs",
+      )}
       style={{ backgroundColor: meta.bg }}
     >
       {meta.label}
     </span>
+  );
+};
+
+const StatusDot = ({ statusKey }: { statusKey: string | null | undefined }) => {
+  const meta = statusKey ? STATUS_META[statusKey] : null;
+  return (
+    <span
+      className="inline-block h-2 w-2 shrink-0 rounded-full"
+      style={{ backgroundColor: meta?.bg ?? "#d1d5db" }}
+    />
   );
 };
 
@@ -83,11 +104,14 @@ const isoDateKey = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
-const ALL = "__all__";
-const ALL_AREAS = "__all_areas__";
-const NO_AREA = "__no_area__";
-
+const ALL_DAYS = "__all_days__";
 const guestKey = (token: string) => `guest_identity_${token}`;
+const albumKey = (id: string) => `__album_${id}`;
+const isAlbumKey = (k: string) => k.startsWith("__album_");
+
+const DATE_FMT = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const SHORT_FMT = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
+const TIME_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 const SharePage = () => {
   const { token } = useParams<{ token: string }>();
@@ -95,11 +119,11 @@ const SharePage = () => {
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
   const [needPassword, setNeedPassword] = useState(false);
-  const [activeAlbum, setActiveAlbum] = useState<string>(ALL);
-  const [activeArea, setActiveArea] = useState<string>(ALL_AREAS);
+  const [activeKey, setActiveKey] = useState<string>(ALL_DAYS); // ALL_DAYS | dateKey | __album_<id>
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [guest, setGuest] = useState<{ name: string; email: string } | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
 
   useEffect(() => {
     if (!token) return;
@@ -124,104 +148,102 @@ const SharePage = () => {
     setData(r);
   };
 
+  const loadFeedback = useCallback(async () => {
+    if (!token) return;
+    const { data: rows } = await supabase.rpc("list_guest_notes_project_public", { _token: token });
+    setFeedback((rows ?? []) as GuestNoteRow[]);
+  }, [token]);
+
+  useEffect(() => { if (data?.ok) loadFeedback(); }, [data?.ok, loadFeedback]);
+
   const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
   const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
   const areas = useMemo(() => data?.areas ?? [], [data?.areas]);
   const project = data?.project;
-  const accentColor = project?.color || "#01696F";
-  const dayNotesMap = useMemo(() => {
-    const m = new Map<string, string>();
-    (data?.day_notes ?? []).forEach((d) => { if (d.notes && d.notes.trim()) m.set(d.date, d.notes); });
-    return m;
-  }, [data?.day_notes]);
+
   const statusMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.area_day_status ?? []).forEach((s) => m.set(`${s.area_id}|${s.date}`, s.status));
     return m;
   }, [data?.area_day_status]);
+
   const areaDayNotesMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.area_day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(`${n.area_id}|${n.date}`, n.notes); });
     return m;
   }, [data?.area_day_notes]);
-  const activeAreaObj = useMemo(
-    () => (activeArea !== ALL_AREAS && activeArea !== NO_AREA ? areas.find((a) => a.id === activeArea) ?? null : null),
-    [areas, activeArea]
-  );
 
-  const albumFiltered = useMemo(() => {
-    if (activeAlbum === ALL) return photos;
-    return photos.filter((p) => p.album_id === activeAlbum);
-  }, [photos, activeAlbum]);
-  const visiblePhotos = useMemo(() => {
-    if (activeArea === ALL_AREAS) return albumFiltered;
-    if (activeArea === NO_AREA) return albumFiltered.filter((p) => !p.area_id);
-    return albumFiltered.filter((p) => p.area_id === activeArea);
-  }, [albumFiltered, activeArea]);
-  const grouped = useMemo(() => groupPhotosByDate(visiblePhotos), [visiblePhotos]);
-  const indexById = useMemo(() => {
-    const m = new Map<string, number>(); visiblePhotos.forEach((p, i) => m.set(p.id, i)); return m;
-  }, [visiblePhotos]);
+  // Photos grouped by day (for full project)
+  const allDayGroups = useMemo(() => groupPhotosByDate(photos), [photos]);
 
-  // Coverage: % of distinct project days that have a photo in each area
-  const coverage = useMemo(() => {
-    const allDayKeys = new Set<string>();
-    photos.forEach((p) => {
-      const raw = p.captured_at || p.created_at;
-      try { allDayKeys.add(isoDateKey(new Date(raw))); } catch { /* skip */ }
-    });
-    const totalDays = allDayKeys.size;
-    const rows = areas.map((a) => {
-      const photosInArea = photos.filter((p) => p.area_id === a.id);
-      const dayKeys = new Set<string>();
-      photosInArea.forEach((p) => {
-        const raw = p.captured_at || p.created_at;
-        try { dayKeys.add(isoDateKey(new Date(raw))); } catch { /* skip */ }
-      });
-      const pct = totalDays > 0 ? Math.round((dayKeys.size / totalDays) * 100) : 0;
-      return { id: a.id, name: a.name, photoCount: photosInArea.length, pct };
-    });
-    const areasWithAny = rows.filter((r) => r.photoCount > 0).length;
-    const overallPct = areas.length > 0 ? Math.round((areasWithAny / areas.length) * 100) : 0;
-    return { rows, totalDays, overallPct, totalPhotos: photos.length, totalAreas: areas.length };
-  }, [photos, areas]);
-
-  const lastUpdated = useMemo(() => {
-    if (photos.length === 0) return null;
-    let max = 0;
-    for (const p of photos) {
-      const t = new Date(p.created_at).getTime();
-      if (t > max) max = t;
-    }
-    return max ? new Date(max) : null;
-  }, [photos]);
-
-  // Latest area-day status per area (most recent date) — must stay above early returns.
+  // Most recent area-day status per area (for sidebar dots and Latest Update)
   const latestAreaStatus = useMemo(() => {
-    const m = new Map<string, string>();
+    const status = new Map<string, string>();
     const latestDate = new Map<string, string>();
     (data?.area_day_status ?? []).forEach((s) => {
       const prev = latestDate.get(s.area_id);
       if (!prev || s.date > prev) {
         latestDate.set(s.area_id, s.date);
-        m.set(s.area_id, s.status);
+        status.set(s.area_id, s.status);
       }
     });
-    return m;
+    return status;
   }, [data?.area_day_status]);
 
-  // Most recent area-day note for the active area (across all dates)
-  const activeAreaLatestNote = useMemo(() => {
-    if (!activeAreaObj) return null;
-    let bestDate = "";
-    let bestNote: string | null = null;
+  // Latest area-day note per area
+  const latestAreaNote = useMemo(() => {
+    const note = new Map<string, string>();
+    const latestDate = new Map<string, string>();
     (data?.area_day_notes ?? []).forEach((n) => {
-      if (n.area_id !== activeAreaObj.id) return;
       if (!n.notes || !n.notes.trim()) return;
-      if (n.date > bestDate) { bestDate = n.date; bestNote = n.notes; }
+      const prev = latestDate.get(n.area_id);
+      if (!prev || n.date > prev) {
+        latestDate.set(n.area_id, n.date);
+        note.set(n.area_id, n.notes);
+      }
     });
-    return bestNote;
-  }, [data?.area_day_notes, activeAreaObj]);
+    return note;
+  }, [data?.area_day_notes]);
+
+  // Most recent day overall (for Latest Update header)
+  const latestDayKey = useMemo(() => {
+    if (allDayGroups.length === 0) return null;
+    return isoDateKey(allDayGroups[0].date);
+  }, [allDayGroups]);
+
+  const albumPhotosMap = useMemo(() => {
+    const m = new Map<string, SharePhoto[]>();
+    photos.forEach((p) => {
+      if (!p.album_id) return;
+      if (!m.has(p.album_id)) m.set(p.album_id, []);
+      m.get(p.album_id)!.push(p);
+    });
+    return m;
+  }, [photos]);
+
+  // Visible groups for centre column based on selection
+  const visibleGroups = useMemo(() => {
+    if (activeKey === ALL_DAYS) return allDayGroups;
+    if (isAlbumKey(activeKey)) {
+      const id = activeKey.replace("__album_", "");
+      const list = albumPhotosMap.get(id) ?? [];
+      return groupPhotosByDate(list);
+    }
+    return allDayGroups.filter((g) => isoDateKey(g.date) === activeKey);
+  }, [activeKey, allDayGroups, albumPhotosMap]);
+
+  const visiblePhotos = useMemo(() => visibleGroups.flatMap((g) => g.photos), [visibleGroups]);
+  const indexById = useMemo(() => {
+    const m = new Map<string, number>();
+    visiblePhotos.forEach((p, i) => m.set(p.id, i));
+    return m;
+  }, [visiblePhotos]);
+
+  const photoById = useMemo(() => {
+    const m = new Map<string, SharePhoto>();
+    photos.forEach((p) => m.set(p.id, p));
+    return m;
+  }, [photos]);
 
   const downloadLatestReport = async () => {
     if (!token || downloading) return;
@@ -232,18 +254,28 @@ const SharePage = () => {
         body: JSON.stringify({ token }),
       });
       const json = await res.json();
-      if (!res.ok || !json.url) {
-        toast.error("Could not get download link");
-        return;
-      }
+      if (!res.ok || !json.url) { toast.error("Could not get download link"); return; }
       const a = document.createElement("a");
       a.href = json.url; a.rel = "noopener"; a.target = "_self";
       a.download = "site-story.pdf";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    } catch (e) {
+    } catch {
       toast.error("Download failed");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  // Day-level scroll anchors (for ALL_DAYS view)
+  const dayAnchorRefs = useRef<Map<string, HTMLElement | null>>(new Map());
+  const handleSelectDay = (key: string) => {
+    setActiveKey(key);
+    if (key !== ALL_DAYS && !isAlbumKey(key)) {
+      // If we’re showing all days, scroll to anchor; else just switch view
+      requestAnimationFrame(() => {
+        const el = dayAnchorRefs.current.get(key);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     }
   };
 
@@ -253,16 +285,16 @@ const SharePage = () => {
 
   if (needPassword) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
+      <div className="flex min-h-screen items-center justify-center bg-white p-4">
         <Card className="w-full max-w-md">
           <CardContent className="space-y-4 pt-6">
             <div className="text-center">
-              <Lock className="mx-auto h-8 w-8 text-muted-foreground" />
-              <h1 className="mt-2 text-lg font-semibold">Password required</h1>
-              <p className="text-sm text-muted-foreground">Enter the password to view this gallery.</p>
+              <Lock className="mx-auto h-8 w-8" style={{ color: MUTED }} />
+              <h1 className="mt-2 text-lg font-semibold" style={{ color: NEAR_BLACK }}>Password required</h1>
+              <p className="text-sm" style={{ color: MUTED }}>Enter the password to view this gallery.</p>
             </div>
             <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button className="w-full" onClick={() => resolve(password)}>Unlock</Button>
+            <Button className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={() => resolve(password)}>Unlock</Button>
           </CardContent>
         </Card>
       </div>
@@ -274,8 +306,8 @@ const SharePage = () => {
       : data.error === "revoked" ? "This link has been revoked."
       : "Link not found.";
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="max-w-md"><CardContent className="pt-6 text-center"><p className="text-sm text-muted-foreground">{msg}</p></CardContent></Card>
+      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+        <Card className="max-w-md"><CardContent className="pt-6 text-center"><p className="text-sm" style={{ color: MUTED }}>{msg}</p></CardContent></Card>
       </div>
     );
   }
@@ -284,40 +316,39 @@ const SharePage = () => {
     return <GuestIdentityPrompt onSubmit={(g) => { localStorage.setItem(guestKey(token!), JSON.stringify(g)); setGuest(g); }} />;
   }
 
-  const status = project?.overall_status ?? null;
-
-  // Subtitle per spec: client · location · event_type
+  const overallStatus = project?.overall_status ?? null;
   const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
-
   const hasLatestExport = !!data?.latest_export;
 
-  // Coverage helpers for new section
-  const areasCovered = coverage.rows.filter((r) => r.photoCount > 0).length;
-
+  // Latest day header data
+  const latestDayPhotos = latestDayKey ? (allDayGroups[0]?.photos ?? []) : [];
+  const latestDayAreaIds = Array.from(new Set(latestDayPhotos.map((p) => p.area_id).filter(Boolean) as string[]));
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      {/* Top accent strip */}
-      <div className="h-1 w-full" style={{ backgroundColor: accentColor }} />
-      <header className="border-b bg-background">
-        <div className="container py-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            {/* Left: logo or project name */}
+    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: BODY }}>
+      {/* HEADER */}
+      <header className="border-b" style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}>
+        <div className="mx-auto max-w-[1400px] px-6 py-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: accentColor }}>
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
                 {project?.name}
               </h1>
+              {subtitleBits.length > 0 && (
+                <p className="mt-1.5 text-sm" style={{ color: MUTED }}>
+                  {subtitleBits.join(" · ")}
+                </p>
+              )}
             </div>
-            {/* Right: status + download */}
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center md:items-center">
-              <StatusPill statusKey={status} />
+            <div className="flex shrink-0 items-center gap-3">
+              <StatusPill statusKey={overallStatus} size="md" />
               {hasLatestExport && (
                 <Button
                   size="sm"
                   onClick={downloadLatestReport}
                   disabled={downloading}
-                  className="w-full text-sm font-medium text-white sm:w-auto"
-                  style={{ backgroundColor: accentColor }}
+                  className="text-sm font-medium text-white hover:opacity-90"
+                  style={{ backgroundColor: TEAL }}
                 >
                   {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                   Download latest report
@@ -325,209 +356,377 @@ const SharePage = () => {
               )}
             </div>
           </div>
-          {subtitleBits.length > 0 && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {subtitleBits.join(" · ")}
-            </p>
-          )}
-          <div className="mt-4 border-t" />
-          <p className="mt-3 text-xs text-muted-foreground">
-            Viewing as <span className="font-medium text-foreground">{guest.name}</span>
-          </p>
         </div>
       </header>
 
-      <main className="container py-8">
-        {project?.description && <p className="mb-6 max-w-2xl text-muted-foreground">{project.description}</p>}
-
-        {/* Coverage section — hide on default Event Gallery view */}
-        {areas.length > 0 && activeAlbum !== ALL && (
-          <section className="mb-8 rounded-lg border bg-background p-5">
-            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-              <h2 className="text-base font-bold">Site Coverage</h2>
-              <span className="text-xs text-muted-foreground sm:text-sm">
-                {areasCovered} of {coverage.totalAreas} area{coverage.totalAreas === 1 ? "" : "s"} covered · {coverage.totalPhotos} photo{coverage.totalPhotos === 1 ? "" : "s"}
+      {/* THREE-COLUMN LAYOUT */}
+      <div className="mx-auto max-w-[1400px] px-6 py-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_300px]">
+          {/* LEFT: Date navigation */}
+          <aside className="space-y-1">
+            <button
+              onClick={() => setActiveKey(ALL_DAYS)}
+              className={cn(
+                "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+              )}
+              style={
+                activeKey === ALL_DAYS
+                  ? { backgroundColor: TEAL, color: "#ffffff" }
+                  : { color: BODY }
+              }
+              onMouseEnter={(e) => {
+                if (activeKey !== ALL_DAYS) e.currentTarget.style.backgroundColor = SURFACE;
+              }}
+              onMouseLeave={(e) => {
+                if (activeKey !== ALL_DAYS) e.currentTarget.style.backgroundColor = "transparent";
+              }}
+            >
+              <span className="flex items-center gap-2">
+                <ImagePlus className="h-3.5 w-3.5" />
+                <span className="font-medium">All days</span>
               </span>
-            </div>
-            <div className="space-y-3">
-              {coverage.rows.map((r) => {
-                const sKey = latestAreaStatus.get(r.id);
-                return (
-                  <div
-                    key={r.id}
-                    className="grid grid-cols-1 items-center gap-2 text-sm sm:grid-cols-[1fr_2fr_auto] sm:gap-3"
-                  >
-                    <span className="truncate font-medium">{r.name}</span>
-                    <div className="relative h-2 overflow-hidden rounded-full" style={{ backgroundColor: "#e5e7eb" }}>
-                      <div
-                        className="h-full transition-all"
-                        style={{ width: `${r.pct}%`, backgroundColor: accentColor }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-2 sm:justify-end">
-                      {r.photoCount === 0 ? (
-                        <span className="text-xs italic text-muted-foreground">No photos yet</span>
-                      ) : (
-                        <span className="whitespace-nowrap text-xs text-muted-foreground">
-                          {r.photoCount} photo{r.photoCount === 1 ? "" : "s"}
-                        </span>
-                      )}
-                      <StatusPill statusKey={sKey} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+              <span className="text-xs opacity-80">{photos.length}</span>
+            </button>
 
-        <Tabs value={activeAlbum} onValueChange={setActiveAlbum} className="w-full">
-          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
-            <TabsTrigger value={ALL} className="data-[state=active]:bg-secondary">Event Gallery <span className="ml-2 text-xs text-muted-foreground">{photos.length}</span></TabsTrigger>
-            {albums.map((a) => (
-              <TabsTrigger key={a.id} value={a.id} className="data-[state=active]:bg-secondary">
-                {a.name} <span className="ml-2 text-xs text-muted-foreground">{photos.filter((p) => p.album_id === a.id).length}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+            <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
 
-          <TabsContent value={activeAlbum} className="mt-6">
-            {areas.length > 0 && (
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground"><MapPinned className="h-3 w-3" /> Area</span>
-                <AreaChip active={activeArea === ALL_AREAS} onClick={() => setActiveArea(ALL_AREAS)} label="All" count={albumFiltered.length} />
-                {areas.map((ar) => (
-                  <AreaChip key={ar.id} active={activeArea === ar.id} onClick={() => setActiveArea(ar.id)} label={ar.name} count={albumFiltered.filter((p) => p.area_id === ar.id).length} />
-                ))}
-              </div>
+            {allDayGroups.length === 0 && (
+              <p className="px-3 py-4 text-xs" style={{ color: MUTED }}>No photos yet.</p>
             )}
 
-            <div className={cn("grid gap-6", activeAreaObj ? "lg:grid-cols-[1fr_20%]" : "grid-cols-1")}>
-              <div className="min-w-0">
-                {grouped.length === 0 ? (
-                  <p className="py-12 text-center text-muted-foreground">No photos in this view.</p>
-                ) : (
-                  <div className="space-y-8">
-                    {grouped.map((group) => {
-                      const dateKey = isoDateKey(group.date);
-                      const dayNote = dayNotesMap.get(dateKey);
-                      const statusKey = activeAreaObj ? statusMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                      const areaDayNote = activeAreaObj ? areaDayNotesMap.get(`${activeAreaObj.id}|${dateKey}`) : undefined;
-                      return (
-                        <section key={group.key}>
-                          <div className="mb-2 flex flex-wrap items-center gap-2">
-                            <h3 className="text-sm font-medium text-foreground">
-                              {group.label}{" "}
-                              <span className="text-muted-foreground/70">· {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}</span>
-                            </h3>
-                            {activeAreaObj && statusKey && (
-                              <StatusPill statusKey={statusKey} />
-                            )}
-                          </div>
-                          {dayNote && (
-                            <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
-                              <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Day comment</p>
-                              <RichNotes text={dayNote} />
-                            </div>
-                          )}
-                          {areaDayNote && (
-                            <div className="mb-3 rounded-md border border-border bg-background p-3 text-sm">
-                              <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Daily updates</p>
-                              <RichNotes text={areaDayNote} />
-                            </div>
-                          )}
-                          <div className="grid grid-cols-2 gap-1 md:grid-cols-4">
-                            {group.photos.map((p) => (
-                              <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)} />
-                            ))}
-                          </div>
-                        </section>
-                      );
-                    })}
-                  </div>
-                )}
+            {allDayGroups.map((g) => {
+              const key = isoDateKey(g.date);
+              const active = activeKey === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleSelectDay(key)}
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
+                  style={active ? { backgroundColor: TEAL, color: "#ffffff" } : { color: BODY }}
+                  onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = SURFACE; }}
+                  onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
+                >
+                  <span className="flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5" />
+                    <span className="font-medium">{SHORT_FMT.format(g.date)}</span>
+                  </span>
+                  <span className="text-xs opacity-80">{g.photos.length}</span>
+                </button>
+              );
+            })}
 
-                {lastUpdated && (
-                  <p className="mt-8 text-center text-xs text-muted-foreground">
-                    Last updated {lastUpdated.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                  </p>
+            {albums.length > 0 && (
+              <>
+                <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
+                {albums.map((al) => {
+                  const key = albumKey(al.id);
+                  const active = activeKey === key;
+                  const count = albumPhotosMap.get(al.id)?.length ?? 0;
+                  return (
+                    <button
+                      key={al.id}
+                      onClick={() => setActiveKey(key)}
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
+                      style={active ? { backgroundColor: TEAL, color: "#ffffff" } : { color: BODY }}
+                      onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = SURFACE; }}
+                      onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Layers className="h-3.5 w-3.5" />
+                        <span className="font-medium">{al.name}</span>
+                      </span>
+                      <span className="text-xs opacity-80">{count}</span>
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            {areas.length > 0 && (
+              <>
+                <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>Areas</p>
+                {areas.map((ar) => (
+                  <div key={ar.id} className="flex items-center gap-2 px-3 py-1.5 text-xs" style={{ color: BODY }}>
+                    <StatusDot statusKey={latestAreaStatus.get(ar.id) ?? "no_status"} />
+                    <span className="truncate">{ar.name}</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </aside>
+
+          {/* CENTRE: Day feed */}
+          <section className="min-w-0">
+            {visibleGroups.length === 0 ? (
+              <div
+                className="rounded-xl border p-12 text-center text-sm"
+                style={{ borderColor: DIVIDER, backgroundColor: SURFACE, color: MUTED }}
+              >
+                No photos in this view.
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {visibleGroups.map((group) => {
+                  const dateKey = isoDateKey(group.date);
+                  // Group photos within this day by area
+                  const byArea = new Map<string, SharePhoto[]>();
+                  group.photos.forEach((p) => {
+                    const k = p.area_id ?? "__noarea__";
+                    if (!byArea.has(k)) byArea.set(k, []);
+                    byArea.get(k)!.push(p);
+                  });
+                  const areaIdsForDay = Array.from(byArea.keys());
+                  // Day-level dominant status: pick first area’s status if any, else null
+                  const dayStatusKeys = areaIdsForDay
+                    .filter((k) => k !== "__noarea__")
+                    .map((aid) => statusMap.get(`${aid}|${dateKey}`))
+                    .filter(Boolean) as string[];
+                  const dominantDayStatus = pickDominantStatus(dayStatusKeys);
+
+                  return (
+                    <div
+                      key={group.key}
+                      ref={(el) => { dayAnchorRefs.current.set(dateKey, el); }}
+                    >
+                      {/* Sticky day header */}
+                      <div
+                        className="sticky top-0 z-20 -mx-1 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3 backdrop-blur"
+                        style={{ borderColor: DIVIDER, backgroundColor: "rgba(255,255,255,0.95)" }}
+                      >
+                        <div className="flex items-baseline gap-3 min-w-0">
+                          <h2 className="truncate text-lg font-semibold" style={{ color: NEAR_BLACK }}>
+                            {DATE_FMT.format(group.date)}
+                          </h2>
+                          <span className="shrink-0 text-xs" style={{ color: MUTED }}>
+                            {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
+                      </div>
+
+                      {/* Area cards */}
+                      <div className="space-y-4">
+                        {areas
+                          .filter((ar) => byArea.has(ar.id))
+                          .map((ar) => {
+                            const areaPhotos = byArea.get(ar.id) ?? [];
+                            const sKey = statusMap.get(`${ar.id}|${dateKey}`);
+                            const note = areaDayNotesMap.get(`${ar.id}|${dateKey}`);
+                            return (
+                              <article
+                                key={ar.id}
+                                className="rounded-xl border p-5"
+                                style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+                              >
+                                <header className="mb-4 flex flex-wrap items-center gap-2">
+                                  <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>{ar.name}</h3>
+                                  {sKey && <StatusPill statusKey={sKey} />}
+                                </header>
+
+                                {areaPhotos.length > 0 && (
+                                  <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+                                    {areaPhotos.map((p) => (
+                                      <SharePhotoThumb
+                                        key={p.id}
+                                        token={token!}
+                                        photo={p}
+                                        onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+
+                                {note && (
+                                  <div className="mt-4 text-sm" style={{ color: BODY }}>
+                                    <RichNotes text={note} />
+                                  </div>
+                                )}
+                              </article>
+                            );
+                          })}
+
+                        {/* Unassigned photos (no area) for this day */}
+                        {byArea.has("__noarea__") && (
+                          <article
+                            className="rounded-xl border p-5"
+                            style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+                          >
+                            <header className="mb-4">
+                              <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>Unassigned</h3>
+                            </header>
+                            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+                              {byArea.get("__noarea__")!.map((p) => (
+                                <SharePhotoThumb
+                                  key={p.id}
+                                  token={token!}
+                                  photo={p}
+                                  onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)}
+                                />
+                              ))}
+                            </div>
+                          </article>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* RIGHT: Latest Update + Feedback */}
+          <aside className="hidden xl:block">
+            <div className="sticky top-6 space-y-4">
+              <div
+                className="rounded-xl border p-4"
+                style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                  Latest update
+                </p>
+                {latestDayKey ? (
+                  <>
+                    <p className="mt-1 text-sm font-bold" style={{ color: NEAR_BLACK }}>
+                      {DATE_FMT.format(allDayGroups[0].date)}
+                    </p>
+                    <div className="mt-2">
+                      <StatusPill statusKey={overallStatus} />
+                    </div>
+                    {latestDayAreaIds.length > 0 && (
+                      <ul className="mt-3 space-y-3">
+                        {areas
+                          .filter((ar) => latestDayAreaIds.includes(ar.id))
+                          .map((ar) => {
+                            const sKey = statusMap.get(`${ar.id}|${latestDayKey}`) ?? latestAreaStatus.get(ar.id);
+                            const note =
+                              areaDayNotesMap.get(`${ar.id}|${latestDayKey}`) ?? latestAreaNote.get(ar.id);
+                            return (
+                              <li key={ar.id} className="border-t pt-3 first:border-t-0 first:pt-0" style={{ borderColor: DIVIDER }}>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>{ar.name}</span>
+                                  {sKey && <StatusPill statusKey={sKey} />}
+                                </div>
+                                {note && (
+                                  <div className="mt-1.5 text-xs" style={{ color: BODY }}>
+                                    <RichNotes text={note} />
+                                  </div>
+                                )}
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-2 text-xs italic" style={{ color: MUTED }}>No updates yet.</p>
                 )}
               </div>
 
-              {/* Area context panel — only when a specific area is selected */}
-              {activeAreaObj && (
-                <aside className="order-last space-y-3 rounded-lg border bg-background p-4 text-sm lg:sticky lg:top-4 lg:self-start">
-                  <p className="font-bold">{activeAreaObj.name}</p>
-                  {(() => {
-                    const sKey = latestAreaStatus.get(activeAreaObj.id);
-                    return sKey ? <StatusPill statusKey={sKey} /> : null;
-                  })()}
-                  <div className="border-t" />
-                  <div>
-                    <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Latest update</p>
-                    {activeAreaLatestNote ? (
-                      <RichNotes text={activeAreaLatestNote} />
-                    ) : (
-                      <p className="italic text-muted-foreground">No notes for this area</p>
-                    )}
+              <div
+                className="rounded-xl border"
+                style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}
+              >
+                <div
+                  className="flex items-center justify-between border-b px-4 py-3"
+                  style={{ borderColor: DIVIDER }}
+                >
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" style={{ color: MUTED }} />
+                    <h3 className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>Feedback</h3>
                   </div>
-                  {(() => {
-                    const captions = visiblePhotos
-                      .map((p) => p.caption?.trim())
-                      .filter((c): c is string => !!c);
-                    if (captions.length === 0) return null;
-                    return (
-                      <div>
-                        <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Captions</p>
-                        <ul className="space-y-1">
-                          {captions.map((c, i) => (
-                            <li key={i} className="flex gap-2"><span aria-hidden>•</span><span>{c}</span></li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })()}
-                </aside>
-              )}
+                  <span className="text-xs" style={{ color: MUTED }}>{feedback.length}</span>
+                </div>
+                <div className="max-h-[420px] overflow-y-auto p-3">
+                  {feedback.length === 0 ? (
+                    <p className="px-1 py-6 text-center text-xs" style={{ color: MUTED }}>No feedback yet.</p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {feedback.map((n) => {
+                        const photo = photoById.get(n.photo_id);
+                        return (
+                          <li key={n.id}>
+                            <button
+                              onClick={() => {
+                                if (!photo) return;
+                                const idx = indexById.get(n.photo_id);
+                                if (idx !== undefined) setLightboxIndex(idx);
+                              }}
+                              className="flex w-full gap-3 rounded-md border p-2.5 text-left transition-colors"
+                              style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = SURFACE)}
+                              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ffffff")}
+                            >
+                              {photo ? (
+                                <SharePhotoMiniThumb token={token!} photo={photo} />
+                              ) : (
+                                <div className="h-10 w-10 shrink-0 rounded" style={{ backgroundColor: DIVIDER }} />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-baseline gap-2">
+                                  <p className="truncate text-xs font-medium" style={{ color: NEAR_BLACK }}>{n.guest_name}</p>
+                                  <span className="ml-auto shrink-0 text-[10px]" style={{ color: MUTED }}>
+                                    {TIME_FMT.format(new Date(n.created_at))}
+                                  </span>
+                                </div>
+                                <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs" style={{ color: BODY }}>{n.body}</p>
+                              </div>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </aside>
+        </div>
+      </div>
 
-        {lightboxIndex !== null && (
-          <ShareLightbox
-            token={token!}
-            photos={visiblePhotos}
-            index={lightboxIndex}
-            guest={guest}
-            onClose={() => setLightboxIndex(null)}
-            onIndexChange={setLightboxIndex}
-          />
-        )}
-      </main>
+      {lightboxIndex !== null && (
+        <ShareLightbox
+          token={token!}
+          photos={visiblePhotos}
+          index={lightboxIndex}
+          guest={guest}
+          onClose={() => setLightboxIndex(null)}
+          onIndexChange={setLightboxIndex}
+          onNotesChanged={loadFeedback}
+        />
+      )}
     </div>
   );
 };
 
-const AreaChip = ({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) => (
-  <button onClick={onClick} className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
-    active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-foreground hover:bg-secondary")}>
-    {label} <span className={cn("text-[10px]", active ? "opacity-80" : "text-muted-foreground")}>{count}</span>
-  </button>
-);
+// Pick a single representative status from a list (worst-first ordering)
+const STATUS_PRIORITY = ["delayed", "concern", "behind_schedule", "requires_discussion", "at_risk", "on_track", "complete", "no_status"];
+const pickDominantStatus = (keys: string[]): string | null => {
+  if (keys.length === 0) return null;
+  for (const s of STATUS_PRIORITY) if (keys.includes(s)) return s;
+  return keys[0];
+};
 
 const GuestIdentityPrompt = ({ onSubmit }: { onSubmit: (g: { name: string; email: string }) => void }) => {
   const [name, setName] = useState(""); const [email, setEmail] = useState("");
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
+    <div className="flex min-h-screen items-center justify-center bg-white p-4">
       <Card className="w-full max-w-md">
         <CardContent className="space-y-4 pt-6">
           <div>
-            <h1 className="text-lg font-semibold">Welcome</h1>
-            <p className="text-sm text-muted-foreground">Tell us who you are so the team knows whose notes are whose.</p>
+            <h1 className="text-lg font-semibold" style={{ color: NEAR_BLACK }}>Welcome</h1>
+            <p className="text-sm" style={{ color: MUTED }}>Tell us who you are so the team knows whose notes are whose.</p>
           </div>
           <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" /></div>
           <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" /></div>
-          <Button className="w-full" disabled={!name.trim() || !email.trim()} onClick={() => onSubmit({ name: name.trim(), email: email.trim() })}>Continue</Button>
+          <Button
+            className="w-full text-white"
+            style={{ backgroundColor: TEAL }}
+            disabled={!name.trim() || !email.trim()}
+            onClick={() => onSubmit({ name: name.trim(), email: email.trim() })}
+          >
+            Continue
+          </Button>
         </CardContent>
       </Card>
     </div>
@@ -536,7 +735,6 @@ const GuestIdentityPrompt = ({ onSubmit }: { onSubmit: (g: { name: string; email
 
 // --- Lightweight markdown-ish renderer for share-page notes ---
 const renderInline = (line: string, keyPrefix: string) => {
-  // Handle **bold** and *italic*
   const parts: React.ReactNode[] = [];
   const regex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
   let last = 0;
@@ -564,12 +762,12 @@ const RichNotes = ({ text }: { text: string }) => {
         const line = raw.trim();
         if (!line) return <div key={idx} className="h-1" />;
         if (line.startsWith("# ")) {
-          return <p key={idx} className="mt-2 text-sm font-bold">{renderInline(line.slice(2), `h-${idx}`)}</p>;
+          return <p key={idx} className="mt-2 text-sm font-bold" style={{ color: NEAR_BLACK }}>{renderInline(line.slice(2), `h-${idx}`)}</p>;
         }
         const bulletStripped = line.startsWith("- ") || line.startsWith("* ") ? line.slice(2) : line;
         return (
           <p key={idx} className="flex gap-2">
-            <span aria-hidden className="select-none text-muted-foreground">•</span>
+            <span aria-hidden className="select-none" style={{ color: MUTED }}>•</span>
             <span className="min-w-0">{renderInline(bulletStripped, `l-${idx}`)}</span>
           </p>
         );
@@ -578,22 +776,31 @@ const RichNotes = ({ text }: { text: string }) => {
   );
 };
 
-const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: SharePhoto; onClick: () => void }) => {
+const useShareSignedUrl = (token: string, photoId: string) => {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
     (async () => {
       const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-photo-url`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, photo_id: photo.id }),
+        body: JSON.stringify({ token, photo_id: photoId }),
       });
       const json = await res.json();
       if (alive && json.url) setUrl(json.url);
     })();
     return () => { alive = false; };
-  }, [token, photo.id]);
+  }, [token, photoId]);
+  return url;
+};
+
+const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: SharePhoto; onClick: () => void }) => {
+  const url = useShareSignedUrl(token, photo.id);
   return (
-    <button onClick={onClick} className="group relative aspect-[4/3] w-full overflow-hidden rounded-sm" title={photo.caption || undefined}>
+    <button
+      onClick={onClick}
+      className="group relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-[#f3f4f6]"
+      title={photo.caption || undefined}
+    >
       {url ? <img src={url} alt={photo.caption || ""} className="h-full w-full object-cover" loading="lazy" /> : null}
       {photo.caption && (
         <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
@@ -604,9 +811,18 @@ const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: Shar
   );
 };
 
-const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange }: {
+const SharePhotoMiniThumb = ({ token, photo }: { token: string; photo: SharePhoto }) => {
+  const url = useShareSignedUrl(token, photo.id);
+  return (
+    <div className="h-10 w-10 shrink-0 overflow-hidden rounded" style={{ backgroundColor: DIVIDER }}>
+      {url && <img src={url} alt={photo.caption || photo.file_name} className="h-full w-full object-cover" loading="lazy" />}
+    </div>
+  );
+};
+
+const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, onNotesChanged }: {
   token: string; photos: SharePhoto[]; index: number; guest: { name: string; email: string };
-  onClose: () => void; onIndexChange: (i: number) => void;
+  onClose: () => void; onIndexChange: (i: number) => void; onNotesChanged?: () => void;
 }) => {
   const [i, setI] = useState(index);
   useEffect(() => setI(index), [index]);
@@ -643,7 +859,7 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange }: 
       _token: token, _photo_id: photo.id, _name: guest.name, _email: guest.email, _body: body.trim(),
     });
     if (error) { toast.error(error.message); return; }
-    setBody(""); loadNotes(); toast.success("Note added");
+    setBody(""); loadNotes(); onNotesChanged?.(); toast.success("Note added");
   };
 
   const prev = () => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); };
@@ -685,7 +901,7 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange }: 
             </div>
             <div className="space-y-2 border-t pt-3">
               <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Leave a note as ${guest.name}…`} rows={3} maxLength={2000} />
-              <Button size="sm" className="w-full" onClick={submitNote} disabled={!body.trim()}>Add note</Button>
+              <Button size="sm" className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={submitNote} disabled={!body.trim()}>Add note</Button>
             </div>
           </aside>
         </div>
