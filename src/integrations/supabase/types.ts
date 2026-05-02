@@ -856,7 +856,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
-      area_status: "no_status" | "on_track" | "requires_discussion" | "concern"
+      area_status:
+        | "no_status"
+        | "on_track"
+        | "requires_discussion"
+        | "concern"
+        | "complete"
       export_status: "queued" | "processing" | "ready" | "failed"
       notification_type: "mention" | "reply" | "guest_comment"
       project_default_view: "report" | "gallery"
@@ -998,7 +1003,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      area_status: ["no_status", "on_track", "requires_discussion", "concern"],
+      area_status: [
+        "no_status",
+        "on_track",
+        "requires_discussion",
+        "concern",
+        "complete",
+      ],
       export_status: ["queued", "processing", "ready", "failed"],
       notification_type: ["mention", "reply", "guest_comment"],
       project_default_view: ["report", "gallery"],

@@ -1,0 +1,1 @@
+ALTER TYPE public.area_status ADD VALUE IF NOT EXISTS 'complete';
