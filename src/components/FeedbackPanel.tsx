@@ -184,39 +184,13 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
         </TabsContent>
 
         <TabsContent value="client" className="m-0 min-h-0 flex-1 overflow-y-auto p-3">
-          {loading && filteredGuestNotesForVisible.length === 0 ? (
-            <p className="px-1 py-6 text-center text-xs text-muted-foreground">Loading…</p>
-          ) : filteredGuestNotesForVisible.length === 0 ? (
-            <p className="px-1 py-6 text-center text-xs text-muted-foreground">
-              No client feedback for this view yet.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {filteredGuestNotesForVisible.map((n) => {
-                const photo = photoById.get(n.photo_id);
-                if (!photo) return null;
-                return (
-                  <li key={n.id}>
-                    <button
-                      onClick={() => onOpenPhoto(n.photo_id)}
-                      className="flex w-full gap-3 rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:bg-secondary/50"
-                    >
-                      <Thumb path={photo.storage_path} alt={photo.file_name} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <p className="truncate text-xs font-medium">{n.guest_name}</p>
-                          <span className="shrink-0 text-[10px] text-muted-foreground">
-                            {TIME_FMT.format(new Date(n.created_at))}
-                          </span>
-                        </div>
-                        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs">{n.body}</p>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <EntryList
+            loading={loading}
+            entries={clientEntries}
+            photoById={photoById}
+            onOpenPhoto={onOpenPhoto}
+            emptyText="No client feedback yet."
+          />
         </TabsContent>
 
         <TabsContent value="internal" className="m-0 min-h-0 flex-1 overflow-y-auto p-3">
