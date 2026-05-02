@@ -8,6 +8,7 @@ import { AlbumsManager } from "./AlbumsManager";
 import { InvitesManager } from "./InvitesManager";
 import { ShareLinksManager } from "./ShareLinksManager";
 import { ProjectEditForm } from "./ProjectEditForm";
+import { HeicBackfillButton } from "./HeicBackfillButton";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
 
