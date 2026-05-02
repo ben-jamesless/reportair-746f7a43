@@ -1000,15 +1000,14 @@ const ProjectDetail = () => {
                           Day note
                         </p>
                         {dayNoteVal && dayNoteVal.trim() ? (
-                          <div className="mb-3">
-                            <RichNotes value={dayNoteVal} className="text-foreground" />
-                          </div>
-                        ) : null}
-                        <EditableNote
-                          value={dayNoteVal}
-                          placeholder="Add a day note…"
-                          onSave={(next) => saveDayNote(activeDay, next)}
-                        />
+                          <RichNotes value={dayNoteVal} className="text-foreground" />
+                        ) : (
+                          <EditableNote
+                            value={dayNoteVal}
+                            placeholder="Add a day note…"
+                            onSave={(next) => saveDayNote(activeDay, next)}
+                          />
+                        )}
                       </div>
 
                       {/* Per-area briefing — status pill + read-only notes, no photos */}
