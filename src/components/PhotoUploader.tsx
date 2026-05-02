@@ -65,8 +65,18 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     setProgress({ done: 0, total: list.length });
     let failures = 0;
 
-    for (const file of list) {
+    for (const original of list) {
+      let file = original;
       try {
+        if (isHeic(file)) {
+          try {
+            file = await convertHeicToJpeg(file);
+          } catch (convErr) {
+            console.error("HEIC conversion failed for", file.name, convErr);
+            throw new Error("HEIC conversion failed");
+          }
+        }
+
         const exif = await parseExif(file);
         if (!exif.width || !exif.height) {
           const dims = await getImageDimensions(file);
