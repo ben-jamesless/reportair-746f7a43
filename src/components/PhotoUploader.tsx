@@ -130,7 +130,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
         ref={inputRef}
         type="file"
         multiple
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         className="hidden"
         onChange={(e) => onFilesPicked(e.target.files)}
       />
