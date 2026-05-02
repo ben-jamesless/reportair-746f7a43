@@ -99,6 +99,9 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               onSaved={onChanged}
               onClose={() => setOpen(false)}
             />
+            <div className="mt-6">
+              <HeicBackfillButton projectId={projectId} />
+            </div>
           </TabsContent>
           <TabsContent value="areas" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <AreasManager projectId={projectId} onChanged={onChanged} />
