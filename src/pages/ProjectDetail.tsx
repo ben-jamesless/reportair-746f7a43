@@ -1030,11 +1030,13 @@ const ProjectDetail = () => {
                                   className="ml-auto"
                                 />
                               </div>
-                              {note && note.trim() ? (
-                                <RichNotes value={note} className="text-foreground" />
-                              ) : (
-                                <p className="text-sm italic text-muted-foreground">No notes for this area yet.</p>
-                              )}
+                              <EditableNote
+                                value={note}
+                                placeholder="No notes for this area yet."
+                                onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                rich
+                                rows={3}
+                              />
                             </div>
                           );
                         })
