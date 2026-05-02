@@ -86,6 +86,17 @@ const SHORT_FMT = new Intl.DateTimeFormat(undefined, {
   month: "short",
 });
 
+/** Hex accent for the 3px left bar on area blocks (matches share view). */
+const areaStatusAccent = (s: AreaStatus | null | undefined): string => {
+  switch (s) {
+    case "on_track": return "#3b82f6";
+    case "requires_discussion": return "#f97316";
+    case "concern": return "#ef4444";
+    case "complete": return "#10b981";
+    default: return "#e5e7eb";
+  }
+};
+
 const dayKey = (p: LightboxPhoto): string => {
   const raw = p.captured_at || p.created_at;
   const d = raw ? new Date(raw) : new Date(0);
