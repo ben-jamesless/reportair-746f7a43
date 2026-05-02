@@ -742,6 +742,21 @@ const ProjectDetail = () => {
 
           <TabsContent value="photos" className="mt-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr] xl:grid-cols-[400px_minmax(0,1fr)_320px]">
+              {/* Full-width date / selection header — spans sidebar + main, stops at Feedback panel */}
+              <div className="md:col-span-2 xl:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card/40 px-4 py-3">
+                <div className="flex items-baseline gap-3 min-w-0">
+                  <h2 className="truncate text-lg font-semibold">{selectionTitle}</h2>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                {visiblePhotos.length > 0 && !selectMode && (
+                  <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
+                    Select
+                  </Button>
+                )}
+              </div>
+
               {/* Day → Area sidebar */}
               <aside className="space-y-1">
                 {days.length === 0 && albumPhotos.size === 0 && (
@@ -892,19 +907,6 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-baseline gap-3">
-                    <h2 className="text-lg font-semibold">{selectionTitle}</h2>
-                    <span className="text-xs text-muted-foreground">
-                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  {visiblePhotos.length > 0 && !selectMode && (
-                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                      Select
-                    </Button>
-                  )}
-                </div>
 
                 {/* Bulk-selection toolbar */}
                 {selectMode && (

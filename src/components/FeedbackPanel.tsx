@@ -98,17 +98,11 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  const visibleIds = useMemo(() => new Set(visiblePhotos.map((p) => p.id)), [visiblePhotos]);
   const photoById = useMemo(() => {
     const m = new Map<string, PhotoLite>();
     allPhotos.forEach((p) => m.set(p.id, p));
     return m;
   }, [allPhotos]);
-
-  const filteredGuestNotesForVisible = useMemo(
-    () => guestNotes.filter((n) => visibleIds.has(n.photo_id)),
-    [guestNotes, visibleIds],
-  );
 
   type Entry = {
     id: string;
@@ -141,8 +135,21 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     );
   }, [guestNotes, internalComments]);
 
+  const clientEntries: Entry[] = useMemo(
+    () =>
+      guestNotes.map((n) => ({
+        id: `g-${n.id}`,
+        kind: "client",
+        photo_id: n.photo_id,
+        author: n.guest_name,
+        body: n.body,
+        created_at: n.created_at,
+      })),
+    [guestNotes],
+  );
+
   const total =
-    tab === "all" ? allEntries.length : tab === "client" ? filteredGuestNotesForVisible.length : internalComments.length;
+    tab === "all" ? allEntries.length : tab === "client" ? clientEntries.length : internalComments.length;
 
   return (
     <aside className={cn("flex flex-col rounded-lg border border-border bg-card", className)}>
@@ -177,39 +184,13 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
         </TabsContent>
 
         <TabsContent value="client" className="m-0 min-h-0 flex-1 overflow-y-auto p-3">
-          {loading && filteredGuestNotesForVisible.length === 0 ? (
-            <p className="px-1 py-6 text-center text-xs text-muted-foreground">Loading…</p>
-          ) : filteredGuestNotesForVisible.length === 0 ? (
-            <p className="px-1 py-6 text-center text-xs text-muted-foreground">
-              No client feedback for this view yet.
-            </p>
-          ) : (
-            <ul className="space-y-3">
-              {filteredGuestNotesForVisible.map((n) => {
-                const photo = photoById.get(n.photo_id);
-                if (!photo) return null;
-                return (
-                  <li key={n.id}>
-                    <button
-                      onClick={() => onOpenPhoto(n.photo_id)}
-                      className="flex w-full gap-3 rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:bg-secondary/50"
-                    >
-                      <Thumb path={photo.storage_path} alt={photo.file_name} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <p className="truncate text-xs font-medium">{n.guest_name}</p>
-                          <span className="shrink-0 text-[10px] text-muted-foreground">
-                            {TIME_FMT.format(new Date(n.created_at))}
-                          </span>
-                        </div>
-                        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs">{n.body}</p>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <EntryList
+            loading={loading}
+            entries={clientEntries}
+            photoById={photoById}
+            onOpenPhoto={onOpenPhoto}
+            emptyText="No client feedback yet."
+          />
         </TabsContent>
 
         <TabsContent value="internal" className="m-0 min-h-0 flex-1 overflow-y-auto p-3">
