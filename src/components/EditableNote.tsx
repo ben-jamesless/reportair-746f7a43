@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Pencil, Check, X, StickyNote } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RichNotes } from "@/components/RichNotes";
 
 interface Props {
   value: string | null;
@@ -10,9 +11,10 @@ interface Props {
   onSave: (next: string | null) => Promise<void> | void;
   className?: string;
   rows?: number;
+  rich?: boolean;
 }
 
-export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, className, rows = 2 }: Props) => {
+export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, className, rows = 2, rich = false }: Props) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value ?? "");
   const [busy, setBusy] = useState(false);
@@ -74,8 +76,16 @@ export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, 
       title="Click to edit comment"
     >
       <StickyNote className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
-      <span className={cn("flex-1 whitespace-pre-wrap break-words", !hasValue && "italic")}>
-        {hasValue ? value : placeholder}
+      <span className={cn("flex-1 min-w-0", !hasValue && "italic")}>
+        {hasValue ? (
+          rich ? (
+            <RichNotes value={value} className="text-foreground" />
+          ) : (
+            <span className="whitespace-pre-wrap break-words">{value}</span>
+          )
+        ) : (
+          placeholder
+        )}
       </span>
       <Pencil className="mt-0.5 h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" />
     </button>

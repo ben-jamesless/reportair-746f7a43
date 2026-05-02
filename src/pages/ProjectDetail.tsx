@@ -999,15 +999,13 @@ const ProjectDetail = () => {
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Day note
                         </p>
-                        {dayNoteVal && dayNoteVal.trim() ? (
-                          <RichNotes value={dayNoteVal} className="text-foreground" />
-                        ) : (
-                          <EditableNote
-                            value={dayNoteVal}
-                            placeholder="Add a day note…"
-                            onSave={(next) => saveDayNote(activeDay, next)}
-                          />
-                        )}
+                        <EditableNote
+                          value={dayNoteVal}
+                          placeholder="Add a day note…"
+                          onSave={(next) => saveDayNote(activeDay, next)}
+                          rich
+                          rows={4}
+                        />
                       </div>
 
                       {/* Per-area briefing — status pill + read-only notes, no photos */}
@@ -1032,11 +1030,13 @@ const ProjectDetail = () => {
                                   className="ml-auto"
                                 />
                               </div>
-                              {note && note.trim() ? (
-                                <RichNotes value={note} className="text-foreground" />
-                              ) : (
-                                <p className="text-sm italic text-muted-foreground">No notes for this area yet.</p>
-                              )}
+                              <EditableNote
+                                value={note}
+                                placeholder="No notes for this area yet."
+                                onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                rich
+                                rows={3}
+                              />
                             </div>
                           );
                         })
