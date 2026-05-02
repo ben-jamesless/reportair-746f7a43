@@ -1142,15 +1142,6 @@ const ProjectDetail = () => {
                                     />
                                   ))}
                                 </div>
-                                <div className="mt-4">
-                                  <EditableNote
-                                    value={getAreaDayNote(ar.id, activeDay)}
-                                    placeholder="Daily updates"
-                                    onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
-                                    rich
-                                    rows={3}
-                                  />
-                                </div>
                               </article>
                               {!(isLast) && (
                                 <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
