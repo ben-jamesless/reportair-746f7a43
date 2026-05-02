@@ -892,43 +892,43 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                {/* Day / selection header — sticky at top of main content */}
-                <div className="sticky top-0 z-20 -mx-1 mb-4 rounded-md border border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-baseline gap-3 min-w-0">
-                      <h2 className="truncate text-lg font-semibold">{selectionTitle}</h2>
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                      </span>
-                    </div>
-                    {visiblePhotos.length > 0 && !selectMode && (
-                      <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                        Select
-                      </Button>
-                    )}
+                {/* Day / selection header — full-width flush strip, sticky */}
+                <div
+                  className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur"
+                  style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}
+                >
+                  <div className="flex items-baseline gap-3 min-w-0">
+                    <h2 className="truncate text-base font-bold" style={{ color: "#1a1a1a" }}>{selectionTitle}</h2>
+                    <span className="shrink-0 text-xs" style={{ color: "#6b7280" }}>
+                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
+                    </span>
+                    {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
+                      const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
+                      const areaIds = new Set<string>();
+                      dayPool.forEach((p) => { if (p.area_id) areaIds.add(p.area_id); });
+                      const counts: Record<AreaStatus, number> = {
+                        no_status: 0, on_track: 0, requires_discussion: 0, concern: 0, complete: 0,
+                      };
+                      areaIds.forEach((aid) => { counts[getAreaDayStatus(aid, activeDay)]++; });
+                      const parts: string[] = [];
+                      if (counts.complete) parts.push(`${counts.complete} Complete`);
+                      if (counts.on_track) parts.push(`${counts.on_track} On Track`);
+                      if (counts.requires_discussion) parts.push(`${counts.requires_discussion} Requires Discussion`);
+                      if (counts.concern) parts.push(`${counts.concern} Concern`);
+                      if (counts.no_status) parts.push(`${counts.no_status} No Status`);
+                      if (parts.length === 0) return null;
+                      return (
+                        <span className="shrink-0 text-xs" style={{ color: "#6b7280" }}>
+                          · {parts.join(" · ")}
+                        </span>
+                      );
+                    })()}
                   </div>
-                  {/* Day-level status summary bar */}
-                  {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
-                    const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
-                    const areaIds = new Set<string>();
-                    dayPool.forEach((p) => { if (p.area_id) areaIds.add(p.area_id); });
-                    const counts: Record<AreaStatus, number> = {
-                      no_status: 0, on_track: 0, requires_discussion: 0, concern: 0, complete: 0,
-                    };
-                    areaIds.forEach((aid) => { counts[getAreaDayStatus(aid, activeDay)]++; });
-                    const parts: string[] = [];
-                    if (counts.complete) parts.push(`${counts.complete} Complete`);
-                    if (counts.on_track) parts.push(`${counts.on_track} On Track`);
-                    if (counts.requires_discussion) parts.push(`${counts.requires_discussion} Requires Discussion`);
-                    if (counts.concern) parts.push(`${counts.concern} Concern`);
-                    if (counts.no_status) parts.push(`${counts.no_status} No Status`);
-                    if (parts.length === 0) return null;
-                    return (
-                      <p className="mt-1.5 text-xs text-muted-foreground">
-                        {parts.join(" · ")}
-                      </p>
-                    );
-                  })()}
+                  {visiblePhotos.length > 0 && !selectMode && (
+                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
+                      Select
+                    </Button>
+                  )}
                 </div>
 
                 {/* Bulk-selection toolbar */}
