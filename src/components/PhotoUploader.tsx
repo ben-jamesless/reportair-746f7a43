@@ -50,7 +50,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
 
   const onFilesPicked = (files: FileList | null) => {
     if (!files || !files.length) return;
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
     if (!list.length) { toast.error("No image files selected"); return; }
     setPendingFiles(list);
     setSelectedArea(areaId ?? NO_AREA);
