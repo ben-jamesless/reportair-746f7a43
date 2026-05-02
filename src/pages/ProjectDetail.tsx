@@ -892,19 +892,43 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                {/* Day / selection header — full width of centre column */}
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-card/40 px-4 py-3">
-                  <div className="flex items-baseline gap-3 min-w-0">
-                    <h2 className="truncate text-lg font-semibold">{selectionTitle}</h2>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                    </span>
+                {/* Day / selection header — sticky at top of main content */}
+                <div className="sticky top-0 z-20 -mx-1 mb-4 rounded-md border border-border bg-card/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-baseline gap-3 min-w-0">
+                      <h2 className="truncate text-lg font-semibold">{selectionTitle}</h2>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    {visiblePhotos.length > 0 && !selectMode && (
+                      <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
+                        Select
+                      </Button>
+                    )}
                   </div>
-                  {visiblePhotos.length > 0 && !selectMode && (
-                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                      Select
-                    </Button>
-                  )}
+                  {/* Day-level status summary bar */}
+                  {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
+                    const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
+                    const areaIds = new Set<string>();
+                    dayPool.forEach((p) => { if (p.area_id) areaIds.add(p.area_id); });
+                    const counts: Record<AreaStatus, number> = {
+                      no_status: 0, on_track: 0, requires_discussion: 0, concern: 0, complete: 0,
+                    };
+                    areaIds.forEach((aid) => { counts[getAreaDayStatus(aid, activeDay)]++; });
+                    const parts: string[] = [];
+                    if (counts.complete) parts.push(`${counts.complete} Complete`);
+                    if (counts.on_track) parts.push(`${counts.on_track} On Track`);
+                    if (counts.requires_discussion) parts.push(`${counts.requires_discussion} Requires Discussion`);
+                    if (counts.concern) parts.push(`${counts.concern} Concern`);
+                    if (counts.no_status) parts.push(`${counts.no_status} No Status`);
+                    if (parts.length === 0) return null;
+                    return (
+                      <p className="mt-1.5 text-xs text-muted-foreground">
+                        {parts.join(" · ")}
+                      </p>
+                    );
+                  })()}
                 </div>
 
                 {/* Bulk-selection toolbar */}
@@ -1081,13 +1105,16 @@ const ProjectDetail = () => {
                     }
                     const orderedAreas = areas.filter((a) => (byArea.get(a.id)?.length ?? 0) > 0);
                     return (
-                      <div className="space-y-8">
+                      <div className="space-y-6">
                         {orderedAreas.map((ar) => {
                           const list = byArea.get(ar.id) ?? [];
                           const st = getAreaDayStatus(ar.id, activeDay);
                           return (
-                            <div key={ar.id}>
-                              <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <div
+                              key={ar.id}
+                              className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40"
+                            >
+                              <div className="mb-3 flex flex-wrap items-center gap-2">
                                 <h3 className="text-base font-semibold">{ar.name}</h3>
                                 <span className="text-xs text-muted-foreground">
                                   {list.length} photo{list.length === 1 ? "" : "s"}
@@ -1096,13 +1123,6 @@ const ProjectDetail = () => {
                                   value={st}
                                   onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
                                   className="ml-auto"
-                                />
-                              </div>
-                              <div className="mb-3">
-                                <EditableNote
-                                  value={getAreaDayNote(ar.id, activeDay)}
-                                  placeholder="Daily updates"
-                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -1121,11 +1141,18 @@ const ProjectDetail = () => {
                                   />
                                 ))}
                               </div>
+                              <div className="mt-4">
+                                <EditableNote
+                                  value={getAreaDayNote(ar.id, activeDay)}
+                                  placeholder="Daily updates"
+                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                />
+                              </div>
                             </div>
                           );
                         })}
                         {unassigned.length > 0 && (
-                          <div>
+                          <div className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40">
                             <div className="mb-2 flex items-center gap-2">
                               <h3 className="text-base font-semibold">Unassigned</h3>
                               <span className="text-xs text-muted-foreground">
