@@ -10,6 +10,21 @@ import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { parseExif, getImageDimensions, sanitizeFileName } from "@/lib/photoUtils";
 
+const isHeic = (file: File) => {
+  const name = file.name.toLowerCase();
+  const type = (file.type || "").toLowerCase();
+  return type === "image/heic" || type === "image/heif" || name.endsWith(".heic") || name.endsWith(".heif");
+};
+
+const convertHeicToJpeg = async (file: File): Promise<File> => {
+  // Dynamically import to keep the heic2any bundle out of the initial JS payload.
+  const { default: heic2any } = await import("heic2any");
+  const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+  const out = Array.isArray(blob) ? blob[0] : blob;
+  const newName = file.name.replace(/\.(heic|heif)$/i, "") + ".jpg";
+  return new File([out], newName, { type: "image/jpeg", lastModified: file.lastModified });
+};
+
 type AreaOption = { id: string; name: string };
 
 interface Props {
