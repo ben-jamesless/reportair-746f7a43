@@ -892,19 +892,7 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-baseline gap-3">
-                    <h2 className="text-lg font-semibold">{selectionTitle}</h2>
-                    <span className="text-xs text-muted-foreground">
-                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                  {visiblePhotos.length > 0 && !selectMode && (
-                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                      Select
-                    </Button>
-                  )}
-                </div>
+                </section>
 
                 {/* Bulk-selection toolbar */}
                 {selectMode && (
