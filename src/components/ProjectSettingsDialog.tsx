@@ -8,6 +8,7 @@ import { AlbumsManager } from "./AlbumsManager";
 import { InvitesManager } from "./InvitesManager";
 import { ShareLinksManager } from "./ShareLinksManager";
 import { ProjectEditForm } from "./ProjectEditForm";
+import { HeicBackfillButton } from "./HeicBackfillButton";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
 
@@ -98,6 +99,9 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               onSaved={onChanged}
               onClose={() => setOpen(false)}
             />
+            <div className="mt-6">
+              <HeicBackfillButton projectId={projectId} />
+            </div>
           </TabsContent>
           <TabsContent value="areas" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <AreasManager projectId={projectId} onChanged={onChanged} />

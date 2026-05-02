@@ -10,6 +10,21 @@ import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { parseExif, getImageDimensions, sanitizeFileName } from "@/lib/photoUtils";
 
+const isHeic = (file: File) => {
+  const name = file.name.toLowerCase();
+  const type = (file.type || "").toLowerCase();
+  return type === "image/heic" || type === "image/heif" || name.endsWith(".heic") || name.endsWith(".heif");
+};
+
+const convertHeicToJpeg = async (file: File): Promise<File> => {
+  // Dynamically import to keep the heic2any bundle out of the initial JS payload.
+  const { default: heic2any } = await import("heic2any");
+  const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
+  const out = Array.isArray(blob) ? blob[0] : blob;
+  const newName = file.name.replace(/\.(heic|heif)$/i, "") + ".jpg";
+  return new File([out], newName, { type: "image/jpeg", lastModified: file.lastModified });
+};
+
 type AreaOption = { id: string; name: string };
 
 interface Props {
@@ -35,7 +50,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
 
   const onFilesPicked = (files: FileList | null) => {
     if (!files || !files.length) return;
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
     if (!list.length) { toast.error("No image files selected"); return; }
     setPendingFiles(list);
     setSelectedArea(areaId ?? NO_AREA);
@@ -50,8 +65,18 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     setProgress({ done: 0, total: list.length });
     let failures = 0;
 
-    for (const file of list) {
+    for (const original of list) {
+      let file = original;
       try {
+        if (isHeic(file)) {
+          try {
+            file = await convertHeicToJpeg(file);
+          } catch (convErr) {
+            console.error("HEIC conversion failed for", file.name, convErr);
+            throw new Error("HEIC conversion failed");
+          }
+        }
+
         const exif = await parseExif(file);
         if (!exif.width || !exif.height) {
           const dims = await getImageDimensions(file);
@@ -105,7 +130,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
         ref={inputRef}
         type="file"
         multiple
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         className="hidden"
         onChange={(e) => onFilesPicked(e.target.files)}
       />
