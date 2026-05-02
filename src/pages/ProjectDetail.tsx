@@ -1046,7 +1046,9 @@ const ProjectDetail = () => {
                   );
                 })()}
 
-                {visiblePhotos.length === 0 ? (
+                {/* Hide photo grids in Report view for dated days — Report is text-only briefing. */}
+                {!(activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report") && (
+                visiblePhotos.length === 0 ? (
                   <EmptyState
                     icon={<ImagePlus className="h-6 w-6" />}
                     title="No photos here"
