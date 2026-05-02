@@ -729,83 +729,118 @@ Deno.serve(async (req) => {
         // Day label
         page.drawText(day.label, { x: contentX, y: topY - 16, size: 16, font: fontBold, color: C(TOK.nearBlack) });
 
-        // Area summary table 8mm below
         let ty = topY - 16 - 8 * MM;
         const tableX = contentX;
         const tableW = PAGE_W - MARGIN - tableX;
         const colArea = tableW * 0.30;
         const colStatus = tableW * 0.20;
         const colNotes = tableW - colArea - colStatus;
+        void colNotes;
 
-        // Headers
-        page.drawText("AREA", { x: tableX, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
-        page.drawText("STATUS", { x: tableX + colArea, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
-        page.drawText("NOTES", { x: tableX + colArea + colStatus, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
-        ty -= 12;
+        // Overall Project Status block
+        const overallStatus = (proj as { overall_status?: string | null }).overall_status ?? null;
+        if (overallStatus && STATUS_META[overallStatus]) {
+          page.drawText("OVERALL PROJECT STATUS", { x: tableX, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label) });
+          ty -= 14;
+          drawStatusAccent(page, tableX, ty - 12, overallStatus);
+          ty -= 10 * MM;
+        }
 
-        const drowH = 8 * MM;
-        let stripe = false;
-        for (const sg of subgroups) {
-          if (ty - drowH < FOOTER_RESERVE) break;
-          if (stripe) {
-            page.drawRectangle({ x: tableX, y: ty - drowH, width: tableW, height: drowH, color: C(TOK.rowStripe) });
-          }
-          // AREA
-          page.drawText(truncate(sg.name, 40), {
-            x: tableX + 4, y: ty - drowH / 2 - 3, size: 9, font: fontReg, color: C(TOK.nearBlack),
-          });
-          // STATUS pill (lookup by area+date; if album, use latest)
-          let statusKey: string | null | undefined;
-          if (sg.areaId) {
-            if (isAlbum) {
-              // latest status across album photos' dates for this area
-              let bestDate = "";
-              for (const p of sg.photos) {
-                const k = dateKeyOf(p);
-                const sk = areaDayStatus.get(`${sg.areaId}|${k}`);
-                if (sk && k > bestDate) { bestDate = k; statusKey = sk; }
-              }
-            } else {
-              statusKey = areaDayStatus.get(`${sg.areaId}|${day.key}`);
+        // Helper: render an area-summary table for a given source day key.
+        // Returns the new ty after drawing. If isAlbumMode, uses album latest-status logic
+        // and the supplied subgroup list; otherwise looks up by sourceKey.
+        const renderAreaTable = (
+          startY: number,
+          sourceSubgroups: { areaId: string | null; name: string; photos: PhotoRow[] }[],
+          sourceKey: string,
+          albumMode: boolean,
+        ): number => {
+          let cy = startY;
+          // Headers
+          page.drawText("AREA", { x: tableX, y: cy - 7, size: 7, font: fontBold, color: C(TOK.label) });
+          page.drawText("STATUS", { x: tableX + colArea, y: cy - 7, size: 7, font: fontBold, color: C(TOK.label) });
+          page.drawText("NOTES", { x: tableX + colArea + colStatus, y: cy - 7, size: 7, font: fontBold, color: C(TOK.label) });
+          cy -= 12;
+
+          const drowH = 8 * MM;
+          let stripe = false;
+          for (const sg of sourceSubgroups) {
+            if (cy - drowH < FOOTER_RESERVE) break;
+            if (stripe) {
+              page.drawRectangle({ x: tableX, y: cy - drowH, width: tableW, height: drowH, color: C(TOK.rowStripe) });
             }
-          }
-          if (statusKey && STATUS_META[statusKey]) {
-            drawStatusAccent(page, tableX + colArea, ty - drowH / 2 - 7, statusKey);
-          }
-          // NOTES (first line, truncated)
-          let noteText = "";
-          if (sg.areaId) {
-            if (isAlbum) {
-              // any matching note for this area, latest date
-              let bestDate = "";
-              for (const p of sg.photos) {
-                const k = dateKeyOf(p);
-                const n = areaDayNotes.get(`${sg.areaId}|${k}`);
-                if (n && k > bestDate) { bestDate = k; noteText = n; }
-              }
-            } else {
-              noteText = areaDayNotes.get(`${sg.areaId}|${day.key}`) ?? "";
-            }
-          }
-          if (noteText) {
-            const firstLine = noteText.split(/\r?\n/)[0]
-              .replace(/^[-*]\s+/, "")
-              .replace(/\*\*/g, "")
-              .replace(/\*/g, "");
-            page.drawText(truncate(firstLine, 60), {
-              x: tableX + colArea + colStatus, y: ty - drowH / 2 - 3,
-              size: 9, font: fontReg, color: C(TOK.muted),
+            // AREA
+            page.drawText(truncate(sg.name, 40), {
+              x: tableX + 4, y: cy - drowH / 2 - 3, size: 9, font: fontReg, color: C(TOK.nearBlack),
             });
+            // STATUS
+            let statusKey: string | null | undefined;
+            if (sg.areaId) {
+              if (albumMode) {
+                let bestDate = "";
+                for (const p of sg.photos) {
+                  const k = dateKeyOf(p);
+                  const sk = areaDayStatus.get(`${sg.areaId}|${k}`);
+                  if (sk && k > bestDate) { bestDate = k; statusKey = sk; }
+                }
+              } else {
+                statusKey = areaDayStatus.get(`${sg.areaId}|${sourceKey}`);
+              }
+            }
+            if (statusKey && STATUS_META[statusKey]) {
+              drawStatusAccent(page, tableX + colArea, cy - drowH / 2 - 7, statusKey);
+            }
+            // NOTES
+            let noteText = "";
+            if (sg.areaId) {
+              if (albumMode) {
+                let bestDate = "";
+                for (const p of sg.photos) {
+                  const k = dateKeyOf(p);
+                  const n = areaDayNotes.get(`${sg.areaId}|${k}`);
+                  if (n && k > bestDate) { bestDate = k; noteText = n; }
+                }
+              } else {
+                noteText = areaDayNotes.get(`${sg.areaId}|${sourceKey}`) ?? "";
+              }
+            }
+            if (noteText) {
+              const firstLine = noteText.split(/\r?\n/)[0]
+                .replace(/^[-*]\s+/, "")
+                .replace(/\*\*/g, "")
+                .replace(/\*/g, "");
+              page.drawText(truncate(firstLine, 60), {
+                x: tableX + colArea + colStatus, y: cy - drowH / 2 - 3,
+                size: 9, font: fontReg, color: C(TOK.muted),
+              });
+            }
+            page.drawLine({
+              start: { x: tableX, y: cy - drowH },
+              end: { x: tableX + tableW, y: cy - drowH },
+              thickness: 0.5,
+              color: C(TOK.rowDivider),
+            });
+            cy -= drowH;
+            stripe = !stripe;
           }
-          // bottom row divider
-          page.drawLine({
-            start: { x: tableX, y: ty - drowH },
-            end: { x: tableX + tableW, y: ty - drowH },
-            thickness: 0.5,
-            color: C(TOK.rowDivider),
-          });
-          ty -= drowH;
-          stripe = !stripe;
+          return cy;
+        };
+
+        ty = renderAreaTable(ty, subgroups, day.key, isAlbum);
+
+        // Previous Report comparison (skip in album mode)
+        if (!isAlbum) {
+          const idx = dayBuckets.findIndex((d) => d.key === day.key);
+          const prev = idx > 0 ? dayBuckets[idx - 1] : null;
+          if (prev && ty - 20 * MM > FOOTER_RESERVE) {
+            ty -= 8 * MM;
+            const prevSubgroups = splitDayByArea(prev.photos);
+            page.drawText(`PREVIOUS REPORT — ${prev.label}`, {
+              x: tableX, y: ty - 7, size: 7, font: fontBold, color: C(TOK.label),
+            });
+            ty -= 14;
+            ty = renderAreaTable(ty, prevSubgroups, prev.key, false);
+          }
         }
       }
 
