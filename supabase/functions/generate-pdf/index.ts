@@ -1008,7 +1008,7 @@ Deno.serve(async (req) => {
       });
       const fSize = 7;
       // Left: Confidential — prepared for [client_name]
-      const left = `Confidential - prepared for ${clientName}`;
+      const left = `Confidential · prepared for ${clientName}`;
       p.drawText(left, { x: MARGIN, y: FOOTER_Y - 2, size: fSize, font: fontReg, color: C(TOK.label) });
       // Center: photo date range
       const center = photoDateRangeLabel;
