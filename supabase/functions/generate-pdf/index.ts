@@ -934,9 +934,6 @@ Deno.serve(async (req) => {
         if (areaNoteText.trim()) {
           const used = renderRichNotes(page, areaNoteText, rightX, ry, rightW, { size: 9, lineH: 14, color: C(TOK.body), bulletColor: ACCENT });
           ry -= used;
-        } else {
-          page.drawText("No notes.", { x: rightX, y: ry - 9, size: 9, font: fontItal, color: C(TOK.label) });
-          ry -= 14;
         }
 
         // 8mm below: rule, then STATUS label + pill
