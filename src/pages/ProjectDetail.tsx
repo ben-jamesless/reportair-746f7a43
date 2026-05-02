@@ -892,7 +892,6 @@ const ProjectDetail = () => {
 
               {/* Main grid */}
               <section>
-                </section>
 
                 {/* Bulk-selection toolbar */}
                 {selectMode && (
