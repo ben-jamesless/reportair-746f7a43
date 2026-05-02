@@ -75,7 +75,7 @@ export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, 
       )}
       title="Click to edit comment"
     >
-      <StickyNote className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />
+      {!hasValue && <StickyNote className="mt-0.5 h-3 w-3 shrink-0 opacity-60" />}
       <span className={cn("flex-1 min-w-0", !hasValue && "italic")}>
         {hasValue ? (
           rich ? (
