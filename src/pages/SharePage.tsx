@@ -466,7 +466,7 @@ const SharePage = () => {
                 No photos in this view.
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {visibleGroups.map((group) => {
                   const dateKey = isoDateKey(group.date);
                   // Group photos within this day by area
@@ -477,25 +477,31 @@ const SharePage = () => {
                     byArea.get(k)!.push(p);
                   });
                   const areaIdsForDay = Array.from(byArea.keys());
-                  // Day-level dominant status: pick first area’s status if any, else null
                   const dayStatusKeys = areaIdsForDay
                     .filter((k) => k !== "__noarea__")
                     .map((aid) => statusMap.get(`${aid}|${dateKey}`))
                     .filter(Boolean) as string[];
                   const dominantDayStatus = pickDominantStatus(dayStatusKeys);
 
+                  const orderedAreas = areas.filter((ar) => byArea.has(ar.id));
+                  const hasUnassigned = byArea.has("__noarea__");
+                  const totalBlocks = orderedAreas.length + (hasUnassigned ? 1 : 0);
+
                   return (
                     <div
                       key={group.key}
                       ref={(el) => { dayAnchorRefs.current.set(dateKey, el); }}
                     >
-                      {/* Sticky day header */}
+                      {/* Day header strip — full width, flush */}
                       <div
-                        className="sticky top-0 z-20 -mx-1 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3 backdrop-blur"
-                        style={{ borderColor: DIVIDER, backgroundColor: "rgba(255,255,255,0.95)" }}
+                        className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur"
+                        style={{
+                          backgroundColor: SURFACE,
+                          borderBottom: `1px solid ${DIVIDER}`,
+                        }}
                       >
                         <div className="flex items-baseline gap-3 min-w-0">
-                          <h2 className="truncate text-lg font-semibold" style={{ color: NEAR_BLACK }}>
+                          <h2 className="truncate text-base font-bold" style={{ color: NEAR_BLACK }}>
                             {DATE_FMT.format(group.date)}
                           </h2>
                           <span className="shrink-0 text-xs" style={{ color: MUTED }}>
@@ -505,22 +511,22 @@ const SharePage = () => {
                         {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
                       </div>
 
-                      {/* Area cards */}
-                      <div className="space-y-4">
-                        {areas
-                          .filter((ar) => byArea.has(ar.id))
-                          .map((ar) => {
-                            const areaPhotos = byArea.get(ar.id) ?? [];
-                            const sKey = statusMap.get(`${ar.id}|${dateKey}`);
-                            const note = areaDayNotesMap.get(`${ar.id}|${dateKey}`);
-                            return (
+                      {/* Area blocks — flush, no cards */}
+                      <div>
+                        {orderedAreas.map((ar, idx) => {
+                          const areaPhotos = byArea.get(ar.id) ?? [];
+                          const sKey = statusMap.get(`${ar.id}|${dateKey}`);
+                          const note = areaDayNotesMap.get(`${ar.id}|${dateKey}`);
+                          const accent = sKey ? STATUS_META[sKey]?.bg ?? DIVIDER : DIVIDER;
+                          const isLast = idx === totalBlocks - 1;
+                          return (
+                            <div key={ar.id}>
                               <article
-                                key={ar.id}
-                                className="rounded-xl border p-5"
-                                style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+                                className="py-4 pl-4"
+                                style={{ borderLeft: `3px solid ${accent}` }}
                               >
-                                <header className="mb-4 flex flex-wrap items-center gap-2">
-                                  <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>{ar.name}</h3>
+                                <header className="mb-3 flex flex-wrap items-center gap-2">
+                                  <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>{ar.name}</h3>
                                   {sKey && <StatusPill statusKey={sKey} />}
                                 </header>
 
@@ -538,22 +544,25 @@ const SharePage = () => {
                                 )}
 
                                 {note && (
-                                  <div className="mt-4 text-sm" style={{ color: BODY }}>
+                                  <div className="mt-3 text-sm" style={{ color: BODY }}>
                                     <RichNotes text={note} />
                                   </div>
                                 )}
                               </article>
-                            );
-                          })}
+                              {!isLast && (
+                                <div className="ml-4 border-t" style={{ borderColor: DIVIDER }} />
+                              )}
+                            </div>
+                          );
+                        })}
 
-                        {/* Unassigned photos (no area) for this day */}
-                        {byArea.has("__noarea__") && (
+                        {hasUnassigned && (
                           <article
-                            className="rounded-xl border p-5"
-                            style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+                            className="py-4 pl-4"
+                            style={{ borderLeft: `3px solid ${DIVIDER}` }}
                           >
-                            <header className="mb-4">
-                              <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>Unassigned</h3>
+                            <header className="mb-3">
+                              <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>Unassigned</h3>
                             </header>
                             <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
                               {byArea.get("__noarea__")!.map((p) => (
