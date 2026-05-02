@@ -863,8 +863,10 @@ Deno.serve(async (req) => {
         let page = addContentPage();
         let topY = PAGE_H - MARGIN;
 
-        // Vertical divider on each new page
-        const drawDividerRule = (p: PDFPage) => {
+        // Vertical divider on each new page (and teal left stripe matching day summary)
+        const drawPageChrome = (p: PDFPage) => {
+          // 10mm teal stripe full height on left
+          p.drawRectangle({ x: 0, y: 0, width: 10 * MM, height: PAGE_H, color: ACCENT });
           p.drawLine({
             start: { x: dividerX, y: FOOTER_RESERVE },
             end: { x: dividerX, y: PAGE_H - MARGIN },
@@ -872,7 +874,7 @@ Deno.serve(async (req) => {
             color: C(TOK.divider),
           });
         };
-        drawDividerRule(page);
+        drawPageChrome(page);
 
         // Heading row (left col only on first page)
         const headingY = topY;
