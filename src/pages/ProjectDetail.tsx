@@ -1105,13 +1105,16 @@ const ProjectDetail = () => {
                     }
                     const orderedAreas = areas.filter((a) => (byArea.get(a.id)?.length ?? 0) > 0);
                     return (
-                      <div className="space-y-8">
+                      <div className="space-y-6">
                         {orderedAreas.map((ar) => {
                           const list = byArea.get(ar.id) ?? [];
                           const st = getAreaDayStatus(ar.id, activeDay);
                           return (
-                            <div key={ar.id}>
-                              <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <div
+                              key={ar.id}
+                              className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40"
+                            >
+                              <div className="mb-3 flex flex-wrap items-center gap-2">
                                 <h3 className="text-base font-semibold">{ar.name}</h3>
                                 <span className="text-xs text-muted-foreground">
                                   {list.length} photo{list.length === 1 ? "" : "s"}
@@ -1120,13 +1123,6 @@ const ProjectDetail = () => {
                                   value={st}
                                   onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
                                   className="ml-auto"
-                                />
-                              </div>
-                              <div className="mb-3">
-                                <EditableNote
-                                  value={getAreaDayNote(ar.id, activeDay)}
-                                  placeholder="Daily updates"
-                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -1145,11 +1141,18 @@ const ProjectDetail = () => {
                                   />
                                 ))}
                               </div>
+                              <div className="mt-4">
+                                <EditableNote
+                                  value={getAreaDayNote(ar.id, activeDay)}
+                                  placeholder="Daily updates"
+                                  onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                />
+                              </div>
                             </div>
                           );
                         })}
                         {unassigned.length > 0 && (
-                          <div>
+                          <div className="rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-5 dark:border-border dark:bg-card/40">
                             <div className="mb-2 flex items-center gap-2">
                               <h3 className="text-base font-semibold">Unassigned</h3>
                               <span className="text-xs text-muted-foreground">
