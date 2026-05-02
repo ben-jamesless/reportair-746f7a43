@@ -973,7 +973,7 @@ Deno.serve(async (req) => {
           if (gy - cellH < FOOTER_RESERVE + 4) {
             // New continuation page (no heading repeated; just photos & divider rule)
             page = addContentPage();
-            drawDividerRule(page);
+            drawPageChrome(page);
             gy = PAGE_H - MARGIN;
           }
           const rowPhotos = sg.photos.slice(i, i + COLS);
