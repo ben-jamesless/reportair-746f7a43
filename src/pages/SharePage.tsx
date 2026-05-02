@@ -196,6 +196,33 @@ const SharePage = () => {
     return max ? new Date(max) : null;
   }, [photos]);
 
+  // Latest area-day status per area (most recent date) — must stay above early returns.
+  const latestAreaStatus = useMemo(() => {
+    const m = new Map<string, string>();
+    const latestDate = new Map<string, string>();
+    (data?.area_day_status ?? []).forEach((s) => {
+      const prev = latestDate.get(s.area_id);
+      if (!prev || s.date > prev) {
+        latestDate.set(s.area_id, s.date);
+        m.set(s.area_id, s.status);
+      }
+    });
+    return m;
+  }, [data?.area_day_status]);
+
+  // Most recent area-day note for the active area (across all dates)
+  const activeAreaLatestNote = useMemo(() => {
+    if (!activeAreaObj) return null;
+    let bestDate = "";
+    let bestNote: string | null = null;
+    (data?.area_day_notes ?? []).forEach((n) => {
+      if (n.area_id !== activeAreaObj.id) return;
+      if (!n.notes || !n.notes.trim()) return;
+      if (n.date > bestDate) { bestDate = n.date; bestNote = n.notes; }
+    });
+    return bestNote;
+  }, [data?.area_day_notes, activeAreaObj]);
+
   const downloadLatestReport = async () => {
     if (!token || downloading) return;
     setDownloading(true);
