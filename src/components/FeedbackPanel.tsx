@@ -156,7 +156,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
       <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Feedback</h3>
+          <h3 className="text-lg font-semibold">Feedback</h3>
           <span className="text-xs text-muted-foreground">{total}</span>
         </div>
         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={load} aria-label="Refresh feedback">
@@ -165,7 +165,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
       </header>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="flex min-h-0 flex-1 flex-col">
-        <div className="border-b px-3 pt-2">
+        <div className="border-b px-3 py-3">
           <TabsList className="h-8">
             <TabsTrigger value="all" className="h-7 px-2.5 text-xs">All</TabsTrigger>
             <TabsTrigger value="client" className="h-7 px-2.5 text-xs">Client</TabsTrigger>
