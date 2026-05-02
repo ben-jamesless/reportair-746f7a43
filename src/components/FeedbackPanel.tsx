@@ -135,8 +135,21 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     );
   }, [guestNotes, internalComments]);
 
+  const clientEntries: Entry[] = useMemo(
+    () =>
+      guestNotes.map((n) => ({
+        id: `g-${n.id}`,
+        kind: "client",
+        photo_id: n.photo_id,
+        author: n.guest_name,
+        body: n.body,
+        created_at: n.created_at,
+      })),
+    [guestNotes],
+  );
+
   const total =
-    tab === "all" ? allEntries.length : tab === "client" ? filteredGuestNotesForVisible.length : internalComments.length;
+    tab === "all" ? allEntries.length : tab === "client" ? clientEntries.length : internalComments.length;
 
   return (
     <aside className={cn("flex flex-col rounded-lg border border-border bg-card", className)}>
