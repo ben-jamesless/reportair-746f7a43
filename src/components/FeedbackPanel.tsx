@@ -98,17 +98,11 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  const visibleIds = useMemo(() => new Set(visiblePhotos.map((p) => p.id)), [visiblePhotos]);
   const photoById = useMemo(() => {
     const m = new Map<string, PhotoLite>();
     allPhotos.forEach((p) => m.set(p.id, p));
     return m;
   }, [allPhotos]);
-
-  const filteredGuestNotesForVisible = useMemo(
-    () => guestNotes.filter((n) => visibleIds.has(n.photo_id)),
-    [guestNotes, visibleIds],
-  );
 
   type Entry = {
     id: string;
