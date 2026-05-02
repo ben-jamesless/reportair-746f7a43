@@ -1178,6 +1178,7 @@ const ProjectDetail = () => {
                       />
                     ))}
                   </div>
+                )
                 )}
               </section>
 
