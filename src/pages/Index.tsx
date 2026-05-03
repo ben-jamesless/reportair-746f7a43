@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { ReportAirMark } from "@/components/brand/ReportAirMark";
 
 // Brand tokens (scoped to this marketing page only — do not touch app tokens)
 const BRAND = {
