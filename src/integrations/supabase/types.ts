@@ -612,6 +612,9 @@ export type Database = {
           event_date: string | null
           event_location: string | null
           event_type: string | null
+          geo_lat: number | null
+          geo_lng: number | null
+          geo_location_query: string | null
           id: string
           name: string
           overall_status: Database["public"]["Enums"]["project_status"]
@@ -630,6 +633,9 @@ export type Database = {
           event_date?: string | null
           event_location?: string | null
           event_type?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          geo_location_query?: string | null
           id?: string
           name: string
           overall_status?: Database["public"]["Enums"]["project_status"]
@@ -648,6 +654,9 @@ export type Database = {
           event_date?: string | null
           event_location?: string | null
           event_type?: string | null
+          geo_lat?: number | null
+          geo_lng?: number | null
+          geo_location_query?: string | null
           id?: string
           name?: string
           overall_status?: Database["public"]["Enums"]["project_status"]

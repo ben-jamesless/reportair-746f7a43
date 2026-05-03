@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
       { data: areaDayStatusRows },
       { data: areaDayNotesRows },
     ] = await Promise.all([
-      supabase.from("projects").select("name, description, template, client_name, event_type, event_location, event_date, overall_status").eq("id", projectId).single(),
+      supabase.from("projects").select("name, description, template, client_name, event_type, event_location, event_date, overall_status, geo_lat, geo_lng, geo_location_query").eq("id", projectId).single(),
       supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
@@ -221,6 +221,59 @@ Deno.serve(async (req) => {
     for (const r of (areaDayNotesRows ?? []) as { area_id: string; date: string; notes: string | null }[]) {
       if (r.notes && r.notes.trim()) areaDayNotes.set(`${r.area_id}|${r.date}`, r.notes);
     }
+
+    // ============ Weather (Open-Meteo) — silent on any failure ============
+    const WMO: Record<number, string> = {
+      0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",
+      51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",56:"Freezing drizzle",57:"Heavy freezing drizzle",
+      61:"Light rain",63:"Rain",65:"Heavy rain",66:"Freezing rain",67:"Heavy freezing rain",
+      71:"Light snow",73:"Snow",75:"Heavy snow",77:"Snow grains",
+      80:"Light rain showers",81:"Rain showers",82:"Violent rain showers",85:"Snow showers",86:"Heavy snow showers",
+      95:"Thunderstorm",96:"Thunderstorm with hail",99:"Severe thunderstorm",
+    };
+    type WX = { tmin: number; tmax: number; condition: string; wind: number };
+    const weatherByDate = new Map<string, WX>();
+    try {
+      const projAny = proj as { event_location?: string|null; geo_lat?: number|null; geo_lng?: number|null; geo_location_query?: string|null };
+      const loc = projAny.event_location;
+      if (loc) {
+        let lat = projAny.geo_lat, lng = projAny.geo_lng;
+        if (lat == null || lng == null || projAny.geo_location_query !== loc) {
+          const gr = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(loc)}&count=1&language=en&format=json`);
+          if (gr.ok) {
+            const gj = await gr.json();
+            const hit = gj?.results?.[0];
+            if (hit) {
+              lat = hit.latitude; lng = hit.longitude;
+              await supabase.from("projects").update({ geo_lat: lat, geo_lng: lng, geo_location_query: loc }).eq("id", projectId);
+            }
+          }
+        }
+        if (lat != null && lng != null) {
+          const allDates = Array.from(new Set(allPhotos.map((p) => dateKeyOf(p)))).sort();
+          if (allDates.length) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${allDates[0]}&end_date=${allDates[allDates.length-1]}&timezone=auto`;
+            const wr = await fetch(url);
+            if (wr.ok) {
+              const wj = await wr.json();
+              const d = wj?.daily;
+              if (d?.time) {
+                for (let i = 0; i < d.time.length; i++) {
+                  const cond = WMO[d.weathercode?.[i]];
+                  if (!cond) continue;
+                  weatherByDate.set(d.time[i], {
+                    tmin: Math.round(d.temperature_2m_min?.[i]),
+                    tmax: Math.round(d.temperature_2m_max?.[i]),
+                    condition: cond,
+                    wind: Math.round(d.windspeed_10m_max?.[i]),
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch { /* silent */ }
 
     // ============ Build PDF ============
     const pdf = await PDFDocument.create();
@@ -730,6 +783,13 @@ Deno.serve(async (req) => {
         page.drawText(day.label, { x: contentX, y: topY - 16, size: 16, font: fontBold, color: C(TOK.nearBlack) });
 
         let ty = topY - 16 - 8 * MM;
+        // Weather line (silently omitted on miss)
+        const wx = weatherByDate.get(day.key);
+        if (wx) {
+          const line = `${wx.tmin}°C – ${wx.tmax}°C · ${wx.condition} · ${wx.wind} km/h wind`;
+          page.drawText(line, { x: contentX, y: topY - 16 - 5 * MM, size: 9, font: fontReg, color: C(TOK.muted) });
+          ty -= 6 * MM;
+        }
         const tableX = contentX;
         const tableW = PAGE_W - MARGIN - tableX;
         const colArea = tableW * 0.30;

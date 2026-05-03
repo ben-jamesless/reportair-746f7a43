@@ -124,6 +124,7 @@ const SharePage = () => {
   const [guest, setGuest] = useState<{ name: string; email: string } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
+  const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
 
   useEffect(() => {
     if (!token) return;
@@ -175,6 +176,20 @@ const SharePage = () => {
 
   // Photos grouped by day (for full project)
   const allDayGroups = useMemo(() => groupPhotosByDate(photos), [photos]);
+
+  // Fetch weather for all visible days
+  useEffect(() => {
+    if (!token || !data?.ok || allDayGroups.length === 0) return;
+    const dates = allDayGroups.map((g) => isoDateKey(g.date));
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: res } = await supabase.functions.invoke("project-weather", { body: { token, dates } });
+        if (!cancelled && res?.weather) setWeather(res.weather);
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [token, data?.ok, allDayGroups]);
 
   // Most recent area-day status per area (for sidebar dots and Latest Update)
   const latestAreaStatus = useMemo(() => {
@@ -510,6 +525,11 @@ const SharePage = () => {
                         </div>
                         {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
                       </div>
+                      {weather[dateKey] && (
+                        <div className="px-4 py-2 text-xs" style={{ color: MUTED, borderBottom: `1px solid ${DIVIDER}` }}>
+                          {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
+                        </div>
+                      )}
 
                       {/* Area blocks — flush, no cards */}
                       <div>
