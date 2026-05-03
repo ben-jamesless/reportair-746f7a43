@@ -239,41 +239,56 @@ Deno.serve(async (req) => {
       if (loc) {
         let lat = projAny.geo_lat, lng = projAny.geo_lng;
         if (lat == null || lng == null || projAny.geo_location_query !== loc) {
-          const gr = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(loc)}&count=1&language=en&format=json`);
-          if (gr.ok) {
-            const gj = await gr.json();
-            const hit = gj?.results?.[0];
-            if (hit) {
-              lat = hit.latitude; lng = hit.longitude;
-              await supabase.from("projects").update({ geo_lat: lat, geo_lng: lng, geo_location_query: loc }).eq("id", projectId);
-            }
+          const tries = new Set<string>([loc]);
+          const stripped = loc.replace(/\b(Golf Club|Country Club|Club|Resort|Hotel|Stadium|Arena|Centre|Center)\b/gi, "").replace(/\s+/g, " ").trim();
+          if (stripped && stripped !== loc) tries.add(stripped);
+          const first = loc.split(/[\s,]+/)[0];
+          if (first && first.length > 2) tries.add(first);
+          for (const q of tries) {
+            try {
+              const gr = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=en&format=json`);
+              if (!gr.ok) { console.log("pdf geocode http", gr.status, q); continue; }
+              const gj = await gr.json();
+              const hit = gj?.results?.[0];
+              if (hit) { lat = hit.latitude; lng = hit.longitude; break; }
+              console.log("pdf geocode no result", q);
+            } catch (e) { console.log("pdf geocode err", String(e)); }
+          }
+          if (lat != null && lng != null) {
+            await supabase.from("projects").update({ geo_lat: lat, geo_lng: lng, geo_location_query: loc }).eq("id", projectId);
           }
         }
         if (lat != null && lng != null) {
           const allDates = Array.from(new Set(allPhotos.map((p) => dateKeyOf(p)))).sort();
           if (allDates.length) {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${allDates[0]}&end_date=${allDates[allDates.length-1]}&timezone=auto`;
-            const wr = await fetch(url);
-            if (wr.ok) {
-              const wj = await wr.json();
-              const d = wj?.daily;
-              if (d?.time) {
+            const start = allDates[0], end = allDates[allDates.length-1];
+            const urls = [
+              `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
+              `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
+            ];
+            for (const url of urls) {
+              try {
+                const wr = await fetch(url);
+                if (!wr.ok) { console.log("pdf weather http", wr.status); continue; }
+                const wj = await wr.json();
+                const d = wj?.daily;
+                if (!d?.time) continue;
                 for (let i = 0; i < d.time.length; i++) {
+                  if (weatherByDate.has(d.time[i])) continue;
                   const cond = WMO[d.weathercode?.[i]];
                   if (!cond) continue;
-                  weatherByDate.set(d.time[i], {
-                    tmin: Math.round(d.temperature_2m_min?.[i]),
-                    tmax: Math.round(d.temperature_2m_max?.[i]),
-                    condition: cond,
-                    wind: Math.round(d.windspeed_10m_max?.[i]),
-                  });
+                  const tmin = d.temperature_2m_min?.[i], tmax = d.temperature_2m_max?.[i], wind = d.windspeed_10m_max?.[i];
+                  if (tmin == null || tmax == null || wind == null) continue;
+                  weatherByDate.set(d.time[i], { tmin: Math.round(tmin), tmax: Math.round(tmax), condition: cond, wind: Math.round(wind) });
                 }
-              }
+              } catch (e) { console.log("pdf weather err", String(e)); }
             }
           }
+        } else {
+          console.log("pdf weather: no coords for", loc);
         }
       }
-    } catch { /* silent */ }
+    } catch (e) { console.log("pdf weather outer err", String(e)); }
 
     // ============ Build PDF ============
     const pdf = await PDFDocument.create();
