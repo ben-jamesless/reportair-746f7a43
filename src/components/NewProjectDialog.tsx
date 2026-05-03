@@ -154,9 +154,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     }
     const projectId = data.id;
     setCreatedProjectId(projectId);
-    const tplAreas = TEMPLATE_DEFS.find((t) => t.id === template)?.areas ?? [];
-    const combinedAreas = [...tplAreas, ...areas.filter((a) => !tplAreas.includes(a))];
-    await persistAreas(projectId, combinedAreas);
+    await persistAreas(projectId, areas);
     if (!skipInvites) await persistInvites(projectId, invites);
     setBusy(false);
     onCreated?.();
