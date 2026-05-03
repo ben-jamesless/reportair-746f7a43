@@ -49,7 +49,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   // Step 1+2 fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [template, setTemplate] = useState<Template>("event_production");
+  const [template, setTemplate] = useState<Template>("blank");
   const [color, setColor] = useState<string>(DEFAULT_PROJECT_COLOR);
 
   // Step 3: areas (collected locally; inserted after project create)
@@ -68,7 +68,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setStep(1);
     setName("");
     setDescription("");
-    setTemplate("event_production");
+    setTemplate("blank");
     setColor(DEFAULT_PROJECT_COLOR);
     setAreas([]);
     setAreaInput("");
@@ -138,7 +138,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setBusy(true);
     const { data, error } = await supabase
       .from("projects")
-      .insert({ team_id: teamId, name, description: description || null, template, color, created_by: user.id })
+      .insert({ team_id: teamId, name, description: description || null, color, created_by: user.id })
       .select("id")
       .single();
     if (error || !data) {
@@ -148,7 +148,9 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     }
     const projectId = data.id;
     setCreatedProjectId(projectId);
-    await persistAreas(projectId, areas);
+    const tplAreas = TEMPLATE_DEFS.find((t) => t.id === template)?.areas ?? [];
+    const combinedAreas = [...tplAreas, ...areas.filter((a) => !tplAreas.includes(a))];
+    await persistAreas(projectId, combinedAreas);
     if (!skipInvites) await persistInvites(projectId, invites);
     setBusy(false);
     onCreated?.();
@@ -179,21 +181,19 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
         {/* STEP 1: Template */}
         {step === 1 && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <TemplateCard
-                icon={<Calendar className="h-5 w-5" />}
-                title="Event production"
-                description="Pre-built album for an event lifecycle."
-                selected={template === "event_production"}
-                onClick={() => setTemplate("event_production")}
-              />
-              <TemplateCard
-                icon={<FileText className="h-5 w-5" />}
-                title="Blank"
-                description="Start from scratch."
-                selected={template === "blank"}
-                onClick={() => setTemplate("blank")}
-              />
+            <p className="text-sm text-muted-foreground">Pick a starting template. You can edit, add or remove areas any time.</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {TEMPLATE_DEFS.map((t) => (
+                <TemplateCard
+                  key={t.id}
+                  icon={t.icon}
+                  title={t.title}
+                  description={t.description}
+                  areas={t.areas}
+                  selected={template === t.id}
+                  onClick={() => setTemplate(t.id)}
+                />
+              ))}
             </div>
           </div>
         )}
