@@ -55,7 +55,7 @@ function renderEmail(args: {
                 </h1>
                 <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;color:#334155;">
                   <strong>${safeInviter}</strong> invited you to collaborate on
-                  <strong>${safeProject}</strong> in Site Story as a
+                  <strong>${safeProject}</strong> in ReportAir as a
                   <strong>${safeRole}</strong>.
                 </p>
                 <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#334155;">
@@ -66,18 +66,18 @@ function renderEmail(args: {
             <tr>
               <td align="center" style="padding:0 32px 32px 32px;">
                 <a href="${safeUrl}"
-                   style="display:inline-block;background-color:#01696F;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:8px;">
+                   style="display:inline-block;background-color:#1A6EFF;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:8px;">
                   Accept invite
                 </a>
                 <p style="margin:24px 0 0 0;font-size:12px;line-height:1.6;color:#64748b;word-break:break-all;">
                   Or open this link: <br />
-                  <a href="${safeUrl}" style="color:#01696F;">${safeUrl}</a>
+                  <a href="${safeUrl}" style="color:#1A6EFF;">${safeUrl}</a>
                 </p>
               </td>
             </tr>
           </table>
           <p style="margin:24px 0 0 0;font-size:11px;color:#94a3b8;">
-            Sent by Site Story
+            Sent by ReportAir
           </p>
         </td>
       </tr>
@@ -149,9 +149,9 @@ Deno.serve(async (req) => {
     }
 
     const fromAddress =
-      Deno.env.get("RESEND_FROM_EMAIL") || "Site Story <onboarding@resend.dev>";
+      Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
 
-    const subject = `You've been invited to ${projectName} on Site Story`;
+    const subject = `You've been invited to ${projectName} on ReportAir`;
     const html = renderEmail({
       inviterName,
       projectName,

@@ -25,10 +25,15 @@ export default {
           foreground: "hsl(var(--primary-foreground))",
           hover: "hsl(var(--primary-hover))",
           glow: "hsl(var(--primary-glow))",
+          soft: "hsl(var(--primary-soft))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -69,6 +74,10 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",

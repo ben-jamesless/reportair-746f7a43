@@ -1,3 +1,4 @@
+import { ReportAirMark } from "@/components/brand/ReportAirMark";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,11 +75,9 @@ export const AppSidebar = () => {
     <TooltipProvider delayDuration={0}>
       <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-16 lg:w-56 md:border-r md:bg-background">
         {/* Logo */}
-        <Link to="/projects" className="flex h-14 items-center gap-2 border-b px-3 lg:px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-primary shadow-elegant">
-            <Camera className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="hidden font-semibold tracking-tight lg:inline">Site Story</span>
+        <Link to="/projects" className="flex h-14 items-center gap-2 border-b border-sidebar-border px-3 lg:px-4">
+          <ReportAirMark variant="dark" className="h-7 w-7 shrink-0" />
+          <span className="wordmark hidden text-sm text-white lg:inline">REPORTAIR</span>
         </Link>
 
         {/* Nav */}

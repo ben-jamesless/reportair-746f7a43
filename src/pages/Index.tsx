@@ -1,3 +1,4 @@
+import { ReportAirLockup } from "@/components/brand/ReportAirMark";
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,12 +17,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-background/60 backdrop-blur">
         <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary shadow-elegant">
-              <Camera className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold tracking-tight">Site Story</span>
-          </div>
+          <ReportAirLockup variant="light" />
           <div className="flex items-center gap-2">
             <Link to="/auth"><Button variant="ghost" size="sm">Sign in</Button></Link>
             <Link to="/auth"><Button size="sm">Get started</Button></Link>

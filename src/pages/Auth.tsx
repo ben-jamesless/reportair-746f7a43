@@ -1,3 +1,4 @@
+import { ReportAirLockup } from "@/components/brand/ReportAirMark";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,11 +77,8 @@ const Auth = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary shadow-elegant">
-            <Camera className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-xl font-semibold tracking-tight">Site Story</span>
+        <Link to="/" className="mb-8 flex items-center justify-center">
+          <ReportAirLockup variant="light" markClassName="h-9 w-9" textClassName="text-xl" />
         </Link>
 
         <Card className="shadow-soft">
