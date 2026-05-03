@@ -252,8 +252,13 @@ const SharePage = () => {
       const list = albumPhotosMap.get(id) ?? [];
       return groupPhotosByDate(list);
     }
+    if (isAreaKey(activeKey)) {
+      const id = activeKey.replace("__area_", "");
+      const list = photos.filter((p) => p.area_id === id);
+      return groupPhotosByDate(list);
+    }
     return allDayGroups.filter((g) => isoDateKey(g.date) === activeKey);
-  }, [activeKey, allDayGroups, albumPhotosMap]);
+  }, [activeKey, allDayGroups, albumPhotosMap, photos]);
 
   const visiblePhotos = useMemo(() => visibleGroups.flatMap((g) => g.photos), [visibleGroups]);
   const indexById = useMemo(() => {
