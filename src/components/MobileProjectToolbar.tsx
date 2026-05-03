@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { FileText, LayoutGrid, MoreHorizontal, FileDown, Activity, Info, Settings as SettingsIcon } from "lucide-react";
+import { FileText, LayoutGrid, MoreHorizontal, FileDown, Activity, Info, Settings as SettingsIcon, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectSettingsDialog } from "./ProjectSettingsDialog";
 import type { ProjectStatus } from "@/lib/projectStatus";
@@ -29,6 +29,7 @@ interface MobileProjectToolbarProps {
   onOpenExport: () => void;
   onOpenActivity: () => void;
   onOpenDetails: () => void;
+  onOpenFeedback: () => void;
   onLoadAll: () => void;
 }
 
@@ -42,6 +43,7 @@ export const MobileProjectToolbar = ({
   onOpenExport,
   onOpenActivity,
   onOpenDetails,
+  onOpenFeedback,
   onLoadAll,
 }: MobileProjectToolbarProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -131,6 +133,14 @@ export const MobileProjectToolbar = ({
               >
                 <SettingsIcon className="mr-3 h-4 w-4" />
                 Settings
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-12 justify-start text-base"
+                onClick={() => runAfterClose(onOpenFeedback)}
+              >
+                <MessageSquare className="mr-3 h-4 w-4" />
+                Feedback
               </Button>
               <Button
                 variant="ghost"

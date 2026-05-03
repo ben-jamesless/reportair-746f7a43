@@ -6,7 +6,8 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import JSZip from "jszip";
 import {
@@ -150,6 +151,7 @@ const ProjectDetail = () => {
   const [viewOverride, setViewOverride] = useState<ProjectView | null>(null);
   // Whether we've already auto-selected the latest day (only do this once per project load).
   const [didAutoSelectDay, setDidAutoSelectDay] = useState(false);
+  const [feedbackSheetOpen, setFeedbackSheetOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -695,6 +697,7 @@ const ProjectDetail = () => {
         onOpenExport={openTopExport}
         onOpenActivity={() => setActiveTab("activity")}
         onOpenDetails={() => setActiveTab("details")}
+        onOpenFeedback={() => setFeedbackSheetOpen(true)}
         onLoadAll={loadAll}
       />
       <div className="mb-6 hidden flex-col gap-4 sm:mb-8 md:flex md:flex-row md:flex-wrap md:items-start md:justify-between">
@@ -830,6 +833,16 @@ const ProjectDetail = () => {
             >
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="xl:hidden"
+              onClick={() => setFeedbackSheetOpen(true)}
+              title="Feedback"
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Feedback
             </Button>
             <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
           </div>
@@ -1269,6 +1282,37 @@ const ProjectDetail = () => {
                 className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
               />
             </div>
+
+            {/* Feedback bottom sheet — mobile + tablet (xl shows the sticky panel above instead) */}
+            <Sheet open={feedbackSheetOpen} onOpenChange={setFeedbackSheetOpen}>
+              <SheetContent side="bottom" className="flex h-[85vh] flex-col rounded-t-xl p-0 xl:hidden">
+                <SheetHeader className="px-4 pt-4">
+                  <SheetTitle>Feedback</SheetTitle>
+                </SheetHeader>
+                <div className="min-h-0 flex-1 overflow-hidden p-3">
+                  <FeedbackPanel
+                    projectId={project.id}
+                    visiblePhotos={visiblePhotos}
+                    allPhotos={photos}
+                    onOpenPhoto={(photoId) => {
+                      setFeedbackSheetOpen(false);
+                      const idx = photoIndexById.get(photoId);
+                      if (idx !== undefined) {
+                        setLightboxIndex(idx);
+                      } else {
+                        setActiveDay(ALL_DAYS);
+                        setActiveArea(null);
+                        setTimeout(() => {
+                          const all = photos.findIndex((p) => p.id === photoId);
+                          if (all >= 0) setLightboxIndex(all);
+                        }, 0);
+                      }
+                    }}
+                    className="h-full"
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6">
