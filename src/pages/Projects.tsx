@@ -46,14 +46,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  ProjectFolders,
-  FOLDER_ALL,
-  FOLDER_UNFOLDERED,
-  type FolderRow,
-  type FolderSelection,
-} from "@/components/ProjectFolders";
 import { FolderInput } from "lucide-react";
+
+type FolderRow = { id: string; name: string; color: string | null };
+const FOLDER_ALL = "__all__";
+const FOLDER_UNFOLDERED = "__unfoldered__";
 
 type Project = {
   id: string;
