@@ -50,24 +50,24 @@ type Resolved = {
 
 type GuestNoteRow = { id: string; photo_id: string; guest_name: string; body: string; created_at: string };
 
-// Site Story design tokens
-const TEAL = "#01696F";
-const NEAR_BLACK = "#1a1a1a";
-const BODY = "#374151";
-const MUTED = "#6b7280";
-const DIVIDER = "#e5e7eb";
-const SURFACE = "#f9fafb";
+// ReportAir design tokens
+const TEAL = "#1A6EFF"; // SKY — kept variable name for compat
+const NEAR_BLACK = "#0F1724"; // INK
+const BODY = "#3D4F66"; // SLATE
+const MUTED = "#7A8FA8"; // MIST
+const DIVIDER = "#D0D9E8"; // BORDER
+const SURFACE = "#F5F7FA"; // FOG
 
 // Status meta — pill backgrounds & dot colors
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On Track", bg: "#2563eb" },
-  at_risk: { label: "At Risk", bg: "#d97706" },
-  requires_discussion: { label: "Requires Discussion", bg: "#d97706" },
-  delayed: { label: "Delayed", bg: "#dc2626" },
-  concern: { label: "Delayed", bg: "#dc2626" },
-  behind_schedule: { label: "Delayed", bg: "#dc2626" },
-  complete: { label: "Complete", bg: TEAL },
-  no_status: { label: "No status", bg: "#9ca3af" },
+  on_track: { label: "On Track", bg: "#1A6EFF" },
+  at_risk: { label: "At Risk", bg: "#FF8C00" },
+  requires_discussion: { label: "Requires Discussion", bg: "#FF8C00" },
+  delayed: { label: "Delayed", bg: "#FF3B30" },
+  concern: { label: "Delayed", bg: "#FF3B30" },
+  behind_schedule: { label: "Delayed", bg: "#FF3B30" },
+  complete: { label: "Complete", bg: "#1DB87A" },
+  no_status: { label: "No status", bg: "#7A8FA8" },
 };
 
 const StatusPill = ({ statusKey, size = "sm" }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
