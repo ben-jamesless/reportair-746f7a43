@@ -1282,6 +1282,37 @@ const ProjectDetail = () => {
                 className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
               />
             </div>
+
+            {/* Feedback bottom sheet — mobile + tablet (xl shows the sticky panel above instead) */}
+            <Sheet open={feedbackSheetOpen} onOpenChange={setFeedbackSheetOpen}>
+              <SheetContent side="bottom" className="flex h-[85vh] flex-col rounded-t-xl p-0 xl:hidden">
+                <SheetHeader className="px-4 pt-4">
+                  <SheetTitle>Feedback</SheetTitle>
+                </SheetHeader>
+                <div className="min-h-0 flex-1 overflow-hidden p-3">
+                  <FeedbackPanel
+                    projectId={project.id}
+                    visiblePhotos={visiblePhotos}
+                    allPhotos={photos}
+                    onOpenPhoto={(photoId) => {
+                      setFeedbackSheetOpen(false);
+                      const idx = photoIndexById.get(photoId);
+                      if (idx !== undefined) {
+                        setLightboxIndex(idx);
+                      } else {
+                        setActiveDay(ALL_DAYS);
+                        setActiveArea(null);
+                        setTimeout(() => {
+                          const all = photos.findIndex((p) => p.id === photoId);
+                          if (all >= 0) setLightboxIndex(all);
+                        }, 0);
+                      }
+                    }}
+                    className="h-full"
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6">
