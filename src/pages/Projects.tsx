@@ -645,6 +645,11 @@ const Projects = () => {
                       <DropdownMenuItem onSelect={() => setEditingProject(p)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
+                      {isOwner && (
+                        <DropdownMenuItem onSelect={() => setMoveProject(p)}>
+                          <FolderInput className="mr-2 h-4 w-4" /> Move to folder
+                        </DropdownMenuItem>
+                      )}
                       {isArchived ? (
                         <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
                           <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
