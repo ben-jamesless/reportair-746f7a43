@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type SharePhoto = {
   id: string; storage_path: string; file_name: string; caption: string | null;
@@ -391,7 +392,7 @@ const SharePage = () => {
       <div className="mx-auto max-w-[1400px] px-6 py-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_300px]">
           {/* LEFT: Date navigation */}
-          <aside className="space-y-1">
+          <aside className="hidden lg:block space-y-1">
             <button
               onClick={() => setActiveKey(ALL_DAYS)}
               className={cn(
@@ -501,6 +502,59 @@ const SharePage = () => {
 
           {/* CENTRE: Day feed */}
           <section className="min-w-0">
+            {/* MOBILE NAV: dropdowns for days & areas */}
+            <div className="mb-4 flex flex-col gap-2 lg:hidden">
+              <Select
+                value={activeKey === ALL_DAYS || allDayGroups.some((g) => isoDateKey(g.date) === activeKey) || albums.some((a) => albumKey(a.id) === activeKey) ? activeKey : ALL_DAYS}
+                onValueChange={(v) => {
+                  if (v === ALL_DAYS) setActiveKey(ALL_DAYS);
+                  else if (v.startsWith("__album_")) setActiveKey(v);
+                  else handleSelectDay(v);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select day" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_DAYS}>All days ({photos.length})</SelectItem>
+                  {allDayGroups.map((g) => {
+                    const key = isoDateKey(g.date);
+                    return (
+                      <SelectItem key={key} value={key}>
+                        {SHORT_FMT.format(g.date)} ({g.photos.length})
+                      </SelectItem>
+                    );
+                  })}
+                  {albums.map((al) => (
+                    <SelectItem key={al.id} value={albumKey(al.id)}>
+                      {al.name} ({albumPhotosMap.get(al.id)?.length ?? 0})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {areas.length > 0 && (
+                <Select
+                  value={isAreaKey(activeKey) ? activeKey : "__all_areas"}
+                  onValueChange={(v) => {
+                    if (v === "__all_areas") setActiveKey(ALL_DAYS);
+                    else setActiveKey(v);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All areas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all_areas">All areas</SelectItem>
+                    {areas.map((ar) => (
+                      <SelectItem key={ar.id} value={areaKey(ar.id)}>
+                        {ar.name} ({photos.filter((p) => p.area_id === ar.id).length})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
             {visibleGroups.length === 0 ? (
               <div
                 className="rounded-xl border p-12 text-center text-sm"
