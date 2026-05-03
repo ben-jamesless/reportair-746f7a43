@@ -174,6 +174,12 @@ const SharePage = () => {
     return m;
   }, [data?.area_day_notes]);
 
+  const dayNotesMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(n.date, n.notes); });
+    return m;
+  }, [data?.day_notes]);
+
   // Photos grouped by day (for full project)
   const allDayGroups = useMemo(() => groupPhotosByDate(photos), [photos]);
 
@@ -528,6 +534,11 @@ const SharePage = () => {
                       {weather[dateKey] && (
                         <div className="px-4 py-2 text-xs" style={{ color: MUTED, borderBottom: `1px solid ${DIVIDER}` }}>
                           {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
+                        </div>
+                      )}
+                      {dayNotesMap.get(dateKey) && (
+                        <div className="py-2 pl-4 text-[15px] leading-relaxed" style={{ color: BODY }}>
+                          <RichNotes text={dayNotesMap.get(dateKey)!} />
                         </div>
                       )}
 
