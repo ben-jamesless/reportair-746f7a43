@@ -211,10 +211,32 @@ const Projects = () => {
     [projects],
   );
 
+  const folderCounts = useMemo(() => {
+    const byFolder: Record<string, number> = {};
+    let unfoldered = 0;
+    let all = 0;
+    for (const p of projects) {
+      if (!showArchived && p.archived_at) continue;
+      all += 1;
+      if (p.folder_id && folders.some((f) => f.id === p.folder_id)) {
+        byFolder[p.folder_id] = (byFolder[p.folder_id] ?? 0) + 1;
+      } else {
+        unfoldered += 1;
+      }
+    }
+    return { all, unfoldered, byFolder };
+  }, [projects, folders, showArchived]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const folderIds = new Set(folders.map((f) => f.id));
     let arr = projects.filter((p) => {
       if (!showArchived && p.archived_at) return false;
+      if (selectedFolder === FOLDER_UNFOLDERED) {
+        if (p.folder_id && folderIds.has(p.folder_id)) return false;
+      } else if (selectedFolder !== FOLDER_ALL) {
+        if (p.folder_id !== selectedFolder) return false;
+      }
       if (filterClient !== ALL && (p.client_name ?? "") !== filterClient) return false;
       if (filterEventType !== ALL && (p.event_type ?? "") !== filterEventType) return false;
       if (filterStatus !== ALL && (p.overall_status ?? "no_status") !== filterStatus) return false;
