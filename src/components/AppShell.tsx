@@ -5,7 +5,8 @@ import { AppSidebar } from "./AppSidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Camera, ChevronRight, LogOut } from "lucide-react";
+import { ChevronRight, LogOut, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -21,6 +22,7 @@ interface Props {
 
 export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
   const { user, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
 
@@ -55,6 +57,10 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
+                {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
