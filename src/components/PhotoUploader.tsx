@@ -73,8 +73,8 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           try {
             file = await convertHeicToJpeg(file);
           } catch (convErr) {
-            console.error("HEIC conversion failed for", file.name, convErr);
-            throw new Error("HEIC conversion failed");
+            // Some HEIC variants can't be decoded in-browser — upload original; backfill will convert server-side.
+            console.warn("HEIC conversion failed, uploading original", file.name, convErr);
           }
         }
 
