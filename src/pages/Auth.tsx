@@ -1,3 +1,4 @@
+import { ReportAirLockup } from "@/components/brand/ReportAirMark";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
