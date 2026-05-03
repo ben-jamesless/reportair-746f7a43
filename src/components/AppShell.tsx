@@ -35,11 +35,8 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
       {/* Mobile top bar (sidebar hidden on mobile) */}
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur md:hidden">
         <div className="flex h-14 items-center justify-between px-4">
-          <Link to="/projects" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary shadow-elegant">
-              <Camera className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold tracking-tight">Site Story</span>
+          <Link to="/projects" className="flex items-center">
+            <ReportAirLockup variant="light" />
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
