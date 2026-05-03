@@ -273,7 +273,17 @@ const Projects = () => {
       }
     });
     return arr;
-  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived]);
+  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived, selectedFolder, folders]);
+
+  const assignProjectToFolder = async (projectId: string, folderId: string | null) => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ folder_id: folderId })
+      .eq("id", projectId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(folderId ? "Moved to folder" : "Removed from folder");
+    load();
+  };
 
   const filtersActive =
     !!search.trim() ||
