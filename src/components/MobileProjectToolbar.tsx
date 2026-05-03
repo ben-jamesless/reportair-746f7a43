@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { FileText, LayoutGrid, MoreHorizontal, FileDown, Activity, Info, Settings as SettingsIcon } from "lucide-react";
+import { FileText, LayoutGrid, MoreHorizontal, FileDown, Activity, Info, Settings as SettingsIcon, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectSettingsDialog } from "./ProjectSettingsDialog";
 import type { ProjectStatus } from "@/lib/projectStatus";
