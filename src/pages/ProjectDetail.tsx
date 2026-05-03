@@ -186,6 +186,65 @@ const ProjectDetail = () => {
     exitSelectMode();
   }, [selectedIds, areas, exitSelectMode]);
 
+  const bulkMoveToDay = useCallback(async (targetDayKey: string) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    // Set captured_at to noon UTC of the target day so it groups under that day.
+    const newCaptured = `${targetDayKey}T12:00:00.000Z`;
+    const { error } = await supabase.from("photos").update({ captured_at: newCaptured }).in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Moved ${ids.length} photo${ids.length === 1 ? "" : "s"} to ${targetDayKey}`);
+    setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, captured_at: newCaptured } : p)));
+    exitSelectMode();
+  }, [selectedIds, exitSelectMode]);
+
+  const [downloading, setDownloading] = useState(false);
+  const bulkDownload = useCallback(async () => {
+    if (selectedIds.size === 0 || !project) return;
+    setDownloading(true);
+    try {
+      const selected = photos.filter((p) => selectedIds.has(p.id));
+      const zip = new JSZip();
+      const seen = new Map<string, number>();
+      await Promise.all(selected.map(async (p) => {
+        try {
+          const { data, error } = await supabase.storage.from("photos").createSignedUrl(p.storage_path, 600);
+          if (error || !data?.signedUrl) return;
+          const res = await fetch(data.signedUrl);
+          if (!res.ok) return;
+          const blob = await res.blob();
+          let name = p.file_name || `${p.id}.jpg`;
+          const count = seen.get(name) ?? 0;
+          seen.set(name, count + 1);
+          if (count > 0) {
+            const dot = name.lastIndexOf(".");
+            name = dot > 0 ? `${name.slice(0, dot)}-${count}${name.slice(dot)}` : `${name}-${count}`;
+          }
+          zip.file(name, blob);
+        } catch (e) {
+          console.error("Failed to add photo to zip", p.id, e);
+        }
+      }));
+      const blob = await zip.generateAsync({ type: "blob" });
+      const slug = (project.name || "project").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project";
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sitestory-${slug}-${today}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${selected.length} photo${selected.length === 1 ? "" : "s"}`);
+    } catch (e) {
+      toast.error("Download failed");
+      console.error(e);
+    } finally {
+      setDownloading(false);
+    }
+  }, [selectedIds, photos, project]);
+
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
