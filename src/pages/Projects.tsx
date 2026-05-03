@@ -281,6 +281,7 @@ const Projects = () => {
       .eq("id", projectId);
     if (error) { toast.error(error.message); return; }
     toast.success(folderId ? "Moved to folder" : "Removed from folder");
+    window.dispatchEvent(new Event("projects:changed"));
     load();
   };
 
