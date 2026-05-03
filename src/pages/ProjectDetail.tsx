@@ -996,66 +996,29 @@ const ProjectDetail = () => {
                       );
                     })()}
                   </div>
-                  {visiblePhotos.length > 0 && !selectMode && (
-                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                      Select
-                    </Button>
-                  )}
-                </div>
-
-                {/* Bulk-selection toolbar */}
-                {selectMode && (
-                  <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
-                    <span className="text-sm font-medium">
-                      {selectedIds.size} selected
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        const allVisible = visiblePhotos.map((p) => p.id);
-                        const allSelected = allVisible.every((pid) => selectedIds.has(pid));
-                        setSelectedIds(allSelected ? new Set() : new Set(allVisible));
-                      }}
-                    >
-                      {visiblePhotos.every((p) => selectedIds.has(p.id)) && visiblePhotos.length > 0
-                        ? "Clear all"
-                        : "Select all"}
-                    </Button>
-                    <div className="ml-auto flex items-center gap-2">
-                      <Select
-                        value=""
-                        onValueChange={(v) => bulkAssignArea(v === "__none__" ? null : v)}
-                        disabled={selectedIds.size === 0}
+                  <div className="flex items-center gap-2">
+                    {visiblePhotos.length > 0 && selectMode && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const allVisible = visiblePhotos.map((p) => p.id);
+                          const allSelected = allVisible.every((pid) => selectedIds.has(pid));
+                          setSelectedIds(allSelected ? new Set() : new Set(allVisible));
+                        }}
                       >
-                        <SelectTrigger className="h-9 w-[200px]">
-                          <SelectValue placeholder="Assign area…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Unassigned</SelectItem>
-                          {areas.map((ar) => (
-                            <SelectItem key={ar.id} value={ar.id}>{ar.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {canEdit && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => setConfirmDeleteOpen(true)}
-                          disabled={selectedIds.size === 0}
-                        >
-                          <Trash2 className="mr-1.5 h-4 w-4" />
-                          Delete
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline" onClick={exitSelectMode}>
-                        Done
+                        {visiblePhotos.every((p) => selectedIds.has(p.id)) && visiblePhotos.length > 0
+                          ? "Clear all"
+                          : "Select all"}
                       </Button>
-                    </div>
+                    )}
+                    {visiblePhotos.length > 0 && (
+                      <Button size="sm" variant={selectMode ? "default" : "outline"} onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}>
+                        {selectMode ? "Done" : "Select"}
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Status accent colors for the 3px left bar (matches share view). */}
                 {(() => null)()}
