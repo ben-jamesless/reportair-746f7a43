@@ -41,8 +41,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  ProjectFolders,
+  FOLDER_ALL,
+  FOLDER_UNFOLDERED,
+  type FolderRow,
+  type FolderSelection,
+} from "@/components/ProjectFolders";
+import { FolderInput } from "lucide-react";
 
 type Project = {
   id: string;
@@ -57,6 +67,7 @@ type Project = {
   event_type: string | null;
   client_name: string | null;
   archived_at: string | null;
+  folder_id: string | null;
 };
 
 type SortKey = "alpha" | "created" | "event_date" | "last_upload";
