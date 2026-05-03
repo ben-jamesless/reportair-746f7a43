@@ -41,6 +41,12 @@ const InviteAccept = () => {
     navigate(`/projects/${data}`);
   };
 
+  // Auto-accept as soon as a logged-in user lands on the invite page.
+  useEffect(() => {
+    if (user && token && !working) accept();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, token]);
+
   if (loading || !user) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   }
