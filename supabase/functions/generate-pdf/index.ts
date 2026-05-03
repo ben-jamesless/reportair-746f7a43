@@ -916,7 +916,7 @@ Deno.serve(async (req) => {
             x: tableX, y: ty - boxH, width: tableW, height: boxH,
             color: C(TOK.rowStripe),
           });
-          page.drawText("DAY NOTE", {
+          page.drawText("DAILY UPDATES", {
             x: tableX + notePadX, y: ty - notePadY - 2,
             size: 7, font: fontBold, color: C(TOK.label),
           });

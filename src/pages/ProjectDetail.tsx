@@ -1072,11 +1072,11 @@ const ProjectDetail = () => {
                       {/* Day-level note (once, at top of day content) */}
                       <div className="px-4 pt-2">
                         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Day note
+                          Daily Updates
                         </p>
                         <EditableNote
                           value={dayNoteVal}
-                          placeholder="Add a day note…"
+                          placeholder="Add daily updates…"
                           onSave={(next) => saveDayNote(activeDay, next)}
                           rich
                           rows={4}
