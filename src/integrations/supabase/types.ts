@@ -458,6 +458,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           onboarded_at: string | null
@@ -466,6 +467,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id: string
           onboarded_at?: string | null
@@ -474,6 +476,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           onboarded_at?: string | null
@@ -801,6 +804,7 @@ export type Database = {
         Returns: string
       }
       delete_project: { Args: { _project_id: string }; Returns: undefined }
+      get_invite_email: { Args: { _token: string }; Returns: string }
       get_share_export_url: { Args: { _token: string }; Returns: string }
       get_share_photo_url: {
         Args: { _photo_id: string; _token: string }
@@ -858,6 +862,7 @@ export type Database = {
         }[]
       }
       mark_notifications_read: { Args: { _ids?: string[] }; Returns: number }
+      my_pending_invites_count: { Args: never; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }
       resolve_share_link: {
         Args: { _password?: string; _token: string }
