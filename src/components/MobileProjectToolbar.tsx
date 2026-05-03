@@ -29,6 +29,7 @@ interface MobileProjectToolbarProps {
   onOpenExport: () => void;
   onOpenActivity: () => void;
   onOpenDetails: () => void;
+  onOpenFeedback: () => void;
   onLoadAll: () => void;
 }
 
@@ -42,6 +43,7 @@ export const MobileProjectToolbar = ({
   onOpenExport,
   onOpenActivity,
   onOpenDetails,
+  onOpenFeedback,
   onLoadAll,
 }: MobileProjectToolbarProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
