@@ -82,6 +82,7 @@ const Projects = () => {
   const [filterStatus, setFilterStatus] = useState<string>(ALL);
   const [sortKey, setSortKey] = useState<SortKey>("created");
   const [showArchived, setShowArchived] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
 
   const load = async () => {
     if (!user) return;
