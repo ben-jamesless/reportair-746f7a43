@@ -124,6 +124,7 @@ const SharePage = () => {
   const [guest, setGuest] = useState<{ name: string; email: string } | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
+  const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
 
   useEffect(() => {
     if (!token) return;
