@@ -6,7 +6,9 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import JSZip from "jszip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -183,6 +185,65 @@ const ProjectDetail = () => {
     setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, area_id: areaId } : p)));
     exitSelectMode();
   }, [selectedIds, areas, exitSelectMode]);
+
+  const bulkMoveToDay = useCallback(async (targetDayKey: string) => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    // Set captured_at to noon UTC of the target day so it groups under that day.
+    const newCaptured = `${targetDayKey}T12:00:00.000Z`;
+    const { error } = await supabase.from("photos").update({ captured_at: newCaptured }).in("id", ids);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Moved ${ids.length} photo${ids.length === 1 ? "" : "s"} to ${targetDayKey}`);
+    setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, captured_at: newCaptured } : p)));
+    exitSelectMode();
+  }, [selectedIds, exitSelectMode]);
+
+  const [downloading, setDownloading] = useState(false);
+  const bulkDownload = useCallback(async () => {
+    if (selectedIds.size === 0 || !project) return;
+    setDownloading(true);
+    try {
+      const selected = photos.filter((p) => selectedIds.has(p.id));
+      const zip = new JSZip();
+      const seen = new Map<string, number>();
+      await Promise.all(selected.map(async (p) => {
+        try {
+          const { data, error } = await supabase.storage.from("photos").createSignedUrl(p.storage_path, 600);
+          if (error || !data?.signedUrl) return;
+          const res = await fetch(data.signedUrl);
+          if (!res.ok) return;
+          const blob = await res.blob();
+          let name = p.file_name || `${p.id}.jpg`;
+          const count = seen.get(name) ?? 0;
+          seen.set(name, count + 1);
+          if (count > 0) {
+            const dot = name.lastIndexOf(".");
+            name = dot > 0 ? `${name.slice(0, dot)}-${count}${name.slice(dot)}` : `${name}-${count}`;
+          }
+          zip.file(name, blob);
+        } catch (e) {
+          console.error("Failed to add photo to zip", p.id, e);
+        }
+      }));
+      const blob = await zip.generateAsync({ type: "blob" });
+      const slug = (project.name || "project").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project";
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `sitestory-${slug}-${today}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${selected.length} photo${selected.length === 1 ? "" : "s"}`);
+    } catch (e) {
+      toast.error("Download failed");
+      console.error(e);
+    } finally {
+      setDownloading(false);
+    }
+  }, [selectedIds, photos, project]);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -935,66 +996,29 @@ const ProjectDetail = () => {
                       );
                     })()}
                   </div>
-                  {visiblePhotos.length > 0 && !selectMode && (
-                    <Button size="sm" variant="outline" onClick={() => setSelectMode(true)}>
-                      Select
-                    </Button>
-                  )}
-                </div>
-
-                {/* Bulk-selection toolbar */}
-                {selectMode && (
-                  <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
-                    <span className="text-sm font-medium">
-                      {selectedIds.size} selected
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        const allVisible = visiblePhotos.map((p) => p.id);
-                        const allSelected = allVisible.every((pid) => selectedIds.has(pid));
-                        setSelectedIds(allSelected ? new Set() : new Set(allVisible));
-                      }}
-                    >
-                      {visiblePhotos.every((p) => selectedIds.has(p.id)) && visiblePhotos.length > 0
-                        ? "Clear all"
-                        : "Select all"}
-                    </Button>
-                    <div className="ml-auto flex items-center gap-2">
-                      <Select
-                        value=""
-                        onValueChange={(v) => bulkAssignArea(v === "__none__" ? null : v)}
-                        disabled={selectedIds.size === 0}
+                  <div className="flex items-center gap-2">
+                    {visiblePhotos.length > 0 && selectMode && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const allVisible = visiblePhotos.map((p) => p.id);
+                          const allSelected = allVisible.every((pid) => selectedIds.has(pid));
+                          setSelectedIds(allSelected ? new Set() : new Set(allVisible));
+                        }}
                       >
-                        <SelectTrigger className="h-9 w-[200px]">
-                          <SelectValue placeholder="Assign area…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Unassigned</SelectItem>
-                          {areas.map((ar) => (
-                            <SelectItem key={ar.id} value={ar.id}>{ar.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {canEdit && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          onClick={() => setConfirmDeleteOpen(true)}
-                          disabled={selectedIds.size === 0}
-                        >
-                          <Trash2 className="mr-1.5 h-4 w-4" />
-                          Delete
-                        </Button>
-                      )}
-                      <Button size="sm" variant="outline" onClick={exitSelectMode}>
-                        Done
+                        {visiblePhotos.every((p) => selectedIds.has(p.id)) && visiblePhotos.length > 0
+                          ? "Clear all"
+                          : "Select all"}
                       </Button>
-                    </div>
+                    )}
+                    {visiblePhotos.length > 0 && (
+                      <Button size="sm" variant={selectMode ? "default" : "outline"} onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}>
+                        {selectMode ? "Done" : "Select"}
+                      </Button>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Status accent colors for the 3px left bar (matches share view). */}
                 {(() => null)()}
@@ -1269,6 +1293,104 @@ const ProjectDetail = () => {
             onOpenChange={setExportOpen}
             trigger={<span className="hidden" />}
           />
+        )}
+
+        {selectMode && selectedIds.size > 0 && (
+          <div
+            className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center gap-3 px-4 py-3 text-white shadow-lg"
+            style={{ backgroundColor: "#01696F" }}
+            role="toolbar"
+            aria-label="Bulk photo actions"
+          >
+            <span className="text-sm font-medium">
+              {selectedIds.size} selected
+            </span>
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {canEdit && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-0">
+                      <MapPin className="mr-1.5 h-4 w-4" />
+                      Reassign area
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-1" align="end">
+                    <button
+                      className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                      onClick={() => bulkAssignArea(null)}
+                    >
+                      Unassigned
+                    </button>
+                    <div className="my-1 h-px bg-border" />
+                    <div className="max-h-64 overflow-y-auto">
+                      {areas.map((ar) => (
+                        <button
+                          key={ar.id}
+                          className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                          onClick={() => bulkAssignArea(ar.id)}
+                        >
+                          {ar.name}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+              {canEdit && days.length > 0 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-0">
+                      <CalendarDays className="mr-1.5 h-4 w-4" />
+                      Move to day
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-1" align="end">
+                    <div className="max-h-64 overflow-y-auto">
+                      {days.map((d) => (
+                        <button
+                          key={d.key}
+                          className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                          onClick={() => bulkMoveToDay(d.key)}
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+              <Button
+                size="sm"
+                variant="secondary"
+                className="bg-white/15 text-white hover:bg-white/25 border-0"
+                onClick={bulkDownload}
+                disabled={downloading}
+              >
+                <Download className="mr-1.5 h-4 w-4" />
+                {downloading ? "Zipping…" : "Download"}
+              </Button>
+              {canEdit && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="bg-white/15 text-white hover:bg-white/25 border-0"
+                  onClick={() => setConfirmDeleteOpen(true)}
+                >
+                  <Trash2 className="mr-1.5 h-4 w-4" />
+                  Delete
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-white hover:bg-white/15 hover:text-white"
+                onClick={exitSelectMode}
+                aria-label="Exit selection"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
 
         <AlertDialog open={confirmDeleteOpen} onOpenChange={(o) => !deleting && setConfirmDeleteOpen(o)}>
