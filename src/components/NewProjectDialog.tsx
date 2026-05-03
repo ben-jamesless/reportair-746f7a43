@@ -64,6 +64,12 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   const [busy, setBusy] = useState(false);
   const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
 
+  const selectTemplate = (id: Template) => {
+    setTemplate(id);
+    const tplAreas = TEMPLATE_DEFS.find((t) => t.id === id)?.areas ?? [];
+    setAreas(tplAreas);
+  };
+
   const reset = () => {
     setStep(1);
     setName("");
@@ -148,9 +154,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     }
     const projectId = data.id;
     setCreatedProjectId(projectId);
-    const tplAreas = TEMPLATE_DEFS.find((t) => t.id === template)?.areas ?? [];
-    const combinedAreas = [...tplAreas, ...areas.filter((a) => !tplAreas.includes(a))];
-    await persistAreas(projectId, combinedAreas);
+    await persistAreas(projectId, areas);
     if (!skipInvites) await persistInvites(projectId, invites);
     setBusy(false);
     onCreated?.();
@@ -178,6 +182,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
           <Stepper step={step} total={TOTAL_STEPS} />
         </DialogHeader>
 
+        <div className="min-h-[420px]">
         {/* STEP 1: Template */}
         {step === 1 && (
           <div className="space-y-4">
@@ -191,7 +196,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
                   description={t.description}
                   areas={t.areas}
                   selected={template === t.id}
-                  onClick={() => setTemplate(t.id)}
+                  onClick={() => selectTemplate(t.id)}
                 />
               ))}
             </div>
@@ -248,6 +253,24 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
             <p className="text-sm text-muted-foreground">
               Areas help you organise photos within each event day (e.g. "Main Stage", "VIP Lounge"). You can always add more later.
             </p>
+            {areas.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {areas.map((a) => (
+                  <span key={a} className="inline-flex items-center gap-1 rounded-full border bg-secondary/60 px-2.5 py-1 text-xs">
+                    <MapPinned className="h-3 w-3 text-muted-foreground" />
+                    {a}
+                    <button
+                      type="button"
+                      onClick={() => removeArea(a)}
+                      aria-label={`Remove ${a}`}
+                      className="ml-0.5 rounded-full p-0.5 hover:bg-background"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2">
               <Input
                 placeholder="e.g. 18th Hospitality Suite"
@@ -259,18 +282,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
                 <Plus className="mr-1 h-4 w-4" /> Add
               </Button>
             </div>
-            {areas.length > 0 ? (
-              <ul className="divide-y rounded-md border">
-                {areas.map((a) => (
-                  <li key={a} className="flex items-center justify-between px-3 py-2 text-sm">
-                    <span className="flex items-center gap-2"><MapPinned className="h-3.5 w-3.5 text-muted-foreground" />{a}</span>
-                    <Button size="icon" variant="ghost" onClick={() => removeArea(a)} aria-label={`Remove ${a}`}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
+            {areas.length === 0 && (
               <p className="text-xs text-muted-foreground">No areas added yet. You can skip this step.</p>
             )}
           </div>
@@ -318,6 +330,8 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
             )}
           </div>
         )}
+        </div>
+
 
         <DialogFooter className="gap-2 sm:justify-between">
           <div>
