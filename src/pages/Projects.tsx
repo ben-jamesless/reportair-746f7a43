@@ -257,6 +257,17 @@ const Projects = () => {
         )}
       </div>
 
+      {!showSkeleton && pendingInvites.count > 0 && pendingInvites.firstToken && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <span>
+            You have <strong>{pendingInvites.count}</strong> pending project invitation{pendingInvites.count === 1 ? "" : "s"}.
+          </span>
+          <Link to={`/invite/${pendingInvites.firstToken}`} className="font-medium text-primary hover:underline">
+            View invite{pendingInvites.count === 1 ? "" : "s"} →
+          </Link>
+        </div>
+      )}
+
       {!showSkeleton && hasAnyVisibleSource && (
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[200px] flex-1">
