@@ -197,7 +197,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
                   description={t.description}
                   areas={t.areas}
                   selected={template === t.id}
-                  onClick={() => setTemplate(t.id)}
+                  onClick={() => selectTemplate(t.id)}
                 />
               ))}
             </div>
