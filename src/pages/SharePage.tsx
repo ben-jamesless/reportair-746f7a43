@@ -804,12 +804,17 @@ const RichNotes = ({ text }: { text: string }) => {
         if (line.startsWith("# ")) {
           return <p key={idx} className="mt-2 text-sm font-bold" style={{ color: NEAR_BLACK }}>{renderInline(line.slice(2), `h-${idx}`)}</p>;
         }
-        const bulletStripped = line.startsWith("- ") || line.startsWith("* ") ? line.slice(2) : line;
+        const isBullet = line.startsWith("- ") || line.startsWith("* ");
+        if (isBullet) {
+          return (
+            <p key={idx} className="flex gap-2">
+              <span aria-hidden className="select-none" style={{ color: MUTED }}>•</span>
+              <span className="min-w-0">{renderInline(line.slice(2), `l-${idx}`)}</span>
+            </p>
+          );
+        }
         return (
-          <p key={idx} className="flex gap-2">
-            <span aria-hidden className="select-none" style={{ color: MUTED }}>•</span>
-            <span className="min-w-0">{renderInline(bulletStripped, `l-${idx}`)}</span>
-          </p>
+          <p key={idx} className="min-w-0">{renderInline(line, `l-${idx}`)}</p>
         );
       })}
     </div>
