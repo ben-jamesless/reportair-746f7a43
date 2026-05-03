@@ -697,6 +697,7 @@ const ProjectDetail = () => {
         onOpenExport={openTopExport}
         onOpenActivity={() => setActiveTab("activity")}
         onOpenDetails={() => setActiveTab("details")}
+        onOpenFeedback={() => setFeedbackSheetOpen(true)}
         onLoadAll={loadAll}
       />
       <div className="mb-6 hidden flex-col gap-4 sm:mb-8 md:flex md:flex-row md:flex-wrap md:items-start md:justify-between">
