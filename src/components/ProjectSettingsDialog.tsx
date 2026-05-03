@@ -32,10 +32,16 @@ interface Props {
   onChanged?: () => void;
   /** Optional default tab to open on. */
   defaultTab?: "details" | "areas" | "albums" | "members" | "share";
+  /** Pass null to omit the built-in trigger (use controlled open instead). */
+  trigger?: React.ReactNode | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTab = "details" }: Props) => {
-  const [open, setOpen] = useState(false);
+export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTab = "details", trigger, open: controlledOpen, onOpenChange }: Props) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [canManageAlbums, setCanManageAlbums] = useState(false);
 
   useEffect(() => {
