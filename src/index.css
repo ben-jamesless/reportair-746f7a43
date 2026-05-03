@@ -1,107 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Site Story design system — warm, photo-forward, creative.
+/* ReportAir design system — efficient, professional, direct.
    All colors MUST be HSL. */
 
 @layer base {
   :root {
-    --background: 36 33% 97%;
-    --foreground: 25 25% 12%;
+    /* FOG #F5F7FA */
+    --background: 214 33% 97%;
+    /* INK #0F1724 */
+    --foreground: 217 43% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 25% 12%;
+    --card-foreground: 217 43% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 25% 12%;
+    --popover-foreground: 217 43% 10%;
 
-    --primary: 184 98% 22%;
-    --primary-foreground: 36 33% 98%;
-    --primary-hover: 186 75% 19%;
-    --primary-glow: 184 70% 32%;
+    /* SKY #1A6EFF */
+    --primary: 217 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    /* SKY_DARK #0D47B5 */
+    --primary-hover: 218 87% 38%;
+    /* SKY_MID #5590FF */
+    --primary-glow: 217 100% 67%;
+    /* SKY_SOFT #A8C4FF */
+    --primary-soft: 220 100% 83%;
 
-    --secondary: 30 20% 94%;
-    --secondary-foreground: 25 25% 12%;
+    /* CLOUD #EDF1F7 */
+    --secondary: 217 33% 95%;
+    --secondary-foreground: 217 43% 10%;
 
-    --muted: 30 18% 93%;
-    --muted-foreground: 25 10% 42%;
+    --muted: 217 33% 95%;
+    /* MIST #7A8FA8 */
+    --muted-foreground: 213 21% 57%;
 
-    --accent: 200 60% 45%;
-    --accent-foreground: 36 33% 98%;
+    --accent: 217 100% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 50%;
-    --destructive-foreground: 36 33% 98%;
+    /* #FF3B30 */
+    --destructive: 4 100% 59%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 145 55% 38%;
-    --success-foreground: 36 33% 98%;
+    /* GREEN #1DB87A */
+    --success: 154 73% 42%;
+    --success-foreground: 0 0% 100%;
 
-    --border: 30 15% 88%;
-    --input: 30 15% 88%;
-    --ring: 184 98% 22%;
+    /* AMBER #FF8C00 */
+    --warning: 33 100% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* BORDER #D0D9E8 */
+    --border: 217 31% 86%;
+    --input: 217 31% 86%;
+    --ring: 217 100% 55%;
 
     --radius: 0.75rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-subtle: linear-gradient(180deg, hsl(36 33% 99%), hsl(30 25% 95%));
-    --shadow-soft: 0 1px 2px hsl(25 25% 12% / 0.04), 0 4px 12px hsl(25 25% 12% / 0.06);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(214 33% 97%));
+    --shadow-soft: 0 1px 3px hsl(217 43% 10% / 0.06), 0 4px 12px hsl(217 43% 10% / 0.04);
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
 
-    --sidebar-background: 36 33% 97%;
-    --sidebar-foreground: 25 25% 18%;
-    --sidebar-primary: 184 98% 22%;
-    --sidebar-primary-foreground: 36 33% 98%;
-    --sidebar-accent: 30 20% 92%;
-    --sidebar-accent-foreground: 25 25% 12%;
-    --sidebar-border: 30 15% 88%;
-    --sidebar-ring: 184 98% 22%;
+    /* Sidebar — INK on light per brand */
+    --sidebar-background: 217 43% 10%;
+    --sidebar-foreground: 220 100% 83%;
+    --sidebar-primary: 217 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 45% 16%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 45% 22%;
+    --sidebar-ring: 217 100% 55%;
   }
 
   .dark {
-    --background: 25 20% 8%;
-    --foreground: 36 33% 96%;
+    --background: 217 43% 10%;
+    --foreground: 0 0% 100%;
 
-    --card: 25 20% 11%;
-    --card-foreground: 36 33% 96%;
+    /* card #162236 */
+    --card: 217 43% 15%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 25 20% 11%;
-    --popover-foreground: 36 33% 96%;
+    --popover: 217 43% 15%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 184 70% 38%;
-    --primary-foreground: 25 25% 10%;
-    --primary-hover: 186 75% 28%;
-    --primary-glow: 184 65% 48%;
+    --primary: 217 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 218 87% 45%;
+    --primary-glow: 217 100% 67%;
+    --primary-soft: 220 100% 83%;
 
-    --secondary: 25 15% 16%;
-    --secondary-foreground: 36 33% 96%;
+    --secondary: 217 45% 18%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 25 15% 16%;
-    --muted-foreground: 30 12% 65%;
+    --muted: 217 45% 18%;
+    --muted-foreground: 220 100% 83%;
 
-    --accent: 200 60% 55%;
-    --accent-foreground: 25 25% 10%;
+    --accent: 217 100% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 36 33% 96%;
+    --destructive: 4 90% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 145 50% 45%;
-    --success-foreground: 25 25% 10%;
+    --success: 154 65% 48%;
+    --success-foreground: 0 0% 100%;
 
-    --border: 25 15% 20%;
-    --input: 25 15% 20%;
-    --ring: 184 70% 38%;
+    --warning: 33 100% 55%;
+    --warning-foreground: 217 43% 10%;
+
+    /* #1E3050 */
+    --border: 217 45% 22%;
+    --input: 217 45% 22%;
+    --ring: 217 100% 55%;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-subtle: linear-gradient(180deg, hsl(25 20% 9%), hsl(25 18% 11%));
+    --gradient-subtle: linear-gradient(180deg, hsl(217 43% 10%), hsl(217 43% 13%));
 
-    --sidebar-background: 25 20% 9%;
-    --sidebar-foreground: 36 33% 92%;
-    --sidebar-primary: 184 70% 38%;
-    --sidebar-primary-foreground: 25 25% 10%;
-    --sidebar-accent: 25 15% 16%;
-    --sidebar-accent-foreground: 36 33% 96%;
-    --sidebar-border: 25 15% 20%;
-    --sidebar-ring: 184 70% 38%;
+    --sidebar-background: 217 43% 10%;
+    --sidebar-foreground: 220 100% 83%;
+    --sidebar-primary: 217 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 45% 16%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 217 45% 22%;
+    --sidebar-ring: 217 100% 55%;
   }
 }
 
@@ -109,8 +134,28 @@
   * {
     @apply border-border;
   }
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: "ss01", "cv11";
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  }
+  h1 { letter-spacing: -0.01em; }
+  h2 { letter-spacing: 0; }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  }
+  .wordmark {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
 }
