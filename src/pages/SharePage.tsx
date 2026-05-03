@@ -174,6 +174,12 @@ const SharePage = () => {
     return m;
   }, [data?.area_day_notes]);
 
+  const dayNotesMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (data?.day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(n.date, n.notes); });
+    return m;
+  }, [data?.day_notes]);
+
   // Photos grouped by day (for full project)
   const allDayGroups = useMemo(() => groupPhotosByDate(photos), [photos]);
 
