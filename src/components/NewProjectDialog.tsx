@@ -366,20 +366,37 @@ const Stepper = ({ step, total }: { step: number; total: number }) => (
 );
 
 const TemplateCard = ({
-  icon, title, description, selected, onClick,
-}: { icon: React.ReactNode; title: string; description: string; selected: boolean; onClick: () => void; }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={cn(
-      "rounded-lg border p-4 text-left transition-all hover:border-primary/50 hover:bg-secondary/40",
-      selected && "border-primary bg-secondary/60 ring-2 ring-primary/20"
-    )}
-  >
-    <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-      {icon}
-    </div>
-    <p className="text-sm font-medium">{title}</p>
-    <p className="text-xs text-muted-foreground">{description}</p>
-  </button>
-);
+  icon, title, description, areas = [], selected, onClick,
+}: { icon: React.ReactNode; title: string; description: string; areas?: string[]; selected: boolean; onClick: () => void; }) => {
+  const shown = areas.slice(0, 5);
+  const extra = areas.length - shown.length;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative rounded-lg border p-4 text-left transition-all hover:border-primary/50 hover:bg-secondary/40",
+        selected && "border-primary bg-secondary/60 ring-2 ring-primary/20"
+      )}
+    >
+      {selected && (
+        <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Check className="h-3 w-3" />
+        </div>
+      )}
+      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <p className="text-sm font-medium">{title}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
+      {areas.length > 0 && (
+        <ul className="mt-2 space-y-0.5 text-[11px] text-muted-foreground">
+          {shown.map((a) => (
+            <li key={a} className="truncate">· {a}</li>
+          ))}
+          {extra > 0 && <li className="text-muted-foreground/70">+{extra} more</li>}
+        </ul>
+      )}
+    </button>
+  );
+};
