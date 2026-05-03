@@ -108,6 +108,8 @@ const ALL_DAYS = "__all_days__";
 const guestKey = (token: string) => `guest_identity_${token}`;
 const albumKey = (id: string) => `__album_${id}`;
 const isAlbumKey = (k: string) => k.startsWith("__album_");
+const areaKey = (id: string) => `__area_${id}`;
+const isAreaKey = (k: string) => k.startsWith("__area_");
 
 const DATE_FMT = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const SHORT_FMT = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" });
