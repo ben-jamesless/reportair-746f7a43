@@ -22,40 +22,59 @@ const WMO: Record<number, string> = {
 
 export type DayWeather = { tmin: number; tmax: number; condition: string; wind: number };
 
-export async function geocode(query: string): Promise<{ lat: number; lng: number } | null> {
+async function geocodeOne(query: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
     const r = await fetch(url);
-    if (!r.ok) return null;
+    if (!r.ok) { console.log("geocode http", r.status, query); return null; }
     const j = await r.json();
     const hit = j?.results?.[0];
-    if (!hit) return null;
+    if (!hit) { console.log("geocode no result", query); return null; }
     return { lat: hit.latitude, lng: hit.longitude };
-  } catch { return null; }
+  } catch (e) { console.log("geocode err", String(e)); return null; }
+}
+
+export async function geocode(query: string): Promise<{ lat: number; lng: number } | null> {
+  const tries = new Set<string>();
+  tries.add(query);
+  // Strip common venue suffixes
+  const stripped = query.replace(/\b(Golf Club|Country Club|Club|Resort|Hotel|Stadium|Arena|Centre|Center)\b/gi, "").replace(/\s+/g, " ").trim();
+  if (stripped && stripped !== query) tries.add(stripped);
+  // First word fallback
+  const first = query.split(/[\s,]+/)[0];
+  if (first && first.length > 2) tries.add(first);
+  for (const q of tries) {
+    const r = await geocodeOne(q);
+    if (r) return r;
+  }
+  return null;
 }
 
 export async function fetchWeatherRange(lat: number, lng: number, start: string, end: string): Promise<Record<string, DayWeather>> {
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`;
-    const r = await fetch(url);
-    if (!r.ok) return {};
-    const j = await r.json();
-    const d = j?.daily;
-    if (!d?.time) return {};
-    const out: Record<string, DayWeather> = {};
-    for (let i = 0; i < d.time.length; i++) {
-      const code = d.weathercode?.[i];
-      const cond = WMO[code] ?? null;
-      if (cond == null) continue;
-      out[d.time[i]] = {
-        tmin: Math.round(d.temperature_2m_min?.[i]),
-        tmax: Math.round(d.temperature_2m_max?.[i]),
-        condition: cond,
-        wind: Math.round(d.windspeed_10m_max?.[i]),
-      };
-    }
-    return out;
-  } catch { return {}; }
+  // Try archive (historical) first, fall back to forecast (covers very recent + future).
+  const urls = [
+    `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
+  ];
+  const out: Record<string, DayWeather> = {};
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) { console.log("weather http", r.status, url); continue; }
+      const j = await r.json();
+      const d = j?.daily;
+      if (!d?.time) continue;
+      for (let i = 0; i < d.time.length; i++) {
+        if (out[d.time[i]]) continue;
+        const cond = WMO[d.weathercode?.[i]];
+        if (!cond) continue;
+        const tmin = d.temperature_2m_min?.[i], tmax = d.temperature_2m_max?.[i], wind = d.windspeed_10m_max?.[i];
+        if (tmin == null || tmax == null || wind == null) continue;
+        out[d.time[i]] = { tmin: Math.round(tmin), tmax: Math.round(tmax), condition: cond, wind: Math.round(wind) };
+      }
+    } catch (e) { console.log("weather err", String(e)); }
+  }
+  return out;
 }
 
 export function formatWeather(w: DayWeather): string {
