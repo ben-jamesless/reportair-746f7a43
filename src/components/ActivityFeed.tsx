@@ -90,7 +90,7 @@ export const ActivityFeed = ({ projectId }: Props) => {
     })();
 
     const channel = supabase
-      .channel(`activity:${projectId}`)
+      .channel(`activity:${projectId}:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "activity_events", filter: `project_id=eq.${projectId}` },
