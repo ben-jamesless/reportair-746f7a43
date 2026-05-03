@@ -94,7 +94,8 @@ const Projects = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
   const [folders, setFolders] = useState<FolderRow[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<FolderSelection>(FOLDER_ALL);
+  const [searchParams] = useSearchParams();
+  const selectedFolder = searchParams.get("folder") ?? FOLDER_ALL;
   const [ownedProjectIds, setOwnedProjectIds] = useState<Set<string>>(new Set());
   const [moveProject, setMoveProject] = useState<Project | null>(null);
 
