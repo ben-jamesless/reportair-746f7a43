@@ -661,8 +661,6 @@ const Projects = () => {
           })}
         </div>
       )}
-        </div>
-      </div>
 
 
       {/* Edit dialog (controlled, opens for any selected project) */}
