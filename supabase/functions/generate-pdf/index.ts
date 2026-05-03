@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
       { data: areaDayStatusRows },
       { data: areaDayNotesRows },
     ] = await Promise.all([
-      supabase.from("projects").select("name, description, template, client_name, event_type, event_location, event_date, overall_status").eq("id", projectId).single(),
+      supabase.from("projects").select("name, description, template, client_name, event_type, event_location, event_date, overall_status, geo_lat, geo_lng, geo_location_query").eq("id", projectId).single(),
       supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
