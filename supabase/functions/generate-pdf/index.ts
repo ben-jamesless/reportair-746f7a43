@@ -783,6 +783,13 @@ Deno.serve(async (req) => {
         page.drawText(day.label, { x: contentX, y: topY - 16, size: 16, font: fontBold, color: C(TOK.nearBlack) });
 
         let ty = topY - 16 - 8 * MM;
+        // Weather line (silently omitted on miss)
+        const wx = weatherByDate.get(day.key);
+        if (wx) {
+          const line = `${wx.tmin}°C – ${wx.tmax}°C · ${wx.condition} · ${wx.wind} km/h wind`;
+          page.drawText(line, { x: contentX, y: topY - 16 - 5 * MM, size: 9, font: fontReg, color: C(TOK.muted) });
+          ty -= 6 * MM;
+        }
         const tableX = contentX;
         const tableW = PAGE_W - MARGIN - tableX;
         const colArea = tableW * 0.30;
