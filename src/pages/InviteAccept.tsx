@@ -16,8 +16,17 @@ const InviteAccept = () => {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      // Send to auth, return here after login
-      navigate(`/auth?redirect=/invite/${token}`);
+      // Look up invited email so the register form can prefill it,
+      // then send the user to /auth and return here after sign-in/up.
+      (async () => {
+        const { data: inviteEmail } = await supabase.rpc("get_invite_email", { _token: token });
+        const params = new URLSearchParams({ redirect: `/invite/${token}` });
+        if (inviteEmail) {
+          params.set("email", inviteEmail as string);
+          params.set("tab", "signup");
+        }
+        navigate(`/auth?${params.toString()}`, { replace: true });
+      })();
       return;
     }
   }, [user, loading, token, navigate]);
@@ -31,6 +40,12 @@ const InviteAccept = () => {
     toast.success("Invite accepted");
     navigate(`/projects/${data}`);
   };
+
+  // Auto-accept as soon as a logged-in user lands on the invite page.
+  useEffect(() => {
+    if (user && token && !working) accept();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, token]);
 
   if (loading || !user) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;

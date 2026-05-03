@@ -82,6 +82,7 @@ const Projects = () => {
   const [filterStatus, setFilterStatus] = useState<string>(ALL);
   const [sortKey, setSortKey] = useState<SortKey>("created");
   const [showArchived, setShowArchived] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
 
   const load = async () => {
     if (!user) return;
@@ -136,6 +137,17 @@ const Projects = () => {
       }
     }
     setLastUploads(uploads);
+
+    // Pending invites for this user's email
+    if (user.email) {
+      const { data: inv } = await supabase
+        .from("project_invites")
+        .select("token")
+        .is("accepted_at", null)
+        .ilike("email", user.email)
+        .order("created_at", { ascending: false });
+      setPendingInvites({ count: inv?.length ?? 0, firstToken: inv?.[0]?.token ?? null });
+    }
 
     setLoading(false);
   };
@@ -244,6 +256,17 @@ const Projects = () => {
           <NewProjectDialog teamId={teamId} onCreated={load} />
         )}
       </div>
+
+      {!showSkeleton && pendingInvites.count > 0 && pendingInvites.firstToken && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <span>
+            You have <strong>{pendingInvites.count}</strong> pending project invitation{pendingInvites.count === 1 ? "" : "s"}.
+          </span>
+          <Link to={`/invite/${pendingInvites.firstToken}`} className="font-medium text-primary hover:underline">
+            View invite{pendingInvites.count === 1 ? "" : "s"} →
+          </Link>
+        </div>
+      )}
 
       {!showSkeleton && hasAnyVisibleSource && (
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
