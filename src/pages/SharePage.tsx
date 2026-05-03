@@ -525,6 +525,11 @@ const SharePage = () => {
                         </div>
                         {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
                       </div>
+                      {weather[dateKey] && (
+                        <div className="px-4 py-2 text-xs" style={{ color: MUTED, borderBottom: `1px solid ${DIVIDER}` }}>
+                          {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
+                        </div>
+                      )}
 
                       {/* Area blocks — flush, no cards */}
                       <div>
