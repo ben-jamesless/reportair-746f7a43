@@ -474,12 +474,27 @@ const SharePage = () => {
               <>
                 <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
                 <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>Areas</p>
-                {areas.map((ar) => (
-                  <div key={ar.id} className="flex items-center gap-2 px-3 py-1.5 text-xs" style={{ color: BODY }}>
-                    <StatusDot statusKey={latestAreaStatus.get(ar.id) ?? "no_status"} />
-                    <span className="truncate">{ar.name}</span>
-                  </div>
-                ))}
+                {areas.map((ar) => {
+                  const key = areaKey(ar.id);
+                  const active = activeKey === key;
+                  const count = photos.filter((p) => p.area_id === ar.id).length;
+                  return (
+                    <button
+                      key={ar.id}
+                      onClick={() => setActiveKey(key)}
+                      className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left text-xs transition-colors"
+                      style={active ? { backgroundColor: TEAL, color: "#ffffff" } : { color: BODY }}
+                      onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = SURFACE; }}
+                      onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
+                    >
+                      <span className="flex items-center gap-2 min-w-0">
+                        <StatusDot statusKey={latestAreaStatus.get(ar.id) ?? "no_status"} />
+                        <span className="truncate">{ar.name}</span>
+                      </span>
+                      <span className="text-xs opacity-80">{count}</span>
+                    </button>
+                  );
+                })}
               </>
             )}
           </aside>
