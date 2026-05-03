@@ -2,14 +2,12 @@ import { ReportAirLockup } from "@/components/brand/ReportAirMark";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppSidebar } from "./AppSidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronRight, LogOut, Moon, Sun } from "lucide-react";
-import { useTheme } from "@/hooks/useTheme";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChevronRight, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useState } from "react";
 
 export type Crumb = { label: string; to?: string };
 
@@ -21,15 +19,7 @@ interface Props {
 }
 
 export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
-  const { user, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth", { replace: true });
-  };
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -38,35 +28,20 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
       {/* Mobile top bar (sidebar hidden on mobile) */}
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur md:hidden">
         <div className="flex h-14 items-center justify-between px-4">
+          <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Open menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] p-0">
+              <AppSidebar mobile onNavigate={() => setMobileNavOpen(false)} />
+            </SheetContent>
+          </Sheet>
           <Link to="/projects" className="flex items-center">
             <ReportAirLockup variant="light" />
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-9 w-9 rounded-full p-0">
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-secondary text-sm">{initials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">Signed in as</p>
-                  <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
-                {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-                {theme === "dark" ? "Light mode" : "Dark mode"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="w-9" />
         </div>
       </header>
 

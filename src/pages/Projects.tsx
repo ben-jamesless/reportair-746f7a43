@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
@@ -46,14 +46,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import {
-  ProjectFolders,
-  FOLDER_ALL,
-  FOLDER_UNFOLDERED,
-  type FolderRow,
-  type FolderSelection,
-} from "@/components/ProjectFolders";
 import { FolderInput } from "lucide-react";
+
+type FolderRow = { id: string; name: string; color: string | null };
+const FOLDER_ALL = "__all__";
+const FOLDER_UNFOLDERED = "__unfoldered__";
 
 type Project = {
   id: string;
@@ -97,7 +94,8 @@ const Projects = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
   const [folders, setFolders] = useState<FolderRow[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<FolderSelection>(FOLDER_ALL);
+  const [searchParams] = useSearchParams();
+  const selectedFolder = searchParams.get("folder") ?? FOLDER_ALL;
   const [ownedProjectIds, setOwnedProjectIds] = useState<Set<string>>(new Set());
   const [moveProject, setMoveProject] = useState<Project | null>(null);
 
@@ -283,6 +281,7 @@ const Projects = () => {
       .eq("id", projectId);
     if (error) { toast.error(error.message); return; }
     toast.success(folderId ? "Moved to folder" : "Removed from folder");
+    window.dispatchEvent(new Event("projects:changed"));
     load();
   };
 
@@ -338,19 +337,6 @@ const Projects = () => {
         </div>
       )}
 
-      <div className="flex gap-6">
-        {!showSkeleton && hasAnyVisibleSource && (
-          <ProjectFolders
-            folders={folders}
-            selected={selectedFolder}
-            onSelect={setSelectedFolder}
-            counts={folderCounts}
-            onChanged={load}
-            onDropProject={(projectId, folderId) => assignProjectToFolder(projectId, folderId)}
-            ownerId={user?.id ?? ""}
-          />
-        )}
-        <div className="min-w-0 flex-1">
       {!showSkeleton && hasAnyVisibleSource && (
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[200px] flex-1">
@@ -675,8 +661,6 @@ const Projects = () => {
           })}
         </div>
       )}
-        </div>
-      </div>
 
 
       {/* Edit dialog (controlled, opens for any selected project) */}
