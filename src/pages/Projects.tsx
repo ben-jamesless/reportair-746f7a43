@@ -138,6 +138,17 @@ const Projects = () => {
     }
     setLastUploads(uploads);
 
+    // Pending invites for this user's email
+    if (user.email) {
+      const { data: inv } = await supabase
+        .from("project_invites")
+        .select("token")
+        .is("accepted_at", null)
+        .ilike("email", user.email)
+        .order("created_at", { ascending: false });
+      setPendingInvites({ count: inv?.length ?? 0, firstToken: inv?.[0]?.token ?? null });
+    }
+
     setLoading(false);
   };
 
