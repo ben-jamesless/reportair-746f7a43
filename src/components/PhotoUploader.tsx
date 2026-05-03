@@ -64,6 +64,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     setBusy(true);
     setProgress({ done: 0, total: list.length });
     let failures = 0;
+    const errors: string[] = [];
 
     for (const original of list) {
       let file = original;
@@ -107,8 +108,10 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           await supabase.storage.from("photos").remove([key]);
           throw insErr;
         }
-      } catch (e) {
+      } catch (e: any) {
         failures++;
+        const msg = e?.message || e?.error || (typeof e === "string" ? e : JSON.stringify(e));
+        errors.push(`${file.name}: ${msg}`);
         console.error("Upload failed for", file.name, e);
       } finally {
         setProgress((p) => ({ ...p, done: p.done + 1 }));
@@ -117,9 +120,10 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
 
     setBusy(false);
     setProgress({ done: 0, total: 0 });
+    const firstErr = errors[0];
     if (failures === 0) toast.success(`Uploaded ${list.length} photo${list.length > 1 ? "s" : ""}`);
-    else if (failures < list.length) toast.warning(`Uploaded ${list.length - failures} of ${list.length} (${failures} failed)`);
-    else toast.error("All uploads failed");
+    else if (failures < list.length) toast.warning(`Uploaded ${list.length - failures} of ${list.length} (${failures} failed)`, { description: firstErr });
+    else toast.error("All uploads failed", { description: firstErr ?? "Check console for details", duration: 10000 });
     onUploaded?.();
     if (inputRef.current) inputRef.current.value = "";
   };
