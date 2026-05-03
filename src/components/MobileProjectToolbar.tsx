@@ -137,6 +137,14 @@ export const MobileProjectToolbar = ({
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
+                onClick={() => runAfterClose(onOpenFeedback)}
+              >
+                <MessageSquare className="mr-3 h-4 w-4" />
+                Feedback
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-12 justify-start text-base"
                 onClick={() => runAfterClose(onOpenActivity)}
               >
                 <Activity className="mr-3 h-4 w-4" />
