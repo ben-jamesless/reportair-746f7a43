@@ -901,6 +901,36 @@ Deno.serve(async (req) => {
           return cy;
         };
 
+        // Day Note block (omit entirely if empty)
+        const dayNoteText = isAlbum ? "" : (_dayNoteByDate.get(day.key) ?? "");
+        if (dayNoteText && dayNoteText.trim()) {
+          const noteFontSize = 9;
+          const noteLineH = 12;
+          const notePadX = 10;
+          const notePadY = 10;
+          const noteInnerW = tableW - notePadX * 2;
+          const noteLines = wrapText(dayNoteText, fontReg, noteFontSize, noteInnerW);
+          const labelH = 14;
+          const boxH = labelH + noteLines.length * noteLineH + notePadY;
+          page.drawRectangle({
+            x: tableX, y: ty - boxH, width: tableW, height: boxH,
+            color: C(TOK.rowStripe),
+          });
+          page.drawText("DAY NOTE", {
+            x: tableX + notePadX, y: ty - notePadY - 2,
+            size: 7, font: fontBold, color: C(TOK.label),
+          });
+          let ny = ty - notePadY - labelH;
+          for (const ln of noteLines) {
+            page.drawText(ln, {
+              x: tableX + notePadX, y: ny,
+              size: noteFontSize, font: fontReg, color: C(TOK.body),
+            });
+            ny -= noteLineH;
+          }
+          ty -= boxH + 6 * MM;
+        }
+
         ty = renderAreaTable(ty, subgroups, day.key, isAlbum);
 
         // Previous Report comparison (skip in album mode)
