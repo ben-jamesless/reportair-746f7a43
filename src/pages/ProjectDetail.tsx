@@ -781,7 +781,7 @@ const ProjectDetail = () => {
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="w-full">
         {/* Top controls row: tabs + settings + export */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+        <div className="mb-6 hidden flex-wrap items-center justify-between gap-3 border-b pb-3 md:flex">
           <TabsList>
             <TabsTrigger value="photos">Updates</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
