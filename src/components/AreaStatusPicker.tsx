@@ -30,8 +30,8 @@ export const STATUS_META: Record<
   },
   complete: {
     label: "Complete", short: "Complete",
-    dot: "bg-primary",
-    activeBg: "bg-primary/15", activeText: "text-primary", activeBorder: "border-primary",
+    dot: "bg-emerald-500",
+    activeBg: "bg-emerald-500/15", activeText: "text-emerald-700 dark:text-emerald-300", activeBorder: "border-emerald-500",
   },
 };
 
