@@ -14,7 +14,21 @@ import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { z } from "zod";
 
-type Template = "event_production" | "blank";
+type Template = "blank" | "golf_day" | "corporate_event" | "music_festival" | "conference" | "wedding";
+
+const TEMPLATE_DEFS: { id: Template; title: string; description: string; icon: React.ReactNode; areas: string[] }[] = [
+  { id: "blank", title: "Blank", description: "Start from scratch.", icon: <FileText className="h-5 w-5" />, areas: [] },
+  { id: "golf_day", title: "Golf Day", description: "Hospitality, tees, greens & more.", icon: <Flag className="h-5 w-5" />,
+    areas: ["Hospitality Suite", "Driving Range", "1st Tee", "18th Green", "Clubhouse", "Media Zone", "Sponsor Activation"] },
+  { id: "corporate_event", title: "Corporate Event", description: "Stage, registration, breakouts.", icon: <Presentation className="h-5 w-5" />,
+    areas: ["Main Stage", "Registration", "Catering", "Breakout Rooms", "Networking Area", "Sponsor Wall", "Green Room"] },
+  { id: "music_festival", title: "Music Festival", description: "Multi-stage festival areas.", icon: <Music className="h-5 w-5" />,
+    areas: ["Main Stage", "Second Stage", "Artist Village", "Food & Beverage", "Entry & Security", "Sponsor Zone", "Merchandise"] },
+  { id: "conference", title: "Conference", description: "Halls, breakouts, exhibitors.", icon: <Trophy className="h-5 w-5" />,
+    areas: ["Main Hall", "Registration Desk", "Breakout Room A", "Breakout Room B", "Exhibitor Floor", "Media Room", "Catering"] },
+  { id: "wedding", title: "Wedding", description: "Ceremony to reception.", icon: <PartyPopper className="h-5 w-5" />,
+    areas: ["Ceremony", "Reception", "Cocktail Hour", "Bridal Suite", "Catering", "Photography Zone", "Guest Entrance"] },
+];
 type InviteRow = { email: string; role: "editor" | "viewer" };
 
 interface Props {
