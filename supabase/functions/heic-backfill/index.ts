@@ -22,11 +22,12 @@ Deno.serve(async (req) => {
       return json({ error: "unauthorized" }, 401);
     }
 
-    const { project_id, limit } = await req.json();
+    const { project_id, limit, exclude_ids } = await req.json();
     if (!project_id || typeof project_id !== "string") {
       return json({ error: "project_id required" }, 400);
     }
     const max = Math.max(1, Math.min(Number(limit) || 1, 3));
+    const excluded: string[] = Array.isArray(exclude_ids) ? exclude_ids.filter((x) => typeof x === "string") : [];
 
     // Verify caller is a member of the project (uses caller's JWT)
     const userClient = createClient(
@@ -53,12 +54,15 @@ Deno.serve(async (req) => {
     );
 
     // Find HEIC photos for this project
-    const { data: photos, error: qErr } = await admin
+    let q = admin
       .from("photos")
       .select("id, storage_path, file_name, mime_type")
       .eq("project_id", project_id)
-      .or("file_name.ilike.%.heic,file_name.ilike.%.heif,mime_type.eq.image/heic,mime_type.eq.image/heif")
-      .limit(max);
+      .or("file_name.ilike.%.heic,file_name.ilike.%.heif,mime_type.eq.image/heic,mime_type.eq.image/heif");
+    if (excluded.length > 0) {
+      q = q.not("id", "in", `(${excluded.join(",")})`);
+    }
+    const { data: photos, error: qErr } = await q.limit(max);
 
     if (qErr) return json({ error: qErr.message }, 500);
     if (!photos || photos.length === 0) {
