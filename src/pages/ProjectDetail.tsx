@@ -992,13 +992,10 @@ const ProjectDetail = () => {
               {/* Main grid */}
               <section>
                 {/* Day / selection header — full-width flush strip, sticky */}
-                <div
-                  className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur"
-                  style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}
-                >
+                <div className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur">
                   <div className="flex items-baseline gap-3 min-w-0">
-                    <h2 className="truncate text-base font-bold" style={{ color: "#1a1a1a" }}>{selectionTitle}</h2>
-                    <span className="shrink-0 text-xs" style={{ color: "#6b7280" }}>
+                    <h2 className="truncate text-base font-bold text-foreground">{selectionTitle}</h2>
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
                     </span>
                     {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
@@ -1017,7 +1014,7 @@ const ProjectDetail = () => {
                       if (counts.no_status) parts.push(`${counts.no_status} No Status`);
                       if (parts.length === 0) return null;
                       return (
-                        <span className="shrink-0 text-xs" style={{ color: "#6b7280" }}>
+                        <span className="shrink-0 text-xs text-muted-foreground">
                           · {parts.join(" · ")}
                         </span>
                       );
