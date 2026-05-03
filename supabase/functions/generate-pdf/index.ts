@@ -1,5 +1,5 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
-// Layout follows the approved Site Story V2 design templates.
+// Layout follows the approved ReportAir V2 design templates.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
@@ -727,9 +727,9 @@ Deno.serve(async (req) => {
       // PREPARED BY
       page.drawText("PREPARED BY", { x: rightX + rPad, y: ry - 7, size: 7, font: fontBold, color: C(TOK.label) });
       ry -= 12;
-      page.drawText("Site Story", { x: rightX + rPad, y: ry - 10, size: 10, font: fontBold, color: C(TOK.nearBlack) });
+      page.drawText("ReportAir", { x: rightX + rPad, y: ry - 10, size: 10, font: fontBold, color: C(TOK.nearBlack) });
       ry -= 12;
-      page.drawText("sitestory.app", { x: rightX + rPad, y: ry - 8, size: 8, font: fontReg, color: ACCENT_DEFAULT });
+      page.drawText("reportair.app", { x: rightX + rPad, y: ry - 8, size: 8, font: fontReg, color: ACCENT_DEFAULT });
     }
 
     // ============ DAY SUMMARY + PHOTO PAGES ============

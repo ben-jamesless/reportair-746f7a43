@@ -232,7 +232,7 @@ const ProjectDetail = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `sitestory-${slug}-${today}.zip`;
+      a.download = `reportair-${slug}-${today}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
