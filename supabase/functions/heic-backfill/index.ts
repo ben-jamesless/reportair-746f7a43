@@ -71,17 +71,23 @@ Deno.serve(async (req) => {
 
     let converted = 0, failed = 0;
     const failures: { id: string; reason: string }[] = [];
+    const processed_ids: string[] = [];
 
     for (const p of photos) {
+      processed_ids.push(p.id);
       try {
         const { data: blob, error: dlErr } = await admin.storage.from("photos").download(p.storage_path);
         if (dlErr || !blob) throw new Error(dlErr?.message || "download failed");
+        // Skip very large HEIC files — they will OOM the edge function.
+        if (blob.size > 8 * 1024 * 1024) {
+          throw new Error(`file too large to decode (${Math.round(blob.size / 1024 / 1024)}MB)`);
+        }
         const inputBuf = new Uint8Array(await blob.arrayBuffer());
 
         const decoded = await decode({ buffer: inputBuf });
         const jpeg = jpegEncode(
           { data: decoded.data, width: decoded.width, height: decoded.height },
-          88,
+          82,
         );
 
         const newPath = p.storage_path.replace(/\.(heic|heif)$/i, "") + ".jpg";
@@ -98,7 +104,6 @@ Deno.serve(async (req) => {
           .eq("id", p.id);
         if (updErr) throw new Error(`db: ${updErr.message}`);
 
-        // Best-effort delete of the old HEIC if path differs
         if (newPath !== p.storage_path) {
           await admin.storage.from("photos").remove([p.storage_path]);
         }
@@ -109,7 +114,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return json({ total: photos.length, converted, failed, failures });
+    return json({ total: photos.length, converted, failed, failures, processed_ids });
   } catch (e) {
     return json({ error: String((e as Error)?.message ?? e) }, 500);
   }
