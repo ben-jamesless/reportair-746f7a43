@@ -95,6 +95,10 @@ const Projects = () => {
   const [sortKey, setSortKey] = useState<SortKey>("created");
   const [showArchived, setShowArchived] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
+  const [folders, setFolders] = useState<FolderRow[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<FolderSelection>(FOLDER_ALL);
+  const [ownedProjectIds, setOwnedProjectIds] = useState<Set<string>>(new Set());
+  const [moveProject, setMoveProject] = useState<Project | null>(null);
 
   const load = async () => {
     if (!user) return;
