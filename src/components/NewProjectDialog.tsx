@@ -182,6 +182,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
           <Stepper step={step} total={TOTAL_STEPS} />
         </DialogHeader>
 
+        <div className="min-h-[420px]">
         {/* STEP 1: Template */}
         {step === 1 && (
           <div className="space-y-4">
