@@ -47,7 +47,9 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
           if (downloadError || !blob) throw downloadError ?? new Error("Download failed");
 
           const { jpegBlob, newName } = await convertHeicBlobToJpeg(blob, originalName);
-          const newPath = photo.storage_path.replace(/\.(heic|heif)$/i, "") + ".jpg";
+          const newPath = /\.(heic|heif)$/i.test(photo.storage_path)
+            ? photo.storage_path.replace(/\.(heic|heif)$/i, ".jpg")
+            : `${photo.storage_path}.jpg`;
 
           const { error: uploadError } = await supabase.storage
             .from("photos")
