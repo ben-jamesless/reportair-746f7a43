@@ -64,6 +64,12 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   const [busy, setBusy] = useState(false);
   const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
 
+  const selectTemplate = (id: Template) => {
+    setTemplate(id);
+    const tplAreas = TEMPLATE_DEFS.find((t) => t.id === id)?.areas ?? [];
+    setAreas(tplAreas);
+  };
+
   const reset = () => {
     setStep(1);
     setName("");
