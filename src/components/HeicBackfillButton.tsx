@@ -18,7 +18,9 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
     let totalSeen = 0;
     try {
       // Loop in small batches to avoid edge function memory limits.
-      for (let i = 0; i < 50; i++) {
+      // Loop in small batches to avoid edge function memory limits.
+      // Hard safety cap of 2000 photos per click.
+      for (let i = 0; i < 700; i++) {
         const { data, error } = await supabase.functions.invoke("heic-backfill", {
           body: { project_id: projectId, limit: 3 },
         });
