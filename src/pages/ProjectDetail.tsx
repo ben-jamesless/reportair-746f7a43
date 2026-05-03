@@ -834,6 +834,16 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="xl:hidden"
+              onClick={() => setFeedbackSheetOpen(true)}
+              title="Feedback"
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Feedback
+            </Button>
             <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
           </div>
         </div>
