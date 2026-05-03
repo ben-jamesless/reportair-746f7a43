@@ -674,7 +674,29 @@ const ProjectDetail = () => {
 
   return (
     <AppShell crumbs={crumbs}>
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+      <MobileProjectToolbar
+        project={project}
+        photosCount={photos.length}
+        mostRecentDayLabel={mostRecentDay?.label ?? null}
+        effectiveView={effectiveView}
+        setViewOverride={setViewOverride}
+        uploader={
+          <ErrorBoundary label="uploader-mobile">
+            <PhotoUploader
+              projectId={project.id}
+              albumId={uploadAlbumId}
+              areaId={uploadAreaId}
+              areas={areas}
+              onUploaded={loadAll}
+            />
+          </ErrorBoundary>
+        }
+        onOpenExport={openTopExport}
+        onOpenActivity={() => setActiveTab("activity")}
+        onOpenDetails={() => setActiveTab("details")}
+        onLoadAll={loadAll}
+      />
+      <div className="mb-6 hidden flex-col gap-4 sm:mb-8 md:flex md:flex-row md:flex-wrap md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span
