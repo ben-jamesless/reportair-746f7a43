@@ -48,6 +48,13 @@ export const MobileProjectToolbar = ({
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const close = () => setSheetOpen(false);
+  /** Close the bottom sheet, wait for its exit animation + Radix cleanup, then run the action.
+   *  Without the delay Radix leaves `pointer-events: none` on <body> when one overlay closes
+   *  and another opens in the same tick, locking the page. */
+  const runAfterClose = (fn: () => void) => {
+    setSheetOpen(false);
+    setTimeout(fn, 220);
+  };
 
   return (
     <div className="mb-4 md:hidden">
@@ -112,7 +119,7 @@ export const MobileProjectToolbar = ({
                 variant="ghost"
                 className="h-12 justify-start text-base"
                 disabled={photosCount === 0}
-                onClick={() => { close(); onOpenExport(); }}
+                onClick={() => runAfterClose(onOpenExport)}
               >
                 <FileDown className="mr-3 h-4 w-4" />
                 Export {mostRecentDayLabel ? "latest day" : "project"}
@@ -120,7 +127,7 @@ export const MobileProjectToolbar = ({
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
-                onClick={() => { close(); setSettingsOpen(true); }}
+                onClick={() => runAfterClose(() => setSettingsOpen(true))}
               >
                 <SettingsIcon className="mr-3 h-4 w-4" />
                 Settings
@@ -128,7 +135,7 @@ export const MobileProjectToolbar = ({
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
-                onClick={() => { close(); onOpenActivity(); }}
+                onClick={() => runAfterClose(onOpenActivity)}
               >
                 <Activity className="mr-3 h-4 w-4" />
                 Activity
@@ -136,7 +143,7 @@ export const MobileProjectToolbar = ({
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
-                onClick={() => { close(); onOpenDetails(); }}
+                onClick={() => runAfterClose(onOpenDetails)}
               >
                 <Info className="mr-3 h-4 w-4" />
                 Details
