@@ -265,6 +265,41 @@ export type Database = {
         }
         Relationships: []
       }
+      folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folders_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_notes: {
         Row: {
           body: string
@@ -612,6 +647,7 @@ export type Database = {
           event_date: string | null
           event_location: string | null
           event_type: string | null
+          folder_id: string | null
           geo_lat: number | null
           geo_lng: number | null
           geo_location_query: string | null
@@ -633,6 +669,7 @@ export type Database = {
           event_date?: string | null
           event_location?: string | null
           event_type?: string | null
+          folder_id?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           geo_location_query?: string | null
@@ -654,6 +691,7 @@ export type Database = {
           event_date?: string | null
           event_location?: string | null
           event_type?: string | null
+          folder_id?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           geo_location_query?: string | null
@@ -665,6 +703,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_team_id_fkey"
             columns: ["team_id"]
