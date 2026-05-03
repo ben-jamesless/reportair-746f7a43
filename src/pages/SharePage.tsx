@@ -536,6 +536,11 @@ const SharePage = () => {
                           {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
                         </div>
                       )}
+                      {dayNotesMap.get(dateKey) && (
+                        <div className="py-2 pl-4 text-[15px] leading-relaxed" style={{ color: BODY }}>
+                          <RichNotes text={dayNotesMap.get(dateKey)!} />
+                        </div>
+                      )}
 
                       {/* Area blocks — flush, no cards */}
                       <div>
