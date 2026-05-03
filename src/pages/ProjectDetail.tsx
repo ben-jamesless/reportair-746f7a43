@@ -838,7 +838,7 @@ const ProjectDetail = () => {
           <TabsContent value="photos" className="mt-6">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[400px_1fr] xl:grid-cols-[400px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
-              <aside className="space-y-1">
+              <aside className="space-y-1 rounded-lg dark:bg-card dark:p-2">
                 {days.length === 0 && albumPhotos.size === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
@@ -862,14 +862,16 @@ const ProjectDetail = () => {
                           onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => new Set(p).add(day.key)); }}
                           className={cn(
                             "flex flex-1 items-center justify-between rounded-md px-2 py-2 text-left text-sm transition-colors",
-                            dayActive ? "bg-primary text-primary-foreground" : "hover:bg-secondary"
+                            dayActive
+                              ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
+                              : "hover:bg-secondary dark:hover:bg-[#1E3050]",
                           )}
                         >
                           <span className="flex items-center gap-1.5">
-                            <Calendar className={cn("h-3.5 w-3.5", dayActive ? "" : "text-muted-foreground")} />
+                            <Calendar className={cn("h-3.5 w-3.5", dayActive ? "text-primary" : "text-muted-foreground")} />
                             <span className="font-medium">{SHORT_FMT.format(day.date)}</span>
                           </span>
-                          <span className={cn("text-xs", dayActive ? "opacity-80" : "text-muted-foreground")}>
+                          <span className={cn("text-xs", dayActive ? "text-primary" : "text-muted-foreground")}>
                             {day.photos.length}
                           </span>
                         </button>
@@ -896,13 +898,15 @@ const ProjectDetail = () => {
                                 onClick={() => selectDayArea(day.key, ar.id)}
                                 className={cn(
                                   "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
-                                  sel ? "bg-primary text-primary-foreground" : "hover:bg-secondary",
+                                  sel
+                                    ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
+                                    : "hover:bg-secondary dark:hover:bg-[#1E3050]",
                                 )}
                               >
                                 <AreaStatusDot status={st} className="shrink-0" />
-                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "" : "text-muted-foreground")} />
+                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "text-primary" : "text-muted-foreground")} />
                                 <span className="flex-1 truncate">{ar.name}</span>
-                                <span className={cn("ml-1 text-[10px]", sel ? "opacity-80" : "text-muted-foreground")}>{c}</span>
+                                <span className={cn("ml-1 text-[10px]", sel ? "text-primary" : "text-muted-foreground")}>{c}</span>
                               </button>
                             );
                           })}
@@ -912,8 +916,8 @@ const ProjectDetail = () => {
                               className={cn(
                                 "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                 activeDay === day.key && activeArea === NO_AREA
-                                  ? "bg-primary text-primary-foreground"
-                                  : "hover:bg-secondary"
+                                  ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
+                                  : "hover:bg-secondary dark:hover:bg-[#1E3050]",
                               )}
                             >
                               <span className="flex items-center gap-1.5">
@@ -922,7 +926,7 @@ const ProjectDetail = () => {
                               </span>
                               <span className={cn(
                                 "ml-2 text-[10px]",
-                                activeDay === day.key && activeArea === NO_AREA ? "opacity-80" : "text-muted-foreground"
+                                activeDay === day.key && activeArea === NO_AREA ? "text-primary" : "text-muted-foreground"
                               )}>{unassigned}</span>
                             </button>
                           )}
