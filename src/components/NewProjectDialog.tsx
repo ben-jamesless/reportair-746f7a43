@@ -330,6 +330,8 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
             )}
           </div>
         )}
+        </div>
+
 
         <DialogFooter className="gap-2 sm:justify-between">
           <div>
