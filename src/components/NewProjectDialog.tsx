@@ -8,13 +8,27 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Calendar, Check, FileText, Loader2, Mail, MapPinned, Plus, Trash2, X } from "lucide-react";
+import { Check, FileText, Flag, Loader2, Mail, MapPinned, Music, Plus, PartyPopper, Presentation, Trash2, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { z } from "zod";
 
-type Template = "event_production" | "blank";
+type Template = "blank" | "golf_day" | "corporate_event" | "music_festival" | "conference" | "wedding";
+
+const TEMPLATE_DEFS: { id: Template; title: string; description: string; icon: React.ReactNode; areas: string[] }[] = [
+  { id: "blank", title: "Blank", description: "Start from scratch.", icon: <FileText className="h-5 w-5" />, areas: [] },
+  { id: "golf_day", title: "Golf Day", description: "Hospitality, tees, greens & more.", icon: <Flag className="h-5 w-5" />,
+    areas: ["Hospitality Suite", "Driving Range", "1st Tee", "18th Green", "Clubhouse", "Media Zone", "Sponsor Activation"] },
+  { id: "corporate_event", title: "Corporate Event", description: "Stage, registration, breakouts.", icon: <Presentation className="h-5 w-5" />,
+    areas: ["Main Stage", "Registration", "Catering", "Breakout Rooms", "Networking Area", "Sponsor Wall", "Green Room"] },
+  { id: "music_festival", title: "Music Festival", description: "Multi-stage festival areas.", icon: <Music className="h-5 w-5" />,
+    areas: ["Main Stage", "Second Stage", "Artist Village", "Food & Beverage", "Entry & Security", "Sponsor Zone", "Merchandise"] },
+  { id: "conference", title: "Conference", description: "Halls, breakouts, exhibitors.", icon: <Trophy className="h-5 w-5" />,
+    areas: ["Main Hall", "Registration Desk", "Breakout Room A", "Breakout Room B", "Exhibitor Floor", "Media Room", "Catering"] },
+  { id: "wedding", title: "Wedding", description: "Ceremony to reception.", icon: <PartyPopper className="h-5 w-5" />,
+    areas: ["Ceremony", "Reception", "Cocktail Hour", "Bridal Suite", "Catering", "Photography Zone", "Guest Entrance"] },
+];
 type InviteRow = { email: string; role: "editor" | "viewer" };
 
 interface Props {
@@ -35,7 +49,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   // Step 1+2 fields
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [template, setTemplate] = useState<Template>("event_production");
+  const [template, setTemplate] = useState<Template>("blank");
   const [color, setColor] = useState<string>(DEFAULT_PROJECT_COLOR);
 
   // Step 3: areas (collected locally; inserted after project create)
@@ -54,7 +68,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setStep(1);
     setName("");
     setDescription("");
-    setTemplate("event_production");
+    setTemplate("blank");
     setColor(DEFAULT_PROJECT_COLOR);
     setAreas([]);
     setAreaInput("");
@@ -124,7 +138,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setBusy(true);
     const { data, error } = await supabase
       .from("projects")
-      .insert({ team_id: teamId, name, description: description || null, template, color, created_by: user.id })
+      .insert({ team_id: teamId, name, description: description || null, color, created_by: user.id })
       .select("id")
       .single();
     if (error || !data) {
@@ -134,7 +148,9 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     }
     const projectId = data.id;
     setCreatedProjectId(projectId);
-    await persistAreas(projectId, areas);
+    const tplAreas = TEMPLATE_DEFS.find((t) => t.id === template)?.areas ?? [];
+    const combinedAreas = [...tplAreas, ...areas.filter((a) => !tplAreas.includes(a))];
+    await persistAreas(projectId, combinedAreas);
     if (!skipInvites) await persistInvites(projectId, invites);
     setBusy(false);
     onCreated?.();
@@ -165,21 +181,19 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
         {/* STEP 1: Template */}
         {step === 1 && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <TemplateCard
-                icon={<Calendar className="h-5 w-5" />}
-                title="Event production"
-                description="Pre-built album for an event lifecycle."
-                selected={template === "event_production"}
-                onClick={() => setTemplate("event_production")}
-              />
-              <TemplateCard
-                icon={<FileText className="h-5 w-5" />}
-                title="Blank"
-                description="Start from scratch."
-                selected={template === "blank"}
-                onClick={() => setTemplate("blank")}
-              />
+            <p className="text-sm text-muted-foreground">Pick a starting template. You can edit, add or remove areas any time.</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {TEMPLATE_DEFS.map((t) => (
+                <TemplateCard
+                  key={t.id}
+                  icon={t.icon}
+                  title={t.title}
+                  description={t.description}
+                  areas={t.areas}
+                  selected={template === t.id}
+                  onClick={() => setTemplate(t.id)}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -352,20 +366,37 @@ const Stepper = ({ step, total }: { step: number; total: number }) => (
 );
 
 const TemplateCard = ({
-  icon, title, description, selected, onClick,
-}: { icon: React.ReactNode; title: string; description: string; selected: boolean; onClick: () => void; }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={cn(
-      "rounded-lg border p-4 text-left transition-all hover:border-primary/50 hover:bg-secondary/40",
-      selected && "border-primary bg-secondary/60 ring-2 ring-primary/20"
-    )}
-  >
-    <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
-      {icon}
-    </div>
-    <p className="text-sm font-medium">{title}</p>
-    <p className="text-xs text-muted-foreground">{description}</p>
-  </button>
-);
+  icon, title, description, areas = [], selected, onClick,
+}: { icon: React.ReactNode; title: string; description: string; areas?: string[]; selected: boolean; onClick: () => void; }) => {
+  const shown = areas.slice(0, 5);
+  const extra = areas.length - shown.length;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative rounded-lg border p-4 text-left transition-all hover:border-primary/50 hover:bg-secondary/40",
+        selected && "border-primary bg-secondary/60 ring-2 ring-primary/20"
+      )}
+    >
+      {selected && (
+        <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Check className="h-3 w-3" />
+        </div>
+      )}
+      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <p className="text-sm font-medium">{title}</p>
+      <p className="text-xs text-muted-foreground">{description}</p>
+      {areas.length > 0 && (
+        <ul className="mt-2 space-y-0.5 text-[11px] text-muted-foreground">
+          {shown.map((a) => (
+            <li key={a} className="truncate">· {a}</li>
+          ))}
+          {extra > 0 && <li className="text-muted-foreground/70">+{extra} more</li>}
+        </ul>
+      )}
+    </button>
+  );
+};
