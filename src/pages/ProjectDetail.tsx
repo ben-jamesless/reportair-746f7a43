@@ -37,6 +37,7 @@ import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/A
 import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { RichNotes } from "@/components/RichNotes";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
+import { MobileProjectToolbar } from "@/components/MobileProjectToolbar";
 import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
