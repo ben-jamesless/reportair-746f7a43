@@ -2,14 +2,12 @@ import { ReportAirLockup } from "@/components/brand/ReportAirMark";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppSidebar } from "./AppSidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronRight, LogOut, Moon, Sun } from "lucide-react";
-import { useTheme } from "@/hooks/useTheme";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChevronRight, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useState } from "react";
 
 export type Crumb = { label: string; to?: string };
 
