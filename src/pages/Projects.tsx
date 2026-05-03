@@ -566,8 +566,18 @@ const Projects = () => {
             const statusMeta = projectStatusMeta(p.overall_status);
             const showStatus = (p.overall_status ?? "no_status") !== "no_status";
             const isArchived = !!p.archived_at;
+            const isOwner = ownedProjectIds.has(p.id);
             return (
-              <div key={p.id} className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}>
+              <div
+                key={p.id}
+                className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}
+                draggable={isOwner}
+                onDragStart={(e) => {
+                  if (!isOwner) return;
+                  e.dataTransfer.setData("application/x-project-id", p.id);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+              >
                 <Link to={`/projects/${p.id}`} className="block">
                   <Card
                     className={cn(
