@@ -6,6 +6,20 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface Props { projectId: string }
 
+type HeicPhoto = {
+  id: string;
+  storage_path: string;
+  file_name: string | null;
+};
+
+const convertHeicBlobToJpeg = async (blob: Blob, fileName: string) => {
+  const { default: heic2any } = await import("heic2any");
+  const converted = await heic2any({ blob, toType: "image/jpeg", quality: 0.88 });
+  const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+  const newName = fileName.replace(/\.(heic|heif)$/i, "") + ".jpg";
+  return { jpegBlob, newName };
+};
+
 export const HeicBackfillButton = ({ projectId }: Props) => {
   const [busy, setBusy] = useState(false);
   const [lastResult, setLastResult] = useState<string | null>(null);
@@ -15,34 +29,50 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
     setLastResult(null);
     let totalConverted = 0;
     let totalFailed = 0;
-    let totalSeen = 0;
     try {
-      // One photo per invocation to stay within edge memory limits.
-      // Track failed IDs so they don't block subsequent batches.
-      const failedIds = new Set<string>();
-      let consecutiveErrors = 0;
-      for (let i = 0; i < 2000; i++) {
-        const { data, error } = await supabase.functions.invoke("heic-backfill", {
-          body: { project_id: projectId, limit: 1, exclude_ids: Array.from(failedIds) },
-        });
-        if (error) {
-          consecutiveErrors++;
-          if (consecutiveErrors >= 5) {
-            throw new Error(`Stopped after repeated errors: ${error.message ?? error}`);
+      const { data: photos, error: listError } = await supabase
+        .from("photos")
+        .select("id, storage_path, file_name")
+        .eq("project_id", projectId)
+        .or("file_name.ilike.%.heic,file_name.ilike.%.heif,mime_type.eq.image/heic,mime_type.eq.image/heif")
+        .limit(1000);
+      if (listError) throw listError;
+
+      const queue = (photos ?? []) as HeicPhoto[];
+      for (const photo of queue) {
+        const originalName = photo.file_name || photo.storage_path.split("/").pop() || "photo.heic";
+        try {
+          setLastResult(`Converting ${totalConverted + totalFailed + 1}/${queue.length}…`);
+          const { data: blob, error: downloadError } = await supabase.storage.from("photos").download(photo.storage_path);
+          if (downloadError || !blob) throw downloadError ?? new Error("Download failed");
+
+          const { jpegBlob, newName } = await convertHeicBlobToJpeg(blob, originalName);
+          const newPath = /\.(heic|heif)$/i.test(photo.storage_path)
+            ? photo.storage_path.replace(/\.(heic|heif)$/i, ".jpg")
+            : `${photo.storage_path}.jpg`;
+
+          const { error: uploadError } = await supabase.storage
+            .from("photos")
+            .upload(newPath, jpegBlob, { contentType: "image/jpeg", upsert: true });
+          if (uploadError) throw uploadError;
+
+          const { error: updateError } = await supabase
+            .from("photos")
+            .update({ storage_path: newPath, file_name: newName, mime_type: "image/jpeg", size_bytes: jpegBlob.size })
+            .eq("id", photo.id);
+          if (updateError) throw updateError;
+
+          if (newPath !== photo.storage_path) {
+            await supabase.storage.from("photos").remove([photo.storage_path]);
           }
-          setLastResult(`Retrying… ${totalConverted} converted so far`);
-          continue;
+          totalConverted++;
+        } catch (photoError) {
+          totalFailed++;
+          console.error("HEIC backfill failed for", originalName, photoError);
         }
-        consecutiveErrors = 0;
-        const r = data as { total: number; converted: number; failed: number; processed_ids?: string[]; failures?: { id: string }[] };
-        totalSeen += r.total;
-        totalConverted += r.converted;
-        totalFailed += r.failed;
-        (r.failures ?? []).forEach((f) => failedIds.add(f.id));
-        setLastResult(`Converting… ${totalConverted} done${totalFailed ? ` (${totalFailed} skipped)` : ""}`);
-        if (r.total === 0) break;
       }
-      if (totalSeen === 0 && totalConverted === 0) {
+
+      if (queue.length === 0) {
         setLastResult("No HEIC photos found.");
         toast.success("No HEIC photos to convert");
       } else {
