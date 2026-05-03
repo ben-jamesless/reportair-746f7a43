@@ -131,12 +131,33 @@ const Projects = () => {
 
     const { data: projs } = await supabase
       .from("projects")
-      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at")
+      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at, folder_id")
       .eq("team_id", team.id)
       .order("created_at", { ascending: false });
 
     const list = (projs ?? []) as Project[];
     setProjects(list);
+
+    // Folders (owner-only via RLS)
+    const { data: fdata } = await supabase
+      .from("folders")
+      .select("id, name, color, sort_order")
+      .order("sort_order", { ascending: true });
+    setFolders((fdata ?? []) as FolderRow[]);
+
+    // Determine which projects current user owns (for showing folder controls per card)
+    const ids = list.map((p) => p.id);
+    if (ids.length > 0) {
+      const { data: pm } = await supabase
+        .from("project_members")
+        .select("project_id, role")
+        .eq("user_id", user.id)
+        .in("project_id", ids)
+        .eq("role", "owner");
+      setOwnedProjectIds(new Set((pm ?? []).map((r) => r.project_id as string)));
+    } else {
+      setOwnedProjectIds(new Set());
+    }
 
     // Fetch last upload timestamp per project (single page, ordered desc; reduce client-side).
     const projectIds = list.map((p) => p.id);
