@@ -14,12 +14,16 @@ import { toast } from "sonner";
 const Auth = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [email, setEmail] = useState("");
+  const params = new URLSearchParams(window.location.search);
+  const prefillEmail = params.get("email") ?? "";
+  const initialTab = params.get("tab") === "signup" || prefillEmail ? "signup" : "signin";
+  const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [signupSent, setSignupSent] = useState(false);
 
-  const redirect = new URLSearchParams(window.location.search).get("redirect") || "/projects";
+  const redirect = params.get("redirect") || "/projects";
 
   useEffect(() => {
     if (user) navigate(redirect, { replace: true });
@@ -32,13 +36,14 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/onboarding`,
+        emailRedirectTo: `${window.location.origin}${redirect.startsWith("/") ? redirect : "/onboarding"}`,
         data: { full_name: fullName },
       },
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created. Welcome!");
+    setSignupSent(true);
+    toast.success("Account created — check your email to confirm");
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
