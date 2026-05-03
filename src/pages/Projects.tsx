@@ -745,6 +745,40 @@ const Projects = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Move to folder dialog */}
+      <Dialog open={!!moveProject} onOpenChange={(o) => !o && setMoveProject(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Move to folder</DialogTitle>
+          </DialogHeader>
+          <RadioGroup
+            value={moveProject?.folder_id ?? "__none__"}
+            onValueChange={async (val) => {
+              if (!moveProject) return;
+              const folderId = val === "__none__" ? null : val;
+              await assignProjectToFolder(moveProject.id, folderId);
+              setMoveProject(null);
+            }}
+            className="max-h-[60vh] overflow-y-auto"
+          >
+            <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
+              <RadioGroupItem value="__none__" id="move-none" />
+              <span className="text-sm">No folder</span>
+            </label>
+            {folders.map((f) => (
+              <label key={f.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
+                <RadioGroupItem value={f.id} id={`move-${f.id}`} />
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color || "hsl(var(--muted-foreground))" }} />
+                <span className="text-sm">{f.name}</span>
+              </label>
+            ))}
+            {folders.length === 0 && (
+              <p className="px-2 py-3 text-xs text-muted-foreground">No folders yet. Create one from the sidebar.</p>
+            )}
+          </RadioGroup>
+        </DialogContent>
+      </Dialog>
+
     </AppShell>
   );
 };
