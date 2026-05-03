@@ -89,7 +89,7 @@ const Auth = () => {
             <CardDescription>Sign in or create an account to continue.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            <Tabs defaultValue={initialTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign in</TabsTrigger>
                 <TabsTrigger value="signup">Sign up</TabsTrigger>
@@ -116,24 +116,33 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4 pt-4">
-                <form onSubmit={handleSignUp} className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="name-up">Name</Label>
-                    <Input id="name-up" type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                {signupSent ? (
+                  <div className="rounded-md border bg-muted/40 p-4 text-sm">
+                    <p className="font-medium">Check your email to confirm your account</p>
+                    <p className="mt-1 text-muted-foreground">
+                      We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Click it to activate your account, then sign in.
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email-up">Email</Label>
-                    <Input id="email-up" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pw-up">Password</Label>
-                    <Input id="pw-up" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={busy}>
-                    {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create account
-                  </Button>
-                </form>
+                ) : (
+                  <form onSubmit={handleSignUp} className="space-y-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="name-up">Name</Label>
+                      <Input id="name-up" type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-up">Email</Label>
+                      <Input id="email-up" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pw-up">Password</Label>
+                      <Input id="pw-up" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={busy}>
+                      {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create account
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
             </Tabs>
 
