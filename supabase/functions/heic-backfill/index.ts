@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     if (!project_id || typeof project_id !== "string") {
       return json({ error: "project_id required" }, 400);
     }
-    const max = Math.max(1, Math.min(Number(limit) || 50, 200));
+    const max = Math.max(1, Math.min(Number(limit) || 3, 10));
 
     // Verify caller is a member of the project (uses caller's JWT)
     const userClient = createClient(

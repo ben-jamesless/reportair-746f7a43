@@ -13,22 +13,33 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
   const run = async () => {
     setBusy(true);
     setLastResult(null);
+    let totalConverted = 0;
+    let totalFailed = 0;
+    let totalSeen = 0;
     try {
-      const { data, error } = await supabase.functions.invoke("heic-backfill", {
-        body: { project_id: projectId, limit: 50 },
-      });
-      if (error) throw error;
-      const r = data as { total: number; converted: number; failed: number };
-      if (r.total === 0) {
+      // Loop in small batches to avoid edge function memory limits.
+      for (let i = 0; i < 50; i++) {
+        const { data, error } = await supabase.functions.invoke("heic-backfill", {
+          body: { project_id: projectId, limit: 3 },
+        });
+        if (error) throw error;
+        const r = data as { total: number; converted: number; failed: number };
+        totalSeen += r.total;
+        totalConverted += r.converted;
+        totalFailed += r.failed;
+        setLastResult(`Converting… ${totalConverted} done${totalFailed ? ` (${totalFailed} failed)` : ""}`);
+        if (r.total === 0) break;
+      }
+      if (totalSeen === 0) {
         setLastResult("No HEIC photos found.");
         toast.success("No HEIC photos to convert");
       } else {
-        setLastResult(`Converted ${r.converted} of ${r.total}${r.failed ? ` (${r.failed} failed)` : ""}.`);
-        toast.success(`Converted ${r.converted} of ${r.total} HEIC photos`);
+        setLastResult(`Converted ${totalConverted}${totalFailed ? ` (${totalFailed} failed)` : ""}.`);
+        toast.success(`Converted ${totalConverted} HEIC photos`);
       }
     } catch (e) {
       const msg = (e as Error)?.message ?? String(e);
-      setLastResult(`Error: ${msg}`);
+      setLastResult(`Error: ${msg}${totalConverted ? ` — ${totalConverted} converted before failure` : ""}`);
       toast.error(msg);
     } finally {
       setBusy(false);
