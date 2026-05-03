@@ -65,14 +65,14 @@
     --shadow-soft: 0 1px 3px hsl(217 43% 10% / 0.06), 0 4px 12px hsl(217 43% 10% / 0.04);
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
 
-    /* Sidebar — INK on light per brand */
-    --sidebar-background: 217 43% 10%;
-    --sidebar-foreground: 220 100% 83%;
+    /* Sidebar — light surface in light mode (matches aside bg-background) */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 217 43% 10%;
     --sidebar-primary: 217 100% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 45% 16%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217 45% 22%;
+    --sidebar-accent: 217 33% 95%;
+    --sidebar-accent-foreground: 217 43% 10%;
+    --sidebar-border: 217 31% 86%;
     --sidebar-ring: 217 100% 55%;
   }
 
