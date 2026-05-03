@@ -75,9 +75,10 @@ export const AppSidebar = () => {
     <TooltipProvider delayDuration={0}>
       <aside className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-16 lg:w-56 md:border-r md:bg-background">
         {/* Logo */}
-        <Link to="/projects" className="flex h-14 items-center gap-2 border-b border-sidebar-border px-3 lg:px-4">
-          <ReportAirMark variant="dark" className="h-7 w-7 shrink-0" />
-          <span className="wordmark hidden text-sm text-white lg:inline">REPORTAIR</span>
+        <Link to="/projects" className="flex h-14 items-center gap-2 border-b px-3 lg:px-4">
+          <ReportAirMark variant="light" className="h-7 w-7 shrink-0 dark:hidden" />
+          <ReportAirMark variant="dark" className="hidden h-7 w-7 shrink-0 dark:inline-block" />
+          <span className="wordmark hidden text-sm text-foreground lg:inline">REPORTAIR</span>
         </Link>
 
         {/* Nav */}
