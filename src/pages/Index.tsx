@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { ReportAirMark } from "@/components/brand/ReportAirMark";
 
 // Brand tokens (scoped to this marketing page only — do not touch app tokens)
 const BRAND = {
@@ -31,8 +32,11 @@ const Index = () => {
       {/* Nav */}
       <header style={{ backgroundColor: BRAND.fog, borderBottom: `1px solid ${BRAND.border}` }}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-          <Link to="/" className="text-lg font-bold tracking-tight" style={{ ...display, color: BRAND.ink }}>
-            REPORTAIR
+          <Link to="/" className="inline-flex items-center gap-2.5">
+            <ReportAirMark className="h-7 w-7" />
+            <span className="text-lg font-bold tracking-tight" style={{ ...display, color: BRAND.ink }}>
+              REPORTAIR
+            </span>
           </Link>
           <nav className="flex items-center gap-3 sm:gap-5">
             <Link
