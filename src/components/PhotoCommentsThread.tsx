@@ -126,7 +126,7 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
   // Realtime updates for this photo's comments
   useEffect(() => {
     const channel = supabase
-      .channel(`comments:${photoId}`)
+      .channel(`comments:${photoId}:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "comments", filter: `photo_id=eq.${photoId}` },
