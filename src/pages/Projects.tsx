@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown, Archive, ArchiveRestore, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
@@ -41,8 +42,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  ProjectFolders,
+  FOLDER_ALL,
+  FOLDER_UNFOLDERED,
+  type FolderRow,
+  type FolderSelection,
+} from "@/components/ProjectFolders";
+import { FolderInput } from "lucide-react";
 
 type Project = {
   id: string;
@@ -57,6 +68,7 @@ type Project = {
   event_type: string | null;
   client_name: string | null;
   archived_at: string | null;
+  folder_id: string | null;
 };
 
 type SortKey = "alpha" | "created" | "event_date" | "last_upload";
@@ -84,6 +96,10 @@ const Projects = () => {
   const [sortKey, setSortKey] = useState<SortKey>("created");
   const [showArchived, setShowArchived] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
+  const [folders, setFolders] = useState<FolderRow[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<FolderSelection>(FOLDER_ALL);
+  const [ownedProjectIds, setOwnedProjectIds] = useState<Set<string>>(new Set());
+  const [moveProject, setMoveProject] = useState<Project | null>(null);
 
   const load = async () => {
     if (!user) return;
@@ -116,12 +132,33 @@ const Projects = () => {
 
     const { data: projs } = await supabase
       .from("projects")
-      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at")
+      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at, folder_id")
       .eq("team_id", team.id)
       .order("created_at", { ascending: false });
 
     const list = (projs ?? []) as Project[];
     setProjects(list);
+
+    // Folders (owner-only via RLS)
+    const { data: fdata } = await supabase
+      .from("folders")
+      .select("id, name, color, sort_order")
+      .order("sort_order", { ascending: true });
+    setFolders((fdata ?? []) as FolderRow[]);
+
+    // Determine which projects current user owns (for showing folder controls per card)
+    const ids = list.map((p) => p.id);
+    if (ids.length > 0) {
+      const { data: pm } = await supabase
+        .from("project_members")
+        .select("project_id, role")
+        .eq("user_id", user.id)
+        .in("project_id", ids)
+        .eq("role", "owner");
+      setOwnedProjectIds(new Set((pm ?? []).map((r) => r.project_id as string)));
+    } else {
+      setOwnedProjectIds(new Set());
+    }
 
     // Fetch last upload timestamp per project (single page, ordered desc; reduce client-side).
     const projectIds = list.map((p) => p.id);
@@ -175,10 +212,32 @@ const Projects = () => {
     [projects],
   );
 
+  const folderCounts = useMemo(() => {
+    const byFolder: Record<string, number> = {};
+    let unfoldered = 0;
+    let all = 0;
+    for (const p of projects) {
+      if (!showArchived && p.archived_at) continue;
+      all += 1;
+      if (p.folder_id && folders.some((f) => f.id === p.folder_id)) {
+        byFolder[p.folder_id] = (byFolder[p.folder_id] ?? 0) + 1;
+      } else {
+        unfoldered += 1;
+      }
+    }
+    return { all, unfoldered, byFolder };
+  }, [projects, folders, showArchived]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const folderIds = new Set(folders.map((f) => f.id));
     let arr = projects.filter((p) => {
       if (!showArchived && p.archived_at) return false;
+      if (selectedFolder === FOLDER_UNFOLDERED) {
+        if (p.folder_id && folderIds.has(p.folder_id)) return false;
+      } else if (selectedFolder !== FOLDER_ALL) {
+        if (p.folder_id !== selectedFolder) return false;
+      }
       if (filterClient !== ALL && (p.client_name ?? "") !== filterClient) return false;
       if (filterEventType !== ALL && (p.event_type ?? "") !== filterEventType) return false;
       if (filterStatus !== ALL && (p.overall_status ?? "no_status") !== filterStatus) return false;
@@ -215,7 +274,17 @@ const Projects = () => {
       }
     });
     return arr;
-  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived]);
+  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived, selectedFolder, folders]);
+
+  const assignProjectToFolder = async (projectId: string, folderId: string | null) => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ folder_id: folderId })
+      .eq("id", projectId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(folderId ? "Moved to folder" : "Removed from folder");
+    load();
+  };
 
   const filtersActive =
     !!search.trim() ||
@@ -269,6 +338,19 @@ const Projects = () => {
         </div>
       )}
 
+      <div className="flex gap-6">
+        {!showSkeleton && hasAnyVisibleSource && (
+          <ProjectFolders
+            folders={folders}
+            selected={selectedFolder}
+            onSelect={setSelectedFolder}
+            counts={folderCounts}
+            onChanged={load}
+            onDropProject={(projectId, folderId) => assignProjectToFolder(projectId, folderId)}
+            ownerId={user?.id ?? ""}
+          />
+        )}
+        <div className="min-w-0 flex-1">
       {!showSkeleton && hasAnyVisibleSource && (
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[200px] flex-1">
@@ -485,8 +567,18 @@ const Projects = () => {
             const statusMeta = projectStatusMeta(p.overall_status);
             const showStatus = (p.overall_status ?? "no_status") !== "no_status";
             const isArchived = !!p.archived_at;
+            const isOwner = ownedProjectIds.has(p.id);
             return (
-              <div key={p.id} className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}>
+              <div
+                key={p.id}
+                className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}
+                draggable={isOwner}
+                onDragStart={(e) => {
+                  if (!isOwner) return;
+                  e.dataTransfer.setData("application/x-project-id", p.id);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+              >
                 <Link to={`/projects/${p.id}`} className="block">
                   <Card
                     className={cn(
@@ -554,6 +646,11 @@ const Projects = () => {
                       <DropdownMenuItem onSelect={() => setEditingProject(p)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
+                      {isOwner && (
+                        <DropdownMenuItem onSelect={() => setMoveProject(p)}>
+                          <FolderInput className="mr-2 h-4 w-4" /> Move to folder
+                        </DropdownMenuItem>
+                      )}
                       {isArchived ? (
                         <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
                           <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
@@ -578,6 +675,9 @@ const Projects = () => {
           })}
         </div>
       )}
+        </div>
+      </div>
+
 
       {/* Edit dialog (controlled, opens for any selected project) */}
       {editingProject && (
@@ -646,6 +746,40 @@ const Projects = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Move to folder dialog */}
+      <Dialog open={!!moveProject} onOpenChange={(o) => !o && setMoveProject(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Move to folder</DialogTitle>
+          </DialogHeader>
+          <RadioGroup
+            value={moveProject?.folder_id ?? "__none__"}
+            onValueChange={async (val) => {
+              if (!moveProject) return;
+              const folderId = val === "__none__" ? null : val;
+              await assignProjectToFolder(moveProject.id, folderId);
+              setMoveProject(null);
+            }}
+            className="max-h-[60vh] overflow-y-auto"
+          >
+            <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
+              <RadioGroupItem value="__none__" id="move-none" />
+              <span className="text-sm">No folder</span>
+            </label>
+            {folders.map((f) => (
+              <label key={f.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
+                <RadioGroupItem value={f.id} id={`move-${f.id}`} />
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color || "hsl(var(--muted-foreground))" }} />
+                <span className="text-sm">{f.name}</span>
+              </label>
+            ))}
+            {folders.length === 0 && (
+              <p className="px-2 py-3 text-xs text-muted-foreground">No folders yet. Create one from the sidebar.</p>
+            )}
+          </RadioGroup>
+        </DialogContent>
+      </Dialog>
+
     </AppShell>
   );
 };
