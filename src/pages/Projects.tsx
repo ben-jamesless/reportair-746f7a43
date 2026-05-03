@@ -336,20 +336,8 @@ const Projects = () => {
         </div>
       )}
 
-      <div className="flex gap-6">
-        {!showSkeleton && hasAnyVisibleSource && (
-          <ProjectFolders
-            folders={folders}
-            selected={selectedFolder}
-            onSelect={setSelectedFolder}
-            counts={folderCounts}
-            onChanged={load}
-            onDropProject={(projectId, folderId) => assignProjectToFolder(projectId, folderId)}
-            ownerId={user?.id ?? ""}
-          />
-        )}
-        <div className="min-w-0 flex-1">
       {!showSkeleton && hasAnyVisibleSource && (
+        <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[200px] flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
