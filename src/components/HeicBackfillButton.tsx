@@ -18,8 +18,7 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
     let totalSeen = 0;
     try {
       // Loop in small batches to avoid edge function memory limits.
-      // Loop in small batches to avoid edge function memory limits.
-      // Hard safety cap of 2000 photos per click.
+      // Hard safety cap of ~2000 photos per click.
       for (let i = 0; i < 700; i++) {
         const { data, error } = await supabase.functions.invoke("heic-backfill", {
           body: { project_id: projectId, limit: 3 },
@@ -30,7 +29,8 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
         totalConverted += r.converted;
         totalFailed += r.failed;
         setLastResult(`Converting… ${totalConverted} done${totalFailed ? ` (${totalFailed} failed)` : ""}`);
-        if (r.total === 0) break;
+        // Stop when nothing left, or when a batch made no progress (avoids infinite loop on un-decodable files).
+        if (r.total === 0 || r.converted === 0) break;
       }
       if (totalSeen === 0) {
         setLastResult("No HEIC photos found.");
