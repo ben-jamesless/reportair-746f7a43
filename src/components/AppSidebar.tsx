@@ -92,7 +92,7 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
       setFullName(data?.full_name ?? null);
     })();
     const channel = supabase
-      .channel(`sidebar-profile-${user.id}`)
+      .channel(`sidebar-profile-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
         (payload) => {
