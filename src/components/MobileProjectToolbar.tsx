@@ -51,10 +51,6 @@ export const MobileProjectToolbar = ({
 
   return (
     <div className="mb-4 md:hidden">
-      <div className="mb-3 truncate text-xs text-muted-foreground">
-        <span className="opacity-70">Projects › </span>
-        <span className="font-medium text-foreground">{project.name}</span>
-      </div>
 
       <div className="flex items-center gap-2">
         {/* Report / Gallery toggle */}
