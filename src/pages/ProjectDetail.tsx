@@ -37,6 +37,7 @@ import { AreaStatusPicker, AreaStatusDot, type AreaStatus } from "@/components/A
 import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { RichNotes } from "@/components/RichNotes";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
+import { MobileProjectToolbar } from "@/components/MobileProjectToolbar";
 import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -674,7 +675,29 @@ const ProjectDetail = () => {
 
   return (
     <AppShell crumbs={crumbs}>
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+      <MobileProjectToolbar
+        project={project}
+        photosCount={photos.length}
+        mostRecentDayLabel={mostRecentDay?.label ?? null}
+        effectiveView={effectiveView}
+        setViewOverride={setViewOverride}
+        uploader={
+          <ErrorBoundary label="uploader-mobile">
+            <PhotoUploader
+              projectId={project.id}
+              albumId={uploadAlbumId}
+              areaId={uploadAreaId}
+              areas={areas}
+              onUploaded={loadAll}
+            />
+          </ErrorBoundary>
+        }
+        onOpenExport={openTopExport}
+        onOpenActivity={() => setActiveTab("activity")}
+        onOpenDetails={() => setActiveTab("details")}
+        onLoadAll={loadAll}
+      />
+      <div className="mb-6 hidden flex-col gap-4 sm:mb-8 md:flex md:flex-row md:flex-wrap md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <span
@@ -759,7 +782,7 @@ const ProjectDetail = () => {
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="w-full">
         {/* Top controls row: tabs + settings + export */}
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+        <div className="mb-6 hidden flex-wrap items-center justify-between gap-3 border-b pb-3 md:flex">
           <TabsList>
             <TabsTrigger value="photos">Updates</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>

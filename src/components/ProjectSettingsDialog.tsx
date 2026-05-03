@@ -32,10 +32,16 @@ interface Props {
   onChanged?: () => void;
   /** Optional default tab to open on. */
   defaultTab?: "details" | "areas" | "albums" | "members" | "share";
+  /** Pass null to omit the built-in trigger (use controlled open instead). */
+  trigger?: React.ReactNode | null;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTab = "details" }: Props) => {
-  const [open, setOpen] = useState(false);
+export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTab = "details", trigger, open: controlledOpen, onOpenChange }: Props) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [canManageAlbums, setCanManageAlbums] = useState(false);
 
   useEffect(() => {
@@ -66,11 +72,15 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Settings className="mr-2 h-4 w-4" /> Settings
-        </Button>
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button variant="outline" size="sm">
+              <Settings className="mr-2 h-4 w-4" /> Settings
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="flex h-[85vh] max-h-[85vh] w-[calc(100%-2rem)] max-w-2xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Project settings</DialogTitle>

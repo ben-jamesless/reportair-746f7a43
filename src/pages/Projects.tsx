@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown, Archive, ArchiveRestore } from "lucide-react";
+import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown, Archive, ArchiveRestore, SlidersHorizontal } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
@@ -291,8 +292,88 @@ const Projects = () => {
             )}
           </div>
 
+          {/* Mobile: collapsed Filter sheet */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="relative w-full justify-center">
+                  <SlidersHorizontal className="mr-2 h-4 w-4" />
+                  Filter
+                  {(filterClient !== ALL || filterEventType !== ALL || filterStatus !== ALL || sortKey !== "created") && (
+                    <span className="absolute right-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-primary" aria-hidden />
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="rounded-t-xl">
+                <SheetHeader>
+                  <SheetTitle>Filter projects</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Client</Label>
+                    <Select value={filterClient} onValueChange={setFilterClient}>
+                      <SelectTrigger><SelectValue placeholder="Client" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={ALL}>All clients</SelectItem>
+                        {clientOptions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Event type</Label>
+                    <Select value={filterEventType} onValueChange={setFilterEventType}>
+                      <SelectTrigger><SelectValue placeholder="Event type" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={ALL}>All types</SelectItem>
+                        {eventTypeOptions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Status</Label>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={ALL}>All statuses</SelectItem>
+                        {PROJECT_STATUSES.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            <span className="flex items-center gap-2">
+                              <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
+                              {s.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Sort by</Label>
+                    <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="created">Date added</SelectItem>
+                        <SelectItem value="alpha">Alphabetical</SelectItem>
+                        <SelectItem value="event_date">Event date</SelectItem>
+                        <SelectItem value="last_upload">Last upload</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <SheetFooter className="mt-5 flex-row gap-2">
+                  <Button variant="outline" className="flex-1" onClick={clearFilters}>
+                    Clear
+                  </Button>
+                  <SheetClose asChild>
+                    <Button className="flex-1">Done</Button>
+                  </SheetClose>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Desktop: original inline filter selects */}
           <Select value={filterClient} onValueChange={setFilterClient}>
-            <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filter by client">
+            <SelectTrigger className="hidden sm:w-[160px] md:flex" aria-label="Filter by client">
               <SelectValue placeholder="Client" />
             </SelectTrigger>
             <SelectContent>
@@ -304,7 +385,7 @@ const Projects = () => {
           </Select>
 
           <Select value={filterEventType} onValueChange={setFilterEventType}>
-            <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filter by event type">
+            <SelectTrigger className="hidden sm:w-[160px] md:flex" aria-label="Filter by event type">
               <SelectValue placeholder="Event type" />
             </SelectTrigger>
             <SelectContent>
@@ -316,7 +397,7 @@ const Projects = () => {
           </Select>
 
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full sm:w-[180px]" aria-label="Filter by status">
+            <SelectTrigger className="hidden sm:w-[180px] md:flex" aria-label="Filter by status">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -333,7 +414,7 @@ const Projects = () => {
           </Select>
 
           <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-            <SelectTrigger className="w-full sm:w-[180px]" aria-label="Sort projects">
+            <SelectTrigger className="hidden sm:w-[180px] md:flex" aria-label="Sort projects">
               <ArrowUpDown className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
@@ -346,7 +427,7 @@ const Projects = () => {
           </Select>
 
           {filtersActive && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="hidden md:inline-flex">
               <X className="mr-1.5 h-3.5 w-3.5" /> Clear
             </Button>
           )}
