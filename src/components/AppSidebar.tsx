@@ -330,27 +330,6 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
             </button>
           </div>
 
-          {/* Profile link (kept in main nav per request to keep nav structure) */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link
-                to="/profile"
-                onClick={onNavigate}
-                className={cn(
-                  "mt-4 flex items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
-                  isProfileActive
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-                )}
-              >
-                <UserIcon className="h-4 w-4 shrink-0" />
-                <span className={labelCls}>Profile</span>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
-              Profile
-            </TooltipContent>
-          </Tooltip>
         </nav>
 
         {/* User */}
