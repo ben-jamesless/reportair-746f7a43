@@ -87,13 +87,15 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
           <DialogDescription>Edit details, areas, members, and sharing for this project.</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue={defaultTab} className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="self-start">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="areas">Areas</TabsTrigger>
-            {canManageAlbums && <TabsTrigger value="albums">Albums</TabsTrigger>}
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="share">Share</TabsTrigger>
-          </TabsList>
+          <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="inline-flex w-max">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="areas">Areas</TabsTrigger>
+              {canManageAlbums && <TabsTrigger value="albums">Albums</TabsTrigger>}
+              <TabsTrigger value="members">Members</TabsTrigger>
+              <TabsTrigger value="share">Share</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <ProjectEditForm
               projectId={projectId}
