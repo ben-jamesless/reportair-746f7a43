@@ -41,7 +41,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
-import { NotificationsBell } from "@/components/NotificationsBell";
+import { NotificationsSection } from "@/components/NotificationsSection";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 type FolderRow = { id: string; name: string; color: string | null; sort_order: number };
@@ -205,6 +206,11 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
 
         {/* Nav */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
+          {/* Notifications (top, above folders) */}
+          <NotificationsSection compactLabel={!mobile} onNavigate={onNavigate} />
+
+          <Separator className="my-2" />
+
           {/* All Projects */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -334,7 +340,7 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
 
         {/* User */}
         <div className="space-y-1 border-t p-2 lg:p-3">
-          <NotificationsBell />
+          {/* Notifications moved to top of sidebar */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
