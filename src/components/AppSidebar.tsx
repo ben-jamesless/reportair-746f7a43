@@ -41,7 +41,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
-import { NotificationsBell } from "@/components/NotificationsBell";
+import { NotificationsSection } from "@/components/NotificationsSection";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
 type FolderRow = { id: string; name: string; color: string | null; sort_order: number };
