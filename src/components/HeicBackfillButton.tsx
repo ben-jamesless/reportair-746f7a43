@@ -13,11 +13,20 @@ type HeicPhoto = {
 };
 
 const convertHeicBlobToJpeg = async (blob: Blob, fileName: string) => {
-  const { default: heic2any } = await import("heic2any");
-  const converted = await heic2any({ blob, toType: "image/jpeg", quality: 0.88 });
-  const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
   const newName = fileName.replace(/\.(heic|heif)$/i, "") + ".jpg";
-  return { jpegBlob, newName };
+  // Try heic-to first (uses libheif-js, supports HEVC from iPhones reliably)
+  try {
+    const { heicTo } = await import("heic-to");
+    const file = blob instanceof File ? blob : new File([blob], fileName, { type: blob.type || "image/heic" });
+    const jpegBlob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.88 });
+    return { jpegBlob: jpegBlob as Blob, newName };
+  } catch (primaryErr) {
+    console.warn("heic-to failed, falling back to heic2any:", primaryErr);
+    const { default: heic2any } = await import("heic2any");
+    const converted = await heic2any({ blob, toType: "image/jpeg", quality: 0.88 });
+    const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+    return { jpegBlob, newName };
+  }
 };
 
 export const HeicBackfillButton = ({ projectId }: Props) => {
@@ -76,7 +85,9 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
         setLastResult("No HEIC photos found.");
         toast.success("No HEIC photos to convert");
       } else {
-        setLastResult(`Converted ${totalConverted}${totalFailed ? ` (${totalFailed} skipped — too large or corrupt)` : ""}.`);
+        setLastResult(
+          `Converted ${totalConverted}${totalFailed ? ` · ${totalFailed} failed (see console for details)` : ""}.`
+        );
         toast.success(`Converted ${totalConverted} HEIC photos`);
       }
     } catch (e) {
