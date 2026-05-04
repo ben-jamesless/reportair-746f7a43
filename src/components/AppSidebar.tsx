@@ -335,7 +335,7 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
 
         {/* User */}
         <div className="space-y-1 border-t p-2 lg:p-3">
-          <NotificationsBell />
+          {/* Notifications moved to top of sidebar */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
