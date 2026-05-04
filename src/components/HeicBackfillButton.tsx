@@ -85,7 +85,9 @@ export const HeicBackfillButton = ({ projectId }: Props) => {
         setLastResult("No HEIC photos found.");
         toast.success("No HEIC photos to convert");
       } else {
-        setLastResult(`Converted ${totalConverted}${totalFailed ? ` (${totalFailed} skipped — too large or corrupt)` : ""}.`);
+        setLastResult(
+          `Converted ${totalConverted}${totalFailed ? ` · ${totalFailed} failed (see console for details)` : ""}.`
+        );
         toast.success(`Converted ${totalConverted} HEIC photos`);
       }
     } catch (e) {
