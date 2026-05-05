@@ -178,14 +178,15 @@ export const ExportPdfDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Load albums + photo counts when opening
+  // Load albums + photo counts + project brand colour when opening
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
     (async () => {
-      const [{ data: alb }, { data: ph }] = await Promise.all([
+      const [{ data: alb }, { data: ph }, { data: proj }] = await Promise.all([
         supabase.from("albums").select("id, name, position").eq("project_id", projectId).order("position"),
         supabase.from("photos").select("album_id").eq("project_id", projectId).not("album_id", "is", null),
+        supabase.from("projects").select("color").eq("id", projectId).maybeSingle(),
       ]);
       if (cancelled) return;
       const counts = new Map<string, number>();
@@ -197,6 +198,9 @@ export const ExportPdfDialog = ({
       }));
       setAlbums(opts);
       setSelectedAlbumId((prev) => prev ?? opts[0]?.id ?? null);
+      // Seed accent from the project's brand colour so admin & share PDFs match.
+      const projColor = (proj as { color?: string | null } | null)?.color;
+      if (projColor && /^#[0-9a-fA-F]{6}$/.test(projColor)) setAccent(projColor);
     })();
     return () => { cancelled = true; };
   }, [open, projectId]);
