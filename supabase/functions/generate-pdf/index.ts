@@ -1087,14 +1087,19 @@ Deno.serve(async (req) => {
             const x = leftX + c * (cellW + GAP);
             const yCell = gy - cellH;
             try {
+              // Cover-fit: request a server-side cropped image at the cell aspect (4:3).
+              // This guarantees portrait/landscape photos fill the cell with no narrow strips.
+              const targetW = Math.round(cellW * 3); // 3x for retina-ish print quality
+              const targetH = Math.round(cellH * 3);
               const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
                 ph.storage_path,
                 600,
-                { transform: { width: 1200, quality: 80, format: "origin" as unknown as "png" } },
+                { transform: { width: targetW, height: targetH, resize: "cover", quality: 80 } },
               );
               const baseUrl = signed?.signedUrl;
               const transformedUrl = baseUrl
-                ? baseUrl.replace("/object/sign/", "/render/image/sign/") + "&width=1200&quality=80"
+                ? baseUrl.replace("/object/sign/", "/render/image/sign/") +
+                  `&width=${targetW}&height=${targetH}&resize=cover&quality=80`
                 : null;
               if (transformedUrl) {
                 let r = await fetch(transformedUrl);
@@ -1110,14 +1115,8 @@ Deno.serve(async (req) => {
                     try { img = await pdf.embedJpg(bytes); } catch { try { img = await pdf.embedPng(bytes); } catch { img = null; } }
                   }
                   if (img) {
-                    // Contain-fit so the photo never bleeds beyond its cell. This avoids needing
-                    // any mask rectangles in the gutters — empty cells stay completely blank,
-                    // with no border artefacts when a row is partially filled.
-                    const sFit = Math.min(cellW / img.width, cellH / img.height);
-                    const w = img.width * sFit, h = img.height * sFit;
-                    const ox = x + (cellW - w) / 2;
-                    const oy = yCell + (cellH - h) / 2;
-                    page.drawImage(img, { x: ox, y: oy, width: w, height: h });
+                    // Server already cropped to ~cell aspect. Draw it filling the full cell.
+                    page.drawImage(img, { x, y: yCell, width: cellW, height: cellH });
                   }
                 }
               }
