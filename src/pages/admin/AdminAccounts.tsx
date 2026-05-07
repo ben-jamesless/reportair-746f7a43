@@ -14,6 +14,14 @@ type AdminTeam = {
   suspended_at: string | null; billing_owner_user_id: string | null;
   billing_owner_email: string | null; member_count: number;
   project_count: number; created_at: string;
+  trial_ends_at: string | null; region: string | null; industry: string | null;
+};
+
+const PLAN_LABELS: Record<string, string> = {
+  free: "Free",
+  pro: "Pro",
+  team: "Team",
+  enterprise: "Enterprise",
 };
 
 type Member = { user_id: string; email: string | null; full_name: string | null };
