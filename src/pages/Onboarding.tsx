@@ -59,7 +59,7 @@ const Onboarding = () => {
     const slug = teamName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).slice(2, 6);
     const { error: teamErr } = await supabase
       .from("teams")
-      .insert({ name: teamName, slug, created_by: user.id });
+      .insert({ name: teamName, slug, created_by: user.id, billing_owner_user_id: user.id });
     if (teamErr) {
       setBusy(false);
       return toast.error(teamErr.message);
