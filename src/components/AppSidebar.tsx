@@ -340,37 +340,10 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
             </button>
           </div>
 
-          {billingTeamId && (
-            <>
-              <Separator className="my-2" />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    to="/billing"
-                    onClick={onNavigate}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
-                      isBillingActive
-                        ? "bg-secondary text-foreground"
-                        : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-                    )}
-                  >
-                    <CreditCard className="h-4 w-4 shrink-0" />
-                    <span className={cn("flex-1 text-left", labelCls)}>Billing</span>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
-                  Billing
-                </TooltipContent>
-              </Tooltip>
-            </>
-          )}
-
         </nav>
 
         {/* User */}
         <div className="space-y-1 border-t p-2 lg:p-3">
-          {/* Notifications moved to top of sidebar */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -389,6 +362,29 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
               {theme === "dark" ? "Light mode" : "Dark mode"}
             </TooltipContent>
           </Tooltip>
+
+          {billingTeamId && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/billing"
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors lg:px-3",
+                    isBillingActive
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                  )}
+                >
+                  <CreditCard className="h-4 w-4 shrink-0" />
+                  <span className={cn(labelCls)}>Billing</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
+                Billing
+              </TooltipContent>
+            </Tooltip>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-auto w-full justify-start gap-3 px-2 py-2 lg:px-3">
