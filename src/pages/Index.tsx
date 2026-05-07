@@ -761,21 +761,21 @@ const CaptureMock = () => (
 const ReportMock = () => (
   <div
     className="overflow-hidden rounded-2xl bg-white shadow-xl"
-    style={{ border: `1px solid ${BRAND.border}`, boxShadow: "0 28px 60px -32px rgba(15,23,36,.45)" }}
+    style={{ border: `1px solid ${BRAND.ink}`, boxShadow: "0 28px 60px -32px rgba(15,23,36,.45)" }}
   >
     <div
       className="flex items-center gap-2 px-4 py-2.5"
-      style={{ background: BRAND.cloud, borderBottom: `1px solid ${BRAND.border}` }}
+      style={{ background: BRAND.cloud, borderBottom: `1px solid ${BRAND.ink}` }}
     >
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#FF5F57" }} />
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#FEBC2E" }} />
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#28C840" }} />
-      <span className="ml-3 truncate rounded-md px-3 py-1 text-[0.72rem]" style={{ background: "#fff", color: BRAND.mist, border: `1px solid ${BRAND.border}` }}>
+      <span className="ml-3 truncate rounded-md px-3 py-1 text-[0.72rem]" style={{ background: "#fff", color: BRAND.mist, border: `1px solid ${BRAND.ink}` }}>
         reportair.app/r/northstar-d3
       </span>
     </div>
     <div className="p-6">
-      <div className="flex items-center gap-3 border-b pb-4" style={{ borderColor: BRAND.border }}>
+      <div className="flex items-center gap-3 border-b pb-4" style={{ borderColor: BRAND.ink }}>
         <BrandMark size={28} />
         <div>
           <div className="text-base font-extrabold" style={{ ...display, color: BRAND.ink }}>Daily build report</div>
@@ -800,7 +800,7 @@ const ReportMock = () => (
             "linear-gradient(135deg,#bcc7d3,#8aa0b8)",
             "linear-gradient(135deg,#d6c5b6,#a89887)",
           ].map((bg, i) => (
-            <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.border}` }} />
+            <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.ink}` }} />
           ))}
         </div>
       </div>
