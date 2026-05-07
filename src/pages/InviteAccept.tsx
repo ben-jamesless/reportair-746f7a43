@@ -37,8 +37,8 @@ const InviteAccept = () => {
     const { data, error } = await supabase.rpc("accept_project_invite", { _token: token });
     setWorking(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Invite accepted");
-    navigate(`/projects/${data}`);
+    toast.success("Welcome to the project!");
+    navigate(`/projects/${data}`, { replace: true });
   };
 
   // Auto-accept as soon as a logged-in user lands on the invite page.
