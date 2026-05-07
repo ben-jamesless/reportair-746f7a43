@@ -22,7 +22,7 @@ const uniqueById = (rows: AccessibleProject[]) =>
   Array.from(new Map(rows.map((project) => [project.id, project])).values());
 
 export const fetchAccessibleProjects = async (userId: string): Promise<AccessibleProject[]> => {
-  const { data: rpcData, error: rpcError } = await supabase.rpc("my_accessible_projects" as never);
+  const { data: rpcData, error: rpcError } = await supabase.rpc("my_accessible_projects");
   if (!rpcError && rpcData) return rpcData as AccessibleProject[];
 
   const { data: rlsProjects, error: rlsError } = await supabase
