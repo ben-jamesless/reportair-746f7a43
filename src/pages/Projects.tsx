@@ -48,6 +48,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FolderInput } from "lucide-react";
 import { fetchAccessibleProjects, isProjectInFolderView, type AccessibleProject } from "@/lib/accessibleProjects";
+import { canDeleteProject, canEditProject, canArchiveProject, canMoveProjectToFolder, canLeaveProject, type ProjectRole } from "@/lib/projectPermissions";
+import { LogOut } from "lucide-react";
 
 type FolderRow = { id: string; name: string; color: string | null };
 const FOLDER_ALL = "__all__";
@@ -84,7 +86,10 @@ const Projects = () => {
   const [searchParams] = useSearchParams();
   const selectedFolder = searchParams.get("folder") ?? FOLDER_ALL;
   const [ownedProjectIds, setOwnedProjectIds] = useState<Set<string>>(new Set());
+  const [projectRoles, setProjectRoles] = useState<Map<string, ProjectRole>>(new Map());
   const [moveProject, setMoveProject] = useState<Project | null>(null);
+  const [leavingProject, setLeavingProject] = useState<Project | null>(null);
+  const [leaving, setLeaving] = useState(false);
 
   const load = async () => {
     if (!user) return;
@@ -141,10 +146,17 @@ const Projects = () => {
         .from("project_members")
         .select("project_id, role")
         .eq("user_id", user.id)
-        .in("project_id", ids)
-        .eq("role", "owner");
-      setOwnedProjectIds(new Set((pm ?? []).map((r) => r.project_id as string)));
+        .in("project_id", ids);
+      const roleMap = new Map<string, ProjectRole>();
+      const owned = new Set<string>();
+      for (const row of (pm ?? []) as { project_id: string; role: ProjectRole }[]) {
+        roleMap.set(row.project_id, row.role);
+        if (row.role === "owner") owned.add(row.project_id);
+      }
+      setProjectRoles(roleMap);
+      setOwnedProjectIds(owned);
     } else {
+      setProjectRoles(new Map());
       setOwnedProjectIds(new Set());
     }
 
@@ -540,6 +552,13 @@ const Projects = () => {
             const showStatus = (p.overall_status ?? "no_status") !== "no_status";
             const isArchived = !!p.archived_at;
             const isOwner = ownedProjectIds.has(p.id);
+            const role = projectRoles.get(p.id) ?? null;
+            const canEdit = canEditProject(role);
+            const canArchive = canArchiveProject(role);
+            const canMove = canMoveProjectToFolder(role);
+            const canDelete = canDeleteProject(role);
+            const canLeave = canLeaveProject(role);
+            const hasAnyAction = canEdit || canArchive || canMove || canDelete || canLeave;
             return (
               <div
                 key={p.id}
@@ -601,47 +620,68 @@ const Projects = () => {
                     </div>
                   </Card>
                 </Link>
-                <div className="absolute right-2 top-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-70 hover:opacity-100"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        aria-label={`Project options for ${p.name}`}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onSelect={() => setEditingProject(p)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                      {isOwner && (
-                        <DropdownMenuItem onSelect={() => setMoveProject(p)}>
-                          <FolderInput className="mr-2 h-4 w-4" /> Move to folder
-                        </DropdownMenuItem>
-                      )}
-                      {isArchived ? (
-                        <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
-                          <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
-                          <Archive className="mr-2 h-4 w-4" /> Archive
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                {hasAnyAction && (
+                  <div className="absolute right-2 top-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-70 hover:opacity-100"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          aria-label={`Project options for ${p.name}`}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        {canEdit && (
+                          <DropdownMenuItem onSelect={() => setEditingProject(p)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                        )}
+                        {canMove && (
+                          <DropdownMenuItem onSelect={() => setMoveProject(p)}>
+                            <FolderInput className="mr-2 h-4 w-4" /> Move to folder
+                          </DropdownMenuItem>
+                        )}
+                        {canArchive && (
+                          isArchived ? (
+                            <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
+                              <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
+                              <Archive className="mr-2 h-4 w-4" /> Archive
+                            </DropdownMenuItem>
+                          )
+                        )}
+                        {canDelete && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {canLeave && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onSelect={() => setLeavingProject(p)}
+                            >
+                              <LogOut className="mr-2 h-4 w-4" /> Leave project
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -716,6 +756,42 @@ const Projects = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Leave project confirmation */}
+      <AlertDialog
+        open={!!leavingProject}
+        onOpenChange={(o) => { if (!o) setLeavingProject(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will lose access to{" "}
+              <span className="font-semibold text-foreground">{leavingProject?.name}</span>.
+              The project and its content remain for other members. You can be re-invited later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={leaving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={leaving || !leavingProject}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!leavingProject) return;
+                setLeaving(true);
+                const { error } = await supabase.rpc("leave_project", { _project_id: leavingProject.id });
+                setLeaving(false);
+                if (error) { toast.error(error.message); return; }
+                toast.success("You left the project");
+                setLeavingProject(null);
+                load();
+              }}
+            >
+              {leaving ? "Leaving…" : "Leave project"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Move to folder dialog */}
       <Dialog open={!!moveProject} onOpenChange={(o) => !o && setMoveProject(null)}>
         <DialogContent className="sm:max-w-sm">
