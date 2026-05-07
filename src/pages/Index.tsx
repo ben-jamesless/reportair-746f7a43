@@ -31,13 +31,8 @@ const COPY = {
     headlineStart: "Client-ready event build reports in ",
     headlineAccent: "10 minutes.",
     sub: "Capture and sort site photos. Export a polished PDF or client-safe link in minutes.",
-    primary: "Join the early access list",
-    secondary: "See example report →",
-    proof: [
-      "Built for event builds, activations, festivals, sports events & temporary sites",
-      "Photo-first reporting by date, area & issue",
-      "Share as a branded PDF or client-safe link",
-    ],
+    primary: "Sign in",
+    secondary: "See how it works →",
   },
   metric: {
     big: "10",
