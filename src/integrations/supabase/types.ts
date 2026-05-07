@@ -923,6 +923,24 @@ export type Database = {
         }[]
       }
       mark_notifications_read: { Args: { _ids?: string[] }; Returns: number }
+      my_accessible_projects: {
+        Args: never
+        Returns: {
+          archived_at: string
+          client_name: string
+          color: string
+          created_at: string
+          description: string
+          event_date: string
+          event_location: string
+          event_type: string
+          folder_id: string
+          id: string
+          name: string
+          overall_status: Database["public"]["Enums"]["project_status"]
+          template: Database["public"]["Enums"]["project_template"]
+        }[]
+      }
       my_latest_invited_project: { Args: never; Returns: string }
       my_pending_invites_count: { Args: never; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }
