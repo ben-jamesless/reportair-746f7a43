@@ -292,8 +292,8 @@ const Index = () => {
       </section>
 
       {/* ============ PRODUCT FEATURES ============ */}
-      <section id="product" className="py-20 sm:py-28">
-        <div className="mx-auto max-w-[1200px] space-y-24 px-5 sm:px-6">
+      <section id="product" className="pt-12 pb-20 sm:pt-14 sm:pb-28">
+        <div className="mx-auto max-w-[1200px] space-y-32 px-5 sm:px-6 sm:space-y-36">
           {COPY.features.map((f, i) => (
             <article
               key={f.step}
@@ -682,12 +682,12 @@ const CaptureMock = () => (
   <div className="relative">
     <div
       className="rounded-2xl bg-white p-3 shadow-xl"
-      style={{ border: `1px solid ${BRAND.border}` }}
+      style={{ border: `1px solid ${BRAND.ink}` }}
     >
-      <div className="overflow-hidden rounded-lg" style={{ border: `1px solid ${BRAND.border}` }}>
+      <div className="overflow-hidden rounded-lg" style={{ border: `1px solid ${BRAND.ink}` }}>
         <div
           className="flex items-center justify-between px-4 py-2 text-[0.72rem] font-semibold"
-          style={{ background: BRAND.cloud, color: BRAND.slate, borderBottom: `1px solid ${BRAND.border}` }}
+          style={{ background: BRAND.cloud, color: BRAND.slate, borderBottom: `1px solid ${BRAND.ink}` }}
         >
           <span>ReportAir</span>
           <span>Photo inbox</span>
@@ -709,7 +709,7 @@ const CaptureMock = () => (
                 "linear-gradient(135deg,#b8c6d6,#7a8fa8)",
                 "linear-gradient(135deg,#cdd6c8,#90a08a)",
               ].map((bg, i) => (
-                <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.border}` }} />
+                <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.ink}` }} />
               ))}
             </div>
             <div
@@ -727,12 +727,12 @@ const CaptureMock = () => (
     {/* iPad floating */}
     <div
       className="absolute -bottom-8 -right-2 hidden w-56 rounded-2xl bg-white p-3 shadow-2xl sm:block"
-      style={{ border: `1px solid ${BRAND.border}`, boxShadow: "0 28px 60px -28px rgba(15,23,36,.4)" }}
+      style={{ border: `1px solid ${BRAND.ink}`, boxShadow: "0 28px 60px -28px rgba(15,23,36,.4)" }}
     >
-      <div className="overflow-hidden rounded-xl" style={{ border: `1px solid ${BRAND.border}` }}>
-        <div className="flex items-center justify-between px-3 py-2 text-[0.7rem] font-semibold" style={{ background: BRAND.ink, color: "#fff" }}>
+      <div className="overflow-hidden rounded-xl" style={{ border: `1px solid ${BRAND.ink}` }}>
+        <div className="flex items-center justify-between px-3 py-2 text-[0.7rem] font-semibold" style={{ background: BRAND.skySoft, color: BRAND.deepSky }}>
           <span>Build board</span>
-          <small style={{ color: "#9DBDFF" }}>Live</small>
+          <small style={{ color: BRAND.deepSky }}>Live</small>
         </div>
         <div className="space-y-2 p-3">
           <div className="flex flex-wrap gap-1.5">
@@ -761,21 +761,21 @@ const CaptureMock = () => (
 const ReportMock = () => (
   <div
     className="overflow-hidden rounded-2xl bg-white shadow-xl"
-    style={{ border: `1px solid ${BRAND.border}`, boxShadow: "0 28px 60px -32px rgba(15,23,36,.45)" }}
+    style={{ border: `1px solid ${BRAND.ink}`, boxShadow: "0 28px 60px -32px rgba(15,23,36,.45)" }}
   >
     <div
       className="flex items-center gap-2 px-4 py-2.5"
-      style={{ background: BRAND.cloud, borderBottom: `1px solid ${BRAND.border}` }}
+      style={{ background: BRAND.cloud, borderBottom: `1px solid ${BRAND.ink}` }}
     >
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#FF5F57" }} />
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#FEBC2E" }} />
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#28C840" }} />
-      <span className="ml-3 truncate rounded-md px-3 py-1 text-[0.72rem]" style={{ background: "#fff", color: BRAND.mist, border: `1px solid ${BRAND.border}` }}>
+      <span className="ml-3 truncate rounded-md px-3 py-1 text-[0.72rem]" style={{ background: "#fff", color: BRAND.mist, border: `1px solid ${BRAND.ink}` }}>
         reportair.app/r/northstar-d3
       </span>
     </div>
     <div className="p-6">
-      <div className="flex items-center gap-3 border-b pb-4" style={{ borderColor: BRAND.border }}>
+      <div className="flex items-center gap-3 border-b pb-4" style={{ borderColor: BRAND.ink }}>
         <BrandMark size={28} />
         <div>
           <div className="text-base font-extrabold" style={{ ...display, color: BRAND.ink }}>Daily build report</div>
@@ -800,7 +800,7 @@ const ReportMock = () => (
             "linear-gradient(135deg,#bcc7d3,#8aa0b8)",
             "linear-gradient(135deg,#d6c5b6,#a89887)",
           ].map((bg, i) => (
-            <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.border}` }} />
+            <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.ink}` }} />
           ))}
         </div>
       </div>
