@@ -861,7 +861,9 @@ const ProjectDetail = () => {
               <MessageSquare className="mr-2 h-4 w-4" />
               Feedback
             </Button>
-            <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
+            {canEdit && (
+              <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
+            )}
           </div>
         </div>
 
