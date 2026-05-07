@@ -61,7 +61,8 @@ const App = () => (
                   <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
                   <Route path="/s/:token" element={<SharePage />} />
                   <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
-                    <Route index element={<AdminUsers />} />
+                    <Route index element={<AdminSummary />} />
+                    <Route path="summary" element={<AdminSummary />} />
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="accounts" element={<AdminAccounts />} />
                     <Route path="projects" element={<AdminProjects />} />
