@@ -497,6 +497,7 @@ export type Database = {
           full_name: string | null
           id: string
           onboarded_at: string | null
+          suspended_at: string | null
           updated_at: string
         }
         Insert: {
@@ -506,6 +507,7 @@ export type Database = {
           full_name?: string | null
           id: string
           onboarded_at?: string | null
+          suspended_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -515,6 +517,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           onboarded_at?: string | null
+          suspended_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -800,7 +803,10 @@ export type Database = {
           created_by: string
           id: string
           name: string
+          plan: string
           slug: string | null
+          status: string
+          suspended_at: string | null
           updated_at: string
         }
         Insert: {
@@ -809,7 +815,10 @@ export type Database = {
           created_by: string
           id?: string
           name: string
+          plan?: string
           slug?: string | null
+          status?: string
+          suspended_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -818,7 +827,10 @@ export type Database = {
           created_by?: string
           id?: string
           name?: string
+          plan?: string
           slug?: string | null
+          status?: string
+          suspended_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -860,6 +872,67 @@ export type Database = {
         }
         Returns: string
       }
+      admin_list_projects: {
+        Args: never
+        Returns: {
+          archived_at: string
+          created_at: string
+          id: string
+          name: string
+          overall_status: Database["public"]["Enums"]["project_status"]
+          owner_email: string
+          owner_id: string
+          team_id: string
+          team_name: string
+        }[]
+      }
+      admin_list_teams: {
+        Args: never
+        Returns: {
+          billing_owner_email: string
+          billing_owner_user_id: string
+          created_at: string
+          id: string
+          member_count: number
+          name: string
+          plan: string
+          project_count: number
+          status: string
+          suspended_at: string
+        }[]
+      }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          project_count: number
+          suspended_at: string
+          team_count: number
+        }[]
+      }
+      admin_set_project_archived: {
+        Args: { _archived: boolean; _project_id: string }
+        Returns: undefined
+      }
+      admin_set_team_billing_owner: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: undefined
+      }
+      admin_set_team_plan: {
+        Args: { _plan: string; _team_id: string }
+        Returns: undefined
+      }
+      admin_set_team_suspended: {
+        Args: { _suspended: boolean; _team_id: string }
+        Returns: undefined
+      }
+      admin_set_user_suspended: {
+        Args: { _suspended: boolean; _user_id: string }
+        Returns: undefined
+      }
       delete_project: { Args: { _project_id: string }; Returns: undefined }
       get_invite_email: { Args: { _token: string }; Returns: string }
       get_share_export_url: { Args: { _token: string }; Returns: string }
@@ -895,6 +968,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      is_platform_admin: { Args: never; Returns: boolean }
       is_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
