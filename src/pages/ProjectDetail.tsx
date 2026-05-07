@@ -1099,6 +1099,7 @@ const ProjectDetail = () => {
                           onSave={(next) => saveDayNote(activeDay, next)}
                           rich
                           rows={4}
+                          readOnly={!canEdit}
                         />
                       </div>
 
