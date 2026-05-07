@@ -39,10 +39,12 @@ import {
   Trash2,
   Folder,
   CreditCard,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { useMyBillingTeam } from "@/hooks/useBillingOwner";
+import { usePlatformAdmin } from "@/hooks/usePlatformAdmin";
 import { NotificationsSection } from "@/components/NotificationsSection";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
@@ -85,6 +87,8 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
   const isProfileActive = pathname === "/profile" || pathname.startsWith("/profile/");
   const isBillingActive = pathname === "/billing" || pathname.startsWith("/billing/");
   const { teamId: billingTeamId } = useMyBillingTeam();
+  const { isAdmin } = usePlatformAdmin();
+  const isAdminActive = pathname === "/admin" || pathname.startsWith("/admin/");
 
   // Profile load + realtime
   useEffect(() => {
@@ -382,6 +386,28 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
               </TooltipTrigger>
               <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
                 Billing
+              </TooltipContent>
+            </Tooltip>
+          )}
+          {isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/admin"
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors lg:px-3",
+                    isAdminActive
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                  )}
+                >
+                  <Shield className="h-4 w-4 shrink-0" />
+                  <span className={cn(labelCls)}>Admin</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
+                Admin
               </TooltipContent>
             </Tooltip>
           )}
