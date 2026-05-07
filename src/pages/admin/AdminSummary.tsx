@@ -75,8 +75,19 @@ const AdminSummary = () => {
   const roleEntries = Object.entries(data.roles ?? {});
   const memberRoleEntries = Object.entries(data.project_members_by_role ?? {});
 
+  const churnPct = billing && billing.mrr_start_30d_ago > 0
+    ? (billing.churned_mrr_last_30d / billing.mrr_start_30d_ago) * 100
+    : 0;
+
   return (
     <div className="space-y-6">
+      {billing && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Stat icon={DollarSign} label="Total MRR" value={fmtHKD(billing.total_mrr)} />
+          <Stat icon={Activity} label="Active accounts" value={billing.active_accounts} />
+          <Stat icon={TrendingDown} label="30‑day churn" value={`${churnPct.toFixed(1)}%`} sub={fmtHKD(billing.churned_mrr_last_30d)} />
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat icon={Users} label="Total users" value={data.total_users} sub={`${data.new_users_30d} new in last 30 days`} />
         <Stat icon={FolderKanban} label="Total projects" value={data.total_projects} sub={`${data.new_projects_30d} new in last 30 days`} />
