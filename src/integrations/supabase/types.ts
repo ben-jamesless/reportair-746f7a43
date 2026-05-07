@@ -795,6 +795,7 @@ export type Database = {
       }
       teams: {
         Row: {
+          billing_owner_user_id: string
           created_at: string
           created_by: string
           id: string
@@ -803,6 +804,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_owner_user_id: string
           created_at?: string
           created_by: string
           id?: string
@@ -811,6 +813,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_owner_user_id?: string
           created_at?: string
           created_by?: string
           id?: string
@@ -888,6 +891,10 @@ export type Database = {
         Returns: boolean
       }
       hash_share_password: { Args: { _password: string }; Returns: string }
+      is_billing_owner: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_project_member: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
