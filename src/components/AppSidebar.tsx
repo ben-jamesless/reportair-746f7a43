@@ -46,6 +46,7 @@ import { useMyBillingTeam } from "@/hooks/useBillingOwner";
 import { NotificationsSection } from "@/components/NotificationsSection";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { fetchAccessibleProjects } from "@/lib/accessibleProjects";
 
 type FolderRow = { id: string; name: string; color: string | null; sort_order: number };
 
@@ -116,13 +117,12 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
     setFolders((fdata ?? []) as FolderRow[]);
     const folderIds = new Set((fdata ?? []).map((f) => f.id));
 
-    // Count active (non-archived) projects user can see
-    const { data: pdata } = await supabase
-      .from("projects").select("id, folder_id, archived_at");
+    // Count the same accessible projects shown by the Projects page.
+    const pdata = await fetchAccessibleProjects(user.id);
     const byFolder: Record<string, number> = {};
     let unfoldered = 0;
     let all = 0;
-    for (const p of (pdata ?? []) as { folder_id: string | null; archived_at: string | null }[]) {
+    for (const p of pdata) {
       if (p.archived_at) continue;
       all += 1;
       if (p.folder_id && folderIds.has(p.folder_id)) {
