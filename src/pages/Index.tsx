@@ -25,7 +25,7 @@ const body = { fontFamily: "'Inter', sans-serif" };
 
 // ---- Editable copy ----
 const COPY = {
-  nav: { product: "Product", reviews: "Reviews", pricing: "Pricing", cta: "Join early access" },
+  nav: { product: "Product", reviews: "Reviews", pricing: "Pricing", cta: "Sign in" },
   hero: {
     eyebrow: "From the field. In the air. Every time.",
     headlineStart: "Client-ready event build reports in ",
