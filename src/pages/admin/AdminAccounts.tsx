@@ -45,6 +45,7 @@ const AdminAccounts = () => {
   const [q, setQ] = useState("");
   const [ownerDialog, setOwnerDialog] = useState<AdminTeam | null>(null);
   const [detailsTeam, setDetailsTeam] = useState<AdminTeam | null>(null);
+  const [sortDir, setSortDir] = useState<"desc" | "asc" | null>("desc");
   const [members, setMembers] = useState<Member[]>([]);
   const [pickedUser, setPickedUser] = useState<string>("");
 
