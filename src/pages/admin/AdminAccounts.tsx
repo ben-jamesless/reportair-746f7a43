@@ -52,13 +52,11 @@ const AdminAccounts = () => {
 
   const load = async () => {
     setLoading(true);
-    const [teamsRes, sumRes] = await Promise.all([
-      supabase.rpc("admin_list_teams" as never),
-      supabase.rpc("admin_billing_summary" as never),
-    ]);
+    const teamsRes: any = await supabase.rpc("admin_list_teams" as never);
+    const sumRes: any = await supabase.rpc("admin_billing_summary" as never);
     if (teamsRes.error) toast.error(teamsRes.error.message);
     setRows((teamsRes.data as AdminTeam[]) ?? []);
-    if (!sumRes.error && sumRes.data) setSummary(sumRes.data as unknown as BillingSummary);
+    if (!sumRes.error && sumRes.data) setSummary(sumRes.data as BillingSummary);
     setLoading(false);
   };
 
