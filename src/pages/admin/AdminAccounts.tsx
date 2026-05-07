@@ -124,7 +124,11 @@ const AdminAccounts = () => {
               <TableHead>Team</TableHead>
               <TableHead>Billing owner</TableHead>
               <TableHead>Plan</TableHead>
-              <TableHead>MRR (HKD)</TableHead>
+              <TableHead>
+                <button onClick={cycleSort} className="inline-flex items-center gap-1 hover:text-foreground">
+                  MRR (HKD) <SortIcon className="h-3 w-3" />
+                </button>
+              </TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Projects</TableHead>
