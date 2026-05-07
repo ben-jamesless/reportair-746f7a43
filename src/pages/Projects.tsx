@@ -109,7 +109,15 @@ const Projects = () => {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (!profile?.onboarded_at) {
+    // Has the user any project access (via team OR direct invite)?
+    const { data: pmAny } = await supabase
+      .from("project_members")
+      .select("project_id")
+      .eq("user_id", user.id)
+      .limit(1);
+    const hasInvitedProjects = (pmAny?.length ?? 0) > 0;
+
+    if (!profile?.onboarded_at && !hasInvitedProjects) {
       navigate("/onboarding", { replace: true });
       return;
     }
@@ -121,17 +129,19 @@ const Projects = () => {
       .limit(1);
 
     const team = memberships?.[0]?.teams as { id: string; name: string } | undefined;
-    if (!team) {
-      navigate("/onboarding", { replace: true });
-      return;
+    if (team) {
+      setTeamId(team.id);
+      setTeamName(team.name);
+    } else {
+      setTeamId(null);
+      setTeamName("");
     }
-    setTeamId(team.id);
-    setTeamName(team.name);
 
+    // Rely on RLS: returns projects from the user's team(s) AND projects they
+    // are a direct member of (e.g. accepted invites to other teams' projects).
     const { data: projs } = await supabase
       .from("projects")
       .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at, folder_id")
-      .eq("team_id", team.id)
       .order("created_at", { ascending: false });
 
     const list = (projs ?? []) as Project[];
