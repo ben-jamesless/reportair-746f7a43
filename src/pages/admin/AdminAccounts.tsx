@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ const AdminAccounts = () => {
   const [ownerDialog, setOwnerDialog] = useState<AdminTeam | null>(null);
   const [detailsTeam, setDetailsTeam] = useState<AdminTeam | null>(null);
   const [sortDir, setSortDir] = useState<"desc" | "asc" | null>("desc");
+  const [hideFree, setHideFree] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [pickedUser, setPickedUser] = useState<string>("");
 
@@ -105,7 +107,11 @@ const AdminAccounts = () => {
     (r.billing_owner_email ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
-  const sorted = sortDir == null ? filtered : [...filtered].sort((a, b) => {
+  const afterFree = hideFree
+    ? filtered.filter((t) => t.plan !== "free" && !!t.subscription_status && Number(t.unit_amount ?? 0) > 0)
+    : filtered;
+
+  const sorted = sortDir == null ? afterFree : [...afterFree].sort((a, b) => {
     const av = Number(a.unit_amount ?? 0);
     const bv = Number(b.unit_amount ?? 0);
     return sortDir === "desc" ? bv - av : av - bv;
@@ -116,7 +122,13 @@ const AdminAccounts = () => {
 
   return (
     <div className="space-y-4">
-      <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+      <div className="flex items-center gap-4 flex-wrap">
+        <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <Checkbox checked={hideFree} onCheckedChange={(v) => setHideFree(!!v)} />
+          Hide free accounts
+        </label>
+      </div>
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
