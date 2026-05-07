@@ -161,8 +161,13 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     toast.success("Invite link copied");
   };
 
-  const changeRole = async (m: Member, newRole: "editor" | "viewer") => {
+  const changeRole = async (m: Member, newRole: ProjectRole) => {
     if (m.role === newRole) return;
+    // Guard: never allow demoting the last remaining owner.
+    if (m.role === "owner" && newRole !== "owner" && ownerCount <= 1) {
+      toast.error("Promote another member to Owner before changing this role.");
+      return;
+    }
     // Optimistic UI
     setMembers((prev) => prev.map((p) => p.user_id === m.user_id ? { ...p, role: newRole } : p));
     const { error } = await supabase
