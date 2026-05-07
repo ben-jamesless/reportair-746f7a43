@@ -126,12 +126,15 @@ Deno.serve(async (req) => {
     const projectName = project?.name ?? "a project";
     const inviterName = inviterProfile?.full_name ?? "A teammate";
 
-    // Build the invite URL using the request origin (so it works on preview/published).
-    const origin =
+    // Always prefer the configured production app URL so links don't point at the
+    // Lovable preview shell. Falls back to request origin, then a hardcoded default.
+    const rawAppUrl =
+      Deno.env.get("APP_URL") ||
       req.headers.get("origin") ||
       req.headers.get("referer")?.replace(/\/$/, "") ||
-      "https://whatops.lovable.app";
-    const cleanOrigin = origin.replace(/\/$/, "").split("/").slice(0, 3).join("/");
+      "https://reportair.co";
+    const appUrl = rawAppUrl.trim().replace(/^['"]|['"]$/g, "").replace(/\/$/, "");
+    const cleanOrigin = appUrl.split("/").slice(0, 3).join("/");
     const inviteUrl = `${cleanOrigin}/invite/${invite.token}`;
 
     const apiKey = Deno.env.get("RESEND_API_KEY");
