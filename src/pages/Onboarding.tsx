@@ -24,7 +24,6 @@ const Onboarding = () => {
       navigate("/auth", { replace: true });
       return;
     }
-    // If already onboarded (has a team), skip to projects
     (async () => {
       const { data: profile } = await supabase
         .from("profiles")
@@ -33,6 +32,21 @@ const Onboarding = () => {
         .maybeSingle();
       if (profile?.onboarded_at) {
         navigate("/projects", { replace: true });
+        return;
+      }
+      // Invited user shortcut: if they already belong to a project (via invite
+      // auto-accept trigger), skip team creation and drop them in the project.
+      const { data: pm } = await supabase
+        .from("project_members")
+        .select("project_id")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (pm && pm.length > 0) {
+        await supabase
+          .from("profiles")
+          .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
+          .eq("id", user.id);
+        navigate(`/projects/${pm[0].project_id}`, { replace: true });
         return;
       }
       if (profile?.full_name) setFullName(profile.full_name);
