@@ -140,8 +140,9 @@ const AdminAccounts = () => {
               <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
-            ) : filtered.map((t) => {
+            ) : sorted.map((t) => {
               const subscribed = !!t.subscription_status;
+              const hasMrr = subscribed && Number(t.unit_amount ?? 0) > 0;
               return (
               <TableRow key={t.id} className="cursor-pointer" onClick={() => setDetailsTeam(t)}>
                 <TableCell className="font-medium">{t.name}</TableCell>
