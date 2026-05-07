@@ -207,18 +207,16 @@ const Index = () => {
               <span style={{ color: BRAND.sky }}>{COPY.hero.headlineAccent}</span>
             </h1>
             <p className="mt-5 max-w-xl text-base sm:text-lg" style={{ color: "rgba(237,241,247,.82)", lineHeight: 1.6 }}>
-              {COPY.hero.sub}
-            </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <a
-                href="#cta"
+              <Link
+                to="/auth"
                 className="rounded-full px-5 py-3 text-[0.95rem] font-semibold text-white transition-colors"
                 style={{ backgroundColor: BRAND.sky }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
               >
                 {COPY.hero.primary}
-              </a>
+              </Link>
               <a
                 href="#product"
                 className="rounded-full border px-5 py-3 text-[0.95rem] font-semibold text-white transition-colors hover:bg-white/10"
@@ -227,14 +225,6 @@ const Index = () => {
                 {COPY.hero.secondary}
               </a>
             </div>
-            <ul className="mt-7 space-y-2 text-[0.94rem]" style={{ color: "rgba(237,241,247,.78)" }}>
-              {COPY.hero.proof.map((p) => (
-                <li key={p} className="flex items-start gap-2.5">
-                  <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full" style={{ background: BRAND.sky }} />
-                  <span>{p}</span>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Visual */}
