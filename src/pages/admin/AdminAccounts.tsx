@@ -103,8 +103,28 @@ const AdminAccounts = () => {
     (r.billing_owner_email ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
+  const churnPct = summary && summary.mrr_start_30d_ago > 0
+    ? (summary.churned_mrr_last_30d / summary.mrr_start_30d_ago) * 100
+    : 0;
+
   return (
     <div className="space-y-4">
+      {summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-md border p-3">
+            <div className="text-xs text-muted-foreground">Total MRR</div>
+            <div className="text-lg font-semibold">{fmtHKD(summary.total_mrr)}</div>
+          </div>
+          <div className="rounded-md border p-3">
+            <div className="text-xs text-muted-foreground">Active accounts</div>
+            <div className="text-lg font-semibold">{summary.active_accounts}</div>
+          </div>
+          <div className="rounded-md border p-3">
+            <div className="text-xs text-muted-foreground">30‑day churn</div>
+            <div className="text-lg font-semibold">{churnPct.toFixed(1)}% ({fmtHKD(summary.churned_mrr_last_30d)})</div>
+          </div>
+        </div>
+      )}
       <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
       <div className="rounded-md border overflow-x-auto">
         <Table>
@@ -113,6 +133,10 @@ const AdminAccounts = () => {
               <TableHead>Team</TableHead>
               <TableHead>Billing owner</TableHead>
               <TableHead>Plan</TableHead>
+              <TableHead>MRR (HKD)</TableHead>
+              <TableHead>Interval</TableHead>
+              <TableHead>Subscription</TableHead>
+              <TableHead>Renews</TableHead>
               <TableHead>Trial ends</TableHead>
               <TableHead>Region</TableHead>
               <TableHead>Industry</TableHead>
@@ -124,10 +148,12 @@ const AdminAccounts = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={10} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={14} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
-            ) : filtered.map((t) => (
+              <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
+            ) : filtered.map((t) => {
+              const subscribed = !!t.subscription_status;
+              return (
               <TableRow key={t.id}>
                 <TableCell className="font-medium">{t.name}</TableCell>
                 <TableCell>{t.billing_owner_email ?? "—"}</TableCell>
@@ -139,7 +165,11 @@ const AdminAccounts = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>{t.trial_ends_at ? new Date(t.trial_ends_at).toLocaleDateString() : "—"}</TableCell>
+                <TableCell>{subscribed ? fmtHKD(t.unit_amount) : <span className="text-muted-foreground">Not subscribed</span>}</TableCell>
+                <TableCell>{subscribed ? (t.billing_interval ?? "monthly") : "—"}</TableCell>
+                <TableCell>{subscribed ? <Badge variant="outline">{t.subscription_status}</Badge> : "—"}</TableCell>
+                <TableCell>{fmtDate(t.current_period_end)}</TableCell>
+                <TableCell>{fmtDate(t.trial_end ?? t.trial_ends_at)}</TableCell>
                 <TableCell>{t.region ?? "—"}</TableCell>
                 <TableCell>{t.industry ?? "—"}</TableCell>
                 <TableCell>
@@ -157,7 +187,7 @@ const AdminAccounts = () => {
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+            );})}
           </TableBody>
         </Table>
       </div>
