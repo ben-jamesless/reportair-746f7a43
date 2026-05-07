@@ -102,10 +102,14 @@ export const MobileProjectToolbar = ({
           </button>
         </div>
 
-        {/* Upload — flex-1 centre */}
-        <div className="flex flex-1 justify-center [&_button]:h-9 [&_button]:w-full [&_button]:max-w-[200px]">
-          {uploader}
-        </div>
+        {/* Upload — flex-1 centre (hidden for viewers) */}
+        {canEdit ? (
+          <div className="flex flex-1 justify-center [&_button]:h-9 [&_button]:w-full [&_button]:max-w-[200px]">
+            {uploader}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
 
         {/* Overflow */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
