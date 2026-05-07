@@ -44,13 +44,18 @@ const Stat = ({ icon: Icon, label, value, sub }: { icon: any; label: string; val
 
 const AdminSummary = () => {
   const [data, setData] = useState<Summary | null>(null);
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.rpc("admin_summary" as never);
-      if (error) toast.error(error.message);
-      setData((data as Summary) ?? null);
+      const [sumRes, billRes]: any = await Promise.all([
+        supabase.rpc("admin_summary" as never),
+        supabase.rpc("admin_billing_summary" as never),
+      ]);
+      if (sumRes.error) toast.error(sumRes.error.message);
+      setData((sumRes.data as Summary) ?? null);
+      if (!billRes.error && billRes.data) setBilling(billRes.data as BillingSummary);
       setLoading(false);
     })();
   }, []);
