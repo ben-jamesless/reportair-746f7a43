@@ -148,8 +148,15 @@ Deno.serve(async (req) => {
       }, 200);
     }
 
-    const fromAddress =
-      Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
+    const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
+    let fromAddress = rawFrom.trim().replace(/^['"]|['"]$/g, "").trim();
+    // If angle brackets are missing but a "Name email@x" pattern is present, normalize.
+    if (!/<[^>]+>/.test(fromAddress)) {
+      const m = fromAddress.match(/^(.*?)([^\s<>"]+@[^\s<>"]+)\s*$/);
+      if (m && m[1].trim()) {
+        fromAddress = `${m[1].trim()} <${m[2]}>`;
+      }
+    }
 
     const subject = `You've been invited to ${projectName} on ReportAir`;
     const html = renderEmail({
