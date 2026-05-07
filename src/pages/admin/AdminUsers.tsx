@@ -13,8 +13,13 @@ type AdminUser = {
   full_name: string | null;
   created_at: string;
   suspended_at: string | null;
+  last_active_at: string | null;
+  auth_method: string | null;
   team_count: number;
   project_count: number;
+  owner_team_count: number;
+  member_team_count: number;
+  role_summary: string | null;
 };
 
 const AdminUsers = () => {
@@ -49,6 +54,23 @@ const AdminUsers = () => {
     else { toast.success(u.suspended_at ? "User unsuspended" : "User suspended"); load(); }
   };
 
+  const resendInvite = (u: AdminUser) => {
+    // Placeholder – no invite flow yet
+    toast.info(`Resend invite to ${u.email ?? "user"} (not yet implemented)`);
+  };
+
+  const viewAs = async (u: AdminUser) => {
+    const { data } = await supabase
+      .from("team_members")
+      .select("team_id")
+      .eq("user_id", u.id)
+      .limit(1)
+      .maybeSingle();
+    const teamId = (data as any)?.team_id;
+    if (teamId) window.open(`/?team=${teamId}`, "_blank");
+    else toast.info("User has no team");
+  };
+
   const filtered = rows.filter((r) => {
     if (!q) return true;
     const s = q.toLowerCase();
@@ -58,14 +80,16 @@ const AdminUsers = () => {
   return (
     <div className="space-y-4">
       <Input placeholder="Search by name or email…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Signed up</TableHead>
-              <TableHead>Teams</TableHead>
+              <TableHead>Last active</TableHead>
+              <TableHead>Auth</TableHead>
+              <TableHead>Roles</TableHead>
               <TableHead>Projects</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -73,23 +97,27 @@ const AdminUsers = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No users</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No users</TableCell></TableRow>
             ) : filtered.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.email ?? "—"}</TableCell>
                 <TableCell>{u.full_name ?? "—"}</TableCell>
                 <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>{u.team_count}</TableCell>
+                <TableCell>{u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : "—"}</TableCell>
+                <TableCell className="text-xs">{u.auth_method ?? "password"}</TableCell>
+                <TableCell className="text-xs">{u.role_summary ?? `${u.team_count} teams`}</TableCell>
                 <TableCell>{u.project_count}</TableCell>
                 <TableCell>
                   {u.suspended_at
                     ? <Badge variant="destructive">Suspended</Badge>
                     : <Badge variant="secondary">Active</Badge>}
                 </TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="text-right space-x-2 whitespace-nowrap">
                   <Button size="sm" variant="outline" onClick={() => sendReset(u.email)}>Send reset</Button>
+                  <Button size="sm" variant="outline" onClick={() => resendInvite(u)}>Resend invite</Button>
+                  <Button size="sm" variant="outline" onClick={() => viewAs(u)}>View as</Button>
                   <Button size="sm" variant={u.suspended_at ? "outline" : "destructive"} onClick={() => toggleSuspend(u)}>
                     {u.suspended_at ? "Unsuspend" : "Suspend"}
                   </Button>
