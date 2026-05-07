@@ -1124,6 +1124,7 @@ const ProjectDetail = () => {
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
                                       className="ml-auto"
+                                      readOnly={!canEdit}
                                     />
                                   </header>
                                   <EditableNote
@@ -1132,6 +1133,7 @@ const ProjectDetail = () => {
                                     onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
                                     rich
                                     rows={3}
+                                    readOnly={!canEdit}
                                   />
                                 </article>
                                 {!isLast && (
