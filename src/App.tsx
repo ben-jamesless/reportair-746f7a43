@@ -25,6 +25,7 @@ const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
+const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
 const AdminAccounts = lazy(() => import("./pages/admin/AdminAccounts.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
@@ -60,7 +61,8 @@ const App = () => (
                   <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
                   <Route path="/s/:token" element={<SharePage />} />
                   <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
-                    <Route index element={<AdminUsers />} />
+                    <Route index element={<AdminSummary />} />
+                    <Route path="summary" element={<AdminSummary />} />
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="accounts" element={<AdminAccounts />} />
                     <Route path="projects" element={<AdminProjects />} />

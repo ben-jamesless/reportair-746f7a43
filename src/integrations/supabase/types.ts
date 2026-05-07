@@ -933,6 +933,7 @@ export type Database = {
         Args: { _suspended: boolean; _user_id: string }
         Returns: undefined
       }
+      admin_summary: { Args: never; Returns: Json }
       delete_project: { Args: { _project_id: string }; Returns: undefined }
       get_invite_email: { Args: { _token: string }; Returns: string }
       get_share_export_url: { Args: { _token: string }; Returns: string }
