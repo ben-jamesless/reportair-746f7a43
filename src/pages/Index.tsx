@@ -545,10 +545,10 @@ const HeroVisual = () => (
             Before ReportAir
           </span>
         </div>
-        <SourceCard color="#25D366" label="WhatsApp" sub="47 build updates" badge="47" rounded />
-        <SourceCard color={BRAND.sky} label="Photos" sub="38 site images" />
-        <SourceCard color="#16875C" label="Excel" sub="Progress tracker" letter="X" />
-        <SourceCard color="#2478D4" label="Email" sub="Client status requests" badge="3" />
+        <SourceCard kind="whatsapp" label="WhatsApp" sub="47 build updates" badge="47" />
+        <SourceCard kind="photos" label="Photos" sub="38 site images" />
+        <SourceCard kind="excel" label="Excel" sub="Progress tracker" />
+        <SourceCard kind="email" label="Email" sub="Client status requests" badge="3" />
       </div>
 
       {/* Arrows */}
