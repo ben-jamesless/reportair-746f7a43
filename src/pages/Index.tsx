@@ -637,33 +637,81 @@ const HeroVisual = () => (
   </div>
 );
 
+type SourceKind = "whatsapp" | "photos" | "excel" | "email";
+
+const SourceIcon = ({ kind }: { kind: SourceKind }) => {
+  const box = "h-10 w-10 flex-none";
+  if (kind === "whatsapp") {
+    return (
+      <span className={`${box} grid place-items-center rounded-full`} style={{ background: "#25D366" }}>
+        <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+          <path
+            fill="#fff"
+            d="M16 4C9.4 4 4 9.4 4 16c0 2.1.6 4.1 1.6 5.9L4 28l6.3-1.6c1.7.9 3.7 1.4 5.7 1.4 6.6 0 12-5.4 12-12S22.6 4 16 4zm6.9 17c-.3.8-1.7 1.6-2.4 1.7-.6.1-1.4.1-2.3-.2-.5-.2-1.2-.4-2.1-.8-3.7-1.6-6.1-5.3-6.3-5.6-.2-.2-1.5-2-1.5-3.8 0-1.8.9-2.7 1.3-3.1.3-.4.7-.4 1-.4h.7c.2 0 .5-.1.8.6.3.7 1 2.4 1.1 2.6.1.2.1.4 0 .6-.1.2-.2.4-.4.6-.2.2-.4.4-.5.6-.2.2-.4.4-.2.7.2.4.9 1.5 1.9 2.4 1.3 1.2 2.4 1.5 2.7 1.7.3.2.5.1.7-.1.2-.2.8-.9 1-1.3.2-.3.4-.3.7-.2.3.1 1.9.9 2.3 1.1.3.2.6.2.7.4.1.2.1 1-.2 1.8z"
+          />
+        </svg>
+      </span>
+    );
+  }
+  if (kind === "photos") {
+    // Apple Photos-style flower
+    return (
+      <span className={`${box} grid place-items-center rounded-2xl bg-white`} style={{ border: "1px solid rgba(208,217,232,.92)" }}>
+        <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+          <g>
+            <ellipse cx="32" cy="14" rx="9" ry="13" fill="#FFCC00" />
+            <ellipse cx="48" cy="24" rx="13" ry="9" fill="#FF9500" transform="rotate(45 48 24)" />
+            <ellipse cx="50" cy="40" rx="9" ry="13" fill="#FF3B30" transform="rotate(90 50 40)" />
+            <ellipse cx="40" cy="52" rx="13" ry="9" fill="#AF52DE" transform="rotate(45 40 52)" />
+            <ellipse cx="24" cy="52" rx="9" ry="13" fill="#5856D6" transform="rotate(-30 24 52)" />
+            <ellipse cx="14" cy="40" rx="13" ry="9" fill="#0A84FF" transform="rotate(45 14 40)" />
+            <ellipse cx="14" cy="24" rx="9" ry="13" fill="#34C759" transform="rotate(60 14 24)" />
+          </g>
+          <circle cx="32" cy="34" r="6" fill="#fff" />
+        </svg>
+      </span>
+    );
+  }
+  if (kind === "excel") {
+    return (
+      <span className={`${box} grid place-items-center rounded-lg`} style={{ background: "#107C41" }}>
+        <svg viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+          <path fill="#fff" d="M9 9h4l3 5 3-5h4l-5 7 5 7h-4l-3-5-3 5H9l5-7z" />
+        </svg>
+      </span>
+    );
+  }
+  // email — Apple Mail style
+  return (
+    <span className={`${box} grid place-items-center rounded-lg overflow-hidden`} style={{ background: "linear-gradient(180deg,#5AC8FA,#0A84FF)" }}>
+      <svg viewBox="0 0 32 32" width="22" height="18" aria-hidden="true">
+        <rect x="3" y="6" width="26" height="20" rx="3" fill="#fff" />
+        <path d="M4 8 L16 18 L28 8" stroke="#0A84FF" strokeWidth="2" fill="none" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+};
+
 const SourceCard = ({
-  color,
+  kind,
   label,
   sub,
   badge,
-  letter,
-  rounded,
 }: {
-  color: string;
+  kind: SourceKind;
   label: string;
   sub: string;
   badge?: string;
-  letter?: string;
-  rounded?: boolean;
 }) => (
   <div
     className="flex items-center gap-3 rounded-xl bg-white p-3"
     style={{ border: `1px solid rgba(208,217,232,.92)`, boxShadow: "0 12px 24px -20px rgba(0,0,0,.7)" }}
   >
-    <span
-      className="relative grid h-8 w-8 flex-none place-items-center text-xs font-extrabold text-white"
-      style={{ background: color, borderRadius: rounded ? 999 : 9 }}
-    >
-      {letter ?? ""}
+    <span className="relative flex-none">
+      <SourceIcon kind={kind} />
       {badge && (
         <span
-          className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full border-2 border-white px-1 text-[0.55rem] font-extrabold text-white"
+          className="absolute -right-2 -top-2 grid h-[20px] min-w-[20px] place-items-center rounded-full border-2 border-white px-1 text-[0.65rem] font-extrabold text-white"
           style={{ background: BRAND.alert }}
         >
           {badge}
