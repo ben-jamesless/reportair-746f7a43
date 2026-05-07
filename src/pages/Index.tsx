@@ -207,6 +207,8 @@ const Index = () => {
               <span style={{ color: BRAND.sky }}>{COPY.hero.headlineAccent}</span>
             </h1>
             <p className="mt-5 max-w-xl text-base sm:text-lg" style={{ color: "rgba(237,241,247,.82)", lineHeight: 1.6 }}>
+              {COPY.hero.sub}
+            </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 to="/auth"
