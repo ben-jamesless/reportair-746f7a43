@@ -682,12 +682,12 @@ const CaptureMock = () => (
   <div className="relative">
     <div
       className="rounded-2xl bg-white p-3 shadow-xl"
-      style={{ border: `1px solid ${BRAND.border}` }}
+      style={{ border: `1px solid ${BRAND.ink}` }}
     >
-      <div className="overflow-hidden rounded-lg" style={{ border: `1px solid ${BRAND.border}` }}>
+      <div className="overflow-hidden rounded-lg" style={{ border: `1px solid ${BRAND.ink}` }}>
         <div
           className="flex items-center justify-between px-4 py-2 text-[0.72rem] font-semibold"
-          style={{ background: BRAND.cloud, color: BRAND.slate, borderBottom: `1px solid ${BRAND.border}` }}
+          style={{ background: BRAND.cloud, color: BRAND.slate, borderBottom: `1px solid ${BRAND.ink}` }}
         >
           <span>ReportAir</span>
           <span>Photo inbox</span>
@@ -709,7 +709,7 @@ const CaptureMock = () => (
                 "linear-gradient(135deg,#b8c6d6,#7a8fa8)",
                 "linear-gradient(135deg,#cdd6c8,#90a08a)",
               ].map((bg, i) => (
-                <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.border}` }} />
+                <div key={i} className="aspect-[4/3] rounded-md" style={{ background: bg, border: `1px solid ${BRAND.ink}` }} />
               ))}
             </div>
             <div
@@ -727,12 +727,12 @@ const CaptureMock = () => (
     {/* iPad floating */}
     <div
       className="absolute -bottom-8 -right-2 hidden w-56 rounded-2xl bg-white p-3 shadow-2xl sm:block"
-      style={{ border: `1px solid ${BRAND.border}`, boxShadow: "0 28px 60px -28px rgba(15,23,36,.4)" }}
+      style={{ border: `1px solid ${BRAND.ink}`, boxShadow: "0 28px 60px -28px rgba(15,23,36,.4)" }}
     >
-      <div className="overflow-hidden rounded-xl" style={{ border: `1px solid ${BRAND.border}` }}>
-        <div className="flex items-center justify-between px-3 py-2 text-[0.7rem] font-semibold" style={{ background: BRAND.ink, color: "#fff" }}>
+      <div className="overflow-hidden rounded-xl" style={{ border: `1px solid ${BRAND.ink}` }}>
+        <div className="flex items-center justify-between px-3 py-2 text-[0.7rem] font-semibold" style={{ background: BRAND.skySoft, color: BRAND.deepSky }}>
           <span>Build board</span>
-          <small style={{ color: "#9DBDFF" }}>Live</small>
+          <small style={{ color: BRAND.deepSky }}>Live</small>
         </div>
         <div className="space-y-2 p-3">
           <div className="flex flex-wrap gap-1.5">
