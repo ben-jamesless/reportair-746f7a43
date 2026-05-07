@@ -340,50 +340,18 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         )}
       </section>
 
-      {invites.length > 0 && (
-        <div>
-          <h4 className="mb-2 text-sm font-medium">Pending & accepted invites</h4>
+      {acceptedInvites.length > 0 && (
+        <section>
+          <h4 className="mb-2 text-sm font-medium text-muted-foreground">Accepted invites</h4>
           <div className="space-y-1">
-            {invites.map((inv) => (
-              <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate">{inv.email}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {inv.accepted_at ? `Accepted ${new Date(inv.accepted_at).toLocaleDateString()}` : "Pending"} · {inv.role}
-                  </div>
-                </div>
-                {!inv.accepted_at && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => copyInviteLink(inv.token)}
-                      title="Copy invite link"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => sendInviteEmail(inv.id)}
-                      title="Resend invite email"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => revokeInvite(inv.id)}
-                      title="Revoke invite"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+            {acceptedInvites.map((inv) => (
+              <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
+                <span className="truncate">{inv.email}</span>
+                <span>Accepted {new Date(inv.accepted_at!).toLocaleDateString()} · {inv.role}</span>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Remove member confirmation */}
