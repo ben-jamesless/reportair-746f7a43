@@ -105,6 +105,15 @@ const AdminAccounts = () => {
     (r.billing_owner_email ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
+  const sorted = sortDir == null ? filtered : [...filtered].sort((a, b) => {
+    const av = Number(a.unit_amount ?? 0);
+    const bv = Number(b.unit_amount ?? 0);
+    return sortDir === "desc" ? bv - av : av - bv;
+  });
+
+  const cycleSort = () => setSortDir((d) => (d === "desc" ? "asc" : d === "asc" ? null : "desc"));
+  const SortIcon = sortDir === "desc" ? ArrowDown : sortDir === "asc" ? ArrowUp : ArrowUpDown;
+
   return (
     <div className="space-y-4">
       <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
