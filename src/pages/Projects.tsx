@@ -48,6 +48,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FolderInput } from "lucide-react";
 import { fetchAccessibleProjects, isProjectInFolderView, type AccessibleProject } from "@/lib/accessibleProjects";
+import { canDeleteProject, canEditProject, canArchiveProject, canMoveProjectToFolder, canLeaveProject, type ProjectRole } from "@/lib/projectPermissions";
+import { LogOut } from "lucide-react";
 
 type FolderRow = { id: string; name: string; color: string | null };
 const FOLDER_ALL = "__all__";
@@ -84,7 +86,10 @@ const Projects = () => {
   const [searchParams] = useSearchParams();
   const selectedFolder = searchParams.get("folder") ?? FOLDER_ALL;
   const [ownedProjectIds, setOwnedProjectIds] = useState<Set<string>>(new Set());
+  const [projectRoles, setProjectRoles] = useState<Map<string, ProjectRole>>(new Map());
   const [moveProject, setMoveProject] = useState<Project | null>(null);
+  const [leavingProject, setLeavingProject] = useState<Project | null>(null);
+  const [leaving, setLeaving] = useState(false);
 
   const load = async () => {
     if (!user) return;
@@ -141,10 +146,17 @@ const Projects = () => {
         .from("project_members")
         .select("project_id, role")
         .eq("user_id", user.id)
-        .in("project_id", ids)
-        .eq("role", "owner");
-      setOwnedProjectIds(new Set((pm ?? []).map((r) => r.project_id as string)));
+        .in("project_id", ids);
+      const roleMap = new Map<string, ProjectRole>();
+      const owned = new Set<string>();
+      for (const row of (pm ?? []) as { project_id: string; role: ProjectRole }[]) {
+        roleMap.set(row.project_id, row.role);
+        if (row.role === "owner") owned.add(row.project_id);
+      }
+      setProjectRoles(roleMap);
+      setOwnedProjectIds(owned);
     } else {
+      setProjectRoles(new Map());
       setOwnedProjectIds(new Set());
     }
 
