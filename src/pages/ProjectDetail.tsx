@@ -683,16 +683,19 @@ const ProjectDetail = () => {
         mostRecentDayLabel={mostRecentDay?.label ?? null}
         effectiveView={effectiveView}
         setViewOverride={setViewOverride}
+        canEdit={canEdit}
         uploader={
-          <ErrorBoundary label="uploader-mobile">
-            <PhotoUploader
-              projectId={project.id}
-              albumId={uploadAlbumId}
-              areaId={uploadAreaId}
-              areas={areas}
-              onUploaded={loadAll}
-            />
-          </ErrorBoundary>
+          canEdit ? (
+            <ErrorBoundary label="uploader-mobile">
+              <PhotoUploader
+                projectId={project.id}
+                albumId={uploadAlbumId}
+                areaId={uploadAreaId}
+                areas={areas}
+                onUploaded={loadAll}
+              />
+            </ErrorBoundary>
+          ) : null
         }
         onOpenExport={openTopExport}
         onOpenActivity={() => setActiveTab("activity")}
