@@ -816,9 +816,11 @@ export type Database = {
       }
       teams: {
         Row: {
+          billing_interval: string | null
           billing_owner_user_id: string
           created_at: string
           created_by: string
+          current_period_end: string | null
           id: string
           industry: string | null
           name: string
@@ -826,14 +828,19 @@ export type Database = {
           region: string | null
           slug: string | null
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
           suspended_at: string | null
           trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
+          billing_interval?: string | null
           billing_owner_user_id: string
           created_at?: string
           created_by: string
+          current_period_end?: string | null
           id?: string
           industry?: string | null
           name: string
@@ -841,14 +848,19 @@ export type Database = {
           region?: string | null
           slug?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           suspended_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
+          billing_interval?: string | null
           billing_owner_user_id?: string
           created_at?: string
           created_by?: string
+          current_period_end?: string | null
           id?: string
           industry?: string | null
           name?: string
@@ -856,6 +868,9 @@ export type Database = {
           region?: string | null
           slug?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           suspended_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
@@ -899,6 +914,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_billing_summary: { Args: never; Returns: Json }
       admin_list_projects: {
         Args: { _phase?: string; _project_type?: string; _team_id?: string }
         Returns: {
@@ -920,19 +936,25 @@ export type Database = {
       admin_list_teams: {
         Args: never
         Returns: {
+          billing_interval: string
           billing_owner_email: string
           billing_owner_user_id: string
           created_at: string
+          current_period_end: string
           id: string
           industry: string
           member_count: number
           name: string
           plan: string
+          plan_name: string
           project_count: number
           region: string
           status: string
+          subscription_status: string
           suspended_at: string
+          trial_end: string
           trial_ends_at: string
+          unit_amount: number
         }[]
       }
       admin_list_users: {
@@ -1058,6 +1080,7 @@ export type Database = {
       }
       my_latest_invited_project: { Args: never; Returns: string }
       my_pending_invites_count: { Args: never; Returns: number }
+      plan_monthly_hkd: { Args: { _plan: string }; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }
       resolve_share_link: {
         Args: { _password?: string; _token: string }
