@@ -248,23 +248,45 @@ const Index = () => {
       </section>
 
       {/* ============ METRIC ============ */}
-      <section style={{ background: BRAND.cloud, borderBottom: `1px solid ${BRAND.border}` }}>
-        <div className="mx-auto grid max-w-[1200px] items-center gap-8 px-5 py-16 sm:px-6 md:grid-cols-[auto_1fr] md:gap-14">
-          <div className="flex items-baseline gap-3">
-            <span className="text-[6rem] font-extrabold leading-none tracking-tight sm:text-[8rem]" style={{ ...display, color: BRAND.sky }}>
-              {COPY.metric.big}
-            </span>
-            <span className="text-2xl font-bold sm:text-3xl" style={{ ...display, color: BRAND.ink }}>
-              {COPY.metric.unit}
-            </span>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold sm:text-3xl" style={{ ...display, color: BRAND.ink }}>
-              {COPY.metric.title}
-            </h2>
-            <p className="mt-3 max-w-2xl text-base" style={{ color: BRAND.slate, lineHeight: 1.6 }}>
-              {COPY.metric.desc}
-            </p>
+      <section className="px-5 py-20 sm:px-6 sm:py-28">
+        <div
+          className="relative mx-auto max-w-[1200px] overflow-hidden rounded-3xl"
+          style={{
+            background: `radial-gradient(60% 80% at 92% 30%, rgba(26,110,255,.28), transparent 60%), ${BRAND.ink}`,
+            border: `1px solid rgba(26,110,255,.45)`,
+            boxShadow: "0 30px 80px -40px rgba(15,23,36,.6), 0 0 60px -20px rgba(26,110,255,.25)",
+          }}
+        >
+          {/* Grid pattern */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-70"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(26,110,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(26,110,255,.07) 1px, transparent 1px)",
+              backgroundSize: "88px 88px",
+            }}
+          />
+          <div className="relative grid items-center gap-8 px-6 py-14 sm:px-12 sm:py-16 md:grid-cols-[auto_1fr] md:gap-14">
+            <div className="flex items-baseline gap-3">
+              <span
+                className="text-[7rem] font-extrabold leading-none tracking-tight sm:text-[9rem]"
+                style={{ ...display, color: "#FFFFFF", textShadow: "0 0 40px rgba(26,110,255,.35)" }}
+              >
+                {COPY.metric.big}
+              </span>
+              <span className="text-2xl font-bold sm:text-3xl" style={{ ...display, color: BRAND.skySoft }}>
+                {COPY.metric.unit}
+              </span>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl" style={{ ...display, color: "#FFFFFF" }}>
+                {COPY.metric.title}
+              </h2>
+              <p className="mt-4 max-w-2xl text-base" style={{ color: "rgba(255,255,255,.72)", lineHeight: 1.6 }}>
+                {COPY.metric.desc}
+              </p>
+            </div>
           </div>
         </div>
       </section>
