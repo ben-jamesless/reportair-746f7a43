@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, FolderKanban, Building2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Users, FolderKanban, Building2, Image as ImageIcon, DollarSign, TrendingDown, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
