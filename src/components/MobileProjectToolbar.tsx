@@ -132,14 +132,16 @@ export const MobileProjectToolbar = ({
                 <FileDown className="mr-3 h-4 w-4" />
                 Export {mostRecentDayLabel ? "latest day" : "project"}
               </Button>
-              <Button
-                variant="ghost"
-                className="h-12 justify-start text-base"
-                onClick={() => runAfterClose(() => setSettingsOpen(true))}
-              >
-                <SettingsIcon className="mr-3 h-4 w-4" />
-                Settings
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="ghost"
+                  className="h-12 justify-start text-base"
+                  onClick={() => runAfterClose(() => setSettingsOpen(true))}
+                >
+                  <SettingsIcon className="mr-3 h-4 w-4" />
+                  Settings
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
