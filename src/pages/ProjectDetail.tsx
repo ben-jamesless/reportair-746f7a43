@@ -1160,15 +1160,17 @@ const ProjectDetail = () => {
                         : "Upload to this day + area context, or pick a different selection."
                     }
                     action={
-                      <ErrorBoundary label="uploader">
-                        <PhotoUploader
-                          projectId={project.id}
-                          albumId={uploadAlbumId}
-                          areaId={uploadAreaId}
-                          areas={areas}
-                          onUploaded={loadAll}
-                        />
-                      </ErrorBoundary>
+                      canEdit ? (
+                        <ErrorBoundary label="uploader">
+                          <PhotoUploader
+                            projectId={project.id}
+                            albumId={uploadAlbumId}
+                            areaId={uploadAreaId}
+                            areas={areas}
+                            onUploaded={loadAll}
+                          />
+                        </ErrorBoundary>
+                      ) : undefined
                     }
                   />
                 ) : activeDay !== ALL_DAYS && !isAlbumKey(activeDay) ? (
