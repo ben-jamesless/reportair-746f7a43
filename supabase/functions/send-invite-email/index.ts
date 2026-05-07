@@ -148,8 +148,9 @@ Deno.serve(async (req) => {
       }, 200);
     }
 
-    const fromAddress =
-      Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
+    const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
+    // Strip surrounding quotes if the secret was saved with them.
+    const fromAddress = rawFrom.trim().replace(/^['"]|['"]$/g, "").trim();
 
     const subject = `You've been invited to ${projectName} on ReportAir`;
     const html = renderEmail({
