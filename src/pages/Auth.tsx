@@ -17,7 +17,8 @@ const Auth = () => {
   const { user, loading: authLoading } = useAuth();
   const params = new URLSearchParams(window.location.search);
   const prefillEmail = params.get("email") ?? "";
-  const initialTab = params.get("tab") === "signup" || prefillEmail ? "signup" : "signin";
+  const tabParam = params.get("tab");
+  const initialTab = tabParam === "signin" ? "signin" : (tabParam === "signup" || prefillEmail ? "signup" : "signin");
   const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");

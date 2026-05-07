@@ -23,7 +23,7 @@ const InviteAccept = () => {
         const params = new URLSearchParams({ redirect: `/invite/${token}` });
         if (inviteEmail) {
           params.set("email", inviteEmail as string);
-          params.set("tab", "signup");
+          params.set("tab", "signin");
         }
         navigate(`/auth?${params.toString()}`, { replace: true });
       })();
