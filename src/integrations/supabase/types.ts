@@ -923,6 +923,7 @@ export type Database = {
         }[]
       }
       mark_notifications_read: { Args: { _ids?: string[] }; Returns: number }
+      my_latest_invited_project: { Args: never; Returns: string }
       my_pending_invites_count: { Args: never; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }
       resolve_share_link: {
