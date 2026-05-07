@@ -47,26 +47,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FolderInput } from "lucide-react";
+import { fetchAccessibleProjects, isProjectInFolderView, type AccessibleProject } from "@/lib/accessibleProjects";
 
 type FolderRow = { id: string; name: string; color: string | null };
 const FOLDER_ALL = "__all__";
 const FOLDER_UNFOLDERED = "__unfoldered__";
 
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  template: string;
-  created_at: string;
-  color: string | null;
-  event_date: string | null;
-  event_location: string | null;
-  overall_status: ProjectStatus | null;
-  event_type: string | null;
-  client_name: string | null;
-  archived_at: string | null;
-  folder_id: string | null;
-};
+type Project = Omit<AccessibleProject, "overall_status"> & { overall_status: ProjectStatus | null };
 
 type SortKey = "alpha" | "created" | "event_date" | "last_upload";
 
@@ -137,14 +124,7 @@ const Projects = () => {
       setTeamName("");
     }
 
-    // Rely on RLS: returns projects from the user's team(s) AND projects they
-    // are a direct member of (e.g. accepted invites to other teams' projects).
-    const { data: projs } = await supabase
-      .from("projects")
-      .select("id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at, folder_id")
-      .order("created_at", { ascending: false });
-
-    const list = (projs ?? []) as Project[];
+    const list = (await fetchAccessibleProjects(user.id)) as Project[];
     setProjects(list);
 
     // Folders (owner-only via RLS)
@@ -241,11 +221,7 @@ const Projects = () => {
     const folderIds = new Set(folders.map((f) => f.id));
     let arr = projects.filter((p) => {
       if (!showArchived && p.archived_at) return false;
-      if (selectedFolder === FOLDER_UNFOLDERED) {
-        if (p.folder_id && folderIds.has(p.folder_id)) return false;
-      } else if (selectedFolder !== FOLDER_ALL) {
-        if (p.folder_id !== selectedFolder) return false;
-      }
+      if (!isProjectInFolderView(p, selectedFolder, folderIds, FOLDER_ALL, FOLDER_UNFOLDERED)) return false;
       if (filterClient !== ALL && (p.client_name ?? "") !== filterClient) return false;
       if (filterEventType !== ALL && (p.event_type ?? "") !== filterEventType) return false;
       if (filterStatus !== ALL && (p.overall_status ?? "no_status") !== filterStatus) return false;
