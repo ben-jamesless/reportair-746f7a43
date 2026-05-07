@@ -25,6 +25,7 @@ const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
+const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
 const AdminAccounts = lazy(() => import("./pages/admin/AdminAccounts.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
