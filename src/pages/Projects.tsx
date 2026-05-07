@@ -552,6 +552,13 @@ const Projects = () => {
             const showStatus = (p.overall_status ?? "no_status") !== "no_status";
             const isArchived = !!p.archived_at;
             const isOwner = ownedProjectIds.has(p.id);
+            const role = projectRoles.get(p.id) ?? null;
+            const canEdit = canEditProject(role);
+            const canArchive = canArchiveProject(role);
+            const canMove = canMoveProjectToFolder(role);
+            const canDelete = canDeleteProject(role);
+            const canLeave = canLeaveProject(role);
+            const hasAnyAction = canEdit || canArchive || canMove || canDelete || canLeave;
             return (
               <div
                 key={p.id}
@@ -613,47 +620,68 @@ const Projects = () => {
                     </div>
                   </Card>
                 </Link>
-                <div className="absolute right-2 top-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-70 hover:opacity-100"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        aria-label={`Project options for ${p.name}`}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onSelect={() => setEditingProject(p)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                      {isOwner && (
-                        <DropdownMenuItem onSelect={() => setMoveProject(p)}>
-                          <FolderInput className="mr-2 h-4 w-4" /> Move to folder
-                        </DropdownMenuItem>
-                      )}
-                      {isArchived ? (
-                        <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
-                          <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
-                        </DropdownMenuItem>
-                      ) : (
-                        <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
-                          <Archive className="mr-2 h-4 w-4" /> Archive
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                {hasAnyAction && (
+                  <div className="absolute right-2 top-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-70 hover:opacity-100"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          aria-label={`Project options for ${p.name}`}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        {canEdit && (
+                          <DropdownMenuItem onSelect={() => setEditingProject(p)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
+                        )}
+                        {canMove && (
+                          <DropdownMenuItem onSelect={() => setMoveProject(p)}>
+                            <FolderInput className="mr-2 h-4 w-4" /> Move to folder
+                          </DropdownMenuItem>
+                        )}
+                        {canArchive && (
+                          isArchived ? (
+                            <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
+                              <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
+                              <Archive className="mr-2 h-4 w-4" /> Archive
+                            </DropdownMenuItem>
+                          )
+                        )}
+                        {canDelete && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {canLeave && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onSelect={() => setLeavingProject(p)}
+                            >
+                              <LogOut className="mr-2 h-4 w-4" /> Leave project
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
               </div>
             );
           })}
