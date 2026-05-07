@@ -903,6 +903,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      leave_project: { Args: { _project_id: string }; Returns: undefined }
       list_guest_notes_project_public: {
         Args: { _token: string }
         Returns: {
