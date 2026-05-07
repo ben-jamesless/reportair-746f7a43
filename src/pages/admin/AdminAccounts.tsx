@@ -90,13 +90,16 @@ const AdminAccounts = () => {
   return (
     <div className="space-y-4">
       <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Team</TableHead>
               <TableHead>Billing owner</TableHead>
               <TableHead>Plan</TableHead>
+              <TableHead>Trial ends</TableHead>
+              <TableHead>Region</TableHead>
+              <TableHead>Industry</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Projects</TableHead>
@@ -105,21 +108,24 @@ const AdminAccounts = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
             ) : filtered.map((t) => (
               <TableRow key={t.id}>
                 <TableCell className="font-medium">{t.name}</TableCell>
                 <TableCell>{t.billing_owner_email ?? "—"}</TableCell>
                 <TableCell>
                   <Select value={t.plan} onValueChange={(v) => changePlan(t, v)}>
-                    <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-32 h-8"><SelectValue>{PLAN_LABELS[t.plan] ?? t.plan}</SelectValue></SelectTrigger>
                     <SelectContent>
-                      {PLANS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                      {PLANS.map((p) => <SelectItem key={p} value={p}>{PLAN_LABELS[p] ?? p}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell>{t.trial_ends_at ? new Date(t.trial_ends_at).toLocaleDateString() : "—"}</TableCell>
+                <TableCell>{t.region ?? "—"}</TableCell>
+                <TableCell>{t.industry ?? "—"}</TableCell>
                 <TableCell>
                   {t.suspended_at
                     ? <Badge variant="destructive">Suspended</Badge>
@@ -127,8 +133,9 @@ const AdminAccounts = () => {
                 </TableCell>
                 <TableCell>{t.member_count}</TableCell>
                 <TableCell>{t.project_count}</TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="text-right space-x-2 whitespace-nowrap">
                   <Button size="sm" variant="outline" onClick={() => openOwnerDialog(t)}>Change owner</Button>
+                  <Button size="sm" variant="outline" onClick={() => { console.log("Open in Stripe", t.id); toast.info("Stripe integration not yet wired"); }}>Open in Stripe</Button>
                   <Button size="sm" variant={t.suspended_at ? "outline" : "destructive"} onClick={() => toggleSuspend(t)}>
                     {t.suspended_at ? "Unsuspend" : "Suspend"}
                   </Button>
