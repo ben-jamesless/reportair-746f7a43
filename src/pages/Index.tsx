@@ -292,8 +292,8 @@ const Index = () => {
       </section>
 
       {/* ============ PRODUCT FEATURES ============ */}
-      <section id="product" className="py-20 sm:py-28">
-        <div className="mx-auto max-w-[1200px] space-y-24 px-5 sm:px-6">
+      <section id="product" className="pt-12 pb-20 sm:pt-14 sm:pb-28">
+        <div className="mx-auto max-w-[1200px] space-y-32 px-5 sm:px-6 sm:space-y-36">
           {COPY.features.map((f, i) => (
             <article
               key={f.step}
