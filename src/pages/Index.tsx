@@ -193,7 +193,7 @@ const Index = () => {
           }}
         />
 
-        <div className="relative mx-auto grid max-w-[1520px] items-center gap-10 px-5 pb-20 pt-20 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:pb-24 lg:pt-28">
+        <div className="relative mx-auto grid max-w-[1520px] items-start gap-10 px-5 pb-20 pt-20 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:pb-24 lg:pt-28">
           {/* Copy */}
           <div className="lg:pl-2 xl:pl-6">
             <span className="mb-3.5 inline-block text-[0.72rem] font-semibold uppercase tracking-[0.14em]" style={{ color: "#9DBDFF" }}>
