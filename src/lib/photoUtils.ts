@@ -144,3 +144,35 @@ export function groupPhotosByDate<T extends DateGroupablePhoto>(photos: T[]): Ph
   }
   return Array.from(groups.values()).sort((a, b) => b.date.getTime() - a.date.getTime());
 }
+
+/** Resize an image File to a max width/height, returning a JPEG Blob (or null on failure). */
+export async function makeReportVariant(file: File, maxDim = 1600, quality = 0.75): Promise<Blob | null> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const { width: w, height: h } = bitmap;
+    if (!w || !h) { bitmap.close?.(); return null; }
+    if (Math.max(w, h) <= maxDim) {
+      // Still re-encode as JPEG to drop metadata + recompress, unless already small JPEG.
+      if (file.type === "image/jpeg" && file.size < 400_000) { bitmap.close?.(); return null; }
+    }
+    const scale = Math.min(1, maxDim / Math.max(w, h));
+    const tw = Math.round(w * scale);
+    const th = Math.round(h * scale);
+    const canvas = typeof OffscreenCanvas !== "undefined"
+      ? new OffscreenCanvas(tw, th)
+      : Object.assign(document.createElement("canvas"), { width: tw, height: th });
+    const ctx = (canvas as any).getContext("2d");
+    if (!ctx) { bitmap.close?.(); return null; }
+    ctx.drawImage(bitmap, 0, 0, tw, th);
+    bitmap.close?.();
+    if ("convertToBlob" in canvas) {
+      return await (canvas as OffscreenCanvas).convertToBlob({ type: "image/jpeg", quality });
+    }
+    return await new Promise<Blob | null>((res) =>
+      (canvas as HTMLCanvasElement).toBlob((b) => res(b), "image/jpeg", quality),
+    );
+  } catch (e) {
+    console.warn("makeReportVariant failed", e);
+    return null;
+  }
+}

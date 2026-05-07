@@ -404,6 +404,7 @@ export type Database = {
           mime_type: string | null
           position: number
           project_id: string
+          report_path: string | null
           shutter_speed: string | null
           size_bytes: number | null
           storage_path: string
@@ -431,6 +432,7 @@ export type Database = {
           mime_type?: string | null
           position?: number
           project_id: string
+          report_path?: string | null
           shutter_speed?: string | null
           size_bytes?: number | null
           storage_path: string
@@ -458,6 +460,7 @@ export type Database = {
           mime_type?: string | null
           position?: number
           project_id?: string
+          report_path?: string | null
           shutter_speed?: string | null
           size_bytes?: number | null
           storage_path?: string

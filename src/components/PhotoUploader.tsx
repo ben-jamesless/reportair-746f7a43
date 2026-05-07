@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Upload, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { parseExif, getImageDimensions, sanitizeFileName } from "@/lib/photoUtils";
+import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant } from "@/lib/photoUtils";
 
 const isHeic = (file: File) => {
   const name = file.name.toLowerCase();
@@ -93,19 +93,34 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           .upload(key, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
 
+        // Generate and upload a smaller "report" variant for fast PDF exports.
+        let reportKey: string | null = null;
+        try {
+          const variant = await makeReportVariant(file, 1600, 0.75);
+          if (variant) {
+            reportKey = `${projectId}/${albumId ?? "unsorted"}/report-${crypto.randomUUID()}-${safe}.jpg`;
+            const { error: rErr } = await supabase.storage
+              .from("photos")
+              .upload(reportKey, variant, { contentType: "image/jpeg", upsert: false });
+            if (rErr) { console.warn("Report variant upload failed", rErr); reportKey = null; }
+          }
+        } catch (e) { console.warn("Report variant failed", e); }
+
         const { error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
           area_id: targetArea,
           storage_path: key,
+          report_path: reportKey,
           file_name: file.name,
           mime_type: file.type,
           size_bytes: file.size,
           uploaded_by: user.id,
           ...exif,
-        });
+        } as never);
         if (insErr) {
           await supabase.storage.from("photos").remove([key]);
+          if (reportKey) await supabase.storage.from("photos").remove([reportKey]);
           throw insErr;
         }
       } catch (e: any) {
