@@ -1209,6 +1209,7 @@ const ProjectDetail = () => {
                                     value={st}
                                     onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
                                     className="ml-auto"
+                                    readOnly={!canEdit}
                                   />
                                 </header>
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
