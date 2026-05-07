@@ -38,6 +38,7 @@ import {
   Pencil,
   Trash2,
   Folder,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
