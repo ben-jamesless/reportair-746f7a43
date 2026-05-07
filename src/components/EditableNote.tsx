@@ -12,9 +12,23 @@ interface Props {
   className?: string;
   rows?: number;
   rich?: boolean;
+  readOnly?: boolean;
 }
 
-export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, className, rows = 2, rich = false }: Props) => {
+export const EditableNote = ({ value, placeholder = "Add a comment…", onSave, className, rows = 2, rich = false, readOnly = false }: Props) => {
+  if (readOnly) {
+    const hasValue = !!value && value.trim().length > 0;
+    if (!hasValue) return null;
+    return (
+      <div className={cn("rounded-md border border-border bg-background px-3 py-2 text-xs", className)}>
+        {rich ? (
+          <RichNotes value={value} className="text-foreground" />
+        ) : (
+          <span className="whitespace-pre-wrap break-words">{value}</span>
+        )}
+      </div>
+    );
+  }
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value ?? "");
   const [busy, setBusy] = useState(false);
