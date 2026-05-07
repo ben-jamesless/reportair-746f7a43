@@ -491,31 +491,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          auth_method: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          last_active_at: string | null
           onboarded_at: string | null
           suspended_at: string | null
           updated_at: string
         }
         Insert: {
+          auth_method?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          last_active_at?: string | null
           onboarded_at?: string | null
           suspended_at?: string | null
           updated_at?: string
         }
         Update: {
+          auth_method?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          last_active_at?: string | null
           onboarded_at?: string | null
           suspended_at?: string | null
           updated_at?: string
@@ -655,8 +661,12 @@ export type Database = {
           geo_lng: number | null
           geo_location_query: string | null
           id: string
+          last_activity_at: string | null
+          location: string | null
           name: string
           overall_status: Database["public"]["Enums"]["project_status"]
+          phase: string | null
+          project_type: string | null
           team_id: string
           template: Database["public"]["Enums"]["project_template"]
           updated_at: string
@@ -677,8 +687,12 @@ export type Database = {
           geo_lng?: number | null
           geo_location_query?: string | null
           id?: string
+          last_activity_at?: string | null
+          location?: string | null
           name: string
           overall_status?: Database["public"]["Enums"]["project_status"]
+          phase?: string | null
+          project_type?: string | null
           team_id: string
           template?: Database["public"]["Enums"]["project_template"]
           updated_at?: string
@@ -699,8 +713,12 @@ export type Database = {
           geo_lng?: number | null
           geo_location_query?: string | null
           id?: string
+          last_activity_at?: string | null
+          location?: string | null
           name?: string
           overall_status?: Database["public"]["Enums"]["project_status"]
+          phase?: string | null
+          project_type?: string | null
           team_id?: string
           template?: Database["public"]["Enums"]["project_template"]
           updated_at?: string
@@ -802,11 +820,14 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          industry: string | null
           name: string
           plan: string
+          region: string | null
           slug: string | null
           status: string
           suspended_at: string | null
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
@@ -814,11 +835,14 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          industry?: string | null
           name: string
           plan?: string
+          region?: string | null
           slug?: string | null
           status?: string
           suspended_at?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -826,11 +850,14 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          industry?: string | null
           name?: string
           plan?: string
+          region?: string | null
           slug?: string | null
           status?: string
           suspended_at?: string | null
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -873,15 +900,19 @@ export type Database = {
         Returns: string
       }
       admin_list_projects: {
-        Args: never
+        Args: { _phase?: string; _project_type?: string; _team_id?: string }
         Returns: {
           archived_at: string
           created_at: string
           id: string
+          last_activity_at: string
+          location: string
           name: string
           overall_status: Database["public"]["Enums"]["project_status"]
           owner_email: string
           owner_id: string
+          phase: string
+          project_type: string
           team_id: string
           team_name: string
         }[]
@@ -893,22 +924,30 @@ export type Database = {
           billing_owner_user_id: string
           created_at: string
           id: string
+          industry: string
           member_count: number
           name: string
           plan: string
           project_count: number
+          region: string
           status: string
           suspended_at: string
+          trial_ends_at: string
         }[]
       }
       admin_list_users: {
         Args: never
         Returns: {
+          auth_method: string
           created_at: string
           email: string
           full_name: string
           id: string
+          last_active_at: string
+          member_team_count: number
+          owner_team_count: number
           project_count: number
+          role_summary: string
           suspended_at: string
           team_count: number
         }[]
