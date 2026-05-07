@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 type AdminTeam = {
   id: string; name: string; plan: string; status: string;
@@ -45,6 +45,7 @@ const AdminAccounts = () => {
   const [q, setQ] = useState("");
   const [ownerDialog, setOwnerDialog] = useState<AdminTeam | null>(null);
   const [detailsTeam, setDetailsTeam] = useState<AdminTeam | null>(null);
+  const [sortDir, setSortDir] = useState<"desc" | "asc" | null>("desc");
   const [members, setMembers] = useState<Member[]>([]);
   const [pickedUser, setPickedUser] = useState<string>("");
 
@@ -104,6 +105,15 @@ const AdminAccounts = () => {
     (r.billing_owner_email ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
+  const sorted = sortDir == null ? filtered : [...filtered].sort((a, b) => {
+    const av = Number(a.unit_amount ?? 0);
+    const bv = Number(b.unit_amount ?? 0);
+    return sortDir === "desc" ? bv - av : av - bv;
+  });
+
+  const cycleSort = () => setSortDir((d) => (d === "desc" ? "asc" : d === "asc" ? null : "desc"));
+  const SortIcon = sortDir === "desc" ? ArrowDown : sortDir === "asc" ? ArrowUp : ArrowUpDown;
+
   return (
     <div className="space-y-4">
       <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
@@ -114,7 +124,11 @@ const AdminAccounts = () => {
               <TableHead>Team</TableHead>
               <TableHead>Billing owner</TableHead>
               <TableHead>Plan</TableHead>
-              <TableHead>MRR (HKD)</TableHead>
+              <TableHead>
+                <button onClick={cycleSort} className="inline-flex items-center gap-1 hover:text-foreground">
+                  MRR (HKD) <SortIcon className="h-3 w-3" />
+                </button>
+              </TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Projects</TableHead>
@@ -126,8 +140,9 @@ const AdminAccounts = () => {
               <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
-            ) : filtered.map((t) => {
+            ) : sorted.map((t) => {
               const subscribed = !!t.subscription_status;
+              const hasMrr = subscribed && Number(t.unit_amount ?? 0) > 0;
               return (
               <TableRow key={t.id} className="cursor-pointer" onClick={() => setDetailsTeam(t)}>
                 <TableCell className="font-medium">{t.name}</TableCell>
@@ -140,7 +155,7 @@ const AdminAccounts = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>{subscribed ? fmtHKD(t.unit_amount) : <span className="text-muted-foreground">Not subscribed</span>}</TableCell>
+                <TableCell className={hasMrr ? "font-semibold text-primary" : ""}>{subscribed ? fmtHKD(t.unit_amount) : <span className="text-muted-foreground font-normal">Not subscribed</span>}</TableCell>
                 <TableCell>
                   {t.suspended_at
                     ? <Badge variant="destructive">Suspended</Badge>
