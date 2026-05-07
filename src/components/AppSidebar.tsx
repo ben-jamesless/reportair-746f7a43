@@ -82,6 +82,8 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
   const activeFolder = searchParams.get("folder");
   const onProjects = pathname === "/projects" || pathname.startsWith("/projects?");
   const isProfileActive = pathname === "/profile" || pathname.startsWith("/profile/");
+  const isBillingActive = pathname === "/billing" || pathname.startsWith("/billing/");
+  const { teamId: billingTeamId } = useMyBillingTeam();
 
   // Profile load + realtime
   useEffect(() => {
