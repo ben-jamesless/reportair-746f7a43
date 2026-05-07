@@ -41,6 +41,7 @@ interface Props {
   value: AreaStatus;
   onChange: (next: AreaStatus) => void;
   className?: string;
+  readOnly?: boolean;
 }
 
 export const AreaStatusDot = ({ status, className }: { status: AreaStatus; className?: string }) => (
@@ -52,8 +53,26 @@ export const AreaStatusDot = ({ status, className }: { status: AreaStatus; class
 );
 
 /** Single active status pill that opens a popover to change the status. */
-export const AreaStatusPicker = ({ value, onChange, className }: Props) => {
+export const AreaStatusPicker = ({ value, onChange, className, readOnly = false }: Props) => {
   const meta = STATUS_META[value];
+  if (readOnly) {
+    return (
+      <span
+        aria-label={`Status: ${meta.label}`}
+        title={meta.label}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+          meta.activeBg,
+          meta.activeText,
+          meta.activeBorder,
+          className,
+        )}
+      >
+        <span className={cn("inline-block h-2 w-2 rounded-full", meta.dot)} />
+        <span>{meta.short}</span>
+      </span>
+    );
+  }
   return (
     <Popover>
       <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
