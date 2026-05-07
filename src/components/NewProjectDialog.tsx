@@ -119,14 +119,36 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     if (error) toast.error(`Areas: ${error.message}`);
   };
 
-  // Persist invites
+  // Persist invites — mirror Members tab flow: insert each row, then trigger
+  // the send-invite-email Edge Function so Resend actually delivers the email.
   const persistInvites = async (projectId: string, list: InviteRow[]) => {
     if (list.length === 0) return;
-    const rows = list.map((i) => ({
-      project_id: projectId, email: i.email, role: i.role, invited_by: user?.id ?? null,
-    }));
-    const { error } = await supabase.from("project_invites").insert(rows);
-    if (error) toast.error(`Invites: ${error.message}`);
+    for (const i of list) {
+      const { data: inserted, error } = await supabase
+        .from("project_invites")
+        .insert({
+          project_id: projectId,
+          email: i.email,
+          role: i.role,
+          invited_by: user?.id ?? null,
+        })
+        .select("id")
+        .single();
+      if (error) {
+        toast.error(`Invite ${i.email}: ${error.message}`);
+        continue;
+      }
+      if (inserted?.id) {
+        try {
+          await supabase.functions.invoke("send-invite-email", {
+            body: { inviteId: inserted.id },
+          });
+        } catch (e) {
+          console.error("send-invite-email failed", e);
+          toast.error(`Email to ${i.email} failed to send`);
+        }
+      }
+    }
   };
 
   const goNext = () => {
