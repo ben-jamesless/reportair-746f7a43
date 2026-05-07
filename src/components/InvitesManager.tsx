@@ -39,13 +39,19 @@ type Member = {
 
 const emailSchema = z.string().trim().email().max(255);
 
+const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
+  owner: "Full access — manage members, edit, and delete the project.",
+  editor: "Can upload photos and edit project content.",
+  viewer: "Read-only access to the project and reports.",
+};
+
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"editor" | "viewer">("viewer");
+  const [role, setRole] = useState<ProjectRole>("viewer");
   const [loading, setLoading] = useState(false);
   const [isAppAdmin, setIsAppAdmin] = useState(false);
 
@@ -57,6 +63,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const currentUserRole: ProjectRole | null =
     members.find((m) => m.user_id === user?.id)?.role ?? null;
   const canManage = currentUserRole === "owner" || isAppAdmin;
+  const ownerCount = members.filter((m) => m.role === "owner").length;
 
   const load = useCallback(async () => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
