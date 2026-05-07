@@ -167,22 +167,43 @@ const AdminAccounts = () => {
           <DialogHeader>
             <DialogTitle>{detailsTeam?.name}</DialogTitle>
           </DialogHeader>
-          {detailsTeam && (
-            <div className="space-y-1">
-              <DetailRow label="Billing owner" value={detailsTeam.billing_owner_email} />
-              <DetailRow label="Plan" value={PLAN_LABELS[detailsTeam.plan] ?? detailsTeam.plan} />
-              <DetailRow label="MRR (HKD)" value={detailsTeam.subscription_status ? fmtHKD(detailsTeam.unit_amount) : "Not subscribed"} />
-              <DetailRow label="Billing interval" value={detailsTeam.billing_interval} />
-              <DetailRow label="Subscription status" value={detailsTeam.subscription_status} />
-              <DetailRow label="Renews" value={fmtDate(detailsTeam.current_period_end)} />
-              <DetailRow label="Trial ends" value={fmtDate(detailsTeam.trial_end ?? detailsTeam.trial_ends_at)} />
-              <DetailRow label="Region" value={detailsTeam.region} />
-              <DetailRow label="Industry" value={detailsTeam.industry} />
-              <DetailRow label="Members" value={detailsTeam.member_count} />
-              <DetailRow label="Projects" value={detailsTeam.project_count} />
-              <DetailRow label="Status" value={detailsTeam.suspended_at ? "Suspended" : detailsTeam.status} />
-            </div>
-          )}
+          {detailsTeam && (() => {
+            const subscribed = !!detailsTeam.subscription_status;
+            const mrrLabel = subscribed
+              ? `${fmtHKD(detailsTeam.unit_amount)}${detailsTeam.current_period_end ? ` / renews ${fmtDate(detailsTeam.current_period_end)}` : ""}`
+              : "Not subscribed";
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">Plan</div>
+                    <div className="text-base font-semibold">{PLAN_LABELS[detailsTeam.plan] ?? detailsTeam.plan}</div>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">MRR</div>
+                    <div className="text-base font-semibold">{mrrLabel}</div>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">Total users</div>
+                    <div className="text-base font-semibold">{detailsTeam.member_count}</div>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="text-xs text-muted-foreground">Total projects</div>
+                    <div className="text-base font-semibold">{detailsTeam.project_count}</div>
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs">
+                  <DetailRow label="Billing owner" value={detailsTeam.billing_owner_email} />
+                  <DetailRow label="Subscription status" value={detailsTeam.subscription_status} />
+                  <DetailRow label="Billing interval" value={detailsTeam.billing_interval} />
+                  <DetailRow label="Trial ends" value={fmtDate(detailsTeam.trial_end ?? detailsTeam.trial_ends_at)} />
+                  <DetailRow label="Region" value={detailsTeam.region} />
+                  <DetailRow label="Industry" value={detailsTeam.industry} />
+                  <DetailRow label="Status" value={detailsTeam.suspended_at ? "Suspended" : detailsTeam.status} />
+                </div>
+              </div>
+            );
+          })()}
           <DialogFooter className="gap-2 flex-wrap">
             {detailsTeam && (
               <>
