@@ -26,6 +26,7 @@ interface MobileProjectToolbarProps {
   effectiveView: ProjectView;
   setViewOverride: (v: ProjectView) => void;
   uploader: React.ReactNode;
+  canEdit?: boolean;
   onOpenExport: () => void;
   onOpenActivity: () => void;
   onOpenDetails: () => void;
@@ -40,6 +41,7 @@ export const MobileProjectToolbar = ({
   effectiveView,
   setViewOverride,
   uploader,
+  canEdit = true,
   onOpenExport,
   onOpenActivity,
   onOpenDetails,
@@ -100,10 +102,14 @@ export const MobileProjectToolbar = ({
           </button>
         </div>
 
-        {/* Upload — flex-1 centre */}
-        <div className="flex flex-1 justify-center [&_button]:h-9 [&_button]:w-full [&_button]:max-w-[200px]">
-          {uploader}
-        </div>
+        {/* Upload — flex-1 centre (hidden for viewers) */}
+        {canEdit ? (
+          <div className="flex flex-1 justify-center [&_button]:h-9 [&_button]:w-full [&_button]:max-w-[200px]">
+            {uploader}
+          </div>
+        ) : (
+          <div className="flex-1" />
+        )}
 
         {/* Overflow */}
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -126,14 +132,16 @@ export const MobileProjectToolbar = ({
                 <FileDown className="mr-3 h-4 w-4" />
                 Export {mostRecentDayLabel ? "latest day" : "project"}
               </Button>
-              <Button
-                variant="ghost"
-                className="h-12 justify-start text-base"
-                onClick={() => runAfterClose(() => setSettingsOpen(true))}
-              >
-                <SettingsIcon className="mr-3 h-4 w-4" />
-                Settings
-              </Button>
+              {canEdit && (
+                <Button
+                  variant="ghost"
+                  className="h-12 justify-start text-base"
+                  onClick={() => runAfterClose(() => setSettingsOpen(true))}
+                >
+                  <SettingsIcon className="mr-3 h-4 w-4" />
+                  Settings
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"

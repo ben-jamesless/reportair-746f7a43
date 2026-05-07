@@ -683,16 +683,19 @@ const ProjectDetail = () => {
         mostRecentDayLabel={mostRecentDay?.label ?? null}
         effectiveView={effectiveView}
         setViewOverride={setViewOverride}
+        canEdit={canEdit}
         uploader={
-          <ErrorBoundary label="uploader-mobile">
-            <PhotoUploader
-              projectId={project.id}
-              albumId={uploadAlbumId}
-              areaId={uploadAreaId}
-              areas={areas}
-              onUploaded={loadAll}
-            />
-          </ErrorBoundary>
+          canEdit ? (
+            <ErrorBoundary label="uploader-mobile">
+              <PhotoUploader
+                projectId={project.id}
+                albumId={uploadAlbumId}
+                areaId={uploadAreaId}
+                areas={areas}
+                onUploaded={loadAll}
+              />
+            </ErrorBoundary>
+          ) : null
         }
         onOpenExport={openTopExport}
         onOpenActivity={() => setActiveTab("activity")}
@@ -711,52 +714,66 @@ const ProjectDetail = () => {
             <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
               {project.template === "event_production" ? "Event production" : "Project"}
             </Badge>
-            <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
-              <SelectTrigger
-                aria-label="Project status"
+            {canEdit ? (
+              <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
+                <SelectTrigger
+                  aria-label="Project status"
+                  className={cn(
+                    "h-7 w-auto gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                    projectStatusMeta(project.overall_status).pillClass,
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
+                    <span>{projectStatusMeta(project.overall_status).label}</span>
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      <span className="flex items-center gap-2">
+                        <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
+                        {s.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span
                 className={cn(
-                  "h-7 w-auto gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                  "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium",
                   projectStatusMeta(project.overall_status).pillClass,
                 )}
               >
-                <span className="flex items-center gap-1.5">
-                  <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
-                  <span>{projectStatusMeta(project.overall_status).label}</span>
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {PROJECT_STATUSES.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    <span className="flex items-center gap-2">
-                      <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
-                      {s.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
+                <span>{projectStatusMeta(project.overall_status).label}</span>
+              </span>
+            )}
           </div>
           <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
           {project.description && (
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
           )}
         </div>
-        <div className="flex flex-col gap-2 sm:items-end">
-          <div className="flex flex-wrap items-center gap-2">
-            <ErrorBoundary label="uploader">
-              <PhotoUploader
-                projectId={project.id}
-                albumId={uploadAlbumId}
-                areaId={uploadAreaId}
-                areas={areas}
-                onUploaded={loadAll}
-              />
-            </ErrorBoundary>
+        {canEdit && (
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <ErrorBoundary label="uploader">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={loadAll}
+                />
+              </ErrorBoundary>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Uploading to: <span className="font-medium">{uploadContextLabel}</span>
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Uploading to: <span className="font-medium">{uploadContextLabel}</span>
-          </p>
-        </div>
+        )}
       </div>
 
       {project?.archived_at && (
@@ -844,7 +861,9 @@ const ProjectDetail = () => {
               <MessageSquare className="mr-2 h-4 w-4" />
               Feedback
             </Button>
-            <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
+            {canEdit && (
+              <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
+            )}
           </div>
         </div>
 
@@ -1080,6 +1099,7 @@ const ProjectDetail = () => {
                           onSave={(next) => saveDayNote(activeDay, next)}
                           rich
                           rows={4}
+                          readOnly={!canEdit}
                         />
                       </div>
 
@@ -1104,6 +1124,7 @@ const ProjectDetail = () => {
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
                                       className="ml-auto"
+                                      readOnly={!canEdit}
                                     />
                                   </header>
                                   <EditableNote
@@ -1112,6 +1133,7 @@ const ProjectDetail = () => {
                                     onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
                                     rich
                                     rows={3}
+                                    readOnly={!canEdit}
                                   />
                                 </article>
                                 {!isLast && (
@@ -1138,15 +1160,17 @@ const ProjectDetail = () => {
                         : "Upload to this day + area context, or pick a different selection."
                     }
                     action={
-                      <ErrorBoundary label="uploader">
-                        <PhotoUploader
-                          projectId={project.id}
-                          albumId={uploadAlbumId}
-                          areaId={uploadAreaId}
-                          areas={areas}
-                          onUploaded={loadAll}
-                        />
-                      </ErrorBoundary>
+                      canEdit ? (
+                        <ErrorBoundary label="uploader">
+                          <PhotoUploader
+                            projectId={project.id}
+                            albumId={uploadAlbumId}
+                            areaId={uploadAreaId}
+                            areas={areas}
+                            onUploaded={loadAll}
+                          />
+                        </ErrorBoundary>
+                      ) : undefined
                     }
                   />
                 ) : activeDay !== ALL_DAYS && !isAlbumKey(activeDay) ? (
@@ -1185,6 +1209,7 @@ const ProjectDetail = () => {
                                     value={st}
                                     onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
                                     className="ml-auto"
+                                    readOnly={!canEdit}
                                   />
                                 </header>
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
