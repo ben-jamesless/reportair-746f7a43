@@ -714,30 +714,42 @@ const ProjectDetail = () => {
             <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
               {project.template === "event_production" ? "Event production" : "Project"}
             </Badge>
-            <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
-              <SelectTrigger
-                aria-label="Project status"
+            {canEdit ? (
+              <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
+                <SelectTrigger
+                  aria-label="Project status"
+                  className={cn(
+                    "h-7 w-auto gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                    projectStatusMeta(project.overall_status).pillClass,
+                  )}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
+                    <span>{projectStatusMeta(project.overall_status).label}</span>
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      <span className="flex items-center gap-2">
+                        <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
+                        {s.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span
                 className={cn(
-                  "h-7 w-auto gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
+                  "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium",
                   projectStatusMeta(project.overall_status).pillClass,
                 )}
               >
-                <span className="flex items-center gap-1.5">
-                  <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
-                  <span>{projectStatusMeta(project.overall_status).label}</span>
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {PROJECT_STATUSES.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    <span className="flex items-center gap-2">
-                      <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
-                      {s.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
+                <span>{projectStatusMeta(project.overall_status).label}</span>
+              </span>
+            )}
           </div>
           <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
           {project.description && (
