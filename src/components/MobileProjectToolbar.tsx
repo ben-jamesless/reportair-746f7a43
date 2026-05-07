@@ -41,6 +41,7 @@ export const MobileProjectToolbar = ({
   effectiveView,
   setViewOverride,
   uploader,
+  canEdit = true,
   onOpenExport,
   onOpenActivity,
   onOpenDetails,
