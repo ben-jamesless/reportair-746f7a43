@@ -26,6 +26,7 @@ interface MobileProjectToolbarProps {
   effectiveView: ProjectView;
   setViewOverride: (v: ProjectView) => void;
   uploader: React.ReactNode;
+  canEdit?: boolean;
   onOpenExport: () => void;
   onOpenActivity: () => void;
   onOpenDetails: () => void;
