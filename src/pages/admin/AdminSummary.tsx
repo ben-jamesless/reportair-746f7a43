@@ -20,6 +20,15 @@ type Summary = {
   project_members_by_role: Record<string, number>;
 };
 
+type BillingSummary = {
+  total_mrr: number; active_accounts: number;
+  churned_accounts_last_30d: number; churned_mrr_last_30d: number;
+  mrr_start_30d_ago: number; currency: string;
+};
+
+const fmtHKD = (n: number | null | undefined) =>
+  n == null ? "—" : new Intl.NumberFormat("en-HK", { style: "currency", currency: "HKD", maximumFractionDigits: 0 }).format(Number(n));
+
 const Stat = ({ icon: Icon, label, value, sub }: { icon: any; label: string; value: number | string; sub?: string }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
