@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Users, FolderKanban, Building2, Image as ImageIcon } from "lucide-react";
+import { Loader2, Users, FolderKanban, Building2, Image as ImageIcon, DollarSign, TrendingDown, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -20,6 +20,15 @@ type Summary = {
   project_members_by_role: Record<string, number>;
 };
 
+type BillingSummary = {
+  total_mrr: number; active_accounts: number;
+  churned_accounts_last_30d: number; churned_mrr_last_30d: number;
+  mrr_start_30d_ago: number; currency: string;
+};
+
+const fmtHKD = (n: number | null | undefined) =>
+  n == null ? "—" : new Intl.NumberFormat("en-HK", { style: "currency", currency: "HKD", maximumFractionDigits: 0 }).format(Number(n));
+
 const Stat = ({ icon: Icon, label, value, sub }: { icon: any; label: string; value: number | string; sub?: string }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -35,13 +44,18 @@ const Stat = ({ icon: Icon, label, value, sub }: { icon: any; label: string; val
 
 const AdminSummary = () => {
   const [data, setData] = useState<Summary | null>(null);
+  const [billing, setBilling] = useState<BillingSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.rpc("admin_summary" as never);
-      if (error) toast.error(error.message);
-      setData((data as Summary) ?? null);
+      const [sumRes, billRes]: any = await Promise.all([
+        supabase.rpc("admin_summary" as never),
+        supabase.rpc("admin_billing_summary" as never),
+      ]);
+      if (sumRes.error) toast.error(sumRes.error.message);
+      setData((sumRes.data as Summary) ?? null);
+      if (!billRes.error && billRes.data) setBilling(billRes.data as BillingSummary);
       setLoading(false);
     })();
   }, []);
@@ -61,8 +75,19 @@ const AdminSummary = () => {
   const roleEntries = Object.entries(data.roles ?? {});
   const memberRoleEntries = Object.entries(data.project_members_by_role ?? {});
 
+  const churnPct = billing && billing.mrr_start_30d_ago > 0
+    ? (billing.churned_mrr_last_30d / billing.mrr_start_30d_ago) * 100
+    : 0;
+
   return (
     <div className="space-y-6">
+      {billing && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Stat icon={DollarSign} label="Total MRR" value={fmtHKD(billing.total_mrr)} />
+          <Stat icon={Activity} label="Active accounts" value={billing.active_accounts} />
+          <Stat icon={TrendingDown} label="30‑day churn" value={`${churnPct.toFixed(1)}%`} sub={fmtHKD(billing.churned_mrr_last_30d)} />
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat icon={Users} label="Total users" value={data.total_users} sub={`${data.new_users_30d} new in last 30 days`} />
         <Stat icon={FolderKanban} label="Total projects" value={data.total_projects} sub={`${data.new_projects_30d} new in last 30 days`} />

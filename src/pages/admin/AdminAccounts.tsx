@@ -20,43 +20,39 @@ type AdminTeam = {
   current_period_end: string | null; trial_end: string | null;
 };
 
-type BillingSummary = {
-  total_mrr: number; active_accounts: number;
-  churned_accounts_last_30d: number; churned_mrr_last_30d: number;
-  mrr_start_30d_ago: number; currency: string;
-};
-
 const fmtHKD = (n: number | null | undefined) =>
   n == null ? "—" : new Intl.NumberFormat("en-HK", { style: "currency", currency: "HKD", maximumFractionDigits: 0 }).format(Number(n));
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
 const PLAN_LABELS: Record<string, string> = {
-  free: "Free",
-  pro: "Pro",
-  team: "Team",
-  enterprise: "Enterprise",
+  free: "Free", pro: "Pro", team: "Team", enterprise: "Enterprise",
 };
 
 type Member = { user_id: string; email: string | null; full_name: string | null };
 
 const PLANS = ["free", "pro", "team", "enterprise"];
 
+const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="flex justify-between gap-4 py-1.5 border-b last:border-0">
+    <span className="text-sm text-muted-foreground">{label}</span>
+    <span className="text-sm font-medium text-right">{value ?? "—"}</span>
+  </div>
+);
+
 const AdminAccounts = () => {
   const [rows, setRows] = useState<AdminTeam[]>([]);
-  const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [ownerDialog, setOwnerDialog] = useState<AdminTeam | null>(null);
+  const [detailsTeam, setDetailsTeam] = useState<AdminTeam | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [pickedUser, setPickedUser] = useState<string>("");
 
   const load = async () => {
     setLoading(true);
     const teamsRes: any = await supabase.rpc("admin_list_teams" as never);
-    const sumRes: any = await supabase.rpc("admin_billing_summary" as never);
     if (teamsRes.error) toast.error(teamsRes.error.message);
     setRows((teamsRes.data as AdminTeam[]) ?? []);
-    if (!sumRes.error && sumRes.data) setSummary(sumRes.data as BillingSummary);
     setLoading(false);
   };
 
@@ -98,33 +94,18 @@ const AdminAccounts = () => {
     else { toast.success("Billing owner updated"); setOwnerDialog(null); load(); }
   };
 
+  const openStripe = (t: AdminTeam) => {
+    console.log("Open in Stripe", t.id);
+    toast.info("Stripe integration not yet wired");
+  };
+
   const filtered = rows.filter((r) =>
     !q || r.name.toLowerCase().includes(q.toLowerCase()) ||
     (r.billing_owner_email ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
-  const churnPct = summary && summary.mrr_start_30d_ago > 0
-    ? (summary.churned_mrr_last_30d / summary.mrr_start_30d_ago) * 100
-    : 0;
-
   return (
     <div className="space-y-4">
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="rounded-md border p-3">
-            <div className="text-xs text-muted-foreground">Total MRR</div>
-            <div className="text-lg font-semibold">{fmtHKD(summary.total_mrr)}</div>
-          </div>
-          <div className="rounded-md border p-3">
-            <div className="text-xs text-muted-foreground">Active accounts</div>
-            <div className="text-lg font-semibold">{summary.active_accounts}</div>
-          </div>
-          <div className="rounded-md border p-3">
-            <div className="text-xs text-muted-foreground">30‑day churn</div>
-            <div className="text-lg font-semibold">{churnPct.toFixed(1)}% ({fmtHKD(summary.churned_mrr_last_30d)})</div>
-          </div>
-        </div>
-      )}
       <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
       <div className="rounded-md border overflow-x-auto">
         <Table>
@@ -134,12 +115,6 @@ const AdminAccounts = () => {
               <TableHead>Billing owner</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>MRR (HKD)</TableHead>
-              <TableHead>Interval</TableHead>
-              <TableHead>Subscription</TableHead>
-              <TableHead>Renews</TableHead>
-              <TableHead>Trial ends</TableHead>
-              <TableHead>Region</TableHead>
-              <TableHead>Industry</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Projects</TableHead>
@@ -148,16 +123,16 @@ const AdminAccounts = () => {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={14} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No teams</TableCell></TableRow>
             ) : filtered.map((t) => {
               const subscribed = !!t.subscription_status;
               return (
-              <TableRow key={t.id}>
+              <TableRow key={t.id} className="cursor-pointer" onClick={() => setDetailsTeam(t)}>
                 <TableCell className="font-medium">{t.name}</TableCell>
                 <TableCell>{t.billing_owner_email ?? "—"}</TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <Select value={t.plan} onValueChange={(v) => changePlan(t, v)}>
                     <SelectTrigger className="w-32 h-8"><SelectValue>{PLAN_LABELS[t.plan] ?? t.plan}</SelectValue></SelectTrigger>
                     <SelectContent>
@@ -166,12 +141,6 @@ const AdminAccounts = () => {
                   </Select>
                 </TableCell>
                 <TableCell>{subscribed ? fmtHKD(t.unit_amount) : <span className="text-muted-foreground">Not subscribed</span>}</TableCell>
-                <TableCell>{subscribed ? (t.billing_interval ?? "monthly") : "—"}</TableCell>
-                <TableCell>{subscribed ? <Badge variant="outline">{t.subscription_status}</Badge> : "—"}</TableCell>
-                <TableCell>{fmtDate(t.current_period_end)}</TableCell>
-                <TableCell>{fmtDate(t.trial_end ?? t.trial_ends_at)}</TableCell>
-                <TableCell>{t.region ?? "—"}</TableCell>
-                <TableCell>{t.industry ?? "—"}</TableCell>
                 <TableCell>
                   {t.suspended_at
                     ? <Badge variant="destructive">Suspended</Badge>
@@ -179,9 +148,10 @@ const AdminAccounts = () => {
                 </TableCell>
                 <TableCell>{t.member_count}</TableCell>
                 <TableCell>{t.project_count}</TableCell>
-                <TableCell className="text-right space-x-2 whitespace-nowrap">
+                <TableCell className="text-right space-x-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                  <Button size="sm" variant="outline" onClick={() => setDetailsTeam(t)}>Details</Button>
                   <Button size="sm" variant="outline" onClick={() => openOwnerDialog(t)}>Change owner</Button>
-                  <Button size="sm" variant="outline" onClick={() => { console.log("Open in Stripe", t.id); toast.info("Stripe integration not yet wired"); }}>Open in Stripe</Button>
+                  <Button size="sm" variant="outline" onClick={() => openStripe(t)}>Open in Stripe</Button>
                   <Button size="sm" variant={t.suspended_at ? "outline" : "destructive"} onClick={() => toggleSuspend(t)}>
                     {t.suspended_at ? "Unsuspend" : "Suspend"}
                   </Button>
@@ -191,6 +161,42 @@ const AdminAccounts = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!detailsTeam} onOpenChange={(o) => !o && setDetailsTeam(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{detailsTeam?.name}</DialogTitle>
+          </DialogHeader>
+          {detailsTeam && (
+            <div className="space-y-1">
+              <DetailRow label="Billing owner" value={detailsTeam.billing_owner_email} />
+              <DetailRow label="Plan" value={PLAN_LABELS[detailsTeam.plan] ?? detailsTeam.plan} />
+              <DetailRow label="MRR (HKD)" value={detailsTeam.subscription_status ? fmtHKD(detailsTeam.unit_amount) : "Not subscribed"} />
+              <DetailRow label="Billing interval" value={detailsTeam.billing_interval} />
+              <DetailRow label="Subscription status" value={detailsTeam.subscription_status} />
+              <DetailRow label="Renews" value={fmtDate(detailsTeam.current_period_end)} />
+              <DetailRow label="Trial ends" value={fmtDate(detailsTeam.trial_end ?? detailsTeam.trial_ends_at)} />
+              <DetailRow label="Region" value={detailsTeam.region} />
+              <DetailRow label="Industry" value={detailsTeam.industry} />
+              <DetailRow label="Members" value={detailsTeam.member_count} />
+              <DetailRow label="Projects" value={detailsTeam.project_count} />
+              <DetailRow label="Status" value={detailsTeam.suspended_at ? "Suspended" : detailsTeam.status} />
+            </div>
+          )}
+          <DialogFooter className="gap-2 flex-wrap">
+            {detailsTeam && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => { const t = detailsTeam; setDetailsTeam(null); openOwnerDialog(t); }}>Change owner</Button>
+                <Button variant="outline" size="sm" onClick={() => detailsTeam && openStripe(detailsTeam)}>Open in Stripe</Button>
+                <Button variant={detailsTeam.suspended_at ? "outline" : "destructive"} size="sm" onClick={() => { toggleSuspend(detailsTeam); setDetailsTeam(null); }}>
+                  {detailsTeam.suspended_at ? "Unsuspend" : "Suspend"}
+                </Button>
+              </>
+            )}
+            <Button onClick={() => setDetailsTeam(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!ownerDialog} onOpenChange={(o) => !o && setOwnerDialog(null)}>
         <DialogContent>
