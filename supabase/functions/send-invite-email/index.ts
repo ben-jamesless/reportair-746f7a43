@@ -173,15 +173,27 @@ Deno.serve(async (req) => {
       }),
     });
 
+    const responseBody = await resp.text();
+    console.log("Resend response", {
+      inviteId,
+      to: invite.email,
+      status: resp.status,
+      body: responseBody,
+    });
+
     if (!resp.ok) {
-      const text = await resp.text();
-      console.error("Resend send failed", resp.status, text);
-      return json({ ok: false, error: `Resend ${resp.status}: ${text}` }, 200);
+      console.error("Resend send failed", resp.status, responseBody);
+      return json({ ok: false, error: `Resend ${resp.status}: ${responseBody}` }, 200);
     }
 
-    const result = await resp.json().catch(() => ({}));
+    let result: Record<string, unknown> = {};
+    try {
+      result = responseBody ? JSON.parse(responseBody) : {};
+    } catch (_e) {
+      result = { raw: responseBody };
+    }
     console.log("Invite email sent", { inviteId, to: invite.email, id: result?.id });
-    return json({ ok: true, id: result?.id });
+    return json({ ok: true, status: resp.status, body: result, id: result?.id });
   } catch (e) {
     console.error("send-invite-email crashed", e);
     return json({ ok: false, error: (e as Error).message }, 200);
