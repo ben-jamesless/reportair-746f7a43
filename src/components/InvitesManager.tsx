@@ -210,31 +210,74 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     navigate("/projects");
   };
 
+  const acceptedInvites = invites.filter((i) => i.accepted_at);
+  const pendingInvites = invites.filter((i) => !i.accepted_at);
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h4 className="mb-2 text-sm font-medium">Members ({members.length})</h4>
+    <div className="space-y-6">
+      {canManage && (
+        <section className="space-y-3 rounded-lg border bg-card p-4">
+          <div>
+            <h4 className="text-sm font-semibold">Invite someone to this project</h4>
+            <p className="text-xs text-muted-foreground">
+              They&apos;ll get an email with a link. New users are auto-added when they sign up.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              type="email"
+              placeholder="email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1"
+            />
+            <Select value={role} onValueChange={(v) => setRole(v as ProjectRole)}>
+              <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="owner">Owner</SelectItem>
+                <SelectItem value="editor">Editor</SelectItem>
+                <SelectItem value="viewer">Viewer</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={addInvite} disabled={loading}>
+              <Mail className="mr-2 h-4 w-4" />Send invite
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
+        </section>
+      )}
+
+      <section>
+        <h4 className="mb-2 text-sm font-semibold">Current access ({members.length})</h4>
         <div className="space-y-1">
           {members.map((m) => {
             const isSelf = m.user_id === user?.id;
             const isOwnerRow = m.role === "owner";
-            const showRoleSelect = canManage && !isSelf && !isOwnerRow;
+            const isLastOwner = isOwnerRow && ownerCount <= 1;
+            // Owners can edit any non-self member's role (including other owners),
+            // unless that would demote the last remaining owner.
+            const showRoleSelect = canManage && !isSelf && !isLastOwner;
+            // Owners cannot remove other owners (transfer/demote first), and never themselves.
             const showRemove = canManage && !isSelf && !isOwnerRow;
             return (
               <div key={m.user_id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
-                <span className="min-w-0 flex-1 truncate">
-                  {m.full_name || m.user_id.slice(0, 8)}
-                  {isSelf && <span className="ml-1 text-xs text-muted-foreground">(you)</span>}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">
+                    {m.full_name || m.user_id.slice(0, 8)}
+                    {isSelf && <span className="ml-1 text-xs font-normal text-muted-foreground">(you)</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Active</div>
+                </div>
                 {showRoleSelect ? (
                   <Select
                     value={m.role}
-                    onValueChange={(v) => changeRole(m, v as "editor" | "viewer")}
+                    onValueChange={(v) => changeRole(m, v as ProjectRole)}
                   >
                     <SelectTrigger className="h-8 w-28">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="owner">Owner</SelectItem>
                       <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="viewer">Viewer</SelectItem>
                     </SelectContent>
@@ -242,7 +285,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 ) : (
                   <Badge variant="secondary" className="capitalize">{m.role}</Badge>
                 )}
-                {showRemove && (
+                {showRemove ? (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -252,13 +295,36 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
+                ) : (
+                  <span className="w-10" aria-hidden />
                 )}
               </div>
             );
           })}
+          {pendingInvites.map((inv) => (
+            <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border border-dashed px-3 py-2 text-sm">
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium">{inv.email}</div>
+                <div className="text-xs text-muted-foreground">Pending invite</div>
+              </div>
+              <Badge variant="outline" className="capitalize">{inv.role}</Badge>
+              {canManage && (
+                <>
+                  <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.token)} title="Copy invite link">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => sendInviteEmail(inv.id)} title="Resend invite email">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => revokeInvite(inv.id)} title="Revoke invite">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Leave project — for non-owner current member */}
         {currentUserRole && currentUserRole !== "owner" && (
           <div className="mt-3 flex justify-end border-t pt-3">
             <Button
@@ -272,25 +338,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
             </Button>
           </div>
         )}
-      </div>
-
-      {canManage && (
-        <div>
-          <h4 className="mb-2 text-sm font-medium">Invite by email</h4>
-          <div className="flex gap-2">
-            <Input type="email" placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Select value={role} onValueChange={(v) => setRole(v as "editor" | "viewer")}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={addInvite} disabled={loading}><Mail className="mr-2 h-4 w-4" />Invite</Button>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">Invite is auto-accepted when they sign up. Existing users can use the link.</p>
-        </div>
-      )}
+      </section>
 
       {invites.length > 0 && (
         <div>
