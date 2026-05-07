@@ -756,6 +756,42 @@ const Projects = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Leave project confirmation */}
+      <AlertDialog
+        open={!!leavingProject}
+        onOpenChange={(o) => { if (!o) setLeavingProject(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will lose access to{" "}
+              <span className="font-semibold text-foreground">{leavingProject?.name}</span>.
+              The project and its content remain for other members. You can be re-invited later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={leaving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={leaving || !leavingProject}
+              onClick={async (e) => {
+                e.preventDefault();
+                if (!leavingProject) return;
+                setLeaving(true);
+                const { error } = await supabase.rpc("leave_project", { _project_id: leavingProject.id });
+                setLeaving(false);
+                if (error) { toast.error(error.message); return; }
+                toast.success("You left the project");
+                setLeavingProject(null);
+                load();
+              }}
+            >
+              {leaving ? "Leaving…" : "Leave project"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Move to folder dialog */}
       <Dialog open={!!moveProject} onOpenChange={(o) => !o && setMoveProject(null)}>
         <DialogContent className="sm:max-w-sm">
