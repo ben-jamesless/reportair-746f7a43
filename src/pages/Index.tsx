@@ -363,7 +363,7 @@ const Index = () => {
 
       {/* ============ PRICING ============ */}
       <section id="pricing" className="py-20 sm:py-28">
-        <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
+        <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
           <header className="mx-auto mb-12 max-w-2xl text-center">
             <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}>
               {COPY.pricing.title}
@@ -373,13 +373,13 @@ const Index = () => {
             </p>
           </header>
 
-          <div className="grid items-stretch gap-6 md:grid-cols-3">
+          <div className="grid items-stretch gap-7 md:grid-cols-3 lg:gap-8">
             {COPY.pricing.plans.map((p) => {
               const isFeatured = p.featured;
               return (
                 <article
                   key={p.name}
-                  className={`relative flex flex-col rounded-2xl p-7 transition-transform ${isFeatured ? "md:scale-[1.06] md:py-8" : ""}`}
+                  className={`relative flex flex-col rounded-2xl p-7 transition-transform ${isFeatured ? "md:scale-[1.04] md:py-8" : ""}`}
                   style={{
                     background: isFeatured ? "#fff" : "#fff",
                     border: `1px solid ${isFeatured ? BRAND.sky : BRAND.border}`,
@@ -390,8 +390,16 @@ const Index = () => {
                 >
                   {isFeatured && p.flag && (
                     <span
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[0.7rem] font-bold uppercase tracking-wider text-white"
-                      style={{ background: BRAND.sky }}
+                      className="absolute left-1/2 whitespace-nowrap rounded-full font-bold text-white"
+                      style={{
+                        top: "-14px",
+                        transform: "translateX(-50%)",
+                        padding: "6px 18px",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        background: BRAND.sky,
+                        boxShadow: "0 6px 18px -6px rgba(26,110,255,.55)",
+                      }}
                     >
                       {p.flag}
                     </span>
@@ -448,15 +456,15 @@ const Index = () => {
               "radial-gradient(50% 60% at 80% 20%, rgba(26,110,255,.25), transparent 60%), radial-gradient(40% 50% at 10% 90%, rgba(26,110,255,.18), transparent 60%)",
           }}
         />
-        <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-6">
+        <div className="relative mx-auto max-w-[1000px] px-5 text-center sm:px-8">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl" style={{ ...display, lineHeight: 1.15 }}>
             {COPY.finalCta.title}
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base" style={{ color: "rgba(237,241,247,.8)" }}>
+          <p className="mx-auto mt-4 max-w-2xl text-base sm:text-lg" style={{ color: "rgba(237,241,247,.8)" }}>
             {COPY.finalCta.sub}
           </p>
           <form
-            className="mx-auto mt-8 flex max-w-md flex-col gap-3 sm:flex-row"
+            className="mx-auto mt-8 flex max-w-[780px] flex-col gap-3 sm:flex-row"
             onSubmit={(e) => {
               e.preventDefault();
               const btn = e.currentTarget.querySelector("button");
