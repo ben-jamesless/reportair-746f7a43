@@ -15,7 +15,20 @@ type AdminTeam = {
   billing_owner_email: string | null; member_count: number;
   project_count: number; created_at: string;
   trial_ends_at: string | null; region: string | null; industry: string | null;
+  plan_name: string | null; billing_interval: string | null;
+  unit_amount: number | null; subscription_status: string | null;
+  current_period_end: string | null; trial_end: string | null;
 };
+
+type BillingSummary = {
+  total_mrr: number; active_accounts: number;
+  churned_accounts_last_30d: number; churned_mrr_last_30d: number;
+  mrr_start_30d_ago: number; currency: string;
+};
+
+const fmtHKD = (n: number | null | undefined) =>
+  n == null ? "—" : new Intl.NumberFormat("en-HK", { style: "currency", currency: "HKD", maximumFractionDigits: 0 }).format(Number(n));
+const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
