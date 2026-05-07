@@ -7,6 +7,7 @@ import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 type PhotoRow = {
   id: string;
   storage_path: string;
+  report_path?: string | null;
   file_name?: string | null;
   caption?: string | null;
   area_id: string | null;
@@ -176,7 +177,7 @@ Deno.serve(async (req) => {
       { data: areaDayNotesRows },
     ] = await Promise.all([
       supabase.from("projects").select("name, description, template, client_name, event_type, event_location, event_date, overall_status, geo_lat, geo_lng, geo_location_query").eq("id", projectId).single(),
-      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, album_id, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
+      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, report_path, album_id, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
       supabase.from("albums").select("id, name").eq("project_id", projectId),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("day_notes").select("date, notes").eq("project_id", projectId),
@@ -1091,8 +1092,9 @@ Deno.serve(async (req) => {
               // This guarantees portrait/landscape photos fill the cell with no narrow strips.
               const targetW = Math.round(cellW * 3); // 3x for retina-ish print quality
               const targetH = Math.round(cellH * 3);
+              const sourcePath = ph.report_path || ph.storage_path;
               const { data: signed } = await supabase.storage.from("photos").createSignedUrl(
-                ph.storage_path,
+                sourcePath,
                 600,
                 { transform: { width: targetW, height: targetH, resize: "cover", quality: 80 } },
               );
