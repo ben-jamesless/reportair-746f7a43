@@ -200,19 +200,19 @@ const Index = () => {
               {COPY.hero.eyebrow}
             </span>
             <h1
-              className="text-[2.4rem] font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[clamp(2.6rem,4.6vw,4rem)]"
+              className="text-[2.8rem] font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-[clamp(3.2rem,5.6vw,5rem)]"
               style={display}
             >
               {COPY.hero.headlineStart}
               <span style={{ color: BRAND.sky }}>{COPY.hero.headlineAccent}</span>
             </h1>
-            <p className="mt-5 max-w-xl text-base sm:text-lg" style={{ color: "rgba(237,241,247,.82)", lineHeight: 1.6 }}>
+            <p className="mt-8 max-w-xl text-lg sm:text-xl" style={{ color: "rgba(237,241,247,.82)", lineHeight: 1.6 }}>
               {COPY.hero.sub}
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap gap-3">
               <Link
                 to="/auth"
-                className="rounded-full px-5 py-3 text-[0.95rem] font-semibold text-white transition-colors"
+                className="rounded-full px-6 py-3.5 text-[1rem] font-semibold text-white transition-colors"
                 style={{ backgroundColor: BRAND.sky }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
@@ -221,7 +221,7 @@ const Index = () => {
               </Link>
               <a
                 href="#product"
-                className="rounded-full border px-5 py-3 text-[0.95rem] font-semibold text-white transition-colors hover:bg-white/10"
+                className="rounded-full border px-6 py-3.5 text-[1rem] font-semibold text-white transition-colors hover:bg-white/10"
                 style={{ borderColor: "rgba(208,217,232,.36)" }}
               >
                 {COPY.hero.secondary}
