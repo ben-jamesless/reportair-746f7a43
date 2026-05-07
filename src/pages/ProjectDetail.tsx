@@ -756,22 +756,24 @@ const ProjectDetail = () => {
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
           )}
         </div>
-        <div className="flex flex-col gap-2 sm:items-end">
-          <div className="flex flex-wrap items-center gap-2">
-            <ErrorBoundary label="uploader">
-              <PhotoUploader
-                projectId={project.id}
-                albumId={uploadAlbumId}
-                areaId={uploadAreaId}
-                areas={areas}
-                onUploaded={loadAll}
-              />
-            </ErrorBoundary>
+        {canEdit && (
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="flex flex-wrap items-center gap-2">
+              <ErrorBoundary label="uploader">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={loadAll}
+                />
+              </ErrorBoundary>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Uploading to: <span className="font-medium">{uploadContextLabel}</span>
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Uploading to: <span className="font-medium">{uploadContextLabel}</span>
-          </p>
-        </div>
+        )}
       </div>
 
       {project?.archived_at && (
