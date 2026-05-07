@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
@@ -23,6 +24,10 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
+const AdminAccounts = lazy(() => import("./pages/admin/AdminAccounts.tsx"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +59,12 @@ const App = () => (
                   <Route path="/invite/:token" element={<InviteAccept />} />
                   <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
                   <Route path="/s/:token" element={<SharePage />} />
+                  <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
+                    <Route index element={<AdminUsers />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="accounts" element={<AdminAccounts />} />
+                    <Route path="projects" element={<AdminProjects />} />
+                  </Route>
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
