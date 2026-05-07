@@ -155,7 +155,7 @@ const AdminAccounts = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>{subscribed ? fmtHKD(t.unit_amount) : <span className="text-muted-foreground">Not subscribed</span>}</TableCell>
+                <TableCell className={hasMrr ? "font-semibold text-primary" : ""}>{subscribed ? fmtHKD(t.unit_amount) : <span className="text-muted-foreground font-normal">Not subscribed</span>}</TableCell>
                 <TableCell>
                   {t.suspended_at
                     ? <Badge variant="destructive">Suspended</Badge>
