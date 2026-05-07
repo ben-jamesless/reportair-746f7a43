@@ -43,6 +43,7 @@ const PLANS = ["free", "pro", "team", "enterprise"];
 
 const AdminAccounts = () => {
   const [rows, setRows] = useState<AdminTeam[]>([]);
+  const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [ownerDialog, setOwnerDialog] = useState<AdminTeam | null>(null);
@@ -51,9 +52,13 @@ const AdminAccounts = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.rpc("admin_list_teams" as never);
-    if (error) toast.error(error.message);
-    setRows((data as AdminTeam[]) ?? []);
+    const [teamsRes, sumRes] = await Promise.all([
+      supabase.rpc("admin_list_teams" as never),
+      supabase.rpc("admin_billing_summary" as never),
+    ]);
+    if (teamsRes.error) toast.error(teamsRes.error.message);
+    setRows((teamsRes.data as AdminTeam[]) ?? []);
+    if (!sumRes.error && sumRes.data) setSummary(sumRes.data as unknown as BillingSummary);
     setLoading(false);
   };
 
