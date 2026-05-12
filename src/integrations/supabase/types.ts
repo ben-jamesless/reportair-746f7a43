@@ -679,6 +679,7 @@ export type Database = {
           id: string
           last_activity_at: string | null
           location: string | null
+          logo_path: string | null
           name: string
           overall_status: Database["public"]["Enums"]["project_status"]
           phase: string | null
@@ -706,6 +707,7 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           location?: string | null
+          logo_path?: string | null
           name: string
           overall_status?: Database["public"]["Enums"]["project_status"]
           phase?: string | null
@@ -733,6 +735,7 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           location?: string | null
+          logo_path?: string | null
           name?: string
           overall_status?: Database["public"]["Enums"]["project_status"]
           phase?: string | null
