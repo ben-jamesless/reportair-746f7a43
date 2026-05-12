@@ -605,7 +605,12 @@ Deno.serve(async (req) => {
 
       const FOOTER_SPACE = 20 * MM;
       const avail_h = PH_TOP - 14 - FOOTER_SPACE;
-      const photoImages = (area.photoImages ?? []).filter((img): img is PDFImage => img !== null).slice(0, 9);
+      const paired = (area.photoImages ?? [])
+        .map((img, idx) => ({ img, caption: area.photoCaptions?.[idx] ?? "" }))
+        .filter((p): p is { img: PDFImage; caption: string } => p.img !== null)
+        .slice(0, 9);
+      const photoImages = paired.map((p) => p.img);
+      const photoCaptions = paired.map((p) => p.caption);
       const photoCount = photoImages.length;
       if (photoCount > 0) {
         const PCOLS = 3;
