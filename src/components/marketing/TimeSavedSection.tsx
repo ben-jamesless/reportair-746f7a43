@@ -3,7 +3,7 @@ const body = { fontFamily: "'Inter', sans-serif" };
 
 const oldItems = [
   "Sorting WhatsApp photos for 45 mins",
-  "Copy-pasting into PowerPoint",
+  "Chasing your team to copy-past into PowerPoint",
   "Back at the desk at midnight",
   "Client chasing for an update",
 ];
