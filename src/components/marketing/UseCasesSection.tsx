@@ -126,7 +126,7 @@ export default function UseCasesSection() {
         }
       `}</style>
 
-      <div ref={containerRef} className="mx-auto max-w-[1200px] px-5 sm:px-6">
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
         <div
           style={{
             display: "flex",
@@ -201,7 +201,7 @@ export default function UseCasesSection() {
             gap: 20,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            paddingLeft: padLeft,
+            paddingLeft: "max(20px, calc((100vw - 1200px) / 2 + 24px))",
             paddingBottom: 20,
             paddingRight: 160,
             scrollbarWidth: "none",
