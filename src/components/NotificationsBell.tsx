@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, Check, CheckCheck, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -100,20 +100,43 @@ export const NotificationsBell = () => {
 
   const unreadCount = useMemo(() => items.filter((n) => !n.read_at).length, [items]);
 
-  // Mark all unread as read when opening
-  const handleOpenChange = useCallback(async (next: boolean) => {
+  // Open without auto-marking — user controls read/delete per item.
+  const handleOpenChange = useCallback((next: boolean) => {
     setOpen(next);
-    if (next && unreadCount > 0) {
-      const unreadIds = items.filter((n) => !n.read_at).map((n) => n.id);
-      // optimistic
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    const unreadIds = items.filter((n) => !n.read_at).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    const stamp = new Date().toISOString();
+    setItems((cur) => cur.map((n) => (n.read_at ? n : { ...n, read_at: stamp })));
+    await supabase.rpc("mark_notifications_read", { _ids: unreadIds });
+  }, [items]);
+
+  const toggleRead = useCallback(async (n: Enriched) => {
+    if (!n.read_at) {
       const stamp = new Date().toISOString();
-      setItems((cur) => cur.map((n) => (n.read_at ? n : { ...n, read_at: stamp })));
-      await supabase.rpc("mark_notifications_read", { _ids: unreadIds });
+      setItems((cur) => cur.map((x) => (x.id === n.id ? { ...x, read_at: stamp } : x)));
+      await supabase.rpc("mark_notifications_read", { _ids: [n.id] });
+    } else {
+      setItems((cur) => cur.map((x) => (x.id === n.id ? { ...x, read_at: null } : x)));
+      await supabase.from("notifications").update({ read_at: null }).eq("id", n.id);
     }
-  }, [items, unreadCount]);
+  }, []);
+
+  const deleteOne = useCallback(async (id: string) => {
+    setItems((cur) => cur.filter((x) => x.id !== id));
+    await supabase.from("notifications").delete().eq("id", id);
+  }, []);
 
   const handleClick = (n: Enriched) => {
     setOpen(false);
+    // Mark read on navigate.
+    if (!n.read_at) {
+      const stamp = new Date().toISOString();
+      setItems((cur) => cur.map((x) => (x.id === n.id ? { ...x, read_at: stamp } : x)));
+      supabase.rpc("mark_notifications_read", { _ids: [n.id] });
+    }
     const params = new URLSearchParams();
     if (n.photo_id) {
       params.set("photo", n.photo_id);
@@ -155,11 +178,24 @@ export const NotificationsBell = () => {
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" side="right" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b px-3 py-2">
+        <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
           <span className="text-sm font-semibold">Notifications</span>
-          {unreadCount > 0 && (
-            <span className="text-xs text-muted-foreground">{unreadCount} new</span>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <span className="text-xs text-muted-foreground">{unreadCount} new</span>
+            )}
+            {unreadCount > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 gap-1 px-2 text-xs"
+                onClick={markAllRead}
+              >
+                <CheckCheck className="h-3.5 w-3.5" />
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
         {items.length === 0 ? (
           <div className="px-3 py-8 text-center text-sm text-muted-foreground">
@@ -169,14 +205,17 @@ export const NotificationsBell = () => {
           <ScrollArea className="max-h-96">
             <ul className="divide-y">
               {items.map((n) => (
-                <li key={n.id}>
+                <li
+                  key={n.id}
+                  className={cn(
+                    "group/item relative transition-colors hover:bg-accent/50",
+                    !n.read_at && "bg-primary/5",
+                  )}
+                >
                   <button
                     type="button"
                     onClick={() => handleClick(n)}
-                    className={cn(
-                      "flex w-full flex-col gap-1 px-3 py-2.5 text-left transition-colors hover:bg-accent/50 focus-visible:bg-accent/50 focus-visible:outline-none",
-                      !n.read_at && "bg-primary/5",
-                    )}
+                    className="flex w-full flex-col gap-1 px-3 py-2.5 pr-16 text-left focus-visible:outline-none"
                   >
                     <div className="flex items-start gap-2">
                       {!n.read_at && (
@@ -203,6 +242,36 @@ export const NotificationsBell = () => {
                       </div>
                     </div>
                   </button>
+                  <div className="absolute right-2 top-2 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/item:opacity-100 focus-within:opacity-100">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6"
+                          onClick={(e) => { e.stopPropagation(); toggleRead(n); }}
+                          aria-label={n.read_at ? "Mark as unread" : "Mark as read"}
+                        >
+                          <Check className={cn("h-3.5 w-3.5", n.read_at && "text-muted-foreground")} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{n.read_at ? "Mark as unread" : "Mark as read"}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => { e.stopPropagation(); deleteOne(n.id); }}
+                          aria-label="Delete notification"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
+                  </div>
                 </li>
               ))}
             </ul>

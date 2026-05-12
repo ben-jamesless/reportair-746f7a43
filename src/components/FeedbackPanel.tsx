@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare, RefreshCw } from "lucide-react";
+import { Check, MessageSquare, RefreshCw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 
@@ -98,6 +100,41 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  // Track per-user "read" state for feedback items locally (no server schema needed).
+  const readKey = `feedback-read-${projectId}`;
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(window.localStorage.getItem(readKey) ?? "[]")); } catch { return new Set(); }
+  });
+  const persistRead = useCallback((next: Set<string>) => {
+    try { window.localStorage.setItem(readKey, JSON.stringify(Array.from(next))); } catch { /* noop */ }
+  }, [readKey]);
+  const toggleRead = useCallback((entryId: string) => {
+    setReadIds((cur) => {
+      const next = new Set(cur);
+      if (next.has(entryId)) next.delete(entryId); else next.add(entryId);
+      persistRead(next);
+      return next;
+    });
+  }, [persistRead]);
+
+  const deleteEntry = useCallback(async (entryId: string) => {
+    const isGuest = entryId.startsWith("g-");
+    const rawId = entryId.slice(2);
+    if (isGuest) {
+      setGuestNotes((cur) => cur.filter((n) => n.id !== rawId));
+      const { error } = await supabase.from("guest_notes").delete().eq("id", rawId);
+      if (error) { toast.error("Couldn't delete client note"); load(); return; }
+      toast.success("Client note deleted");
+    } else {
+      setInternalComments((cur) => cur.filter((c) => c.id !== rawId));
+      const { error } = await supabase.from("comments").delete().eq("id", rawId);
+      if (error) { toast.error("Couldn't delete comment"); load(); return; }
+      toast.success("Comment deleted");
+    }
+  }, []);
+
+
   const photoById = useMemo(() => {
     const m = new Map<string, PhotoLite>();
     allPhotos.forEach((p) => m.set(p.id, p));
@@ -179,6 +216,9 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
             entries={allEntries}
             photoById={photoById}
             onOpenPhoto={onOpenPhoto}
+            readIds={readIds}
+            onToggleRead={toggleRead}
+            onDelete={deleteEntry}
             emptyText="No feedback yet."
           />
         </TabsContent>
@@ -189,6 +229,9 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
             entries={clientEntries}
             photoById={photoById}
             onOpenPhoto={onOpenPhoto}
+            readIds={readIds}
+            onToggleRead={toggleRead}
+            onDelete={deleteEntry}
             emptyText="No client feedback yet."
           />
         </TabsContent>
@@ -206,6 +249,9 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
             }))}
             photoById={photoById}
             onOpenPhoto={onOpenPhoto}
+            readIds={readIds}
+            onToggleRead={toggleRead}
+            onDelete={deleteEntry}
             emptyText="No internal team comments yet."
           />
         </TabsContent>
@@ -232,12 +278,18 @@ const EntryList = ({
   entries,
   photoById,
   onOpenPhoto,
+  readIds,
+  onToggleRead,
+  onDelete,
   emptyText,
 }: {
   loading: boolean;
   entries: Array<{ id: string; kind: "client" | "internal"; photo_id: string; author: string; body: string; created_at: string }>;
   photoById: Map<string, PhotoLite>;
   onOpenPhoto: (photoId: string) => void;
+  readIds: Set<string>;
+  onToggleRead: (entryId: string) => void;
+  onDelete: (entryId: string) => void;
   emptyText: string;
 }) => {
   if (loading && entries.length === 0) {
@@ -250,24 +302,62 @@ const EntryList = ({
     <ul className="space-y-3">
       {entries.map((e) => {
         const photo = photoById.get(e.photo_id);
+        const isRead = readIds.has(e.id);
         return (
           <li key={e.id}>
-            <button
-              onClick={() => onOpenPhoto(e.photo_id)}
-              className="flex w-full gap-3 rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:bg-secondary/50"
+            <div
+              className={cn(
+                "group/feedback relative flex w-full gap-3 rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:bg-secondary/50",
+                isRead && "opacity-60",
+              )}
             >
-              {photo ? <Thumb path={photo.storage_path} alt={photo.file_name} /> : <div className="h-10 w-10 shrink-0 rounded bg-muted" />}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <p className="truncate text-xs font-medium">{e.author}</p>
-                  <ChipKind kind={e.kind} />
-                  <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
-                    {TIME_FMT.format(new Date(e.created_at))}
-                  </span>
+              <button
+                onClick={() => onOpenPhoto(e.photo_id)}
+                className="flex flex-1 gap-3 text-left focus-visible:outline-none"
+              >
+                {photo ? <Thumb path={photo.storage_path} alt={photo.file_name} /> : <div className="h-10 w-10 shrink-0 rounded bg-muted" />}
+                <div className="min-w-0 flex-1 pr-12">
+                  <div className="flex items-baseline gap-2">
+                    <p className="truncate text-xs font-medium">{e.author}</p>
+                    <ChipKind kind={e.kind} />
+                    <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                      {TIME_FMT.format(new Date(e.created_at))}
+                    </span>
+                  </div>
+                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs">{e.body}</p>
                 </div>
-                <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs">{e.body}</p>
+              </button>
+              <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/feedback:opacity-100 focus-within:opacity-100">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(ev) => { ev.stopPropagation(); onToggleRead(e.id); }}
+                      aria-label={isRead ? "Mark as unread" : "Mark as read"}
+                    >
+                      <Check className={cn("h-3.5 w-3.5", isRead && "text-muted-foreground")} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isRead ? "Mark as unread" : "Mark as read"}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                      onClick={(ev) => { ev.stopPropagation(); onDelete(e.id); }}
+                      aria-label="Delete"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete</TooltipContent>
+                </Tooltip>
               </div>
-            </button>
+            </div>
           </li>
         );
       })}
