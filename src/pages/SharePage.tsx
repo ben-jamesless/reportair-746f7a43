@@ -625,6 +625,27 @@ const SharePage = () => {
               )}
             </div>
 
+            {/* MOBILE: collapsible latest update */}
+            <details className="group mb-4 rounded-xl border xl:hidden" style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}>
+              <summary
+                className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold"
+                style={{ color: NEAR_BLACK }}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                    Latest update
+                  </span>
+                  {latestDayKey && (
+                    <span style={{ color: NEAR_BLACK }}>· {SHORT_FMT.format(allDayGroups[0].date)}</span>
+                  )}
+                </span>
+                <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" style={{ color: MUTED }} />
+              </summary>
+              <div className="px-2 pb-2">
+                {latestUpdatePanel}
+              </div>
+            </details>
+
             {visibleGroups.length === 0 ? (
               <div
                 className="rounded-xl border p-12 text-center text-sm"
