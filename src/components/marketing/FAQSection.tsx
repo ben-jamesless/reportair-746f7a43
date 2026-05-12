@@ -35,7 +35,7 @@ export default function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number>(0);
 
   return (
-    <section style={{ background: "#060D18", padding: "95px 24px" }}>
+    <section style={{ background: "#060D18", padding: "86px 24px" }}>
       <div style={{ textAlign: "center", marginBottom: 56 }}>
         <p
           style={{

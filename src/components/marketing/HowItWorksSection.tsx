@@ -50,7 +50,7 @@ const HowItWorksSection = () => {
         }
       `}</style>
 
-      <div className="hiw-scope" style={{ padding: "95px 48px 114px", maxWidth: 1100, margin: "0 auto" }}>
+      <div className="hiw-scope" style={{ padding: "86px 48px 103px", maxWidth: 1100, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <p
