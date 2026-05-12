@@ -196,6 +196,7 @@ export default function UseCasesSection() {
           ))}
         </div>
       </div>
+      </div>
 
       <div style={{ position: "relative" }}>
         <div
