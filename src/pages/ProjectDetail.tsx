@@ -300,7 +300,7 @@ const ProjectDetail = () => {
         .eq("project_id", id)
         .order("captured_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false }),
-      supabase.from("day_notes").select("date, notes").eq("project_id", id),
+      supabase.from("day_notes").select("date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues").eq("project_id", id),
       supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
       supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
     ]);
@@ -309,8 +309,18 @@ const ProjectDetail = () => {
     setAreas((ar ?? []) as Area[]);
     setPhotos((ph ?? []) as LightboxPhoto[]);
     const map = new Map<string, string | null>();
-    for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
+    const fieldMap = new Map<string, DailyFields>();
+    for (const row of (dn ?? []) as DayNote[]) {
+      map.set(row.date, row.notes ?? null);
+      fieldMap.set(row.date, {
+        today_objectives: row.today_objectives ?? null,
+        today_achievements: row.today_achievements ?? null,
+        tomorrow_objectives: row.tomorrow_objectives ?? null,
+        open_issues: row.open_issues ?? null,
+      });
+    }
     setDayNotes(map);
+    setDailyFields(fieldMap);
     const sm = new Map<string, AreaStatus>();
     for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
     setAreaDayStatus(sm);
