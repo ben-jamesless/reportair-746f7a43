@@ -100,20 +100,43 @@ export const NotificationsBell = () => {
 
   const unreadCount = useMemo(() => items.filter((n) => !n.read_at).length, [items]);
 
-  // Mark all unread as read when opening
-  const handleOpenChange = useCallback(async (next: boolean) => {
+  // Open without auto-marking — user controls read/delete per item.
+  const handleOpenChange = useCallback((next: boolean) => {
     setOpen(next);
-    if (next && unreadCount > 0) {
-      const unreadIds = items.filter((n) => !n.read_at).map((n) => n.id);
-      // optimistic
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    const unreadIds = items.filter((n) => !n.read_at).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    const stamp = new Date().toISOString();
+    setItems((cur) => cur.map((n) => (n.read_at ? n : { ...n, read_at: stamp })));
+    await supabase.rpc("mark_notifications_read", { _ids: unreadIds });
+  }, [items]);
+
+  const toggleRead = useCallback(async (n: Enriched) => {
+    if (!n.read_at) {
       const stamp = new Date().toISOString();
-      setItems((cur) => cur.map((n) => (n.read_at ? n : { ...n, read_at: stamp })));
-      await supabase.rpc("mark_notifications_read", { _ids: unreadIds });
+      setItems((cur) => cur.map((x) => (x.id === n.id ? { ...x, read_at: stamp } : x)));
+      await supabase.rpc("mark_notifications_read", { _ids: [n.id] });
+    } else {
+      setItems((cur) => cur.map((x) => (x.id === n.id ? { ...x, read_at: null } : x)));
+      await supabase.from("notifications").update({ read_at: null }).eq("id", n.id);
     }
-  }, [items, unreadCount]);
+  }, []);
+
+  const deleteOne = useCallback(async (id: string) => {
+    setItems((cur) => cur.filter((x) => x.id !== id));
+    await supabase.from("notifications").delete().eq("id", id);
+  }, []);
 
   const handleClick = (n: Enriched) => {
     setOpen(false);
+    // Mark read on navigate.
+    if (!n.read_at) {
+      const stamp = new Date().toISOString();
+      setItems((cur) => cur.map((x) => (x.id === n.id ? { ...x, read_at: stamp } : x)));
+      supabase.rpc("mark_notifications_read", { _ids: [n.id] });
+    }
     const params = new URLSearchParams();
     if (n.photo_id) {
       params.set("photo", n.photo_id);
