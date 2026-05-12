@@ -284,7 +284,7 @@ export const ExportPdfDialog = ({
       created_by: auth.user!.id,
       status: "queued",
       options: options as never,
-      logo_path: logoPath,
+      logo_path: null,
       accent_color: accent,
     }).select("id,status,output_path,error_message,photo_count").single();
     if (error || !row) { setSubmitting(false); toast.error(error?.message ?? "Failed"); return; }
