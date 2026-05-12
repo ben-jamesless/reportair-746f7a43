@@ -350,14 +350,13 @@ Deno.serve(async (req) => {
       } catch (_) { /* fall through */ }
     }
 
-    // Photo URL helper: signed transformed URL (cover-fit at ~retina).
-    const photoUrlFor = async (p: { storage_path: string; report_path: string | null }, w: number, h: number): Promise<string | null> => {
+    // Photo URL helper: signed URL for the stored/report image at its own aspect ratio.
+    // Do not request a fixed width+height transform here: that was forcing portrait
+    // photos into landscape 400×250 images before pdf-lib could read their real size.
+    const photoUrlFor = async (p: { storage_path: string; report_path: string | null }): Promise<string | null> => {
       try {
         const sourcePath = p.report_path || p.storage_path;
-        const tw = Math.round(w * 2.5), th = Math.round(h * 2.5);
-        const { data: signed } = await supabase.storage.from("photos").createSignedUrl(sourcePath, 600, {
-          transform: { width: tw, height: th, resize: "cover", quality: 80 },
-        });
+        const { data: signed } = await supabase.storage.from("photos").createSignedUrl(sourcePath, 600);
         return signed?.signedUrl ?? null;
       } catch { return null; }
     };
@@ -371,10 +370,9 @@ Deno.serve(async (req) => {
       photoCount: number;
       photoImages: (PDFImage | null)[];
     };
-    const TILE_W_PT = 160, TILE_H_PT = 100; // approximate target for transform sizing
     const areaData: AreaData[] = await Promise.all(sortedAreas.map(async (a) => {
       const ps = (photosByArea.get(a.id) ?? []).slice(0, 9);
-      const urls = await Promise.all(ps.map((p) => photoUrlFor(p, TILE_W_PT, TILE_H_PT)));
+      const urls = await Promise.all(ps.map((p) => photoUrlFor(p)));
       const images = await Promise.all(urls.map((u) => u ? fetchAndEmbedImage(pdfDoc, u) : Promise.resolve(null)));
       return {
         id: a.id,
