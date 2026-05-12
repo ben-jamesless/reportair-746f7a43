@@ -120,90 +120,94 @@ export default function UseCasesSection() {
           z-index: -1;
           pointer-events: none;
         }
+        .uc-pad-left { padding-left: max(48px, calc((100vw - 1200px) / 2 + 24px)); }
+        .uc-arrows-abs {
+          position: absolute;
+          top: 100px;
+          right: max(48px, calc((100vw - 1200px) / 2 + 24px));
+          display: flex;
+          gap: 10px;
+          z-index: 3;
+        }
         @media (max-width: 679px) {
-          .uc-header { padding: 0 24px !important; }
-          .uc-track { padding: 0 24px 20px !important; padding-right: 120px !important; }
+          .uc-pad-left { padding-left: 24px !important; }
+          .uc-track { padding-right: 120px !important; }
           .uc-card { width: 240px !important; }
-          .uc-arrows { display: none !important; }
+          .uc-arrows-abs { display: none !important; }
         }
       `}</style>
 
+      <div className="uc-arrows-abs">
+        {[-1, 1].map((d) => (
+          <button
+            key={d}
+            onClick={() => scroll(d as -1 | 1)}
+            aria-label={d === -1 ? "Scroll left" : "Scroll right"}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.05)",
+              color: "rgba(255,255,255,0.6)",
+              cursor: "pointer",
+              fontSize: 20,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            {d === -1 ? "‹" : "›"}
+          </button>
+        ))}
+      </div>
+
       <div
-        className="uc-header"
+        className="uc-pad-left"
         style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          padding: "0 48px",
           marginBottom: 48,
-          gap: 24,
+          paddingRight: 48,
         }}
       >
-        <div>
-          <p
-            style={{
-              ...body,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "rgba(168,196,255,0.6)",
-              margin: "0 0 14px 0",
-            }}
-          >
-            MADE FOR
-          </p>
-          <h2
-            style={{
-              ...display,
-              fontWeight: 800,
-              fontSize: 44,
-              color: "#fff",
-              letterSpacing: "-0.02em",
-              lineHeight: 1.1,
-              margin: 0,
-            }}
-          >
-            Every kind of site.
-          </h2>
-        </div>
-        <div className="uc-arrows" style={{ display: "flex", gap: 10 }}>
-          {[-1, 1].map((d) => (
-            <button
-              key={d}
-              onClick={() => scroll(d as -1 | 1)}
-              aria-label={d === -1 ? "Scroll left" : "Scroll right"}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(255,255,255,0.05)",
-                color: "rgba(255,255,255,0.6)",
-                cursor: "pointer",
-                fontSize: 20,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                lineHeight: 1,
-              }}
-            >
-              {d === -1 ? "‹" : "›"}
-            </button>
-          ))}
-        </div>
+        <p
+          style={{
+            ...body,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "rgba(168,196,255,0.6)",
+            margin: "0 0 14px 0",
+          }}
+        >
+          MADE FOR
+        </p>
+        <h2
+          style={{
+            ...display,
+            fontWeight: 800,
+            fontSize: 44,
+            color: "#fff",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
+            margin: 0,
+          }}
+        >
+          Every kind of site.
+        </h2>
       </div>
 
       <div style={{ position: "relative" }}>
         <div
           ref={trackRef}
-          className="uc-track"
+          className="uc-track uc-pad-left"
           style={{
             display: "flex",
             gap: 20,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            padding: "0 48px 20px",
+            paddingBottom: 20,
             paddingRight: 160,
             scrollbarWidth: "none",
           }}
@@ -215,7 +219,6 @@ export default function UseCasesSection() {
               style={
                 {
                   width: 280,
-                  minHeight: 400,
                   flexShrink: 0,
                   scrollSnapAlign: "start",
                   borderRadius: 20,
