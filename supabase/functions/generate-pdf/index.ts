@@ -594,10 +594,11 @@ Deno.serve(async (req) => {
         const PROWS = Math.ceil(photoCount / PCOLS);
         const gutter = 6;
         const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
-        const MAX_TILE_H = 110 * MM / 3; // ~36mm cap; balanced with avail_h below
+        const MAX_TILE_H = 110 * MM;
+        const CAPTION_H = 10;
         // Cap per-tile height so the grid still fits the available area.
-        const maxTileFromAvail = PROWS > 0 ? (avail_h - gutter * (PROWS - 1)) / PROWS : avail_h;
-        const tileCap = Math.min(MAX_TILE_H, maxTileFromAvail);
+        const maxTileFromAvail = PROWS > 0 ? (avail_h - gutter * (PROWS - 1) - CAPTION_H * PROWS) / PROWS : avail_h;
+        const tileCap = Math.min(MAX_TILE_H, Math.max(24, maxTileFromAvail));
 
         // Pre-compute each tile's height (per natural aspect) and each row's height (max in row).
         const tileHeights: number[] = photoImages.map((img) => {
@@ -615,7 +616,7 @@ Deno.serve(async (req) => {
         let acc = 0;
         for (let r = 0; r < PROWS; r++) {
           rowTopOffset.push(acc);
-          acc += rowHeights[r] + gutter;
+          acc += rowHeights[r] + CAPTION_H + gutter;
         }
 
         for (let i = 0; i < photoCount; i++) {
@@ -632,9 +633,9 @@ Deno.serve(async (req) => {
           const fitScale = Math.min(tile_w / img.width, tile_h / img.height);
           const fw = img.width * fitScale, fh = img.height * fitScale;
           page.drawImage(img, { x: px + (tile_w - fw) / 2, y: py + (tile_h - fh) / 2, width: fw, height: fh });
-          page.drawRectangle({ x: px, y: py, width: tile_w, height: 10, color: COLOR.CAPTION_BAR });
+          page.drawRectangle({ x: px, y: py - CAPTION_H, width: tile_w, height: CAPTION_H, color: COLOR.CAPTION_BAR });
           const cap = (area.name ?? "").slice(0, 30);
-          page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
+          page.drawText(cap, { x: px + 4, y: py - CAPTION_H + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
         }
       }
     }
