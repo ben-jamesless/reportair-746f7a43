@@ -307,9 +307,25 @@ export const ExportPdfDialog = ({
     setSubmitting(false);
   };
 
+  const downloadingRef = useRef(false);
   const downloadExport = async (path: string) => {
-    const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: true });
-    if (error || !data) { toast.error("Could not get download link"); return; }
+    if (downloadingRef.current) return;
+    downloadingRef.current = true;
+    let lastErr: unknown = null;
+    let signed: { signedUrl: string } | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: true });
+      if (!error && data?.signedUrl) { signed = data; break; }
+      lastErr = error;
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+    if (!signed) {
+      downloadingRef.current = false;
+      console.error("createSignedUrl failed", lastErr);
+      toast.error("Could not get download link");
+      return;
+    }
+    const data = signed;
     const a = document.createElement("a");
     a.href = data.signedUrl;
     a.rel = "noopener";
