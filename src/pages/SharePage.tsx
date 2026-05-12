@@ -370,7 +370,7 @@ const SharePage = () => {
     <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: BODY }}>
       {/* HEADER */}
       <header className="border-b" style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}>
-        <div className="mx-auto max-w-[1400px] px-6 py-6">
+        <div className="mx-auto w-full px-6 py-6 2xl:px-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
@@ -402,8 +402,8 @@ const SharePage = () => {
       </header>
 
       {/* THREE-COLUMN LAYOUT */}
-      <div className="mx-auto max-w-[1400px] px-6 py-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_300px]">
+      <div className="mx-auto w-full px-6 py-6 2xl:px-10">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_minmax(360px,420px)]">
           {/* LEFT: Date navigation */}
           <aside className="hidden lg:block space-y-1">
             <button
