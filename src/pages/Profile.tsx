@@ -206,6 +206,38 @@ const Profile = () => {
           </div>
         </section>
 
+        {/* Company / team name */}
+        {teams.length > 0 && (
+          <section className="space-y-3">
+            <div>
+              <Label>{teams.length === 1 ? "Company name" : "Companies"}</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Shown across the app and on shared reports. Only owners and admins can rename.
+              </p>
+            </div>
+            {teams.map((t) => {
+              const canEdit = t.role === "owner" || t.role === "admin";
+              return (
+                <div key={t.id} className="flex gap-2">
+                  <Input
+                    value={teamNames[t.id] ?? ""}
+                    onChange={(e) => setTeamNames((cur) => ({ ...cur, [t.id]: e.target.value }))}
+                    placeholder="Company name"
+                    disabled={!canEdit || savingTeam === t.id}
+                  />
+                  <Button
+                    onClick={() => handleSaveTeam(t.id)}
+                    disabled={!canEdit || savingTeam === t.id || (teamNames[t.id] ?? "").trim() === t.name}
+                  >
+                    {savingTeam === t.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Save
+                  </Button>
+                </div>
+              );
+            })}
+          </section>
+        )}
+
         {/* Email */}
         <section className="space-y-2">
           <Label htmlFor="email">Email</Label>
