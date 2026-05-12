@@ -174,6 +174,46 @@ const Index = () => {
       {/* ============ HERO ============ */}
       <HeroSection />
 
+      {/* ============ HOW IT WORKS ============ */}
+      <HowItWorksSection />
+
+      {/* ============ PRODUCT FEATURES (removed — replaced by How It Works) ============ */}
+
+      {/* ============ REVIEWS ============ */}
+      <section id="reviews" className="py-20" style={{ background: BRAND.cloud }}>
+        <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
+          <header className="mx-auto mb-12 max-w-3xl text-center">
+            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: BRAND.deepSky }}>
+              {COPY.reviews.eyebrow}
+            </span>
+            <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}>
+              {COPY.reviews.title}
+            </h2>
+          </header>
+          <div className="grid gap-5 md:grid-cols-3">
+            {COPY.reviews.items.map((q, i) => (
+              <figure
+                key={i}
+                className="flex flex-col rounded-2xl bg-white p-6"
+                style={{ border: `1px solid ${BRAND.border}` }}
+              >
+                <div className="text-5xl leading-none" style={{ ...display, color: BRAND.sky }}>"</div>
+                <blockquote className="mt-2 flex-1 text-[0.98rem]" style={{ color: BRAND.ink, lineHeight: 1.55 }}>
+                  {q}
+                </blockquote>
+                <figcaption className="mt-5 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full" style={{ background: BRAND.skySoft, border: `1px solid ${BRAND.border}` }} />
+                  <div>
+                    <div className="text-sm font-semibold" style={{ color: BRAND.ink }}>Name Surname</div>
+                    <div className="text-xs" style={{ color: BRAND.mist }}>Role · Company</div>
+                  </div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ============ METRIC ============ */}
       <section className="px-5 py-20 sm:px-6 sm:py-28">
         <div
@@ -214,46 +254,6 @@ const Index = () => {
                 {COPY.metric.desc}
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============ HOW IT WORKS ============ */}
-      <HowItWorksSection />
-
-      {/* ============ PRODUCT FEATURES (removed — replaced by How It Works) ============ */}
-
-      {/* ============ REVIEWS ============ */}
-      <section id="reviews" className="py-20" style={{ background: BRAND.cloud }}>
-        <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
-          <header className="mx-auto mb-12 max-w-3xl text-center">
-            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: BRAND.deepSky }}>
-              {COPY.reviews.eyebrow}
-            </span>
-            <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}>
-              {COPY.reviews.title}
-            </h2>
-          </header>
-          <div className="grid gap-5 md:grid-cols-3">
-            {COPY.reviews.items.map((q, i) => (
-              <figure
-                key={i}
-                className="flex flex-col rounded-2xl bg-white p-6"
-                style={{ border: `1px solid ${BRAND.border}` }}
-              >
-                <div className="text-5xl leading-none" style={{ ...display, color: BRAND.sky }}>"</div>
-                <blockquote className="mt-2 flex-1 text-[0.98rem]" style={{ color: BRAND.ink, lineHeight: 1.55 }}>
-                  {q}
-                </blockquote>
-                <figcaption className="mt-5 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full" style={{ background: BRAND.skySoft, border: `1px solid ${BRAND.border}` }} />
-                  <div>
-                    <div className="text-sm font-semibold" style={{ color: BRAND.ink }}>Name Surname</div>
-                    <div className="text-xs" style={{ color: BRAND.mist }}>Role · Company</div>
-                  </div>
-                </figcaption>
-              </figure>
-            ))}
           </div>
         </div>
       </section>
