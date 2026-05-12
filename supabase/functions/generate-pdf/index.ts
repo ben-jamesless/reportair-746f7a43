@@ -557,6 +557,8 @@ Deno.serve(async (req) => {
       const META_H = 12 * MM;
       const META_Y = H - HDR_H - META_H;
       page.drawRectangle({ x: 0, y: META_Y, width: W, height: META_H, color: COLOR.CLOUD });
+      // Left status stripe — drawn AFTER header/meta backgrounds so it isn't overdrawn
+      page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
       const metaLeft = `Photos: ${area.photoCount}  ·  ${reportDateLabel}  ·  ${buildDayLabel}`;
       page.drawText((metaLeft ?? ""), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
       drawWordmark(page, W - M - 70, META_Y + 3.5 * MM, 8.5, pjsFont);
