@@ -403,7 +403,7 @@ const SharePage = () => {
 
       {/* THREE-COLUMN LAYOUT */}
       <div className="mx-auto w-full px-6 py-6 2xl:px-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_minmax(360px,420px)]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_minmax(0,1fr)]">
           {/* LEFT: Date navigation */}
           <aside className="hidden lg:block space-y-1">
             <button
@@ -708,10 +708,10 @@ const SharePage = () => {
           <aside className="hidden xl:block">
             <div className="sticky top-6 space-y-4">
               <div
-                className="rounded-xl border p-4"
+                className="rounded-xl border p-5"
                 style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
               >
-                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
                   Latest update
                 </p>
                 {latestDayKey ? (() => {
@@ -725,25 +725,25 @@ const SharePage = () => {
                   const hasAny = sections.some((s) => s.text && s.text.trim());
                   return (
                     <>
-                      <p className="mt-1 text-sm font-bold" style={{ color: NEAR_BLACK }}>
+                      <p className="mt-2 text-lg font-bold" style={{ color: NEAR_BLACK }}>
                         {DATE_FMT.format(allDayGroups[0].date)}
                       </p>
                       <div className="mt-2">
                         <StatusPill statusKey={overallStatus} />
                       </div>
                       {hasAny ? (
-                        <ul className="mt-4 space-y-4">
+                        <ul className="mt-5 space-y-5">
                           {sections.map((s) => {
                             if (!s.text || !s.text.trim()) return null;
                             return (
                               <li key={s.label}>
                                 <p
-                                  className="text-[11px] font-semibold uppercase tracking-wide"
+                                  className="text-xs font-semibold uppercase tracking-wide"
                                   style={{ color: MUTED }}
                                 >
                                   {s.label}
                                 </p>
-                                <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
+                                <div className="mt-1.5 text-base leading-relaxed" style={{ color: BODY }}>
                                   <RichNotes text={s.text} />
                                 </div>
                               </li>
@@ -751,14 +751,14 @@ const SharePage = () => {
                           })}
                         </ul>
                       ) : (
-                        <p className="mt-3 text-xs italic" style={{ color: MUTED }}>
+                        <p className="mt-3 text-sm italic" style={{ color: MUTED }}>
                           No daily summary yet.
                         </p>
                       )}
                     </>
                   );
                 })() : (
-                  <p className="mt-2 text-xs italic" style={{ color: MUTED }}>No updates yet.</p>
+                  <p className="mt-2 text-sm italic" style={{ color: MUTED }}>No updates yet.</p>
                 )}
               </div>
 
