@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
 const body = { fontFamily: "'Inter', sans-serif" };
@@ -99,6 +99,19 @@ function hexToRgba(hex: string, alpha: number) {
 
 export default function UseCasesSection() {
   const trackRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [padLeft, setPadLeft] = useState<number>(24);
+
+  useEffect(() => {
+    const update = () => {
+      if (containerRef.current) {
+        setPadLeft(containerRef.current.getBoundingClientRect().left);
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const scroll = (dir: -1 | 1) => {
     trackRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
@@ -120,19 +133,13 @@ export default function UseCasesSection() {
           z-index: -1;
           pointer-events: none;
         }
-        .uc-track {
-          padding-left: max(20px, calc((100vw - 1200px) / 2 + 20px));
-        }
-        @media (min-width: 640px) {
-          .uc-track { padding-left: max(24px, calc((100vw - 1200px) / 2 + 24px)); }
-        }
         @media (max-width: 679px) {
           .uc-card { width: 240px !important; }
           .uc-arrows { display: none !important; }
         }
       `}</style>
 
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
+      <div ref={containerRef} className="mx-auto max-w-[1200px] px-5 sm:px-6">
         <div
           style={{
             display: "flex",
@@ -207,7 +214,8 @@ export default function UseCasesSection() {
             gap: 20,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            padding: "0 0 20px 0",
+            paddingLeft: padLeft,
+            paddingBottom: 20,
             paddingRight: 160,
             scrollbarWidth: "none",
           }}
