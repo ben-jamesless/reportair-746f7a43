@@ -133,7 +133,7 @@ export default function UseCasesSection() {
           .uc-pad-left { padding-left: 24px !important; }
           .uc-track { padding-right: 120px !important; }
           .uc-card { width: 240px !important; }
-          .uc-arrows-abs { top: 24px !important; right: 24px !important; }
+          .uc-arrows-abs { display: none !important; }
         }
       `}</style>
 
