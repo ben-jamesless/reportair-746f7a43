@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, X, ChevronLeft, ChevronRight, Download, Calendar, Layers, ImagePlus, MessageSquare } from "lucide-react";
+import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -366,6 +366,63 @@ const SharePage = () => {
   const latestDayPhotos = latestDayKey ? (allDayGroups[0]?.photos ?? []) : [];
   const latestDayAreaIds = Array.from(new Set(latestDayPhotos.map((p) => p.area_id).filter(Boolean) as string[]));
 
+  const latestUpdatePanel = (
+    <div
+      className="rounded-xl border p-5"
+      style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+        Latest update
+      </p>
+      {latestDayKey ? (() => {
+        const dn = dayNoteByDate.get(latestDayKey);
+        const sections: { label: string; text: string | null | undefined }[] = [
+          { label: "Today's objectives", text: dn?.today_objectives },
+          { label: "Today's achievements", text: dn?.today_achievements },
+          { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
+          { label: "Open issues", text: dn?.open_issues },
+        ];
+        const hasAny = sections.some((s) => s.text && s.text.trim());
+        return (
+          <>
+            <p className="mt-2 text-lg font-bold" style={{ color: NEAR_BLACK }}>
+              {DATE_FMT.format(allDayGroups[0].date)}
+            </p>
+            <div className="mt-2">
+              <StatusPill statusKey={overallStatus} />
+            </div>
+            {hasAny ? (
+              <ul className="mt-5 space-y-5">
+                {sections.map((s) => {
+                  if (!s.text || !s.text.trim()) return null;
+                  return (
+                    <li key={s.label}>
+                      <p
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: MUTED }}
+                      >
+                        {s.label}
+                      </p>
+                      <div className="mt-1.5 text-base leading-relaxed" style={{ color: BODY }}>
+                        <RichNotes text={s.text} />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm italic" style={{ color: MUTED }}>
+                No daily summary yet.
+              </p>
+            )}
+          </>
+        );
+      })() : (
+        <p className="mt-2 text-sm italic" style={{ color: MUTED }}>No updates yet.</p>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: BODY }}>
       {/* HEADER */}
@@ -568,6 +625,27 @@ const SharePage = () => {
               )}
             </div>
 
+            {/* MOBILE: collapsible latest update */}
+            <details className="group mb-4 rounded-xl border xl:hidden" style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}>
+              <summary
+                className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold"
+                style={{ color: NEAR_BLACK }}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                    Latest update
+                  </span>
+                  {latestDayKey && (
+                    <span style={{ color: NEAR_BLACK }}>· {SHORT_FMT.format(allDayGroups[0].date)}</span>
+                  )}
+                </span>
+                <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" style={{ color: MUTED }} />
+              </summary>
+              <div className="px-2 pb-2">
+                {latestUpdatePanel}
+              </div>
+            </details>
+
             {visibleGroups.length === 0 ? (
               <div
                 className="rounded-xl border p-12 text-center text-sm"
@@ -707,60 +785,7 @@ const SharePage = () => {
           {/* RIGHT: Latest Update + Feedback */}
           <aside className="hidden xl:block">
             <div className="sticky top-6 space-y-4">
-              <div
-                className="rounded-xl border p-5"
-                style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
-                  Latest update
-                </p>
-                {latestDayKey ? (() => {
-                  const dn = dayNoteByDate.get(latestDayKey);
-                  const sections: { label: string; text: string | null | undefined }[] = [
-                    { label: "Today's objectives", text: dn?.today_objectives },
-                    { label: "Today's achievements", text: dn?.today_achievements },
-                    { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
-                    { label: "Open issues", text: dn?.open_issues },
-                  ];
-                  const hasAny = sections.some((s) => s.text && s.text.trim());
-                  return (
-                    <>
-                      <p className="mt-2 text-lg font-bold" style={{ color: NEAR_BLACK }}>
-                        {DATE_FMT.format(allDayGroups[0].date)}
-                      </p>
-                      <div className="mt-2">
-                        <StatusPill statusKey={overallStatus} />
-                      </div>
-                      {hasAny ? (
-                        <ul className="mt-5 space-y-5">
-                          {sections.map((s) => {
-                            if (!s.text || !s.text.trim()) return null;
-                            return (
-                              <li key={s.label}>
-                                <p
-                                  className="text-xs font-semibold uppercase tracking-wide"
-                                  style={{ color: MUTED }}
-                                >
-                                  {s.label}
-                                </p>
-                                <div className="mt-1.5 text-base leading-relaxed" style={{ color: BODY }}>
-                                  <RichNotes text={s.text} />
-                                </div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      ) : (
-                        <p className="mt-3 text-sm italic" style={{ color: MUTED }}>
-                          No daily summary yet.
-                        </p>
-                      )}
-                    </>
-                  );
-                })() : (
-                  <p className="mt-2 text-sm italic" style={{ color: MUTED }}>No updates yet.</p>
-                )}
-              </div>
+              {latestUpdatePanel}
 
               <div
                 className="rounded-xl border"
