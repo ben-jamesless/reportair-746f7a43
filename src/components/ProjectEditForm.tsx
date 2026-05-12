@@ -33,6 +33,7 @@ export interface ProjectEditValues {
   description: string | null;
   color: string | null;
   event_date: string | null; // ISO yyyy-mm-dd
+  build_start_date?: string | null; // ISO yyyy-mm-dd
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
