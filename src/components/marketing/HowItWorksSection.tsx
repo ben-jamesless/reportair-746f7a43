@@ -143,7 +143,11 @@ const HowItWorksSection = () => {
                     width: 40,
                     height: 40,
                     borderRadius: "50%",
-                    background: isActive ? "#1A6EFF" : isDone ? "rgba(26,110,255,0.15)" : "rgba(11,24,48,0.9)",
+                    background: isActive
+                      ? "#1A6EFF"
+                      : isDone
+                        ? "linear-gradient(rgba(26,110,255,0.15), rgba(26,110,255,0.15)), #060D18"
+                        : "rgba(11,24,48,0.9)",
                     border: `2px solid ${isActive ? "#1A6EFF" : isDone ? "rgba(26,110,255,0.5)" : "rgba(26,110,255,0.2)"}`,
                     display: "flex",
                     alignItems: "center",
