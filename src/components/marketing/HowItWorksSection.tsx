@@ -380,7 +380,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
         Tag as you go.
       </Headline>
       <Body>
-        Take photos and the build happens and upload them directly from the field. 
+        Take photos as the build happens and upload them directly from the field. 
       </Body>
       <Pills>
         <Pill color="#1DB87A">Capture from any device</Pill>
