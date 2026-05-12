@@ -180,13 +180,13 @@ const Index = () => {
       {/* ============ PRODUCT FEATURES (removed — replaced by How It Works) ============ */}
 
       {/* ============ REVIEWS ============ */}
-      <section id="reviews" className="py-20" style={{ background: BRAND.cloud }}>
+      <section id="reviews" className="py-20" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
           <header className="mx-auto mb-12 max-w-3xl text-center">
-            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: BRAND.deepSky }}>
+            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "rgba(168,196,255,0.6)" }}>
               {COPY.reviews.eyebrow}
             </span>
-            <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}>
+            <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
               {COPY.reviews.title}
             </h2>
           </header>
@@ -194,18 +194,25 @@ const Index = () => {
             {COPY.reviews.items.map((q, i) => (
               <figure
                 key={i}
-                className="flex flex-col rounded-2xl bg-white p-6"
-                style={{ border: `1px solid ${BRAND.border}` }}
+                className="flex flex-col rounded-2xl p-6"
+                style={{
+                  background: "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))",
+                  border: "1px solid rgba(26,110,255,0.14)",
+                  boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.35)",
+                }}
               >
                 <div className="text-5xl leading-none" style={{ ...display, color: BRAND.sky }}>"</div>
-                <blockquote className="mt-2 flex-1 text-[0.98rem]" style={{ color: BRAND.ink, lineHeight: 1.55 }}>
+                <blockquote className="mt-2 flex-1 text-[0.98rem]" style={{ color: "#FFFFFF", lineHeight: 1.55 }}>
                   {q}
                 </blockquote>
                 <figcaption className="mt-5 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full" style={{ background: BRAND.skySoft, border: `1px solid ${BRAND.border}` }} />
+                  <div
+                    className="h-10 w-10 rounded-full"
+                    style={{ background: "rgba(26,110,255,0.18)", border: "1px solid rgba(26,110,255,0.4)" }}
+                  />
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: BRAND.ink }}>Name Surname</div>
-                    <div className="text-xs" style={{ color: BRAND.mist }}>Role · Company</div>
+                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Name Surname</div>
+                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Role · Company</div>
                   </div>
                 </figcaption>
               </figure>
