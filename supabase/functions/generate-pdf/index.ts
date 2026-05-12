@@ -535,7 +535,6 @@ Deno.serve(async (req) => {
       const HDR_H = 30 * MM;
       page.drawRectangle({ x: 0, y: H - HDR_H, width: W, height: HDR_H, color: COLOR.INK });
       page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: meta.text });
-      page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
 
       // Header text
       page.drawText(`AREA ${ai + 1} OF ${areaData.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
