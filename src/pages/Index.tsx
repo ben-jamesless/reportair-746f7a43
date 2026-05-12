@@ -231,6 +231,9 @@ const Index = () => {
       {/* ============ FAQ ============ */}
       <FAQSection />
 
+      {/* ============ USE CASES ============ */}
+      <UseCasesSection />
+
       {/* ============ METRIC ============ */}
       <section className="px-5 py-20 sm:px-6 sm:py-28" style={{ background: "#060D18" }}>
         <div
