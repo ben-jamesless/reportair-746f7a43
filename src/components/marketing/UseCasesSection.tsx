@@ -105,7 +105,7 @@ export default function UseCasesSection() {
   };
 
   return (
-    <section style={{ background: "#060D18", padding: "100px 0", overflow: "hidden", position: "relative" }}>
+    <section style={{ background: "#060D18", padding: "95px 0", overflow: "hidden", position: "relative" }}>
       <style>{`
         .uc-track::-webkit-scrollbar { display: none; }
         .uc-card { transition: transform 0.25s ease; position: relative; }
