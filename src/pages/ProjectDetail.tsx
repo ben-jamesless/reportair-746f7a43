@@ -1120,7 +1120,9 @@ const ProjectDetail = () => {
                   const day = days.find((d) => d.key === activeDay);
                   if (!day) return null;
                   const dayPool = day.photos;
-                  const areasOnDay = areas.filter((ar) => dayPool.some((p) => p.area_id === ar.id));
+                  // Show ALL project areas on the Updates page so users can set status/notes
+                  // even before any photos are uploaded for that area on this day.
+                  const areasOnDay = areas;
                   const dayNoteVal = dayNotes.get(activeDay) ?? null;
                   const dailyBlocks: { key: DailyField; label: string }[] = [
                     { key: "today_objectives", label: "Today's Objectives" },
