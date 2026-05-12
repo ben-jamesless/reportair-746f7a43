@@ -97,7 +97,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               <TabsTrigger value="share">Share</TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+          <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
             <ProjectEditForm
               projectId={projectId}
               name={project.name}
@@ -117,18 +117,18 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               <HeicBackfillButton projectId={projectId} />
             </div>
           </TabsContent>
-          <TabsContent value="areas" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+          <TabsContent value="areas" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
             <AreasManager projectId={projectId} onChanged={onChanged} />
           </TabsContent>
           {canManageAlbums && (
-            <TabsContent value="albums" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+            <TabsContent value="albums" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
               <AlbumsManager projectId={projectId} onChanged={onChanged} />
             </TabsContent>
           )}
-          <TabsContent value="members" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+          <TabsContent value="members" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
             <InvitesManager projectId={projectId} />
           </TabsContent>
-          <TabsContent value="share" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+          <TabsContent value="share" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
             <ShareLinksManager projectId={projectId} />
           </TabsContent>
         </Tabs>
