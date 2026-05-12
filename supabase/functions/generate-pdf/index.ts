@@ -538,11 +538,18 @@ Deno.serve(async (req) => {
       page.drawText(`AREA ${ai + 1} OF ${areaData.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
       page.drawText((area.name ?? ""), { x: M + 6, y: H - 21 * MM, size: 18, font: pjsFont, color: COLOR.WHITE });
 
-      // Status pill top-right
+      // Status pill top-right (inline so background and text share origin)
+      const pillLabel = meta.label;
       const pillFontSize = 8;
-      const pillTextW = irFont.widthOfTextAtSize(meta.label, pillFontSize);
-      const pillW = pillTextW + 16;
-      drawPill(page, W - M - pillW, H - 23 * MM, meta.label, meta.text, meta.bg, irFont, pillFontSize);
+      const pillPadX = 9;
+      const pillPadY = 4;
+      const pillTextW = irFont.widthOfTextAtSize(pillLabel, pillFontSize);
+      const pillW = pillTextW + pillPadX * 2;
+      const pillH = pillFontSize + pillPadY * 2;
+      const pillX = W - M - pillW;
+      const pillY = H - 23 * MM;
+      drawRoundedRect(page, { x: pillX, y: pillY, width: pillW, height: pillH, radius: pillH / 2, fill: meta.bg });
+      page.drawText(pillLabel, { x: pillX + pillPadX, y: pillY + pillPadY + 0.8, size: pillFontSize, font: irFont, color: meta.text });
 
       // Meta strip
       const META_H = 12 * MM;
@@ -578,12 +585,12 @@ Deno.serve(async (req) => {
       const photoImages = (area.photoImages ?? []).filter((img): img is PDFImage => img !== null).slice(0, 9);
       const photoCount = photoImages.length;
       if (photoCount > 0) {
-        const PCOLS = Math.min(photoCount, 3);
+        const PCOLS = 3;
         const PROWS = Math.ceil(photoCount / PCOLS);
         const gutter = 6;
         const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
-        const max_ph = (avail_h - gutter * (PROWS - 1)) / PROWS;
-        const photo_h = Math.min(photo_w * 0.65, max_ph);
+        const max_ph = PROWS > 0 ? (avail_h - gutter * (PROWS - 1)) / PROWS : avail_h;
+        const photo_h = Math.min(photo_w * 0.75, max_ph);
 
         for (let i = 0; i < photoCount; i++) {
           const col = i % PCOLS;
