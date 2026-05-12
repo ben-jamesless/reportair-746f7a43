@@ -1169,7 +1169,7 @@ const ProjectDetail = () => {
                       {/* Per-area briefing — flush, no card */}
                       {areasOnDay.length === 0 ? (
                         <p className="px-1 py-6 text-center text-sm text-muted-foreground">
-                          No areas with photos on this day yet.
+                          No areas defined yet. Add areas in project settings.
                         </p>
                       ) : (
                         <div>
