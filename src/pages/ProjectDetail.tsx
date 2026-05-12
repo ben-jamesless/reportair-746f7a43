@@ -401,8 +401,24 @@ const ProjectDetail = () => {
     );
     if (error) { toast.error(error.message); setDayNotes(prev); }
   };
-
-  // Photos in any album are excluded from the date-grouped pool and shown
+  const getDailyField = (dateKey: string, field: DailyField): string | null =>
+    dailyFields.get(dateKey)?.[field] ?? null;
+  const saveDailyField = async (dateKey: string, field: DailyField, next: string | null) => {
+    if (!id) return;
+    const prev = new Map(dailyFields);
+    setDailyFields((cur) => {
+      const n = new Map(cur);
+      const existing = n.get(dateKey) ?? { today_objectives: null, today_achievements: null, tomorrow_objectives: null, open_issues: null };
+      n.set(dateKey, { ...existing, [field]: next });
+      return n;
+    });
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("day_notes").upsert(
+      { project_id: id, date: dateKey, [field]: next, updated_by: user?.id },
+      { onConflict: "project_id,date" },
+    );
+    if (error) { toast.error(error.message); setDailyFields(prev); }
+  };
   // only when their album is selected from the sidebar.
   const albumPhotos = (() => {
     const m = new Map<string, LightboxPhoto[]>();
