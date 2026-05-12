@@ -446,33 +446,44 @@ Deno.serve(async (req) => {
       page.drawText(weatherStr || "—", { x: DIV_X + 10, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
       page.drawLine({ start: { x: M + 8, y: ROW_TOP - 18 * MM + 2 }, end: { x: W - M, y: ROW_TOP - 18 * MM + 2 }, thickness: 0.5, color: COLOR.BORDER });
 
-      // Daily Updates 2x2 cards
+      // Daily Updates 2x2 cards (dynamic height per row)
       const UPD_TOP = ROW_TOP - 18 * MM - 6 * MM;
       const HALF = (CW - 10) / 2;
-      const BLK_H = 52, BLK_GAP = 6;
+      const BLK_GAP = 6;
+      const LINE_H = 9.5;
+      const CARD_PAD_TOP = 22; // label + spacing
+      const CARD_PAD_BOTTOM = 8;
+      const MIN_BLK_H = 52;
       const cards = [
         { label: "TODAY'S OBJECTIVES", body: dayNote?.today_objectives ?? "" },
         { label: "TODAY'S ACHIEVEMENTS", body: dayNote?.today_achievements ?? "" },
         { label: "TOMORROW'S OBJECTIVES", body: dayNote?.tomorrow_objectives ?? "" },
         { label: "OPEN ISSUES / RISKS", body: dayNote?.open_issues ?? "" },
       ];
+      const cardLines = cards.map((c) => wrapLines(c.body || "—", irFont, 8, HALF - 20));
+      const cardHeights = cardLines.map((ls) =>
+        Math.max(MIN_BLK_H, CARD_PAD_TOP + ls.length * LINE_H + CARD_PAD_BOTTOM),
+      );
+      const row1H = Math.max(cardHeights[0], cardHeights[1]);
+      const row2H = Math.max(cardHeights[2], cardHeights[3]);
       for (let i = 0; i < cards.length; i++) {
+        const rowIdx = Math.floor(i / 2);
         const bx = (M + 8) + (i % 2) * (HALF + 10);
-        const by_top = UPD_TOP - Math.floor(i / 2) * (BLK_H + BLK_GAP);
-        const by_bot = by_top - BLK_H;
-        
-        page.drawRectangle({ x: bx, y: by_bot, width: 3, height: BLK_H, color: COLOR.SKY });
+        const by_top = UPD_TOP - (rowIdx === 0 ? 0 : row1H + BLK_GAP);
+        const blkH = rowIdx === 0 ? row1H : row2H;
+        const by_bot = by_top - blkH;
+
+        page.drawRectangle({ x: bx, y: by_bot, width: 3, height: blkH, color: COLOR.SKY });
         page.drawText(cards[i].label, { x: bx + 10, y: by_top - 11, size: 7.5, font: pjsFont, color: COLOR.INK });
-        const lines = wrapLines(cards[i].body || "—", irFont, 8, HALF - 20);
-        let ly = by_top - 22;
-        for (let li = 0; li < Math.min(4, lines.length); li++) {
-          page.drawText(lines[li], { x: bx + 10, y: ly, size: 8, font: irFont, color: COLOR.SLATE });
-          ly -= 9.5;
+        let ly = by_top - CARD_PAD_TOP;
+        for (const ln of cardLines[i]) {
+          page.drawText(ln, { x: bx + 10, y: ly, size: 8, font: irFont, color: COLOR.SLATE });
+          ly -= LINE_H;
         }
       }
 
       // Area Summary table
-      const CARD_GRID_H = 2 * BLK_H + BLK_GAP;
+      const CARD_GRID_H = row1H + BLK_GAP + row2H;
       const TBL_HEADER_Y = UPD_TOP - CARD_GRID_H - 20;
       const tblTitle = "AREA SUMMARY";
       page.drawText(tblTitle, { x: M + 8, y: TBL_HEADER_Y, size: 9, font: pjsFont, color: COLOR.INK });
