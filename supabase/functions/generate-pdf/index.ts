@@ -370,7 +370,7 @@ Deno.serve(async (req) => {
       photoCount: number;
       photoImages: (PDFImage | null)[];
     };
-    const areaData: AreaData[] = await Promise.all(sortedAreas.map(async (a) => {
+    const areaDataAll: AreaData[] = await Promise.all(sortedAreas.map(async (a) => {
       const ps = (photosByArea.get(a.id) ?? []).slice(0, 9);
       const urls = await Promise.all(ps.map((p) => photoUrlFor(p)));
       const images = await Promise.all(urls.map((u) => u ? fetchAndEmbedImage(pdfDoc, u) : Promise.resolve(null)));
@@ -383,6 +383,10 @@ Deno.serve(async (req) => {
         photoImages: images,
       };
     }));
+    // Exclude empty areas: 0 photos AND no status AND no notes
+    const areaData: AreaData[] = areaDataAll.filter(
+      (a) => a.photoCount > 0 || (a.status && a.status !== "no_status") || (a.notes && a.notes.trim() !== "")
+    );
 
     // ============ Page constants ============
     const W = 595.28, H = 841.89;
