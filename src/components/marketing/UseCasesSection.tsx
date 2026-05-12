@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
 const body = { fontFamily: "'Inter', sans-serif" };
