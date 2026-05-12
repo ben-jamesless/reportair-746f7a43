@@ -585,12 +585,12 @@ Deno.serve(async (req) => {
       const photoImages = (area.photoImages ?? []).filter((img): img is PDFImage => img !== null).slice(0, 9);
       const photoCount = photoImages.length;
       if (photoCount > 0) {
-        const PCOLS = Math.min(photoCount, 3);
+        const PCOLS = 3;
         const PROWS = Math.ceil(photoCount / PCOLS);
         const gutter = 6;
         const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
-        const max_ph = (avail_h - gutter * (PROWS - 1)) / PROWS;
-        const photo_h = Math.min(photo_w * 0.65, max_ph);
+        const max_ph = PROWS > 0 ? (avail_h - gutter * (PROWS - 1)) / PROWS : avail_h;
+        const photo_h = Math.min(photo_w * 0.75, max_ph);
 
         for (let i = 0; i < photoCount; i++) {
           const col = i % PCOLS;
