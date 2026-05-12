@@ -77,6 +77,7 @@ export const EditProjectDialog = ({
           description={description}
           color={color}
           event_date={event_date}
+          build_start_date={build_start_date ?? null}
           event_location={event_location}
           overall_status={overall_status}
           event_type={event_type}
