@@ -39,10 +39,14 @@ const HowItWorksSection = () => {
           .hiw-panel-headline { font-size: 28px !important; }
         }
         @media (max-width: 767px) {
-          .hiw-panel { padding: 32px 24px !important; }
-          .hiw-step-name { font-size: 11px !important; }
+          .hiw-scope { padding: 72px 20px 96px !important; }
+          .hiw-panel { padding: 32px 22px !important; }
+          .hiw-step-name { font-size: 10px !important; }
           .hiw-section-title { font-size: 32px !important; }
-          .hiw-progress-track { width: min(520px, 80vw) !important; }
+          .hiw-step-btn { width: 92px !important; }
+          .hiw-step-btn-mid { margin: 0 !important; }
+          .hiw-progress-track { width: 184px !important; }
+          .hiw-channel-row { flex-wrap: wrap !important; }
         }
       `}</style>
 
