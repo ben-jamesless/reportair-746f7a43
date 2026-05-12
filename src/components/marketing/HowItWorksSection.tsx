@@ -532,7 +532,7 @@ const SortPanel = ({ onNext }: { onNext: () => void }) => {
           in its place.
         </Headline>
         <Body>
-          Sort uploads by area, add notes, and flag issues — one tap per update. Your report structure builds automatically as you work.
+          Sort uploads by area, add notes, and flag issues. Let your project report structure builds automatically.
         </Body>
         <Pills>
           <Pill color="#1A6EFF">Sort by area or workstream</Pill>
