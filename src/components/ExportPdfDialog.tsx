@@ -33,10 +33,8 @@ import { cn } from "@/lib/utils";
 import {
   FileDown,
   Loader2,
-  Upload,
   AlertTriangle,
   Download,
-  X,
   Calendar as CalendarIcon,
   ChevronDown,
   History,
@@ -132,12 +130,9 @@ export const ExportPdfDialog = ({
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
   const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
   const [accent, setAccent] = useState("#01696F");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPath, setLogoPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const orientation = "portrait" as const;
-  const fileInput = useRef<HTMLInputElement>(null);
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -235,14 +230,6 @@ export const ExportPdfDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, historyOpen]);
 
-  const handleLogoSelect = async (file: File) => {
-    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
-    setLogoFile(file);
-    const path = `${projectId}/logo-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const { error } = await supabase.storage.from("export-assets").upload(path, file, { upsert: true });
-    if (error) { toast.error(error.message); setLogoFile(null); return; }
-    setLogoPath(path);
-  };
 
   // Compute photos covered + cap for current selection
   const { effectivePhotoCount, rangeDays } = useMemo(() => {
@@ -297,7 +284,7 @@ export const ExportPdfDialog = ({
       created_by: auth.user!.id,
       status: "queued",
       options: options as never,
-      logo_path: logoPath,
+      logo_path: null,
       accent_color: accent,
     }).select("id,status,output_path,error_message,photo_count").single();
     if (error || !row) { setSubmitting(false); toast.error(error?.message ?? "Failed"); return; }
@@ -503,25 +490,7 @@ export const ExportPdfDialog = ({
               <SectionToggle label="Cover page" checked={sections.cover} onChange={(v) => setSections((s) => ({ ...s, cover: v }))} />
               <SectionToggle label="Photo grid" checked={sections.grid} onChange={(v) => setSections((s) => ({ ...s, grid: v }))} />
               <SectionToggle label="Captions under photos" checked={sections.captions} onChange={(v) => setSections((s) => ({ ...s, captions: v }))} />
-              <SectionToggle label="EXIF table" checked={sections.exif} onChange={(v) => setSections((s) => ({ ...s, exif: v }))} />
-              <SectionToggle label="Guest notes" checked={sections.notes} onChange={(v) => setSections((s) => ({ ...s, notes: v }))} />
               <SectionToggle label="Activity log" checked={sections.activity} onChange={(v) => setSections((s) => ({ ...s, activity: v }))} />
-            </div>
-          </section>
-
-          <section>
-            <div>
-              <Label>Logo (optional)</Label>
-              <div className="mt-1 flex items-center gap-2">
-                <input ref={fileInput} type="file" accept="image/png,image/jpeg" hidden onChange={(e) => e.target.files?.[0] && handleLogoSelect(e.target.files[0])} />
-                <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}><Upload className="mr-2 h-4 w-4" />{logoFile ? "Replace" : "Upload"}</Button>
-                {logoFile && (
-                  <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                    {logoFile.name}
-                    <button onClick={() => { setLogoFile(null); setLogoPath(null); }}><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-              </div>
             </div>
           </section>
 

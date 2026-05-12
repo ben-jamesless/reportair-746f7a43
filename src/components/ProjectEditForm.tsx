@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Archive, CalendarIcon, Check, Loader2, Trash2, X } from "lucide-react";
+import { AlertTriangle, Archive, CalendarIcon, Check, ImageIcon, Loader2, Trash2, Upload, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,6 +99,12 @@ export const ProjectEditForm = ({
   const [isOwner, setIsOwner] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Logo
+  const [logoPath, setLogoPath] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
   // Delete state
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -153,6 +159,67 @@ export const ProjectEditForm = ({
       if (v) setBuildStartDate(fromIsoDate(v));
     })();
   }, [projectId, initialBuildStartDate]);
+
+  // Load existing logo + signed preview URL
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("projects").select("logo_path").eq("id", projectId).maybeSingle();
+      if (cancelled) return;
+      const path = (data as { logo_path?: string | null } | null)?.logo_path ?? null;
+      setLogoPath(path);
+      if (path) {
+        const { data: signed } = await supabase.storage.from("export-assets").createSignedUrl(path, 600);
+        if (!cancelled) setLogoUrl(signed?.signedUrl ?? null);
+      } else {
+        setLogoUrl(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId]);
+
+  const onLogoFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
+    setLogoUploading(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${projectId}/project-logo-${Date.now()}-${safeName}`;
+      const { error: upErr } = await supabase.storage.from("export-assets").upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) { toast.error(upErr.message); return; }
+      const { error: updErr } = await supabase.from("projects").update({ logo_path: path }).eq("id", projectId);
+      if (updErr) { toast.error(updErr.message); return; }
+      // Best-effort cleanup of previous logo
+      if (logoPath && logoPath !== path) {
+        await supabase.storage.from("export-assets").remove([logoPath]).catch(() => undefined);
+      }
+      setLogoPath(path);
+      const { data: signed } = await supabase.storage.from("export-assets").createSignedUrl(path, 600);
+      setLogoUrl(signed?.signedUrl ?? null);
+      toast.success("Logo updated");
+      onSaved?.();
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const removeLogo = async () => {
+    if (!logoPath) return;
+    setLogoUploading(true);
+    try {
+      const prev = logoPath;
+      const { error } = await supabase.from("projects").update({ logo_path: null }).eq("id", projectId);
+      if (error) { toast.error(error.message); return; }
+      await supabase.storage.from("export-assets").remove([prev]).catch(() => undefined);
+      setLogoPath(null);
+      setLogoUrl(null);
+      toast.success("Logo removed");
+      onSaved?.();
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
 
   const canChangeDefaultView = isOwner || isAdmin;
 
@@ -417,6 +484,56 @@ export const ProjectEditForm = ({
                 aria-label="Custom color picker"
               />
               <Input value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-28 font-mono text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Project logo</Label>
+          <p className="text-xs text-muted-foreground">
+            Used on every PDF report exported from this project. PNG or JPG, under 2MB.
+          </p>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/png,image/jpeg"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onLogoFile(f);
+              e.target.value = "";
+            }}
+          />
+          <div className="flex items-center gap-3">
+            <div className="flex h-16 w-24 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Project logo" className="max-h-full max-w-full object-contain" />
+              ) : (
+                <ImageIcon className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={logoUploading}
+              >
+                {logoUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                {logoPath ? "Replace logo" : "Upload logo"}
+              </Button>
+              {logoPath && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={removeLogo}
+                  disabled={logoUploading}
+                >
+                  <X className="mr-2 h-4 w-4" /> Remove
+                </Button>
+              )}
             </div>
           </div>
         </div>
