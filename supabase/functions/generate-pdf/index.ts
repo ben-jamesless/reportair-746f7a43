@@ -464,7 +464,8 @@ Deno.serve(async (req) => {
       }
 
       // Area Summary table
-      const TBL_HEADER_Y = UPD_TOP - 2 * (BLK_H + BLK_GAP) - 30;
+      const CARD_GRID_H = 2 * BLK_H + BLK_GAP;
+      const TBL_HEADER_Y = UPD_TOP - CARD_GRID_H - 20;
       const tblTitle = "AREA SUMMARY";
       page.drawText(tblTitle, { x: M + 8, y: TBL_HEADER_Y, size: 9, font: pjsFont, color: COLOR.INK });
       const tblTitleW = pjsFont.widthOfTextAtSize(tblTitle, 9);
