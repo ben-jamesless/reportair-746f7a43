@@ -1077,6 +1077,32 @@ const ProjectDetail = () => {
                       {photos.length}
                     </span>
                   </button>
+                  {(() => {
+                    const totalUnassigned = photos.filter((p) => !p.area_id).length;
+                    if (totalUnassigned === 0) return null;
+                    const sel = activeDay === ALL_DAYS && activeArea === NO_AREA;
+                    return (
+                      <button
+                        onClick={() => { setActiveDay(ALL_DAYS); setActiveArea(NO_AREA); }}
+                        className={cn(
+                          "ml-5 flex w-[calc(100%-1.25rem)] items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                          sel
+                            ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
+                            : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                        )}
+                        title="Photos without an assigned area — open to reassign"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "text-primary" : "text-muted-foreground")} />
+                          Unassigned
+                        </span>
+                        <span className={cn(
+                          "ml-2 text-[10px]",
+                          sel ? "text-primary" : "text-muted-foreground"
+                        )}>{totalUnassigned}</span>
+                      </button>
+                    );
+                  })()}
                 </div>
               </aside>
 
