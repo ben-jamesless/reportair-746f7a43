@@ -136,7 +136,7 @@ export const ExportPdfDialog = ({
   const [logoPath, setLogoPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
-  const [orientation, setOrientation] = useState<"landscape" | "portrait">("landscape");
+  const orientation = "portrait" as const;
   const fileInput = useRef<HTMLInputElement>(null);
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
