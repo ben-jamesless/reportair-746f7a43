@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
         const bx = (M + 8) + (i % 2) * (HALF + 10);
         const by_top = UPD_TOP - Math.floor(i / 2) * (BLK_H + BLK_GAP);
         const by_bot = by_top - BLK_H;
-        drawRoundedRect(page, { x: bx, y: by_bot, width: HALF, height: BLK_H, radius: 6, fill: COLOR.CLOUD });
+        
         page.drawRectangle({ x: bx, y: by_bot, width: 3, height: BLK_H, color: COLOR.SKY });
         page.drawText(cards[i].label, { x: bx + 10, y: by_top - 11, size: 7.5, font: pjsFont, color: COLOR.INK });
         const lines = wrapLines(cards[i].body || "—", irFont, 8, HALF - 20);
