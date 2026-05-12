@@ -148,7 +148,14 @@ export function groupPhotosByDate<T extends DateGroupablePhoto>(photos: T[]): Ph
 /** Resize an image File to a max width/height, returning a JPEG Blob (or null on failure). */
 export async function makeReportVariant(file: File, maxDim = 1600, quality = 0.75): Promise<Blob | null> {
   try {
-    const bitmap = await createImageBitmap(file);
+    // imageOrientation: "from-image" ensures EXIF rotation is baked into the
+    // pixels — without it, portrait photos can render as landscape in the PDF.
+    let bitmap: ImageBitmap;
+    try {
+      bitmap = await createImageBitmap(file, { imageOrientation: "from-image" } as ImageBitmapOptions);
+    } catch {
+      bitmap = await createImageBitmap(file);
+    }
     const { width: w, height: h } = bitmap;
     if (!w || !h) { bitmap.close?.(); return null; }
     if (Math.max(w, h) <= maxDim) {
