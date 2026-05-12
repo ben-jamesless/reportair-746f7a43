@@ -144,6 +144,16 @@ export const ProjectEditForm = ({
     })();
   }, [user, projectId]);
 
+  // Self-fetch build_start_date so callers that don't pass it (e.g. Projects list) still see the saved value.
+  useEffect(() => {
+    if (initialBuildStartDate !== undefined && initialBuildStartDate !== null) return;
+    (async () => {
+      const { data } = await supabase.from("projects").select("build_start_date").eq("id", projectId).maybeSingle();
+      const v = (data as { build_start_date?: string | null } | null)?.build_start_date ?? null;
+      if (v) setBuildStartDate(fromIsoDate(v));
+    })();
+  }, [projectId, initialBuildStartDate]);
+
   const canChangeDefaultView = isOwner || isAdmin;
 
   const save = async () => {
