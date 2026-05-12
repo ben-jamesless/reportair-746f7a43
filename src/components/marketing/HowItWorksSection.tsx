@@ -600,7 +600,7 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
         Client-ready.
       </Headline>
       <Body>
-        Generate a branded PDF or live shareable link in seconds. Your client opens it straight from WhatsApp — no login, no fuss.
+        Generate a branded PDF or live shareable link in seconds. Your client opens it straight from WhatsApp. No login, no fuss.
       </Body>
       <Pills>
         <Pill color="#1A6EFF">PDF or shareable link</Pill>
