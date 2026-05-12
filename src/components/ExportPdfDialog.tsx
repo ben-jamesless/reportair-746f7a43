@@ -503,25 +503,7 @@ export const ExportPdfDialog = ({
               <SectionToggle label="Cover page" checked={sections.cover} onChange={(v) => setSections((s) => ({ ...s, cover: v }))} />
               <SectionToggle label="Photo grid" checked={sections.grid} onChange={(v) => setSections((s) => ({ ...s, grid: v }))} />
               <SectionToggle label="Captions under photos" checked={sections.captions} onChange={(v) => setSections((s) => ({ ...s, captions: v }))} />
-              <SectionToggle label="EXIF table" checked={sections.exif} onChange={(v) => setSections((s) => ({ ...s, exif: v }))} />
-              <SectionToggle label="Guest notes" checked={sections.notes} onChange={(v) => setSections((s) => ({ ...s, notes: v }))} />
               <SectionToggle label="Activity log" checked={sections.activity} onChange={(v) => setSections((s) => ({ ...s, activity: v }))} />
-            </div>
-          </section>
-
-          <section>
-            <div>
-              <Label>Logo (optional)</Label>
-              <div className="mt-1 flex items-center gap-2">
-                <input ref={fileInput} type="file" accept="image/png,image/jpeg" hidden onChange={(e) => e.target.files?.[0] && handleLogoSelect(e.target.files[0])} />
-                <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()}><Upload className="mr-2 h-4 w-4" />{logoFile ? "Replace" : "Upload"}</Button>
-                {logoFile && (
-                  <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                    {logoFile.name}
-                    <button onClick={() => { setLogoFile(null); setLogoPath(null); }}><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-              </div>
             </div>
           </section>
 
