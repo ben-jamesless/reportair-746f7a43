@@ -71,6 +71,7 @@ export const ProjectEditForm = ({
   description: initialDescription,
   color: initialColor,
   event_date: initialEventDate,
+  build_start_date: initialBuildStartDate,
   event_location: initialEventLocation,
   overall_status: initialStatus,
   event_type: initialEventType,
