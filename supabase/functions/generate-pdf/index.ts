@@ -119,7 +119,10 @@ function drawPill(
   const tw = font.widthOfTextAtSize((text ?? ""), fontSize);
   const w = tw + padX * 2;
   const h = fontSize + padY * 2;
-  drawRoundedRect(page, { x, y, width: w, height: h, radius: h / 2, fill: bgColor });
+  const r = h / 2;
+  page.drawRectangle({ x: x + r, y, width: Math.max(0, w - h), height: h, color: bgColor });
+  page.drawCircle({ x: x + r, y: y + r, size: r, color: bgColor });
+  page.drawCircle({ x: x + w - r, y: y + r, size: r, color: bgColor });
   page.drawText((text ?? ""), { x: x + padX, y: y + padY + 0.8, size: fontSize, font, color: textColor });
   return w;
 }
@@ -476,7 +479,7 @@ Deno.serve(async (req) => {
       const TABLE_W = CW - 8;
       const C_AREA = 50 * MM;
       const C_STATUS = 26 * MM;
-      const C_PHOTO = 11 * MM;
+      const C_PHOTO = 18 * MM;
       const C_NOTES = TABLE_W - C_AREA - C_STATUS - C_PHOTO - 12;
 
       const COL_HDR_Y = TBL_HEADER_Y - 10;
