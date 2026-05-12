@@ -88,6 +88,7 @@ export const ProjectEditForm = ({
   const [description, setDescription] = useState(initialDescription ?? "");
   const [color, setColor] = useState(initialColor || DEFAULT_PROJECT_COLOR);
   const [eventDate, setEventDate] = useState<Date | undefined>(fromIsoDate(initialEventDate));
+  const [buildStartDate, setBuildStartDate] = useState<Date | undefined>(fromIsoDate(initialBuildStartDate ?? null));
   const [eventLocation, setEventLocation] = useState(initialEventLocation ?? "");
   const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
   const [eventType, setEventType] = useState(initialEventType ?? "");
