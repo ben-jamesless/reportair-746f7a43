@@ -54,6 +54,7 @@ type Project = {
   template: string;
   color: string | null;
   event_date: string | null;
+  build_start_date: string | null;
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
@@ -64,7 +65,16 @@ type Project = {
 
 type Album = { id: string; name: string; slug: string; position: number };
 type Area = { id: string; name: string; sort_order: number };
-type DayNote = { date: string; notes: string | null };
+type DayNote = {
+  date: string;
+  notes: string | null;
+  today_objectives: string | null;
+  today_achievements: string | null;
+  tomorrow_objectives: string | null;
+  open_issues: string | null;
+};
+type DailyField = "today_objectives" | "today_achievements" | "tomorrow_objectives" | "open_issues";
+type DailyFields = { [K in DailyField]: string | null };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
