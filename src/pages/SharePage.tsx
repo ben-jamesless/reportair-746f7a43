@@ -678,13 +678,15 @@ const SharePage = () => {
                   const totalBlocks = orderedAreas.length + (hasUnassigned ? 1 : 0);
 
                   return (
-                    <div
+                    <details
                       key={group.key}
+                      open={!isMobile}
                       ref={(el) => { dayAnchorRefs.current.set(dateKey, el); }}
+                      className="group/day"
                     >
-                      {/* Day header strip — full width, flush */}
-                      <div
-                        className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur"
+                      {/* Day header strip — full width, flush; acts as collapsible summary on mobile */}
+                      <summary
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur list-none [&::-webkit-details-marker]:hidden xl:cursor-default"
                         style={{
                           backgroundColor: SURFACE,
                           borderBottom: `1px solid ${DIVIDER}`,
@@ -698,8 +700,14 @@ const SharePage = () => {
                             {group.photos.length} photo{group.photos.length === 1 ? "" : "s"}
                           </span>
                         </div>
-                        {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
-                      </div>
+                        <div className="flex items-center gap-2">
+                          {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
+                          <ChevronDown
+                            className="h-4 w-4 transition-transform group-open/day:rotate-180 xl:hidden"
+                            style={{ color: MUTED }}
+                          />
+                        </div>
+                      </summary>
                       {weather[dateKey] && (
                         <div className="px-4 py-2 text-xs" style={{ color: MUTED, borderBottom: `1px solid ${DIVIDER}` }}>
                           {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
@@ -777,7 +785,7 @@ const SharePage = () => {
                           </article>
                         )}
                       </div>
-                    </div>
+                    </details>
                   );
                 })}
               </div>
