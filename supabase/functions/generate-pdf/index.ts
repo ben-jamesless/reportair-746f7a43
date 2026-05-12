@@ -415,17 +415,12 @@ Deno.serve(async (req) => {
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
       page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
 
-      // Event logo box
+      // Event logo (only render when an image was uploaded)
       const logoBoxX = W - M - 66, logoBoxY = H - 48 * MM, logoBoxW = 66, logoBoxH = 32;
-      drawRoundedRect(page, { x: logoBoxX, y: logoBoxY, width: logoBoxW, height: logoBoxH, radius: 6, fill: COLOR.CLOUD, stroke: COLOR.BORDER, strokeWidth: 0.5 });
       if (eventLogoImage) {
         const scale = Math.min(logoBoxW / eventLogoImage.width, logoBoxH / eventLogoImage.height);
         const lw = eventLogoImage.width * scale, lh = eventLogoImage.height * scale;
         page.drawImage(eventLogoImage, { x: logoBoxX + (logoBoxW - lw) / 2, y: logoBoxY + (logoBoxH - lh) / 2, width: lw, height: lh });
-      } else {
-        const lblText = "EVENT LOGO";
-        const lblW = irFont.widthOfTextAtSize(lblText, 6.5);
-        page.drawText(lblText, { x: logoBoxX + (logoBoxW - lblW) / 2, y: logoBoxY + logoBoxH / 2 - 3, size: 6.5, font: irFont, color: COLOR.MIST });
       }
 
       page.drawLine({ start: { x: M + 8, y: H - 51 * MM }, end: { x: W - M, y: H - 51 * MM }, thickness: 0.5, color: COLOR.BORDER });
@@ -437,9 +432,10 @@ Deno.serve(async (req) => {
       page.drawText("OVERALL STATUS", { x: M + 8, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
       const overallMeta = statusMeta(proj.overall_status as string | null);
       drawPill(page, M + 8, PILL_Y, overallMeta.label, overallMeta.text, overallMeta.bg, irFont, 8);
-      page.drawLine({ start: { x: W / 3, y: ROW_TOP - 5 * MM }, end: { x: W / 3, y: ROW_TOP - 15 * MM }, thickness: 0.5, color: COLOR.BORDER });
-      page.drawText("WEATHER", { x: W / 3 + 8, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
-      page.drawText(weatherStr || "—", { x: W / 3 + 8, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
+      const DIV_X = W / 2.5;
+      page.drawLine({ start: { x: DIV_X, y: ROW_TOP - 5 * MM }, end: { x: DIV_X, y: ROW_TOP - 15 * MM }, thickness: 0.5, color: COLOR.BORDER });
+      page.drawText("WEATHER", { x: DIV_X + 10, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
+      page.drawText(weatherStr || "—", { x: DIV_X + 10, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
       page.drawLine({ start: { x: M + 8, y: ROW_TOP - 18 * MM + 2 }, end: { x: W - M, y: ROW_TOP - 18 * MM + 2 }, thickness: 0.5, color: COLOR.BORDER });
 
       // Daily Updates 2x2 cards
@@ -468,7 +464,8 @@ Deno.serve(async (req) => {
       }
 
       // Area Summary table
-      const TBL_HEADER_Y = UPD_TOP - 2 * (BLK_H + BLK_GAP) - 30;
+      const CARD_GRID_H = 2 * BLK_H + BLK_GAP;
+      const TBL_HEADER_Y = UPD_TOP - CARD_GRID_H - 20;
       const tblTitle = "AREA SUMMARY";
       page.drawText(tblTitle, { x: M + 8, y: TBL_HEADER_Y, size: 9, font: pjsFont, color: COLOR.INK });
       const tblTitleW = pjsFont.widthOfTextAtSize(tblTitle, 9);
@@ -578,34 +575,29 @@ Deno.serve(async (req) => {
 
       const FOOTER_SPACE = 20 * MM;
       const avail_h = PH_TOP - 14 - FOOTER_SPACE;
-      const PCOLS = 3, PROWS = 3;
-      const gutter = 6;
-      const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
-      const max_ph = (avail_h - gutter * (PROWS - 1)) / PROWS;
-      const photo_h = Math.min(photo_w * 0.65, max_ph);
+      const photoImages = (area.photoImages ?? []).filter((img): img is PDFImage => img !== null).slice(0, 9);
+      const photoCount = photoImages.length;
+      if (photoCount > 0) {
+        const PCOLS = Math.min(photoCount, 3);
+        const PROWS = Math.ceil(photoCount / PCOLS);
+        const gutter = 6;
+        const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
+        const max_ph = (avail_h - gutter * (PROWS - 1)) / PROWS;
+        const photo_h = Math.min(photo_w * 0.65, max_ph);
 
-      for (let row = 0; row < PROWS; row++) {
-        for (let col = 0; col < PCOLS; col++) {
+        for (let i = 0; i < photoCount; i++) {
+          const col = i % PCOLS;
+          const row = Math.floor(i / PCOLS);
           const px = M + col * (photo_w + gutter);
           const py = PH_TOP - 14 - row * (photo_h + gutter) - photo_h;
-          const tile_index = row * PCOLS + col;
+          const img = photoImages[i];
           drawRoundedRect(page, { x: px, y: py, width: photo_w, height: photo_h, radius: 4, fill: COLOR.CLOUD, stroke: COLOR.BORDER, strokeWidth: 0.4 });
-          const img = area.photoImages[tile_index];
-          if (img) {
-            // Cover-fit
-            const scale = Math.max(photo_w / img.width, photo_h / img.height);
-            const iw = img.width * scale, ih = img.height * scale;
-            // Clip not supported directly; centre and draw at exact tile size by computing target.
-            // Use min for safe-fit (no clip) so the whole image is visible.
-            const fitScale = Math.min(photo_w / img.width, photo_h / img.height);
-            const fw = img.width * fitScale, fh = img.height * fitScale;
-            page.drawImage(img, { x: px + (photo_w - fw) / 2, y: py + (photo_h - fh) / 2, width: fw, height: fh });
-            void iw; void ih;
-            // Caption bar
-            page.drawRectangle({ x: px, y: py, width: photo_w, height: 10, color: COLOR.CAPTION_BAR });
-            const cap = (area.name ?? "").slice(0, 30);
-            page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
-          }
+          const fitScale = Math.min(photo_w / img.width, photo_h / img.height);
+          const fw = img.width * fitScale, fh = img.height * fitScale;
+          page.drawImage(img, { x: px + (photo_w - fw) / 2, y: py + (photo_h - fh) / 2, width: fw, height: fh });
+          page.drawRectangle({ x: px, y: py, width: photo_w, height: 10, color: COLOR.CAPTION_BAR });
+          const cap = (area.name ?? "").slice(0, 30);
+          page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
         }
       }
     }
