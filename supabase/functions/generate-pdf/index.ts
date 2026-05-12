@@ -404,9 +404,9 @@ Deno.serve(async (req) => {
       page.drawLine({ start: { x: M + 8, y: H - 20 * MM }, end: { x: W - M, y: H - 20 * MM }, thickness: 0.5, color: COLOR.BORDER });
 
       // Event identity
-      const eventName = ((proj.name as string) || "Event" ?? "");
+      const eventName = ((proj.name as string) || "Event");
       page.drawText(eventName, { x: M + 8, y: H - 33 * MM, size: 22, font: pjsFont, color: COLOR.INK });
-      const venue = ((proj.event_location as string) || "" ?? "");
+      const venue = ((proj.event_location as string) || "");
       if (venue) page.drawText(venue, { x: M + 8, y: H - 40 * MM, size: 10, font: irFont, color: COLOR.SLATE });
 
       // Date row
@@ -612,7 +612,7 @@ Deno.serve(async (req) => {
 
     // ===== Footer on every page =====
     const allPages = pdfDoc.getPages();
-    const eventNameForFooter = ((proj.name as string) || "" ?? "");
+    const eventNameForFooter = ((proj.name as string) || "");
     for (let i = 0; i < allPages.length; i++) {
       const p = allPages[i];
       const pageNum = i + 1;
