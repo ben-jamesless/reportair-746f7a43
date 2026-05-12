@@ -18,6 +18,7 @@ interface ProjectForEdit {
   description: string | null;
   color: string | null;
   event_date: string | null;
+  build_start_date?: string | null;
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
