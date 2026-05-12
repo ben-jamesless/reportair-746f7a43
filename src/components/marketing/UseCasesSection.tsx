@@ -261,9 +261,8 @@ export default function UseCasesSection() {
             right: 0,
             top: 0,
             bottom: 20,
-            width: "calc(100vw - 48px - (280px * 3) - (20px * 3))",
-            minWidth: 160,
-            background: "linear-gradient(to left, #060D18 35%, rgba(6,13,24,0.85) 60%, transparent)",
+            width: 120,
+            background: "linear-gradient(to left, #060D18, transparent)",
             pointerEvents: "none",
             zIndex: 2,
           }}
