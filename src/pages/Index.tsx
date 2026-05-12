@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import HeroSection from "@/components/marketing/HeroSection";
 import HowItWorksSection from "@/components/marketing/HowItWorksSection";
 import FAQSection from "@/components/marketing/FAQSection";
+import TimeSavedSection from "@/components/marketing/TimeSavedSection";
 
 // ---- Brand tokens (scoped to this marketing page) ----
 const BRAND = {
@@ -179,6 +180,10 @@ const Index = () => {
       <HowItWorksSection />
 
       {/* ============ PRODUCT FEATURES (removed — replaced by How It Works) ============ */}
+
+      {/* ============ REVIEWS ============ */}
+      {/* ============ TIME SAVED ============ */}
+      <TimeSavedSection />
 
       {/* ============ REVIEWS ============ */}
       <section id="reviews" className="py-20" style={{ background: "#060D18" }}>
