@@ -160,6 +160,67 @@ export const ProjectEditForm = ({
     })();
   }, [projectId, initialBuildStartDate]);
 
+  // Load existing logo + signed preview URL
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("projects").select("logo_path").eq("id", projectId).maybeSingle();
+      if (cancelled) return;
+      const path = (data as { logo_path?: string | null } | null)?.logo_path ?? null;
+      setLogoPath(path);
+      if (path) {
+        const { data: signed } = await supabase.storage.from("export-assets").createSignedUrl(path, 600);
+        if (!cancelled) setLogoUrl(signed?.signedUrl ?? null);
+      } else {
+        setLogoUrl(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId]);
+
+  const onLogoFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
+    setLogoUploading(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${projectId}/project-logo-${Date.now()}-${safeName}`;
+      const { error: upErr } = await supabase.storage.from("export-assets").upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) { toast.error(upErr.message); return; }
+      const { error: updErr } = await supabase.from("projects").update({ logo_path: path }).eq("id", projectId);
+      if (updErr) { toast.error(updErr.message); return; }
+      // Best-effort cleanup of previous logo
+      if (logoPath && logoPath !== path) {
+        await supabase.storage.from("export-assets").remove([logoPath]).catch(() => undefined);
+      }
+      setLogoPath(path);
+      const { data: signed } = await supabase.storage.from("export-assets").createSignedUrl(path, 600);
+      setLogoUrl(signed?.signedUrl ?? null);
+      toast.success("Logo updated");
+      onSaved?.();
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const removeLogo = async () => {
+    if (!logoPath) return;
+    setLogoUploading(true);
+    try {
+      const prev = logoPath;
+      const { error } = await supabase.from("projects").update({ logo_path: null }).eq("id", projectId);
+      if (error) { toast.error(error.message); return; }
+      await supabase.storage.from("export-assets").remove([prev]).catch(() => undefined);
+      setLogoPath(null);
+      setLogoUrl(null);
+      toast.success("Logo removed");
+      onSaved?.();
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+
   const canChangeDefaultView = isOwner || isAdmin;
 
   const save = async () => {
