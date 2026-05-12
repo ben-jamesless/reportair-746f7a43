@@ -297,6 +297,42 @@ export const ProjectEditForm = ({
         </div>
 
         <div className="space-y-2">
+          <Label>Build start date</Label>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "flex-1 justify-start text-left font-normal",
+                    !buildStartDate && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {buildStartDate ? format(buildStartDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={buildStartDate}
+                  onSelect={setBuildStartDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            {buildStartDate && (
+              <Button type="button" variant="ghost" size="icon" onClick={() => setBuildStartDate(undefined)} aria-label="Clear date">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="edit-location">Event location</Label>
           <Input id="edit-location" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="e.g. London, UK" />
         </div>
