@@ -588,20 +588,25 @@ Deno.serve(async (req) => {
       const anW = pjsFont.widthOfTextAtSize("AREA NOTES", 9);
       page.drawLine({ start: { x: M + 6, y: NOTES_TOP - 2 }, end: { x: M + 6 + anW, y: NOTES_TOP - 2 }, thickness: 1.5, color: meta.text });
 
-      const noteLines = wrapLines(area.notes || "No notes for this area today.", irFont, 10, CW - 14);
+      const trimmedNotes = (area.notes ?? "").trim();
       let noteY = NOTES_TOP - 20;
-      for (const ln of noteLines) {
-        if (noteY < 80) break; // leave room for photos+footer
-        page.drawText(ln, { x: M + 6, y: noteY, size: 10, font: irFont, color: COLOR.SLATE });
-        noteY -= 14;
+      if (trimmedNotes.length > 0) {
+        const noteLines = wrapLines(trimmedNotes, irFont, 10, CW - 14);
+        for (const ln of noteLines) {
+          if (noteY < 80) break; // leave room for photos+footer
+          page.drawText(ln, { x: M + 6, y: noteY, size: 10, font: irFont, color: COLOR.SLATE });
+          noteY -= 14;
+        }
       }
       const endY = noteY;
 
-      // Photos
+      // Photos — only render heading + grid when there are photos for this area.
       const PH_TOP = endY - 12;
-      page.drawText("PHOTOS", { x: M + 6, y: PH_TOP, size: 9, font: pjsFont, color: COLOR.INK });
-      const phW = pjsFont.widthOfTextAtSize("PHOTOS", 9);
-      page.drawLine({ start: { x: M + 6, y: PH_TOP - 2 }, end: { x: M + 6 + phW, y: PH_TOP - 2 }, thickness: 1.5, color: meta.text });
+      if (area.photoCount > 0) {
+        page.drawText("PHOTOS", { x: M + 6, y: PH_TOP, size: 9, font: pjsFont, color: COLOR.INK });
+        const phW = pjsFont.widthOfTextAtSize("PHOTOS", 9);
+        page.drawLine({ start: { x: M + 6, y: PH_TOP - 2 }, end: { x: M + 6 + phW, y: PH_TOP - 2 }, thickness: 1.5, color: meta.text });
+      }
 
       const FOOTER_SPACE = 20 * MM;
       const avail_h = PH_TOP - 14 - FOOTER_SPACE;
