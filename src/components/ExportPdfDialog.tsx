@@ -33,10 +33,8 @@ import { cn } from "@/lib/utils";
 import {
   FileDown,
   Loader2,
-  Upload,
   AlertTriangle,
   Download,
-  X,
   Calendar as CalendarIcon,
   ChevronDown,
   History,
@@ -132,12 +130,9 @@ export const ExportPdfDialog = ({
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
   const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
   const [accent, setAccent] = useState("#01696F");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPath, setLogoPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const orientation = "portrait" as const;
-  const fileInput = useRef<HTMLInputElement>(null);
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -235,14 +230,6 @@ export const ExportPdfDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, historyOpen]);
 
-  const handleLogoSelect = async (file: File) => {
-    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
-    setLogoFile(file);
-    const path = `${projectId}/logo-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const { error } = await supabase.storage.from("export-assets").upload(path, file, { upsert: true });
-    if (error) { toast.error(error.message); setLogoFile(null); return; }
-    setLogoPath(path);
-  };
 
   // Compute photos covered + cap for current selection
   const { effectivePhotoCount, rangeDays } = useMemo(() => {
