@@ -370,6 +370,7 @@ Deno.serve(async (req) => {
       notes: string;
       photoCount: number;
       photoImages: (PDFImage | null)[];
+      photoCaptions: string[];
     };
     const areaDataAll: AreaData[] = await Promise.all(sortedAreas.map(async (a) => {
       const ps = (photosByArea.get(a.id) ?? []).slice(0, 9);
@@ -382,6 +383,7 @@ Deno.serve(async (req) => {
         notes: notesByArea.get(a.id) ?? "",
         photoCount: (photosByArea.get(a.id) ?? []).length,
         photoImages: images,
+        photoCaptions: ps.map((p) => (p.caption ?? "").trim()),
       };
     }));
     // Exclude empty areas: 0 photos AND no status AND no notes
@@ -603,7 +605,12 @@ Deno.serve(async (req) => {
 
       const FOOTER_SPACE = 20 * MM;
       const avail_h = PH_TOP - 14 - FOOTER_SPACE;
-      const photoImages = (area.photoImages ?? []).filter((img): img is PDFImage => img !== null).slice(0, 9);
+      const paired = (area.photoImages ?? [])
+        .map((img, idx) => ({ img, caption: area.photoCaptions?.[idx] ?? "" }))
+        .filter((p): p is { img: PDFImage; caption: string } => p.img !== null)
+        .slice(0, 9);
+      const photoImages = paired.map((p) => p.img);
+      const photoCaptions = paired.map((p) => p.caption);
       const photoCount = photoImages.length;
       if (photoCount > 0) {
         const PCOLS = 3;
@@ -611,9 +618,17 @@ Deno.serve(async (req) => {
         const gutter = 6;
         const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
         const MAX_TILE_H = 110 * MM;
-        const CAPTION_H = 10;
+        const CAPTION_H = 14;
+        // Per-row caption presence (only reserve space when at least one photo in the row has a caption).
+        const rowHasCaption: boolean[] = [];
+        for (let r = 0; r < PROWS; r++) {
+          const start = r * PCOLS;
+          const slice = photoCaptions.slice(start, start + PCOLS);
+          rowHasCaption.push(slice.some((c) => c && c.length > 0));
+        }
+        const totalCaptionH = rowHasCaption.reduce((s, has) => s + (has ? CAPTION_H : 0), 0);
         // Cap per-tile height so the grid still fits the available area.
-        const maxTileFromAvail = PROWS > 0 ? (avail_h - gutter * (PROWS - 1) - CAPTION_H * PROWS) / PROWS : avail_h;
+        const maxTileFromAvail = PROWS > 0 ? (avail_h - gutter * (PROWS - 1) - totalCaptionH) / PROWS : avail_h;
         const tileCap = Math.min(MAX_TILE_H, Math.max(24, maxTileFromAvail));
 
         // Pre-compute each tile's height (per natural aspect) and each row's height (max in row).
@@ -632,7 +647,7 @@ Deno.serve(async (req) => {
         let acc = 0;
         for (let r = 0; r < PROWS; r++) {
           rowTopOffset.push(acc);
-          acc += rowHeights[r] + CAPTION_H + gutter;
+          acc += rowHeights[r] + (rowHasCaption[r] ? CAPTION_H : 0) + gutter;
         }
 
         for (let i = 0; i < photoCount; i++) {
@@ -649,9 +664,18 @@ Deno.serve(async (req) => {
           const fitScale = Math.min(tile_w / img.width, tile_h / img.height);
           const fw = img.width * fitScale, fh = img.height * fitScale;
           page.drawImage(img, { x: px + (tile_w - fw) / 2, y: py + (tile_h - fh) / 2, width: fw, height: fh });
-          page.drawRectangle({ x: px, y: py - CAPTION_H, width: tile_w, height: CAPTION_H, color: COLOR.CAPTION_BAR });
-          const cap = (area.name ?? "").slice(0, 30);
-          page.drawText(cap, { x: px + 4, y: py - CAPTION_H + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
+          const caption = photoCaptions[i];
+          if (caption && caption.length > 0) {
+            page.drawRectangle({ x: px, y: py - CAPTION_H, width: tile_w, height: CAPTION_H, color: COLOR.CAPTION_BAR });
+            // Truncate caption to fit width.
+            let cap = caption;
+            const maxW = tile_w - 8;
+            while (cap.length > 0 && irFont.widthOfTextAtSize(cap, 7) > maxW) {
+              cap = cap.slice(0, -1);
+            }
+            if (cap.length < caption.length && cap.length > 1) cap = cap.slice(0, -1) + "…";
+            page.drawText(cap, { x: px + 4, y: py - CAPTION_H + 4, size: 7, font: irFont, color: COLOR.SLATE });
+          }
         }
       }
     }
