@@ -432,9 +432,10 @@ Deno.serve(async (req) => {
       page.drawText("OVERALL STATUS", { x: M + 8, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
       const overallMeta = statusMeta(proj.overall_status as string | null);
       drawPill(page, M + 8, PILL_Y, overallMeta.label, overallMeta.text, overallMeta.bg, irFont, 8);
-      page.drawLine({ start: { x: W / 3, y: ROW_TOP - 5 * MM }, end: { x: W / 3, y: ROW_TOP - 15 * MM }, thickness: 0.5, color: COLOR.BORDER });
-      page.drawText("WEATHER", { x: W / 3 + 8, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
-      page.drawText(weatherStr || "—", { x: W / 3 + 8, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
+      const DIV_X = W / 2.5;
+      page.drawLine({ start: { x: DIV_X, y: ROW_TOP - 5 * MM }, end: { x: DIV_X, y: ROW_TOP - 15 * MM }, thickness: 0.5, color: COLOR.BORDER });
+      page.drawText("WEATHER", { x: DIV_X + 10, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
+      page.drawText(weatherStr || "—", { x: DIV_X + 10, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
       page.drawLine({ start: { x: M + 8, y: ROW_TOP - 18 * MM + 2 }, end: { x: W - M, y: ROW_TOP - 18 * MM + 2 }, thickness: 0.5, color: COLOR.BORDER });
 
       // Daily Updates 2x2 cards
