@@ -472,7 +472,7 @@ Deno.serve(async (req) => {
       page.drawLine({ start: { x: M + 8, y: TBL_HEADER_Y - 2 }, end: { x: M + 8 + tblTitleW, y: TBL_HEADER_Y - 2 }, thickness: 1.5, color: COLOR.SKY });
 
       const TABLE_W = CW - 8;
-      const C_AREA = 55 * MM;
+      const C_AREA = 50 * MM;
       const C_STATUS = 26 * MM;
       const C_PHOTO = 11 * MM;
       const C_NOTES = TABLE_W - C_AREA - C_STATUS - C_PHOTO - 12;
