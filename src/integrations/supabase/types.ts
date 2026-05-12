@@ -241,7 +241,11 @@ export type Database = {
           date: string
           id: string
           notes: string | null
+          open_issues: string | null
           project_id: string
+          today_achievements: string | null
+          today_objectives: string | null
+          tomorrow_objectives: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -250,7 +254,11 @@ export type Database = {
           date: string
           id?: string
           notes?: string | null
+          open_issues?: string | null
           project_id: string
+          today_achievements?: string | null
+          today_objectives?: string | null
+          tomorrow_objectives?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -259,7 +267,11 @@ export type Database = {
           date?: string
           id?: string
           notes?: string | null
+          open_issues?: string | null
           project_id?: string
+          today_achievements?: string | null
+          today_objectives?: string | null
+          tomorrow_objectives?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -650,6 +662,7 @@ export type Database = {
       projects: {
         Row: {
           archived_at: string | null
+          build_start_date: string | null
           client_name: string | null
           color: string
           created_at: string
@@ -676,6 +689,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          build_start_date?: string | null
           client_name?: string | null
           color?: string
           created_at?: string
@@ -702,6 +716,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          build_start_date?: string | null
           client_name?: string | null
           color?: string
           created_at?: string

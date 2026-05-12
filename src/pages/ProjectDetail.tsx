@@ -54,6 +54,7 @@ type Project = {
   template: string;
   color: string | null;
   event_date: string | null;
+  build_start_date: string | null;
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
@@ -64,7 +65,16 @@ type Project = {
 
 type Album = { id: string; name: string; slug: string; position: number };
 type Area = { id: string; name: string; sort_order: number };
-type DayNote = { date: string; notes: string | null };
+type DayNote = {
+  date: string;
+  notes: string | null;
+  today_objectives: string | null;
+  today_achievements: string | null;
+  tomorrow_objectives: string | null;
+  open_issues: string | null;
+};
+type DailyField = "today_objectives" | "today_achievements" | "tomorrow_objectives" | "open_issues";
+type DailyFields = { [K in DailyField]: string | null };
 
 const NO_AREA = "__no_area__";
 const ALL_DAYS = "__all__";
@@ -118,6 +128,8 @@ const ProjectDetail = () => {
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
   const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
+  // 4 daily update fields keyed by dateKey
+  const [dailyFields, setDailyFields] = useState<Map<string, DailyFields>>(new Map());
   // per-area, per-day update notes keyed by `${areaId}|${dateKey}` -> string
   const [areaDayNotes, setAreaDayNotes] = useState<Map<string, string | null>>(new Map());
   // status keyed by `${areaId}|${dateKey}` -> AreaStatus
@@ -277,7 +289,7 @@ const ProjectDetail = () => {
   const loadAll = useCallback(async () => {
     if (!id) return;
     const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color, event_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
+      supabase.from("projects").select("id, name, description, template, color, event_date, build_start_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
       supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
       supabase
@@ -288,7 +300,7 @@ const ProjectDetail = () => {
         .eq("project_id", id)
         .order("captured_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false }),
-      supabase.from("day_notes").select("date, notes").eq("project_id", id),
+      supabase.from("day_notes").select("date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues").eq("project_id", id),
       supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
       supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
     ]);
@@ -297,8 +309,18 @@ const ProjectDetail = () => {
     setAreas((ar ?? []) as Area[]);
     setPhotos((ph ?? []) as LightboxPhoto[]);
     const map = new Map<string, string | null>();
-    for (const row of (dn ?? []) as DayNote[]) map.set(row.date, row.notes ?? null);
+    const fieldMap = new Map<string, DailyFields>();
+    for (const row of (dn ?? []) as DayNote[]) {
+      map.set(row.date, row.notes ?? null);
+      fieldMap.set(row.date, {
+        today_objectives: row.today_objectives ?? null,
+        today_achievements: row.today_achievements ?? null,
+        tomorrow_objectives: row.tomorrow_objectives ?? null,
+        open_issues: row.open_issues ?? null,
+      });
+    }
     setDayNotes(map);
+    setDailyFields(fieldMap);
     const sm = new Map<string, AreaStatus>();
     for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
     setAreaDayStatus(sm);
@@ -379,8 +401,22 @@ const ProjectDetail = () => {
     );
     if (error) { toast.error(error.message); setDayNotes(prev); }
   };
-
-  // Photos in any album are excluded from the date-grouped pool and shown
+  const getDailyField = (dateKey: string, field: DailyField): string | null =>
+    dailyFields.get(dateKey)?.[field] ?? null;
+  const saveDailyField = async (dateKey: string, field: DailyField, next: string | null) => {
+    if (!id) return;
+    const prev = new Map(dailyFields);
+    setDailyFields((cur) => {
+      const n = new Map(cur);
+      const existing = n.get(dateKey) ?? { today_objectives: null, today_achievements: null, tomorrow_objectives: null, open_issues: null };
+      n.set(dateKey, { ...existing, [field]: next });
+      return n;
+    });
+    const { data: { user } } = await supabase.auth.getUser();
+    const payload = { project_id: id, date: dateKey, [field]: next, updated_by: user?.id } as never;
+    const { error } = await supabase.from("day_notes").upsert(payload, { onConflict: "project_id,date" });
+    if (error) { toast.error(error.message); setDailyFields(prev); }
+  };
   // only when their album is selected from the sidebar.
   const albumPhotos = (() => {
     const m = new Map<string, LightboxPhoto[]>();
@@ -1086,22 +1122,47 @@ const ProjectDetail = () => {
                   const dayPool = day.photos;
                   const areasOnDay = areas.filter((ar) => dayPool.some((p) => p.area_id === ar.id));
                   const dayNoteVal = dayNotes.get(activeDay) ?? null;
+                  const dailyBlocks: { key: DailyField; label: string }[] = [
+                    { key: "today_objectives", label: "Today's Objectives" },
+                    { key: "today_achievements", label: "Today's Achievements" },
+                    { key: "tomorrow_objectives", label: "Tomorrow's Objectives" },
+                    { key: "open_issues", label: "Open Issues / Risks" },
+                  ];
                   return (
                     <div className="space-y-6">
-                      {/* Day-level note (once, at top of day content) */}
-                      <div className="px-4 pt-2">
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Daily Updates
-                        </p>
-                        <EditableNote
-                          value={dayNoteVal}
-                          placeholder="Add daily updates…"
-                          onSave={(next) => saveDayNote(activeDay, next)}
-                          rich
-                          rows={4}
-                          readOnly={!canEdit}
-                        />
+                      {/* Daily updates — 4 separate fields used by the report PDF cover */}
+                      <div className="px-4 pt-2 grid gap-4 sm:grid-cols-2">
+                        {dailyBlocks.map((b) => (
+                          <div key={b.key}>
+                            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              {b.label}
+                            </p>
+                            <EditableNote
+                              value={getDailyField(activeDay, b.key)}
+                              placeholder={`Add ${b.label.toLowerCase()}…`}
+                              onSave={(next) => saveDailyField(activeDay, b.key, next)}
+                              rich
+                              rows={3}
+                              readOnly={!canEdit}
+                            />
+                          </div>
+                        ))}
                       </div>
+                      {dayNoteVal && dayNoteVal.trim() && (
+                        <div className="px-4">
+                          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Legacy notes
+                          </p>
+                          <EditableNote
+                            value={dayNoteVal}
+                            placeholder=""
+                            onSave={(next) => saveDayNote(activeDay, next)}
+                            rich
+                            rows={3}
+                            readOnly={!canEdit}
+                          />
+                        </div>
+                      )}
 
                       {/* Per-area briefing — flush, no card */}
                       {areasOnDay.length === 0 ? (

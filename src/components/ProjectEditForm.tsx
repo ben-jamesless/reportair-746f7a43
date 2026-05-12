@@ -33,6 +33,7 @@ export interface ProjectEditValues {
   description: string | null;
   color: string | null;
   event_date: string | null; // ISO yyyy-mm-dd
+  build_start_date?: string | null; // ISO yyyy-mm-dd
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
@@ -70,6 +71,7 @@ export const ProjectEditForm = ({
   description: initialDescription,
   color: initialColor,
   event_date: initialEventDate,
+  build_start_date: initialBuildStartDate,
   event_location: initialEventLocation,
   overall_status: initialStatus,
   event_type: initialEventType,
@@ -86,6 +88,7 @@ export const ProjectEditForm = ({
   const [description, setDescription] = useState(initialDescription ?? "");
   const [color, setColor] = useState(initialColor || DEFAULT_PROJECT_COLOR);
   const [eventDate, setEventDate] = useState<Date | undefined>(fromIsoDate(initialEventDate));
+  const [buildStartDate, setBuildStartDate] = useState<Date | undefined>(fromIsoDate(initialBuildStartDate ?? null));
   const [eventLocation, setEventLocation] = useState(initialEventLocation ?? "");
   const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
   const [eventType, setEventType] = useState(initialEventType ?? "");
@@ -111,12 +114,13 @@ export const ProjectEditForm = ({
     setDescription(initialDescription ?? "");
     setColor(initialColor || DEFAULT_PROJECT_COLOR);
     setEventDate(fromIsoDate(initialEventDate));
+    setBuildStartDate(fromIsoDate(initialBuildStartDate ?? null));
     setEventLocation(initialEventLocation ?? "");
     setStatus(initialStatus ?? "no_status");
     setEventType(initialEventType ?? "");
     setClientName(initialClient ?? "");
     setDefaultView(initialDefaultView ?? "report");
-  }, [initialName, initialDescription, initialColor, initialEventDate, initialEventLocation, initialStatus, initialEventType, initialClient, initialDefaultView]);
+  }, [initialName, initialDescription, initialColor, initialEventDate, initialBuildStartDate, initialEventLocation, initialStatus, initialEventType, initialClient, initialDefaultView]);
 
   useEffect(() => {
     (async () => {
@@ -140,6 +144,16 @@ export const ProjectEditForm = ({
     })();
   }, [user, projectId]);
 
+  // Self-fetch build_start_date so callers that don't pass it (e.g. Projects list) still see the saved value.
+  useEffect(() => {
+    if (initialBuildStartDate !== undefined && initialBuildStartDate !== null) return;
+    (async () => {
+      const { data } = await supabase.from("projects").select("build_start_date").eq("id", projectId).maybeSingle();
+      const v = (data as { build_start_date?: string | null } | null)?.build_start_date ?? null;
+      if (v) setBuildStartDate(fromIsoDate(v));
+    })();
+  }, [projectId, initialBuildStartDate]);
+
   const canChangeDefaultView = isOwner || isAdmin;
 
   const save = async () => {
@@ -150,6 +164,7 @@ export const ProjectEditForm = ({
       description: description.trim() || null,
       color,
       event_date: toIsoDate(eventDate),
+      build_start_date: toIsoDate(buildStartDate),
       event_location: eventLocation.trim() || null,
       overall_status: status,
       event_type: eventType.trim() || null,
@@ -289,6 +304,42 @@ export const ProjectEditForm = ({
               </Button>
             )}
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Build start date</Label>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "flex-1 justify-start text-left font-normal",
+                    !buildStartDate && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {buildStartDate ? format(buildStartDate, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={buildStartDate}
+                  onSelect={setBuildStartDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            {buildStartDate && (
+              <Button type="button" variant="ghost" size="icon" onClick={() => setBuildStartDate(undefined)} aria-label="Clear date">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
         </div>
 
         <div className="space-y-2">

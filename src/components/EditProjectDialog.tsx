@@ -17,6 +17,7 @@ export interface EditProjectInitial {
   description: string | null;
   color: string | null;
   event_date: string | null;
+  build_start_date?: string | null;
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
@@ -38,6 +39,7 @@ export const EditProjectDialog = ({
   description,
   color,
   event_date,
+  build_start_date,
   event_location,
   overall_status,
   event_type,
@@ -75,6 +77,7 @@ export const EditProjectDialog = ({
           description={description}
           color={color}
           event_date={event_date}
+          build_start_date={build_start_date ?? null}
           event_location={event_location}
           overall_status={overall_status}
           event_type={event_type}

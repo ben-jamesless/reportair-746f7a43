@@ -18,6 +18,7 @@ interface ProjectForEdit {
   description: string | null;
   color: string | null;
   event_date: string | null;
+  build_start_date?: string | null;
   event_location: string | null;
   overall_status: ProjectStatus | null;
   event_type: string | null;
@@ -103,6 +104,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               description={project.description}
               color={project.color}
               event_date={project.event_date}
+              build_start_date={project.build_start_date ?? null}
               event_location={project.event_location}
               overall_status={project.overall_status}
               event_type={project.event_type}
