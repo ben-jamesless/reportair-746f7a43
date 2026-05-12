@@ -221,40 +221,7 @@ const Index = () => {
       {/* ============ HOW IT WORKS ============ */}
       <HowItWorksSection />
 
-      {/* ============ PRODUCT FEATURES ============ */}
-      <section id="product" className="pt-12 pb-20 sm:pt-14 sm:pb-28">
-        <div className="mx-auto max-w-[1200px] space-y-32 px-5 sm:px-6 sm:space-y-36">
-          {COPY.features.map((f, i) => (
-            <article
-              key={f.step}
-              className={`grid items-center gap-10 lg:gap-16 ${i % 2 === 1 ? "lg:grid-cols-[1fr_1fr]" : "lg:grid-cols-[1fr_1fr]"}`}
-            >
-              <div className={i % 2 === 1 ? "lg:order-2" : ""}>
-                <span className="text-xs font-bold uppercase tracking-[0.12em]" style={{ color: BRAND.deepSky }}>
-                  {f.step}
-                </span>
-                <h3 className="mt-3 text-2xl font-bold sm:text-3xl" style={{ ...display, color: BRAND.ink, lineHeight: 1.2 }}>
-                  {f.title}
-                </h3>
-                <p className="mt-4 text-base" style={{ color: BRAND.slate, lineHeight: 1.6 }}>
-                  {f.desc}
-                </p>
-                <ul className="mt-6 space-y-2.5">
-                  {f.checks.map((c) => (
-                    <li key={c} className="flex items-start gap-2.5 text-[0.95rem]" style={{ color: BRAND.slate }}>
-                      <CheckIcon />
-                      <span>{c}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className={i % 2 === 1 ? "lg:order-1" : ""}>
-                {i === 0 ? <CaptureMock /> : <ReportMock />}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
+      {/* ============ PRODUCT FEATURES (removed — replaced by How It Works) ============ */}
 
       {/* ============ REVIEWS ============ */}
       <section id="reviews" className="py-20" style={{ background: BRAND.cloud }}>
