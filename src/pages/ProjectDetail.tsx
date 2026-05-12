@@ -888,6 +888,17 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShareSettingsOpen(true)}
+                title="Manage share links"
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share link
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -900,6 +911,17 @@ const ProjectDetail = () => {
             </Button>
             {canEdit && (
               <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
+            )}
+            {canEdit && (
+              <ProjectSettingsDialog
+                projectId={project.id}
+                project={project}
+                onChanged={loadAll}
+                trigger={null}
+                defaultTab="share"
+                open={shareSettingsOpen}
+                onOpenChange={setShareSettingsOpen}
+              />
             )}
           </div>
         </div>
