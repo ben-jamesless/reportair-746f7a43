@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
 const body = { fontFamily: "'Inter', sans-serif" };
@@ -99,19 +99,6 @@ function hexToRgba(hex: string, alpha: number) {
 
 export default function UseCasesSection() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [padLeft, setPadLeft] = useState<number>(24);
-
-  useEffect(() => {
-    const update = () => {
-      if (containerRef.current) {
-        setPadLeft(containerRef.current.getBoundingClientRect().left);
-      }
-    };
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
 
   const scroll = (dir: -1 | 1) => {
     trackRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
