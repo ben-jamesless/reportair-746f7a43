@@ -154,6 +154,7 @@ export const ProjectEditForm = ({
       description: description.trim() || null,
       color,
       event_date: toIsoDate(eventDate),
+      build_start_date: toIsoDate(buildStartDate),
       event_location: eventLocation.trim() || null,
       overall_status: status,
       event_type: eventType.trim() || null,
