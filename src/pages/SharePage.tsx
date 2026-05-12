@@ -20,7 +20,14 @@ type SharePhoto = {
 };
 type Album = { id: string; name: string; position: number };
 type Area = { id: string; name: string; sort_order: number };
-type DayNote = { date: string; notes: string | null };
+type DayNote = {
+  date: string;
+  notes: string | null;
+  today_objectives: string | null;
+  today_achievements: string | null;
+  tomorrow_objectives: string | null;
+  open_issues: string | null;
+};
 type AreaDayStatus = { area_id: string; date: string; status: string };
 type AreaDayNote = { area_id: string; date: string; notes: string | null };
 type ShareProject = {
@@ -180,6 +187,12 @@ const SharePage = () => {
   const dayNotesMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(n.date, n.notes); });
+    return m;
+  }, [data?.day_notes]);
+
+  const dayNoteByDate = useMemo(() => {
+    const m = new Map<string, DayNote>();
+    (data?.day_notes ?? []).forEach((n) => m.set(n.date, n));
     return m;
   }, [data?.day_notes]);
 
@@ -357,7 +370,7 @@ const SharePage = () => {
     <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: BODY }}>
       {/* HEADER */}
       <header className="border-b" style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}>
-        <div className="mx-auto max-w-[1400px] px-6 py-6">
+        <div className="mx-auto w-full px-6 py-6 2xl:px-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
@@ -389,8 +402,8 @@ const SharePage = () => {
       </header>
 
       {/* THREE-COLUMN LAYOUT */}
-      <div className="mx-auto max-w-[1400px] px-6 py-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_300px]">
+      <div className="mx-auto w-full px-6 py-6 2xl:px-10">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_minmax(360px,420px)]">
           {/* LEFT: Date navigation */}
           <aside className="hidden lg:block space-y-1">
             <button
@@ -701,40 +714,50 @@ const SharePage = () => {
                 <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
                   Latest update
                 </p>
-                {latestDayKey ? (
-                  <>
-                    <p className="mt-1 text-sm font-bold" style={{ color: NEAR_BLACK }}>
-                      {DATE_FMT.format(allDayGroups[0].date)}
-                    </p>
-                    <div className="mt-2">
-                      <StatusPill statusKey={overallStatus} />
-                    </div>
-                    {latestDayAreaIds.length > 0 && (
-                      <ul className="mt-3 space-y-3">
-                        {areas
-                          .filter((ar) => latestDayAreaIds.includes(ar.id))
-                          .map((ar) => {
-                            const sKey = statusMap.get(`${ar.id}|${latestDayKey}`) ?? latestAreaStatus.get(ar.id);
-                            const note =
-                              areaDayNotesMap.get(`${ar.id}|${latestDayKey}`) ?? latestAreaNote.get(ar.id);
+                {latestDayKey ? (() => {
+                  const dn = dayNoteByDate.get(latestDayKey);
+                  const sections: { label: string; text: string | null | undefined }[] = [
+                    { label: "Today's objectives", text: dn?.today_objectives },
+                    { label: "Today's achievements", text: dn?.today_achievements },
+                    { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
+                    { label: "Open issues", text: dn?.open_issues },
+                  ];
+                  const hasAny = sections.some((s) => s.text && s.text.trim());
+                  return (
+                    <>
+                      <p className="mt-1 text-sm font-bold" style={{ color: NEAR_BLACK }}>
+                        {DATE_FMT.format(allDayGroups[0].date)}
+                      </p>
+                      <div className="mt-2">
+                        <StatusPill statusKey={overallStatus} />
+                      </div>
+                      {hasAny ? (
+                        <ul className="mt-4 space-y-4">
+                          {sections.map((s) => {
+                            if (!s.text || !s.text.trim()) return null;
                             return (
-                              <li key={ar.id} className="border-t pt-3 first:border-t-0 first:pt-0" style={{ borderColor: DIVIDER }}>
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>{ar.name}</span>
-                                  {sKey && <StatusPill statusKey={sKey} />}
+                              <li key={s.label}>
+                                <p
+                                  className="text-[11px] font-semibold uppercase tracking-wide"
+                                  style={{ color: MUTED }}
+                                >
+                                  {s.label}
+                                </p>
+                                <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
+                                  <RichNotes text={s.text} />
                                 </div>
-                                {note && (
-                                  <div className="mt-1.5 text-xs" style={{ color: BODY }}>
-                                    <RichNotes text={note} />
-                                  </div>
-                                )}
                               </li>
                             );
                           })}
-                      </ul>
-                    )}
-                  </>
-                ) : (
+                        </ul>
+                      ) : (
+                        <p className="mt-3 text-xs italic" style={{ color: MUTED }}>
+                          No daily summary yet.
+                        </p>
+                      )}
+                    </>
+                  );
+                })() : (
                   <p className="mt-2 text-xs italic" style={{ color: MUTED }}>No updates yet.</p>
                 )}
               </div>
