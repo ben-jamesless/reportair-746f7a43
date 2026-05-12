@@ -222,13 +222,13 @@ const Index = () => {
       </section>
 
       {/* ============ METRIC ============ */}
-      <section className="px-5 py-20 sm:px-6 sm:py-28">
+      <section className="px-5 py-20 sm:px-6 sm:py-28" style={{ background: "#060D18" }}>
         <div
           className="relative mx-auto max-w-[1200px] overflow-hidden rounded-3xl"
           style={{
-            background: `radial-gradient(60% 80% at 92% 30%, rgba(26,110,255,.28), transparent 60%), ${BRAND.ink}`,
-            border: `1px solid rgba(26,110,255,.45)`,
-            boxShadow: "0 30px 80px -40px rgba(15,23,36,.6), 0 0 60px -20px rgba(26,110,255,.25)",
+            background: "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))",
+            border: "1px solid rgba(26,110,255,0.14)",
+            boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 40px 80px rgba(0,0,0,0.35)",
           }}
         >
           {/* Grid pattern */}
