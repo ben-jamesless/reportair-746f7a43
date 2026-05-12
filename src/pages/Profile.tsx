@@ -17,6 +17,8 @@ const initialsOf = (name?: string | null, email?: string | null) => {
   return (email ?? "?").slice(0, 2).toUpperCase();
 };
 
+type TeamRow = { id: string; name: string; role: string };
+
 const Profile = () => {
   const { user } = useAuth();
   const [fullName, setFullName] = useState("");
@@ -25,6 +27,9 @@ const Profile = () => {
   const [savingName, setSavingName] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [teams, setTeams] = useState<TeamRow[]>([]);
+  const [teamNames, setTeamNames] = useState<Record<string, string>>({});
+  const [savingTeam, setSavingTeam] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadProfile = useCallback(async () => {
@@ -41,7 +46,20 @@ const Profile = () => {
     setLoadingProfile(false);
   }, [user?.id]);
 
-  useEffect(() => { loadProfile(); }, [loadProfile]);
+  const loadTeams = useCallback(async () => {
+    if (!user?.id) return;
+    const { data: memberships } = await supabase
+      .from("team_members")
+      .select("team_id, role, teams:team_id(id, name)")
+      .eq("user_id", user.id);
+    const rows: TeamRow[] = (memberships ?? [])
+      .map((m: any) => (m.teams ? { id: m.teams.id, name: m.teams.name, role: m.role } : null))
+      .filter(Boolean) as TeamRow[];
+    setTeams(rows);
+    setTeamNames(Object.fromEntries(rows.map((t) => [t.id, t.name])));
+  }, [user?.id]);
+
+  useEffect(() => { loadProfile(); loadTeams(); }, [loadProfile, loadTeams]);
 
   // Realtime: keep local profile state in sync with the row
   useEffect(() => {
@@ -73,6 +91,20 @@ const Profile = () => {
     setSavingName(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Name updated");
+  };
+
+  const handleSaveTeam = async (teamId: string) => {
+    const trimmed = (teamNames[teamId] ?? "").trim();
+    if (!trimmed) { toast.error("Company name cannot be empty"); return; }
+    setSavingTeam(teamId);
+    const { error } = await supabase
+      .from("teams")
+      .update({ name: trimmed })
+      .eq("id", teamId);
+    setSavingTeam(null);
+    if (error) { toast.error(error.message); return; }
+    setTeams((cur) => cur.map((t) => (t.id === teamId ? { ...t, name: trimmed } : t)));
+    toast.success("Company name updated");
   };
 
   const handleAvatarPick = () => fileInputRef.current?.click();
