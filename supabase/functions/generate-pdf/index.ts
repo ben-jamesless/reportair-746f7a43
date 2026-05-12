@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
         const bx = (M + 8) + (i % 2) * (HALF + 10);
         const by_top = UPD_TOP - Math.floor(i / 2) * (BLK_H + BLK_GAP);
         const by_bot = by_top - BLK_H;
-        drawRoundedRect(page, { x: bx, y: by_bot, width: HALF, height: BLK_H, radius: 6, fill: COLOR.CLOUD });
+        
         page.drawRectangle({ x: bx, y: by_bot, width: 3, height: BLK_H, color: COLOR.SKY });
         page.drawText(cards[i].label, { x: bx + 10, y: by_top - 11, size: 7.5, font: pjsFont, color: COLOR.INK });
         const lines = wrapLines(cards[i].body || "—", irFont, 8, HALF - 20);
@@ -472,7 +472,7 @@ Deno.serve(async (req) => {
       page.drawLine({ start: { x: M + 8, y: TBL_HEADER_Y - 2 }, end: { x: M + 8 + tblTitleW, y: TBL_HEADER_Y - 2 }, thickness: 1.5, color: COLOR.SKY });
 
       const TABLE_W = CW - 8;
-      const C_AREA = 55 * MM;
+      const C_AREA = 50 * MM;
       const C_STATUS = 26 * MM;
       const C_PHOTO = 11 * MM;
       const C_NOTES = TABLE_W - C_AREA - C_STATUS - C_PHOTO - 12;
@@ -500,8 +500,9 @@ Deno.serve(async (req) => {
         page.drawText(areaName.length > 38 ? areaName.slice(0, 37) + "..." : areaName, {
           x: M + 16, y: rowY - ROW_H / 2 - 3, size: 8.5, font: pjsFont, color: COLOR.INK,
         });
-        // Status pill (vertically centred — pill height ≈ 16)
-        drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - 8, meta.label, meta.text, meta.bg, irFont, 8);
+        // Status pill (vertically centred in row)
+        const rowPillH = 8 + 4 * 2;
+        drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - rowPillH / 2, meta.label, meta.text, meta.bg, irFont, 8);
         // Photo count
         page.drawText(String(a.photoCount), { x: M + 16 + C_AREA + C_STATUS, y: rowY - ROW_H / 2 - 3, size: 8.5, font: irFont, color: COLOR.SLATE });
         // Notes (wrapped, max 3 lines)
