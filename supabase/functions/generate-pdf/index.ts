@@ -415,17 +415,12 @@ Deno.serve(async (req) => {
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
       page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
 
-      // Event logo box
+      // Event logo (only render when an image was uploaded)
       const logoBoxX = W - M - 66, logoBoxY = H - 48 * MM, logoBoxW = 66, logoBoxH = 32;
-      drawRoundedRect(page, { x: logoBoxX, y: logoBoxY, width: logoBoxW, height: logoBoxH, radius: 6, fill: COLOR.CLOUD, stroke: COLOR.BORDER, strokeWidth: 0.5 });
       if (eventLogoImage) {
         const scale = Math.min(logoBoxW / eventLogoImage.width, logoBoxH / eventLogoImage.height);
         const lw = eventLogoImage.width * scale, lh = eventLogoImage.height * scale;
         page.drawImage(eventLogoImage, { x: logoBoxX + (logoBoxW - lw) / 2, y: logoBoxY + (logoBoxH - lh) / 2, width: lw, height: lh });
-      } else {
-        const lblText = "EVENT LOGO";
-        const lblW = irFont.widthOfTextAtSize(lblText, 6.5);
-        page.drawText(lblText, { x: logoBoxX + (logoBoxW - lblW) / 2, y: logoBoxY + logoBoxH / 2 - 3, size: 6.5, font: irFont, color: COLOR.MIST });
       }
 
       page.drawLine({ start: { x: M + 8, y: H - 51 * MM }, end: { x: W - M, y: H - 51 * MM }, thickness: 0.5, color: COLOR.BORDER });
