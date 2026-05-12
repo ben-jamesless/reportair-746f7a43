@@ -93,7 +93,7 @@ const HowItWorksSection = () => {
               top: 20,
               left: "50%",
               transform: "translateX(-50%)",
-              width: 440,
+              width: 520,
               height: 2,
               background: "rgba(26,110,255,0.12)",
               zIndex: 0,
