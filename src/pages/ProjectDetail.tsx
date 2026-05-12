@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import JSZip from "jszip";
@@ -624,6 +624,7 @@ const ProjectDetail = () => {
   const [exportPhotoCount, setExportPhotoCount] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportLockMode, setExportLockMode] = useState<"single" | null>(null);
+  const [shareSettingsOpen, setShareSettingsOpen] = useState(false);
 
   const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
     e.stopPropagation();
@@ -887,6 +888,17 @@ const ProjectDetail = () => {
               <FileDown className="mr-2 h-4 w-4" />
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShareSettingsOpen(true)}
+                title="Manage share links"
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share link
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -899,6 +911,17 @@ const ProjectDetail = () => {
             </Button>
             {canEdit && (
               <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
+            )}
+            {canEdit && (
+              <ProjectSettingsDialog
+                projectId={project.id}
+                project={project}
+                onChanged={loadAll}
+                trigger={null}
+                defaultTab="share"
+                open={shareSettingsOpen}
+                onOpenChange={setShareSettingsOpen}
+              />
             )}
           </div>
         </div>
