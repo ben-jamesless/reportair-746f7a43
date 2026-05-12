@@ -44,7 +44,7 @@ const COPY = {
   features: [
     {
       step: "01 · Capture & sort",
-      title: "Take the photos once. Keep the build organised as it happens.",
+      title: "Take site photos. Keep the build organised as it happens.",
       desc: "During load-in and setup, details move fast. ReportAir gives your team a simple way to capture progress photos, add quick context, and sort every update by date, area, and status while the work is still fresh.",
       checks: [
         "Upload or take photos from site",
