@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
       { data: areaNotesRows },
       { data: photos },
     ] = await Promise.all([
-      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name").eq("id", projectId).single(),
+      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path").eq("id", projectId).single(),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
       supabase.from("area_day_status").select("area_id, status").eq("project_id", projectId).eq("date", reportDateStr),
@@ -337,11 +337,12 @@ Deno.serve(async (req) => {
       irFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     }
 
-    // Event logo (from export's logo_path in export-assets bucket).
+    // Event logo: prefer per-export override, fall back to the project's saved default logo.
     let eventLogoImage: PDFImage | null = null;
-    if (exp.logo_path) {
+    const effectiveLogoPath: string | null = (exp.logo_path as string | null) || ((proj as { logo_path?: string | null }).logo_path ?? null);
+    if (effectiveLogoPath) {
       try {
-        const { data: logoBlob } = await supabase.storage.from("export-assets").download(exp.logo_path);
+        const { data: logoBlob } = await supabase.storage.from("export-assets").download(effectiveLogoPath);
         if (logoBlob) {
           const bytes = new Uint8Array(await logoBlob.arrayBuffer());
           try { eventLogoImage = await pdfDoc.embedPng(bytes); }
