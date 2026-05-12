@@ -214,7 +214,8 @@ export default function UseCasesSection() {
             gap: 20,
             overflowX: "auto",
             scrollSnapType: "x mandatory",
-            padding: "0 0 20px 0",
+            paddingLeft: padLeft,
+            paddingBottom: 20,
             paddingRight: 160,
             scrollbarWidth: "none",
           }}
