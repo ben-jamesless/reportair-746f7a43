@@ -266,13 +266,13 @@ const Index = () => {
       </section>
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="py-20 sm:py-28">
+      <section id="pricing" className="py-20 sm:py-28" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
           <header className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}>
+            <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
               {COPY.pricing.title}
             </h2>
-            <p className="mt-3 text-base" style={{ color: BRAND.slate }}>
+            <p className="mt-3 text-base" style={{ color: "rgba(255,255,255,0.55)" }}>
               {COPY.pricing.sub}
             </p>
           </header>
@@ -285,11 +285,11 @@ const Index = () => {
                   key={p.name}
                   className={`relative flex flex-col rounded-2xl p-7 transition-transform ${isFeatured ? "md:scale-[1.04] md:py-8" : ""}`}
                   style={{
-                    background: isFeatured ? "#fff" : "#fff",
-                    border: `1px solid ${isFeatured ? BRAND.sky : BRAND.border}`,
+                    background: "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))",
+                    border: `1px solid ${isFeatured ? "rgba(26,110,255,0.55)" : "rgba(26,110,255,0.14)"}`,
                     boxShadow: isFeatured
-                      ? "0 24px 60px -28px rgba(26,110,255,.45), 0 4px 14px rgba(15,23,36,.06)"
-                      : "0 1px 2px rgba(15,23,36,.04)",
+                      ? "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.4), 0 0 60px -20px rgba(26,110,255,0.45)"
+                      : "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.35)",
                   }}
                 >
                   {isFeatured && p.flag && (
@@ -309,14 +309,14 @@ const Index = () => {
                     </span>
                   )}
                   <header className="mb-4">
-                    <h3 className="text-xl font-bold" style={{ ...display, color: BRAND.ink }}>{p.name}</h3>
-                    <p className="mt-1 text-sm" style={{ color: BRAND.mist }}>{p.best}</p>
+                    <h3 className="text-xl font-bold" style={{ ...display, color: "#FFFFFF" }}>{p.name}</h3>
+                    <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{p.best}</p>
                   </header>
                   <div className="mb-5 flex items-baseline gap-2">
-                    <span className="text-3xl font-extrabold" style={{ ...display, color: BRAND.ink }}>{p.price}</span>
-                    <span className="text-sm" style={{ color: BRAND.mist }}>{p.per}</span>
+                    <span className="text-3xl font-extrabold" style={{ ...display, color: "#FFFFFF" }}>{p.price}</span>
+                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{p.per}</span>
                   </div>
-                  <ul className="mb-7 flex-1 space-y-2.5 text-[0.95rem]" style={{ color: BRAND.slate }}>
+                  <ul className="mb-7 flex-1 space-y-2.5 text-[0.95rem]" style={{ color: "rgba(255,255,255,0.7)" }}>
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2.5">
                         <CheckIcon />
@@ -330,7 +330,7 @@ const Index = () => {
                     style={
                       isFeatured
                         ? { background: BRAND.sky, color: "#fff" }
-                        : { background: "transparent", color: BRAND.ink, border: `1px solid ${BRAND.border2}` }
+                        : { background: "rgba(255,255,255,0.06)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.12)" }
                     }
                     onMouseEnter={(e) => {
                       if (isFeatured) e.currentTarget.style.background = BRAND.deepSky;
@@ -345,7 +345,7 @@ const Index = () => {
               );
             })}
           </div>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-sm" style={{ color: BRAND.mist }}>
+          <p className="mx-auto mt-10 max-w-2xl text-center text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
             {COPY.pricing.note}
           </p>
         </div>
