@@ -380,11 +380,11 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
         Tag as you go.
       </Headline>
       <Body>
-        Upload photos directly from the field. Tag by area or zone while the context is fresh — no back-office sorting required.
+        Take photos and the build happens and upload them directly from the field. 
       </Body>
       <Pills>
         <Pill color="#1DB87A">Capture from any device</Pill>
-        <Pill color="#1A6EFF">Tag by area or zone</Pill>
+        <Pill color="#1A6EFF">Upload from anywhere</Pill>
         <Pill color="#FF8C00">Flag issues instantly</Pill>
       </Pills>
       <NextBtn onClick={onNext}>Next: Upload & Sort &nbsp;→</NextBtn>
