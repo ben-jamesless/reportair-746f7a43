@@ -500,8 +500,9 @@ Deno.serve(async (req) => {
         page.drawText(areaName.length > 38 ? areaName.slice(0, 37) + "..." : areaName, {
           x: M + 16, y: rowY - ROW_H / 2 - 3, size: 8.5, font: pjsFont, color: COLOR.INK,
         });
-        // Status pill (vertically centred — pill height ≈ 16)
-        drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - 8, meta.label, meta.text, meta.bg, irFont, 8);
+        // Status pill (vertically centred in row)
+        const rowPillH = 8 + 4 * 2;
+        drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - rowPillH / 2, meta.label, meta.text, meta.bg, irFont, 8);
         // Photo count
         page.drawText(String(a.photoCount), { x: M + 16 + C_AREA + C_STATUS, y: rowY - ROW_H / 2 - 3, size: 8.5, font: irFont, color: COLOR.SLATE });
         // Notes (wrapped, max 3 lines)
