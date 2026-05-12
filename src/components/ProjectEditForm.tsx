@@ -120,7 +120,7 @@ export const ProjectEditForm = ({
     setEventType(initialEventType ?? "");
     setClientName(initialClient ?? "");
     setDefaultView(initialDefaultView ?? "report");
-  }, [initialName, initialDescription, initialColor, initialEventDate, initialEventLocation, initialStatus, initialEventType, initialClient, initialDefaultView]);
+  }, [initialName, initialDescription, initialColor, initialEventDate, initialBuildStartDate, initialEventLocation, initialStatus, initialEventType, initialClient, initialDefaultView]);
 
   useEffect(() => {
     (async () => {
