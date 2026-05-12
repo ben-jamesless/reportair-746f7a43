@@ -370,6 +370,7 @@ Deno.serve(async (req) => {
       notes: string;
       photoCount: number;
       photoImages: (PDFImage | null)[];
+      photoCaptions: string[];
     };
     const areaDataAll: AreaData[] = await Promise.all(sortedAreas.map(async (a) => {
       const ps = (photosByArea.get(a.id) ?? []).slice(0, 9);
@@ -382,6 +383,7 @@ Deno.serve(async (req) => {
         notes: notesByArea.get(a.id) ?? "",
         photoCount: (photosByArea.get(a.id) ?? []).length,
         photoImages: images,
+        photoCaptions: ps.map((p) => (p.caption ?? "").trim()),
       };
     }));
     // Exclude empty areas: 0 photos AND no status AND no notes
