@@ -126,6 +126,7 @@ const TIME_FMT = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "sh
 
 const SharePage = () => {
   const { token } = useParams<{ token: string }>();
+  const isMobile = useIsMobile();
   const [data, setData] = useState<Resolved | null>(null);
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
