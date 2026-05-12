@@ -624,6 +624,7 @@ const ProjectDetail = () => {
   const [exportPhotoCount, setExportPhotoCount] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportLockMode, setExportLockMode] = useState<"single" | null>(null);
+  const [shareSettingsOpen, setShareSettingsOpen] = useState(false);
 
   const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
     e.stopPropagation();
