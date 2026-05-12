@@ -248,19 +248,6 @@ export default function UseCasesSection() {
               <p style={{ ...body, fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: 0, flex: 1 }}>
                 {c.description}
               </p>
-              <a
-                href="#cta"
-                style={{
-                  ...body,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: c.accent,
-                  marginTop: 24,
-                  textDecoration: "none",
-                }}
-              >
-                → Learn more
-              </a>
             </article>
           ))}
         </div>
@@ -271,8 +258,9 @@ export default function UseCasesSection() {
             right: 0,
             top: 0,
             bottom: 20,
-            width: 120,
-            background: "linear-gradient(to left, #060D18, transparent)",
+            width: "calc(100vw - 48px - (280px * 3) - (20px * 3))",
+            minWidth: 160,
+            background: "linear-gradient(to left, #060D18 35%, rgba(6,13,24,0.85) 60%, transparent)",
             pointerEvents: "none",
             zIndex: 2,
           }}
