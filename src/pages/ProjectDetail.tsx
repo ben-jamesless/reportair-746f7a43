@@ -128,6 +128,8 @@ const ProjectDetail = () => {
   const [areas, setAreas] = useState<Area[]>([]);
   const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
   const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
+  // 4 daily update fields keyed by dateKey
+  const [dailyFields, setDailyFields] = useState<Map<string, DailyFields>>(new Map());
   // per-area, per-day update notes keyed by `${areaId}|${dateKey}` -> string
   const [areaDayNotes, setAreaDayNotes] = useState<Map<string, string | null>>(new Map());
   // status keyed by `${areaId}|${dateKey}` -> AreaStatus
