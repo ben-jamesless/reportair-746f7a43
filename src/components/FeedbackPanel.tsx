@@ -278,12 +278,18 @@ const EntryList = ({
   entries,
   photoById,
   onOpenPhoto,
+  readIds,
+  onToggleRead,
+  onDelete,
   emptyText,
 }: {
   loading: boolean;
   entries: Array<{ id: string; kind: "client" | "internal"; photo_id: string; author: string; body: string; created_at: string }>;
   photoById: Map<string, PhotoLite>;
   onOpenPhoto: (photoId: string) => void;
+  readIds: Set<string>;
+  onToggleRead: (entryId: string) => void;
+  onDelete: (entryId: string) => void;
   emptyText: string;
 }) => {
   if (loading && entries.length === 0) {
@@ -296,24 +302,62 @@ const EntryList = ({
     <ul className="space-y-3">
       {entries.map((e) => {
         const photo = photoById.get(e.photo_id);
+        const isRead = readIds.has(e.id);
         return (
           <li key={e.id}>
-            <button
-              onClick={() => onOpenPhoto(e.photo_id)}
-              className="flex w-full gap-3 rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:bg-secondary/50"
+            <div
+              className={cn(
+                "group/feedback relative flex w-full gap-3 rounded-md border border-border bg-background p-2.5 text-left transition-colors hover:bg-secondary/50",
+                isRead && "opacity-60",
+              )}
             >
-              {photo ? <Thumb path={photo.storage_path} alt={photo.file_name} /> : <div className="h-10 w-10 shrink-0 rounded bg-muted" />}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <p className="truncate text-xs font-medium">{e.author}</p>
-                  <ChipKind kind={e.kind} />
-                  <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
-                    {TIME_FMT.format(new Date(e.created_at))}
-                  </span>
+              <button
+                onClick={() => onOpenPhoto(e.photo_id)}
+                className="flex flex-1 gap-3 text-left focus-visible:outline-none"
+              >
+                {photo ? <Thumb path={photo.storage_path} alt={photo.file_name} /> : <div className="h-10 w-10 shrink-0 rounded bg-muted" />}
+                <div className="min-w-0 flex-1 pr-12">
+                  <div className="flex items-baseline gap-2">
+                    <p className="truncate text-xs font-medium">{e.author}</p>
+                    <ChipKind kind={e.kind} />
+                    <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                      {TIME_FMT.format(new Date(e.created_at))}
+                    </span>
+                  </div>
+                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs">{e.body}</p>
                 </div>
-                <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-xs">{e.body}</p>
+              </button>
+              <div className="absolute right-1.5 top-1.5 flex items-center gap-0.5 opacity-0 transition-opacity group-hover/feedback:opacity-100 focus-within:opacity-100">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6"
+                      onClick={(ev) => { ev.stopPropagation(); onToggleRead(e.id); }}
+                      aria-label={isRead ? "Mark as unread" : "Mark as read"}
+                    >
+                      <Check className={cn("h-3.5 w-3.5", isRead && "text-muted-foreground")} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isRead ? "Mark as unread" : "Mark as read"}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                      onClick={(ev) => { ev.stopPropagation(); onDelete(e.id); }}
+                      aria-label="Delete"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete</TooltipContent>
+                </Tooltip>
               </div>
-            </button>
+            </div>
           </li>
         );
       })}
