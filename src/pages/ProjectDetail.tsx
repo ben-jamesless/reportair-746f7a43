@@ -473,6 +473,9 @@ const ProjectDetail = () => {
     // If the URL pinned a specific day/album already, respect it.
     const pinned = searchParams.get("day");
     if (pinned) { setDidAutoSelectDay(true); return; }
+    // If deep-linking to a specific photo (e.g. from a notification), don't auto-select a day —
+    // the deep-link effect will reset filters to ALL_DAYS so the photo is visible.
+    if (searchParams.get("photo")) { setDidAutoSelectDay(true); return; }
     if (days.length > 0) {
       setActiveDay(days[0].key);
       setActiveArea(null);
