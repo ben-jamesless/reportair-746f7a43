@@ -575,34 +575,29 @@ Deno.serve(async (req) => {
 
       const FOOTER_SPACE = 20 * MM;
       const avail_h = PH_TOP - 14 - FOOTER_SPACE;
-      const PCOLS = 3, PROWS = 3;
-      const gutter = 6;
-      const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
-      const max_ph = (avail_h - gutter * (PROWS - 1)) / PROWS;
-      const photo_h = Math.min(photo_w * 0.65, max_ph);
+      const photoImages = (area.photoImages ?? []).filter((img): img is PDFImage => img !== null).slice(0, 9);
+      const photoCount = photoImages.length;
+      if (photoCount > 0) {
+        const PCOLS = Math.min(photoCount, 3);
+        const PROWS = Math.ceil(photoCount / PCOLS);
+        const gutter = 6;
+        const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
+        const max_ph = (avail_h - gutter * (PROWS - 1)) / PROWS;
+        const photo_h = Math.min(photo_w * 0.65, max_ph);
 
-      for (let row = 0; row < PROWS; row++) {
-        for (let col = 0; col < PCOLS; col++) {
+        for (let i = 0; i < photoCount; i++) {
+          const col = i % PCOLS;
+          const row = Math.floor(i / PCOLS);
           const px = M + col * (photo_w + gutter);
           const py = PH_TOP - 14 - row * (photo_h + gutter) - photo_h;
-          const tile_index = row * PCOLS + col;
+          const img = photoImages[i];
           drawRoundedRect(page, { x: px, y: py, width: photo_w, height: photo_h, radius: 4, fill: COLOR.CLOUD, stroke: COLOR.BORDER, strokeWidth: 0.4 });
-          const img = area.photoImages[tile_index];
-          if (img) {
-            // Cover-fit
-            const scale = Math.max(photo_w / img.width, photo_h / img.height);
-            const iw = img.width * scale, ih = img.height * scale;
-            // Clip not supported directly; centre and draw at exact tile size by computing target.
-            // Use min for safe-fit (no clip) so the whole image is visible.
-            const fitScale = Math.min(photo_w / img.width, photo_h / img.height);
-            const fw = img.width * fitScale, fh = img.height * fitScale;
-            page.drawImage(img, { x: px + (photo_w - fw) / 2, y: py + (photo_h - fh) / 2, width: fw, height: fh });
-            void iw; void ih;
-            // Caption bar
-            page.drawRectangle({ x: px, y: py, width: photo_w, height: 10, color: COLOR.CAPTION_BAR });
-            const cap = (area.name ?? "").slice(0, 30);
-            page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
-          }
+          const fitScale = Math.min(photo_w / img.width, photo_h / img.height);
+          const fw = img.width * fitScale, fh = img.height * fitScale;
+          page.drawImage(img, { x: px + (photo_w - fw) / 2, y: py + (photo_h - fh) / 2, width: fw, height: fh });
+          page.drawRectangle({ x: px, y: py, width: photo_w, height: 10, color: COLOR.CAPTION_BAR });
+          const cap = (area.name ?? "").slice(0, 30);
+          page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
         }
       }
     }
