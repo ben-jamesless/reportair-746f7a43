@@ -1122,22 +1122,47 @@ const ProjectDetail = () => {
                   const dayPool = day.photos;
                   const areasOnDay = areas.filter((ar) => dayPool.some((p) => p.area_id === ar.id));
                   const dayNoteVal = dayNotes.get(activeDay) ?? null;
+                  const dailyBlocks: { key: DailyField; label: string }[] = [
+                    { key: "today_objectives", label: "Today's Objectives" },
+                    { key: "today_achievements", label: "Today's Achievements" },
+                    { key: "tomorrow_objectives", label: "Tomorrow's Objectives" },
+                    { key: "open_issues", label: "Open Issues / Risks" },
+                  ];
                   return (
                     <div className="space-y-6">
-                      {/* Day-level note (once, at top of day content) */}
-                      <div className="px-4 pt-2">
-                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Daily Updates
-                        </p>
-                        <EditableNote
-                          value={dayNoteVal}
-                          placeholder="Add daily updates…"
-                          onSave={(next) => saveDayNote(activeDay, next)}
-                          rich
-                          rows={4}
-                          readOnly={!canEdit}
-                        />
+                      {/* Daily updates — 4 separate fields used by the report PDF cover */}
+                      <div className="px-4 pt-2 grid gap-4 sm:grid-cols-2">
+                        {dailyBlocks.map((b) => (
+                          <div key={b.key}>
+                            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              {b.label}
+                            </p>
+                            <EditableNote
+                              value={getDailyField(activeDay, b.key)}
+                              placeholder={`Add ${b.label.toLowerCase()}…`}
+                              onSave={(next) => saveDailyField(activeDay, b.key, next)}
+                              rich
+                              rows={3}
+                              readOnly={!canEdit}
+                            />
+                          </div>
+                        ))}
                       </div>
+                      {dayNoteVal && dayNoteVal.trim() && (
+                        <div className="px-4">
+                          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Legacy notes
+                          </p>
+                          <EditableNote
+                            value={dayNoteVal}
+                            placeholder=""
+                            onSave={(next) => saveDayNote(activeDay, next)}
+                            rich
+                            rows={3}
+                            readOnly={!canEdit}
+                          />
+                        </div>
+                      )}
 
                       {/* Per-area briefing — flush, no card */}
                       {areasOnDay.length === 0 ? (
