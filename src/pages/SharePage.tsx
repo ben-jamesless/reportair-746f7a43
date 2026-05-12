@@ -20,7 +20,14 @@ type SharePhoto = {
 };
 type Album = { id: string; name: string; position: number };
 type Area = { id: string; name: string; sort_order: number };
-type DayNote = { date: string; notes: string | null };
+type DayNote = {
+  date: string;
+  notes: string | null;
+  today_objectives: string | null;
+  today_achievements: string | null;
+  tomorrow_objectives: string | null;
+  open_issues: string | null;
+};
 type AreaDayStatus = { area_id: string; date: string; status: string };
 type AreaDayNote = { area_id: string; date: string; notes: string | null };
 type ShareProject = {
@@ -180,6 +187,12 @@ const SharePage = () => {
   const dayNotesMap = useMemo(() => {
     const m = new Map<string, string>();
     (data?.day_notes ?? []).forEach((n) => { if (n.notes && n.notes.trim()) m.set(n.date, n.notes); });
+    return m;
+  }, [data?.day_notes]);
+
+  const dayNoteByDate = useMemo(() => {
+    const m = new Map<string, DayNote>();
+    (data?.day_notes ?? []).forEach((n) => m.set(n.date, n));
     return m;
   }, [data?.day_notes]);
 
