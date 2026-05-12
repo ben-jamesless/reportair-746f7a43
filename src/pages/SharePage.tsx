@@ -714,40 +714,50 @@ const SharePage = () => {
                 <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
                   Latest update
                 </p>
-                {latestDayKey ? (
-                  <>
-                    <p className="mt-1 text-sm font-bold" style={{ color: NEAR_BLACK }}>
-                      {DATE_FMT.format(allDayGroups[0].date)}
-                    </p>
-                    <div className="mt-2">
-                      <StatusPill statusKey={overallStatus} />
-                    </div>
-                    {latestDayAreaIds.length > 0 && (
-                      <ul className="mt-3 space-y-3">
-                        {areas
-                          .filter((ar) => latestDayAreaIds.includes(ar.id))
-                          .map((ar) => {
-                            const sKey = statusMap.get(`${ar.id}|${latestDayKey}`) ?? latestAreaStatus.get(ar.id);
-                            const note =
-                              areaDayNotesMap.get(`${ar.id}|${latestDayKey}`) ?? latestAreaNote.get(ar.id);
+                {latestDayKey ? (() => {
+                  const dn = dayNoteByDate.get(latestDayKey);
+                  const sections: { label: string; text: string | null | undefined }[] = [
+                    { label: "Today's objectives", text: dn?.today_objectives },
+                    { label: "Today's achievements", text: dn?.today_achievements },
+                    { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
+                    { label: "Open issues", text: dn?.open_issues },
+                  ];
+                  const hasAny = sections.some((s) => s.text && s.text.trim());
+                  return (
+                    <>
+                      <p className="mt-1 text-sm font-bold" style={{ color: NEAR_BLACK }}>
+                        {DATE_FMT.format(allDayGroups[0].date)}
+                      </p>
+                      <div className="mt-2">
+                        <StatusPill statusKey={overallStatus} />
+                      </div>
+                      {hasAny ? (
+                        <ul className="mt-4 space-y-4">
+                          {sections.map((s) => {
+                            if (!s.text || !s.text.trim()) return null;
                             return (
-                              <li key={ar.id} className="border-t pt-3 first:border-t-0 first:pt-0" style={{ borderColor: DIVIDER }}>
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>{ar.name}</span>
-                                  {sKey && <StatusPill statusKey={sKey} />}
+                              <li key={s.label}>
+                                <p
+                                  className="text-[11px] font-semibold uppercase tracking-wide"
+                                  style={{ color: MUTED }}
+                                >
+                                  {s.label}
+                                </p>
+                                <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
+                                  <RichNotes text={s.text} />
                                 </div>
-                                {note && (
-                                  <div className="mt-1.5 text-xs" style={{ color: BODY }}>
-                                    <RichNotes text={note} />
-                                  </div>
-                                )}
                               </li>
                             );
                           })}
-                      </ul>
-                    )}
-                  </>
-                ) : (
+                        </ul>
+                      ) : (
+                        <p className="mt-3 text-xs italic" style={{ color: MUTED }}>
+                          No daily summary yet.
+                        </p>
+                      )}
+                    </>
+                  );
+                })() : (
                   <p className="mt-2 text-xs italic" style={{ color: MUTED }}>No updates yet.</p>
                 )}
               </div>
