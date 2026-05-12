@@ -413,10 +413,8 @@ const ProjectDetail = () => {
       return n;
     });
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("day_notes").upsert(
-      { project_id: id, date: dateKey, [field]: next, updated_by: user?.id },
-      { onConflict: "project_id,date" },
-    );
+    const payload = { project_id: id, date: dateKey, [field]: next, updated_by: user?.id } as never;
+    const { error } = await supabase.from("day_notes").upsert(payload, { onConflict: "project_id,date" });
     if (error) { toast.error(error.message); setDailyFields(prev); }
   };
   // only when their album is selected from the sidebar.
