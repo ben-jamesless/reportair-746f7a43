@@ -46,24 +46,8 @@ const normaliseStatus = (s: string | null | undefined): StatusKey => {
 const statusMeta = (s: string | null | undefined) => STATUS[normaliseStatus(s)];
 
 // ============ Utilities ============
-function sanitize(input: unknown): string {
-  if (input == null) return "";
-  let s = String(input);
-  const map: Record<string, string> = {
-    "\u00A0": " ", "\u2007": " ", "\u2009": " ", "\u200A": " ", "\u202F": " ", "\u205F": " ", "\u3000": " ",
-    "\u200B": "", "\u200C": "", "\u200D": "", "\uFEFF": "",
-    "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
-    "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
-    "\u2013": "-", "\u2014": "-", "\u2212": "-", "\u2026": "...", "\u2022": "*",
-  };
-  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022]/g, (c) => map[c] ?? "");
-  // eslint-disable-next-line no-control-regex
-  s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
-  return s;
-}
-
 function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
-  const cleaned = sanitize(text);
+  const cleaned = text ?? "";
   const paragraphs = cleaned.split(/\r?\n/);
   const out: string[] = [];
   for (const para of paragraphs) {
