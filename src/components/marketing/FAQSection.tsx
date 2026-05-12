@@ -1,0 +1,155 @@
+import { useState } from "react";
+
+const faqs = [
+  {
+    question: "What exactly does ReportAir do?",
+    answer:
+      "ReportAir turns your on-site photos and notes into a professional, client-ready PDF report — automatically. Upload photos from the day, tag them by area, add notes, and ReportAir organises everything into a polished daily progress report. No formatting, no copy-pasting, no time wasted back at the desk.",
+  },
+  {
+    question: "Who is ReportAir built for?",
+    answer:
+      "Event build professionals — site managers, production coordinators, and freelancers working across golf tournaments, music festivals, marathons, and corporate builds. It works for solo operators and larger teams managing multiple concurrent builds.",
+  },
+  {
+    question: "How does the PDF report get generated?",
+    answer:
+      "Once you've uploaded your photos and notes, ReportAir compiles everything into a clean, structured PDF organised by date and area. Generate a report for any day with one click — end-of-day reporting becomes a 2-minute task, not a 2-hour one.",
+  },
+  {
+    question: "Can I use ReportAir on-site from my phone?",
+    answer:
+      "Yes — fully mobile-responsive and designed for the field. Upload photos, add notes, and tag locations directly from your phone as you walk the site. Everything syncs instantly.",
+  },
+  {
+    question: "Is my data and photos secure?",
+    answer:
+      "Absolutely. All photos and project data are stored securely with role-based access controls. Only you and team members you invite can access your projects. Your content is never shared or used outside your account.",
+  },
+];
+
+const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
+const body = { fontFamily: "'Inter', sans-serif" };
+
+export default function FAQSection() {
+  const [openIdx, setOpenIdx] = useState<number>(0);
+
+  return (
+    <section style={{ background: "#060D18", padding: "100px 24px" }}>
+      <div style={{ textAlign: "center", marginBottom: 56 }}>
+        <p
+          style={{
+            ...display,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "#1A6EFF",
+            marginBottom: 16,
+          }}
+        >
+          FAQ
+        </p>
+        <h2
+          style={{
+            ...display,
+            fontWeight: 800,
+            fontSize: "clamp(28px, 4vw, 40px)",
+            color: "#ffffff",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.15,
+            marginBottom: 12,
+          }}
+        >
+          Everything you need to know.
+        </h2>
+        <p style={{ ...body, fontSize: 15, fontWeight: 400, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+          Can't find an answer? Drop us a message.
+        </p>
+      </div>
+
+      <div style={{ maxWidth: 680, margin: "0 auto" }}>
+        {faqs.map((f, i) => {
+          const isOpen = openIdx === i;
+          return (
+            <div
+              key={i}
+              style={{
+                borderBottom: "1px solid rgba(255,255,255,0.07)",
+                borderTop: i === 0 ? "1px solid rgba(255,255,255,0.07)" : undefined,
+              }}
+            >
+              <button
+                onClick={() => setOpenIdx(isOpen ? -1 : i)}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "22px 0",
+                  textAlign: "left",
+                }}
+              >
+                <span
+                  style={{
+                    ...display,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: "#ffffff",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {f.question}
+                </span>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    marginLeft: 16,
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    border: `1.5px solid ${isOpen ? "#1A6EFF" : "rgba(255,255,255,0.15)"}`,
+                    color: isOpen ? "#1A6EFF" : "rgba(255,255,255,0.4)",
+                    background: isOpen ? "rgba(26,110,255,0.1)" : "transparent",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 16,
+                    transition: "border-color 0.2s ease, color 0.2s ease, background 0.2s ease",
+                  }}
+                >
+                  {isOpen ? "−" : "+"}
+                </span>
+              </button>
+              <div
+                style={{
+                  maxHeight: isOpen ? 500 : 0,
+                  overflow: "hidden",
+                  transition: "max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
+              >
+                <p
+                  style={{
+                    ...body,
+                    fontSize: 14,
+                    fontWeight: 400,
+                    color: "rgba(255,255,255,0.5)",
+                    lineHeight: 1.72,
+                    paddingBottom: 20,
+                    paddingRight: 42,
+                    margin: 0,
+                  }}
+                >
+                  {f.answer}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

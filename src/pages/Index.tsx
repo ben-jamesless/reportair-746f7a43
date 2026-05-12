@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSection from "@/components/marketing/HeroSection";
 import HowItWorksSection from "@/components/marketing/HowItWorksSection";
+import FAQSection from "@/components/marketing/FAQSection";
 
 // ---- Brand tokens (scoped to this marketing page) ----
 const BRAND = {
@@ -220,6 +221,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* ============ FAQ ============ */}
+      <FAQSection />
 
       {/* ============ METRIC ============ */}
       <section className="px-5 py-20 sm:px-6 sm:py-28" style={{ background: "#060D18" }}>
