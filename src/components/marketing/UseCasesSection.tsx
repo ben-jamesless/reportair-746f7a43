@@ -120,25 +120,28 @@ export default function UseCasesSection() {
           z-index: -1;
           pointer-events: none;
         }
+        .uc-track {
+          padding-left: max(20px, calc((100vw - 1200px) / 2 + 20px));
+        }
+        @media (min-width: 640px) {
+          .uc-track { padding-left: max(24px, calc((100vw - 1200px) / 2 + 24px)); }
+        }
         @media (max-width: 679px) {
-          .uc-header { padding: 0 24px !important; }
-          .uc-track { padding: 0 24px 20px !important; padding-right: 120px !important; }
           .uc-card { width: 240px !important; }
           .uc-arrows { display: none !important; }
         }
       `}</style>
 
-      <div
-        className="uc-header"
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          padding: "0 48px",
-          marginBottom: 48,
-          gap: 24,
-        }}
-      >
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            marginBottom: 48,
+            gap: 24,
+          }}
+        >
         <div style={{ textAlign: "left" }}>
           <p
             style={{
