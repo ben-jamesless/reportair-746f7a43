@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import HeroSection from "@/components/marketing/HeroSection";
 
 // ---- Brand tokens (scoped to this marketing page) ----
 const BRAND = {
@@ -170,69 +171,7 @@ const Index = () => {
       </header>
 
       {/* ============ HERO ============ */}
-      <section
-        className="relative overflow-hidden text-white"
-        style={{
-          background: `radial-gradient(70% 70% at 92% 28%, rgba(26,110,255,.20), transparent 58%), ${BRAND.ink}`,
-        }}
-      >
-        {/* grid overlay */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-60"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(26,110,255,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(26,110,255,.055) 1px, transparent 1px)",
-            backgroundSize: "104px 104px",
-          }}
-        />
-        {/* top accent stripe */}
-        <div
-          className="absolute inset-x-0 top-0 h-1.5"
-          style={{
-            background: `repeating-linear-gradient(90deg, rgba(13,71,181,.95) 0 1px, transparent 1px 78px), ${BRAND.sky}`,
-          }}
-        />
-
-        <div className="relative mx-auto grid max-w-[1520px] items-start gap-10 px-5 pb-20 pt-20 sm:px-8 lg:grid-cols-2 lg:gap-16 lg:pb-24 lg:pt-28">
-          {/* Copy */}
-          <div className="lg:pl-2 xl:pl-6">
-            <span className="mb-3.5 inline-block text-[0.72rem] font-semibold uppercase tracking-[0.14em]" style={{ color: "#9DBDFF" }}>
-              {COPY.hero.eyebrow}
-            </span>
-            <h1
-              className="text-[2.8rem] font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-[clamp(3.2rem,5.6vw,5rem)]"
-              style={display}
-            >
-              {COPY.hero.headlineStart}
-              <span style={{ color: BRAND.sky }}>{COPY.hero.headlineAccent}</span>
-            </h1>
-            <p className="mt-8 max-w-xl text-lg sm:text-xl" style={{ color: "rgba(237,241,247,.82)", lineHeight: 1.6 }}>
-              {COPY.hero.sub}
-            </p>
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Link
-                to="/auth"
-                className="rounded-full px-6 py-3.5 text-[1rem] font-semibold text-white transition-colors"
-                style={{ backgroundColor: BRAND.sky }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
-              >
-                {COPY.hero.primary}
-              </Link>
-              <a
-                href="#product"
-                className="rounded-full border px-6 py-3.5 text-[1rem] font-semibold text-white transition-colors hover:bg-white/10"
-                style={{ borderColor: "rgba(208,217,232,.36)" }}
-              >
-                {COPY.hero.secondary}
-              </a>
-            </div>
-          </div>
-
-          {/* Visual */}
-          <HeroVisual />
-        </div>
-      </section>
+      <HeroSection />
 
       {/* ============ METRIC ============ */}
       <section className="px-5 py-20 sm:px-6 sm:py-28">
