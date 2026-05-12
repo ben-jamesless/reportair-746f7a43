@@ -623,7 +623,7 @@ Deno.serve(async (req) => {
       const p = allPages[i];
       const pageNum = i + 1;
       p.drawLine({ start: { x: 18 * MM, y: 19 * MM }, end: { x: W - 18 * MM, y: 19 * MM }, thickness: 0.4, color: COLOR.BORDER });
-      const left = `ReportAir · ${eventNameForFooter} · ${reportDateLabel}`;
+      const left = `${eventNameForFooter} · ${reportDateLabel}`;
       const center = `Page ${pageNum} of ${totalPages}`;
       const right = `${reportNumber} · Daily Report`;
       const fSize = 7;

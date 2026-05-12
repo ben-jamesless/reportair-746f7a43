@@ -509,14 +509,7 @@ export const ExportPdfDialog = ({
             </div>
           </section>
 
-          <section className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Accent colour</Label>
-              <div className="mt-1 flex items-center gap-2">
-                <input type="color" value={accent} onChange={(e) => setAccent(e.target.value)} className="h-9 w-12 cursor-pointer rounded border" />
-                <Input value={accent} onChange={(e) => setAccent(e.target.value)} className="font-mono" />
-              </div>
-            </div>
+          <section>
             <div>
               <Label>Logo (optional)</Label>
               <div className="mt-1 flex items-center gap-2">
