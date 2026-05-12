@@ -521,22 +521,19 @@ const ProjectDetail = () => {
   useEffect(() => {
     const target = searchParams.get("photo");
     if (!target || photos.length === 0) return;
-    const exists = photos.some((p) => p.id === target);
-    if (!exists) return;
-    // Reset filters so the photo is in `visiblePhotos`.
+    const idx = photos.findIndex((p) => p.id === target);
+    if (idx === -1) return;
+    // Reset filters so the photo is in `visiblePhotos` (which equals `photos` when ALL_DAYS + no area).
     if (activeDay !== ALL_DAYS) setActiveDay(ALL_DAYS);
     if (activeArea !== null) setActiveArea(null);
-    const idx = photoIndexById.get(target);
-    if (idx !== undefined) {
-      setLightboxIndex(idx);
-      // Clear params so refresh/back doesn't re-trigger.
-      const next = new URLSearchParams(searchParams);
-      next.delete("photo");
-      next.delete("comments");
-      setSearchParams(next, { replace: true });
-    }
+    setLightboxIndex(idx);
+    // Clear params so refresh/back doesn't re-trigger.
+    const next = new URLSearchParams(searchParams);
+    next.delete("photo");
+    next.delete("comments");
+    setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photos, photoIndexById, searchParams]);
+  }, [photos, searchParams]);
 
   // Keep URL in sync with filter state (replaceState — don't pollute history).
   useEffect(() => {
