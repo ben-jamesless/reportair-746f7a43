@@ -112,7 +112,7 @@ const COPY = {
   },
   finalCta: {
     title: "Your next client report should not start from a blank deck.",
-    sub: "Capture and sort the build as it happens. Export the client-ready report in minutes.",
+    sub: "",
     cta: "Join the early access list",
     fine: "No spam. Launch updates and early-access pricing only.",
   },
