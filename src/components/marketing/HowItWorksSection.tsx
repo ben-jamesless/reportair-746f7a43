@@ -124,6 +124,7 @@ const HowItWorksSection = () => {
               <button
                 key={s.id}
                 onClick={() => go(s.id)}
+                className={`hiw-step-btn${i === 1 ? " hiw-step-btn-mid" : ""}`}
                 style={{
                   display: "flex",
                   flexDirection: "column",
