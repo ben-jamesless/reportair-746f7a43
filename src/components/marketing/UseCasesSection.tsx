@@ -269,24 +269,3 @@ export default function UseCasesSection() {
     </section>
   );
 }
-
-            </article>
-          ))}
-        </div>
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            right: 0,
-            top: 0,
-            bottom: 20,
-            width: 120,
-            background: "linear-gradient(to left, #060D18, transparent)",
-            pointerEvents: "none",
-            zIndex: 2,
-          }}
-        />
-      </div>
-    </section>
-  );
-}
