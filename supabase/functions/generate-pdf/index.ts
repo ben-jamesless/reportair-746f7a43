@@ -180,8 +180,8 @@ async function fetchAndEmbedImage(pdfDoc: PDFDocument, url: string): Promise<PDF
 
 // Module-scope font cache.
 let _fontCache: { pjs: Uint8Array; ir: Uint8Array } | null = null;
-const PJS_URL = "https://github.com/google/fonts/raw/main/ofl/plusjakartasans/PlusJakartaSans%5Bwght%5D.ttf";
-const IR_URL = "https://github.com/google/fonts/raw/main/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf";
+const PJS_URL = "https://fonts.gstatic.com/s/plusjakartasans/v12/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_d0nNSg.ttf";
+const IR_URL = "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf";
 async function loadFontBytes(): Promise<{ pjs: Uint8Array | null; ir: Uint8Array | null }> {
   if (_fontCache) return _fontCache;
   const fetchOne = async (url: string) => {
