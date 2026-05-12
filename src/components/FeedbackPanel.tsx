@@ -100,6 +100,41 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  // Track per-user "read" state for feedback items locally (no server schema needed).
+  const readKey = `feedback-read-${projectId}`;
+  const [readIds, setReadIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try { return new Set(JSON.parse(window.localStorage.getItem(readKey) ?? "[]")); } catch { return new Set(); }
+  });
+  const persistRead = useCallback((next: Set<string>) => {
+    try { window.localStorage.setItem(readKey, JSON.stringify(Array.from(next))); } catch { /* noop */ }
+  }, [readKey]);
+  const toggleRead = useCallback((entryId: string) => {
+    setReadIds((cur) => {
+      const next = new Set(cur);
+      if (next.has(entryId)) next.delete(entryId); else next.add(entryId);
+      persistRead(next);
+      return next;
+    });
+  }, [persistRead]);
+
+  const deleteEntry = useCallback(async (entryId: string) => {
+    const isGuest = entryId.startsWith("g-");
+    const rawId = entryId.slice(2);
+    if (isGuest) {
+      setGuestNotes((cur) => cur.filter((n) => n.id !== rawId));
+      const { error } = await supabase.from("guest_notes").delete().eq("id", rawId);
+      if (error) { toast.error("Couldn't delete client note"); load(); return; }
+      toast.success("Client note deleted");
+    } else {
+      setInternalComments((cur) => cur.filter((c) => c.id !== rawId));
+      const { error } = await supabase.from("comments").delete().eq("id", rawId);
+      if (error) { toast.error("Couldn't delete comment"); load(); return; }
+      toast.success("Comment deleted");
+    }
+  }, []);
+
+
   const photoById = useMemo(() => {
     const m = new Map<string, PhotoLite>();
     allPhotos.forEach((p) => m.set(p.id, p));
