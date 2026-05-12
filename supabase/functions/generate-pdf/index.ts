@@ -95,8 +95,10 @@ function drawRoundedRect(page: PDFPage, opts: {
   // Build SVG path (pdf-lib drawSvgPath uses top-left origin from x,y).
   // We translate from bottom-left coords by passing x,y of rectangle bottom-left and using y+h as svg-top.
   const path = `M ${r} 0 H ${w - r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h - r} A ${r} ${r} 0 0 1 ${w - r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h - r} V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`;
+  // drawSvgPath treats y as the TOP of the path (SVG y grows downward in PDF).
+  // We want (x, y) to be the bottom-left of the rectangle, so pass y + h as the SVG top.
   page.drawSvgPath(path, {
-    x, y,
+    x, y: y + h,
     color: opts.fill,
     borderColor: opts.stroke,
     borderWidth: opts.strokeWidth,
