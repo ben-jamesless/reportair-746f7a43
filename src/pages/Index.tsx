@@ -234,50 +234,6 @@ const Index = () => {
       {/* ============ USE CASES ============ */}
       <UseCasesSection />
 
-      {/* ============ METRIC ============ */}
-      <section className="px-5 py-[68px] sm:px-6 sm:py-[95px]" style={{ background: "#060D18" }}>
-        <div
-          className="relative mx-auto max-w-[1200px] overflow-hidden rounded-3xl"
-          style={{
-            background: "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))",
-            border: "1px solid rgba(26,110,255,0.14)",
-            boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 40px 80px rgba(0,0,0,0.35)",
-          }}
-        >
-          {/* Grid pattern */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-70"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(26,110,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(26,110,255,.07) 1px, transparent 1px)",
-              backgroundSize: "88px 88px",
-            }}
-          />
-          <div className="relative grid items-center gap-8 px-6 py-14 sm:px-12 sm:py-16 md:grid-cols-[auto_1fr] md:gap-14">
-            <div className="flex items-baseline gap-3">
-              <span
-                className="text-[7rem] font-extrabold leading-none tracking-tight sm:text-[9rem]"
-                style={{ ...display, color: "#FFFFFF", textShadow: "0 0 40px rgba(26,110,255,.35)" }}
-              >
-                {COPY.metric.big}
-              </span>
-              <span className="text-2xl font-bold sm:text-3xl" style={{ ...display, color: BRAND.skySoft }}>
-                {COPY.metric.unit}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl" style={{ ...display, color: "#FFFFFF" }}>
-                {COPY.metric.title}
-              </h2>
-              <p className="mt-4 max-w-2xl text-base" style={{ color: "rgba(255,255,255,.72)", lineHeight: 1.6 }}>
-                {COPY.metric.desc}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ============ PRICING ============ */}
       <section id="pricing" className="py-[68px] sm:py-[95px]" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
