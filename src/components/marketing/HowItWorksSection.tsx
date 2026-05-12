@@ -42,7 +42,7 @@ const HowItWorksSection = () => {
           .hiw-panel { padding: 32px 24px !important; }
           .hiw-step-name { font-size: 11px !important; }
           .hiw-section-title { font-size: 32px !important; }
-          .hiw-progress-track { width: min(440px, 80vw) !important; }
+          .hiw-progress-track { width: min(520px, 80vw) !important; }
         }
       `}</style>
 
@@ -93,7 +93,7 @@ const HowItWorksSection = () => {
               top: 20,
               left: "50%",
               transform: "translateX(-50%)",
-              width: 440,
+              width: 520,
               height: 2,
               background: "rgba(26,110,255,0.12)",
               zIndex: 0,
