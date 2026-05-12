@@ -114,6 +114,7 @@ export const ProjectEditForm = ({
     setDescription(initialDescription ?? "");
     setColor(initialColor || DEFAULT_PROJECT_COLOR);
     setEventDate(fromIsoDate(initialEventDate));
+    setBuildStartDate(fromIsoDate(initialBuildStartDate ?? null));
     setEventLocation(initialEventLocation ?? "");
     setStatus(initialStatus ?? "no_status");
     setEventType(initialEventType ?? "");
