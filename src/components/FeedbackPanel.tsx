@@ -216,6 +216,9 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
             entries={allEntries}
             photoById={photoById}
             onOpenPhoto={onOpenPhoto}
+            readIds={readIds}
+            onToggleRead={toggleRead}
+            onDelete={deleteEntry}
             emptyText="No feedback yet."
           />
         </TabsContent>
@@ -226,6 +229,9 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
             entries={clientEntries}
             photoById={photoById}
             onOpenPhoto={onOpenPhoto}
+            readIds={readIds}
+            onToggleRead={toggleRead}
+            onDelete={deleteEntry}
             emptyText="No client feedback yet."
           />
         </TabsContent>
@@ -243,6 +249,9 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
             }))}
             photoById={photoById}
             onOpenPhoto={onOpenPhoto}
+            readIds={readIds}
+            onToggleRead={toggleRead}
+            onDelete={deleteEntry}
             emptyText="No internal team comments yet."
           />
         </TabsContent>
