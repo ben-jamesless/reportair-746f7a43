@@ -335,6 +335,7 @@ export const ExportPdfDialog = ({
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setTimeout(() => { downloadingRef.current = false; }, 1000);
   };
 
   const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");
