@@ -596,20 +596,45 @@ Deno.serve(async (req) => {
         const PROWS = Math.ceil(photoCount / PCOLS);
         const gutter = 6;
         const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
-        const max_ph = PROWS > 0 ? (avail_h - gutter * (PROWS - 1)) / PROWS : avail_h;
-        const photo_h = Math.min(photo_w * 0.75, max_ph);
+        const MAX_TILE_H = 110 * MM / 3; // ~36mm cap; balanced with avail_h below
+        // Cap per-tile height so the grid still fits the available area.
+        const maxTileFromAvail = PROWS > 0 ? (avail_h - gutter * (PROWS - 1)) / PROWS : avail_h;
+        const tileCap = Math.min(MAX_TILE_H, maxTileFromAvail);
+
+        // Pre-compute each tile's height (per natural aspect) and each row's height (max in row).
+        const tileHeights: number[] = photoImages.map((img) => {
+          const ar = img.height / img.width;
+          return Math.min(photo_w * ar, tileCap);
+        });
+        const rowHeights: number[] = [];
+        for (let r = 0; r < PROWS; r++) {
+          const start = r * PCOLS;
+          const slice = tileHeights.slice(start, start + PCOLS);
+          rowHeights.push(slice.reduce((m, h) => Math.max(m, h), 0));
+        }
+        // Cumulative y offset (top of row r) from the photos area top.
+        const rowTopOffset: number[] = [];
+        let acc = 0;
+        for (let r = 0; r < PROWS; r++) {
+          rowTopOffset.push(acc);
+          acc += rowHeights[r] + gutter;
+        }
 
         for (let i = 0; i < photoCount; i++) {
           const col = i % PCOLS;
           const row = Math.floor(i / PCOLS);
+          const tile_w = photo_w;
+          const tile_h = tileHeights[i];
           const px = M + col * (photo_w + gutter);
-          const py = PH_TOP - 14 - row * (photo_h + gutter) - photo_h;
+          // Row's top sits at PH_TOP - 14 - rowTopOffset; tile bottom = top - tile_h.
+          const rowTopY = PH_TOP - 14 - rowTopOffset[row];
+          const py = rowTopY - tile_h;
           const img = photoImages[i];
-          drawRoundedRect(page, { x: px, y: py, width: photo_w, height: photo_h, radius: 4, fill: COLOR.CLOUD, stroke: COLOR.BORDER, strokeWidth: 0.4 });
-          const fitScale = Math.min(photo_w / img.width, photo_h / img.height);
+          drawRoundedRect(page, { x: px, y: py, width: tile_w, height: tile_h, radius: 4, fill: COLOR.CLOUD, stroke: COLOR.BORDER, strokeWidth: 0.4 });
+          const fitScale = Math.min(tile_w / img.width, tile_h / img.height);
           const fw = img.width * fitScale, fh = img.height * fitScale;
-          page.drawImage(img, { x: px + (photo_w - fw) / 2, y: py + (photo_h - fh) / 2, width: fw, height: fh });
-          page.drawRectangle({ x: px, y: py, width: photo_w, height: 10, color: COLOR.CAPTION_BAR });
+          page.drawImage(img, { x: px + (tile_w - fw) / 2, y: py + (tile_h - fh) / 2, width: fw, height: fh });
+          page.drawRectangle({ x: px, y: py, width: tile_w, height: 10, color: COLOR.CAPTION_BAR });
           const cap = (area.name ?? "").slice(0, 30);
           page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
         }
