@@ -46,24 +46,8 @@ const normaliseStatus = (s: string | null | undefined): StatusKey => {
 const statusMeta = (s: string | null | undefined) => STATUS[normaliseStatus(s)];
 
 // ============ Utilities ============
-function sanitize(input: unknown): string {
-  if (input == null) return "";
-  let s = String(input);
-  const map: Record<string, string> = {
-    "\u00A0": " ", "\u2007": " ", "\u2009": " ", "\u200A": " ", "\u202F": " ", "\u205F": " ", "\u3000": " ",
-    "\u200B": "", "\u200C": "", "\u200D": "", "\uFEFF": "",
-    "\u2018": "'", "\u2019": "'", "\u201A": "'", "\u201B": "'",
-    "\u201C": '"', "\u201D": '"', "\u201E": '"', "\u201F": '"',
-    "\u2013": "-", "\u2014": "-", "\u2212": "-", "\u2026": "...", "\u2022": "*",
-  };
-  s = s.replace(/[\u00A0\u2007\u2009\u200A\u202F\u205F\u3000\u200B\u200C\u200D\uFEFF\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2013\u2014\u2212\u2026\u2022]/g, (c) => map[c] ?? "");
-  // eslint-disable-next-line no-control-regex
-  s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\xA1-\xFF]/g, "?");
-  return s;
-}
-
 function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
-  const cleaned = sanitize(text);
+  const cleaned = text ?? "";
   const paragraphs = cleaned.split(/\r?\n/);
   const out: string[] = [];
   for (const para of paragraphs) {
@@ -130,11 +114,11 @@ function drawPill(
   fontSize = 8,
 ): number {
   const padX = 8, padY = 4;
-  const tw = font.widthOfTextAtSize(sanitize(text), fontSize);
+  const tw = font.widthOfTextAtSize((text ?? ""), fontSize);
   const w = tw + padX * 2;
   const h = fontSize + padY * 2;
   drawRoundedRect(page, { x, y, width: w, height: h, radius: h / 2, fill: bgColor });
-  page.drawText(sanitize(text), { x: x + padX, y: y + padY + 0.8, size: fontSize, font, color: textColor });
+  page.drawText((text ?? ""), { x: x + padX, y: y + padY + 0.8, size: fontSize, font, color: textColor });
   return w;
 }
 
@@ -420,9 +404,9 @@ Deno.serve(async (req) => {
       page.drawLine({ start: { x: M + 8, y: H - 20 * MM }, end: { x: W - M, y: H - 20 * MM }, thickness: 0.5, color: COLOR.BORDER });
 
       // Event identity
-      const eventName = sanitize((proj.name as string) || "Event");
+      const eventName = ((proj.name as string) || "Event");
       page.drawText(eventName, { x: M + 8, y: H - 33 * MM, size: 22, font: pjsFont, color: COLOR.INK });
-      const venue = sanitize((proj.event_location as string) || "");
+      const venue = ((proj.event_location as string) || "");
       if (venue) page.drawText(venue, { x: M + 8, y: H - 40 * MM, size: 10, font: irFont, color: COLOR.SLATE });
 
       // Date row
@@ -515,7 +499,7 @@ Deno.serve(async (req) => {
         // Status accent bar
         page.drawRectangle({ x: M + 8, y: rowY - ROW_H, width: 4, height: ROW_H, color: meta.text });
         // Area name
-        const areaName = sanitize(a.name);
+        const areaName = (a.name ?? "");
         page.drawText(areaName.length > 38 ? areaName.slice(0, 37) + "..." : areaName, {
           x: M + 16, y: rowY - ROW_H / 2 - 3, size: 8.5, font: pjsFont, color: COLOR.INK,
         });
@@ -555,7 +539,7 @@ Deno.serve(async (req) => {
 
       // Header text
       page.drawText(`AREA ${ai + 1} OF ${areaData.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
-      page.drawText(sanitize(area.name), { x: M + 6, y: H - 21 * MM, size: 18, font: pjsFont, color: COLOR.WHITE });
+      page.drawText((area.name ?? ""), { x: M + 6, y: H - 21 * MM, size: 18, font: pjsFont, color: COLOR.WHITE });
 
       // Status pill top-right
       const pillFontSize = 8;
@@ -568,7 +552,7 @@ Deno.serve(async (req) => {
       const META_Y = H - HDR_H - META_H;
       page.drawRectangle({ x: 0, y: META_Y, width: W, height: META_H, color: COLOR.CLOUD });
       const metaLeft = `Photos: ${area.photoCount}  ·  ${reportDateLabel}  ·  ${buildDayLabel}`;
-      page.drawText(sanitize(metaLeft), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
+      page.drawText((metaLeft ?? ""), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
       drawWordmark(page, W - M - 70, META_Y + 3.5 * MM, 8.5, pjsFont);
 
       // Area Notes
@@ -619,7 +603,7 @@ Deno.serve(async (req) => {
             void iw; void ih;
             // Caption bar
             page.drawRectangle({ x: px, y: py, width: photo_w, height: 10, color: COLOR.CAPTION_BAR });
-            const cap = sanitize(area.name).slice(0, 30);
+            const cap = (area.name ?? "").slice(0, 30);
             page.drawText(cap, { x: px + 4, y: py + 2.5, size: 5.5, font: irFont, color: COLOR.SLATE });
           }
         }
@@ -628,7 +612,7 @@ Deno.serve(async (req) => {
 
     // ===== Footer on every page =====
     const allPages = pdfDoc.getPages();
-    const eventNameForFooter = sanitize((proj.name as string) || "");
+    const eventNameForFooter = ((proj.name as string) || "");
     for (let i = 0; i < allPages.length; i++) {
       const p = allPages[i];
       const pageNum = i + 1;
@@ -637,11 +621,11 @@ Deno.serve(async (req) => {
       const center = `Page ${pageNum} of ${totalPages}`;
       const right = `${reportNumber} · Daily Report`;
       const fSize = 7;
-      p.drawText(sanitize(left), { x: 18 * MM, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
+      p.drawText((left ?? ""), { x: 18 * MM, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
       const cw = irFont.widthOfTextAtSize(center, fSize);
       p.drawText(center, { x: (W - cw) / 2, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
-      const rw = irFont.widthOfTextAtSize(sanitize(right), fSize);
-      p.drawText(sanitize(right), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
+      const rw = irFont.widthOfTextAtSize((right ?? ""), fSize);
+      p.drawText((right ?? ""), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
     }
 
     // ===== Save and upload =====
