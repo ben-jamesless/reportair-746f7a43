@@ -95,8 +95,10 @@ function drawRoundedRect(page: PDFPage, opts: {
   // Build SVG path (pdf-lib drawSvgPath uses top-left origin from x,y).
   // We translate from bottom-left coords by passing x,y of rectangle bottom-left and using y+h as svg-top.
   const path = `M ${r} 0 H ${w - r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h - r} A ${r} ${r} 0 0 1 ${w - r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h - r} V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`;
+  // drawSvgPath treats y as the TOP of the path (SVG y grows downward in PDF).
+  // We want (x, y) to be the bottom-left of the rectangle, so pass y + h as the SVG top.
   page.drawSvgPath(path, {
-    x, y,
+    x, y: y + h,
     color: opts.fill,
     borderColor: opts.stroke,
     borderWidth: opts.strokeWidth,
@@ -533,7 +535,6 @@ Deno.serve(async (req) => {
       const HDR_H = 30 * MM;
       page.drawRectangle({ x: 0, y: H - HDR_H, width: W, height: HDR_H, color: COLOR.INK });
       page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: meta.text });
-      page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
 
       // Header text
       page.drawText(`AREA ${ai + 1} OF ${areaData.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
@@ -556,6 +557,8 @@ Deno.serve(async (req) => {
       const META_H = 12 * MM;
       const META_Y = H - HDR_H - META_H;
       page.drawRectangle({ x: 0, y: META_Y, width: W, height: META_H, color: COLOR.CLOUD });
+      // Left status stripe — drawn AFTER header/meta backgrounds so it isn't overdrawn
+      page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
       const metaLeft = `Photos: ${area.photoCount}  ·  ${reportDateLabel}  ·  ${buildDayLabel}`;
       page.drawText((metaLeft ?? ""), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
       drawWordmark(page, W - M - 70, META_Y + 3.5 * MM, 8.5, pjsFont);
