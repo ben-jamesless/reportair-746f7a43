@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Copy, Eye, Link2, Trash2, Plus } from "lucide-react";
+import { Copy, Eye, Link2, Trash2, Plus, Loader2 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { usePlan } from "@/hooks/usePlan";
 
@@ -30,6 +30,10 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
   const [password, setPassword] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [creating, setCreating] = useState(false);
+  const [projectName, setProjectName] = useState<string>("");
+  const [senderName, setSenderName] = useState<string>("");
+  const [notifyEmails, setNotifyEmails] = useState<Record<string, string>>({});
+  const [sendingFor, setSendingFor] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -41,6 +45,18 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    (async () => {
+      const { data: proj } = await supabase.from("projects").select("name").eq("id", projectId).maybeSingle();
+      if (proj?.name) setProjectName(proj.name);
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
+        const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", auth.user.id).maybeSingle();
+        setSenderName(profile?.full_name ?? auth.user.email ?? "Your team");
+      }
+    })();
+  }, [projectId]);
 
   const createLink = async () => {
     setCreating(true);
@@ -75,6 +91,32 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
     const url = `${window.location.origin}/s/${token}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
+  };
+
+  const sendEmail = async (link: ShareLink) => {
+    const email = (notifyEmails[link.id] ?? "").trim();
+    if (!email) return;
+    setSendingFor(link.id);
+    try {
+      const shareUrl = `${window.location.origin}/s/${link.token}`;
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          to: email,
+          template: "share_link",
+          data: {
+            senderName: senderName || "Your team",
+            projectName: projectName || "a project",
+            shareUrl,
+          },
+        },
+      });
+      toast.success("Share link sent");
+      setNotifyEmails(prev => ({ ...prev, [link.id]: "" }));
+    } catch {
+      toast.error("Could not send email. Please try again.");
+    } finally {
+      setSendingFor(null);
+    }
   };
 
   if (!canUseShareLink) {
@@ -131,6 +173,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
         {links.map((link) => {
           const expired = link.expires_at && new Date(link.expires_at) < new Date();
           const status = link.revoked_at ? "Revoked" : expired ? "Expired" : "Active";
+          const isActive = status === "Active";
           return (
             <Card key={link.id}>
               <CardContent className="space-y-2 pt-4">
@@ -138,7 +181,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{link.label || "Untitled link"}</span>
-                      <Badge variant={status === "Active" ? "default" : "secondary"}>{status}</Badge>
+                      <Badge variant={isActive ? "default" : "secondary"}>{status}</Badge>
                       {link.password_hash && <Badge variant="outline">Password</Badge>}
                     </div>
                     <div className="mt-1 truncate font-mono text-xs text-muted-foreground">/s/{link.token}</div>
@@ -155,6 +198,28 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
                   {link.last_accessed_at && <span>Last viewed {formatDistanceToNow(new Date(link.last_accessed_at), { addSuffix: true })}</span>}
                   {link.expires_at && <span>Expires {format(new Date(link.expires_at), "PP p")}</span>}
                 </div>
+                {isActive && (
+                  <div className="space-y-2 pt-3 border-t">
+                    <label className="text-sm font-medium text-foreground">Notify by email (optional)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={notifyEmails[link.id] ?? ""}
+                        onChange={e => setNotifyEmails(prev => ({ ...prev, [link.id]: e.target.value }))}
+                        placeholder="client@company.com"
+                        className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!(notifyEmails[link.id] ?? "").trim() || sendingFor === link.id}
+                        onClick={() => sendEmail(link)}
+                      >
+                        {sendingFor === link.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Send"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
