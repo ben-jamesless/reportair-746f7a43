@@ -163,6 +163,13 @@ const ProjectDetail = () => {
     n.has(key) ? n.delete(key) : n.add(key);
     return n;
   });
+  const [collapsedDailyKeys, setCollapsedDailyKeys] = useState<Set<string>>(new Set());
+  const isDailyOpen = (key: string) => !collapsedDailyKeys.has(key);
+  const toggleDailyOpen = (key: string) => setCollapsedDailyKeys((c) => {
+    const n = new Set(c);
+    n.has(key) ? n.delete(key) : n.add(key);
+    return n;
+  });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
     const t = searchParams.get("tab");
