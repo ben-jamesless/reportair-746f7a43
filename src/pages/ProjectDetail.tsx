@@ -999,101 +999,105 @@ const ProjectDetail = () => {
                   </button>
                 )}
 
-                {(!isMobileViewport || datesListOpen) && days.map((day) => {
-                  const isOpen = openDays.has(day.key);
-                  const dayActive = activeDay === day.key && activeArea === null;
-                  const { counts, unassigned } = areaCountsForDay(day.photos);
-                  
-                  return (
-                    <div key={day.key} className="rounded-md">
-                      <div className="flex items-stretch gap-1">
-                        <button
-                          onClick={() => toggleDay(day.key)}
-                          className="flex items-center px-2 text-muted-foreground hover:text-foreground"
-                          aria-label={isOpen ? "Collapse day" : "Expand day"}
-                        >
-                          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                        <button
-                          onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => new Set(p).add(day.key)); }}
-                          className={cn(
-                            "flex flex-1 items-center justify-between rounded-md px-2 py-2 text-left text-sm transition-colors",
-                            dayActive
-                              ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                              : "hover:bg-secondary dark:hover:bg-[#1E3050]",
-                          )}
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <Calendar className={cn("h-3.5 w-3.5", dayActive ? "text-primary" : "text-muted-foreground")} />
-                            <span className="font-medium">{SHORT_FMT.format(day.date)}</span>
-                          </span>
-                          <span className={cn("text-xs", dayActive ? "text-primary" : "text-muted-foreground")}>
-                            {day.photos.length}
-                          </span>
-                        </button>
-                        <button
-                          onClick={(e) => openDayExport(e, day)}
-                          className="flex items-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                          title={`Export ${day.label} as PDF`}
-                          aria-label={`Export ${day.label} as PDF`}
-                        >
-                          <FileDown className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-
-                      {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
-                          {areas.map((ar) => {
-                            const c = counts.get(ar.id) ?? 0;
-                            if (c === 0) return null;
-                            const sel = activeDay === day.key && activeArea === ar.id;
-                            const st = getAreaDayStatus(ar.id, day.key);
-                            return (
-                              <button
-                                key={ar.id}
-                                onClick={() => selectDayArea(day.key, ar.id)}
-                                className={cn(
-                                  "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
-                                  sel
-                                    ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                                    : "hover:bg-secondary dark:hover:bg-[#1E3050]",
-                                )}
-                              >
-                                <AreaStatusDot status={st} className="shrink-0" />
-                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "text-primary" : "text-muted-foreground")} />
-                                <span className="flex-1 truncate">{ar.name}</span>
-                                <span className={cn("ml-1 text-[10px]", sel ? "text-primary" : "text-muted-foreground")}>{c}</span>
-                              </button>
-                            );
-                          })}
-                          {unassigned > 0 && (
+                {(datesListOpen || !isMobileViewport) && (
+                  <div className={cn(!datesListOpen && "md:hidden")}>
+                    {days.map((day) => {
+                      const isOpen = openDays.has(day.key);
+                      const dayActive = activeDay === day.key && activeArea === null;
+                      const { counts, unassigned } = areaCountsForDay(day.photos);
+                      
+                      return (
+                        <div key={day.key} className="rounded-md">
+                          <div className="flex items-stretch gap-1">
                             <button
-                              onClick={() => selectDayArea(day.key, NO_AREA)}
+                              onClick={() => toggleDay(day.key)}
+                              className="flex items-center px-2 text-muted-foreground hover:text-foreground"
+                              aria-label={isOpen ? "Collapse day" : "Expand day"}
+                            >
+                              {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </button>
+                            <button
+                              onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => new Set(p).add(day.key)); }}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
-                                activeDay === day.key && activeArea === NO_AREA
+                                "flex flex-1 items-center justify-between rounded-md px-2 py-2 text-left text-sm transition-colors",
+                                dayActive
                                   ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
                                   : "hover:bg-secondary dark:hover:bg-[#1E3050]",
                               )}
                             >
                               <span className="flex items-center gap-1.5">
-                                <MapPinned className="h-3 w-3 shrink-0 text-muted-foreground" />
-                                Unassigned
+                                <Calendar className={cn("h-3.5 w-3.5", dayActive ? "text-primary" : "text-muted-foreground")} />
+                                <span className="font-medium">{SHORT_FMT.format(day.date)}</span>
                               </span>
-                              <span className={cn(
-                                "ml-2 text-[10px]",
-                                activeDay === day.key && activeArea === NO_AREA ? "text-primary" : "text-muted-foreground"
-                              )}>{unassigned}</span>
+                              <span className={cn("text-xs", dayActive ? "text-primary" : "text-muted-foreground")}>
+                                {day.photos.length}
+                              </span>
                             </button>
-                          )}
-                          {areas.length === 0 && unassigned === 0 && (
-                            <p className="px-2 py-1 text-[11px] text-muted-foreground">No areas defined.</p>
+                            <button
+                              onClick={(e) => openDayExport(e, day)}
+                              className="flex items-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                              title={`Export ${day.label} as PDF`}
+                              aria-label={`Export ${day.label} as PDF`}
+                            >
+                              <FileDown className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          {isOpen && (
+                            <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
+                              {areas.map((ar) => {
+                                const c = counts.get(ar.id) ?? 0;
+                                if (c === 0) return null;
+                                const sel = activeDay === day.key && activeArea === ar.id;
+                                const st = getAreaDayStatus(ar.id, day.key);
+                                return (
+                                  <button
+                                    key={ar.id}
+                                    onClick={() => selectDayArea(day.key, ar.id)}
+                                    className={cn(
+                                      "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                                      sel
+                                        ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
+                                        : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                                    )}
+                                  >
+                                    <AreaStatusDot status={st} className="shrink-0" />
+                                    <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "text-primary" : "text-muted-foreground")} />
+                                    <span className="flex-1 truncate">{ar.name}</span>
+                                    <span className={cn("ml-1 text-[10px]", sel ? "text-primary" : "text-muted-foreground")}>{c}</span>
+                                  </button>
+                                );
+                              })}
+                              {unassigned > 0 && (
+                                <button
+                                  onClick={() => selectDayArea(day.key, NO_AREA)}
+                                  className={cn(
+                                    "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                                    activeDay === day.key && activeArea === NO_AREA
+                                      ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
+                                      : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                                  )}
+                                >
+                                  <span className="flex items-center gap-1.5">
+                                    <MapPinned className="h-3 w-3 shrink-0 text-muted-foreground" />
+                                    Unassigned
+                                  </span>
+                                  <span className={cn(
+                                    "ml-2 text-[10px]",
+                                    activeDay === day.key && activeArea === NO_AREA ? "text-primary" : "text-muted-foreground"
+                                  )}>{unassigned}</span>
+                                </button>
+                              )}
+                              {areas.length === 0 && unassigned === 0 && (
+                                <p className="px-2 py-1 text-[11px] text-muted-foreground">No areas defined.</p>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div className="mt-3 space-y-1 border-t pt-3">
                   {isMobileViewport && (albums.length > 0 || photos.length > 0) && (
