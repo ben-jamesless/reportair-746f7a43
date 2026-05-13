@@ -20,10 +20,21 @@ interface Props {
 
 export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("ra:sidebar-collapsed") === "1";
+  });
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      const next = !c;
+      try { window.localStorage.setItem("ra:sidebar-collapsed", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <AppSidebar />
+      <AppSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
 
       {/* Mobile top bar (sidebar hidden on mobile) */}
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur md:hidden">
