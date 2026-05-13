@@ -1009,7 +1009,7 @@ const ProjectDetail = () => {
                   </button>
                 )}
 
-                <div className={cn(!datesOpenTablet && "md:hidden lg:block")}>
+                <div className={cn(!datesOpenTablet && "md:hidden xl:block")}>
 
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
