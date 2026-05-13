@@ -842,6 +842,8 @@ export type Database = {
           created_at: string
           created_by: string
           current_period_end: string | null
+          exports_reset_at: string
+          exports_this_month: number
           id: string
           industry: string | null
           name: string
@@ -862,6 +864,8 @@ export type Database = {
           created_at?: string
           created_by: string
           current_period_end?: string | null
+          exports_reset_at?: string
+          exports_this_month?: number
           id?: string
           industry?: string | null
           name: string
@@ -882,6 +886,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           current_period_end?: string | null
+          exports_reset_at?: string
+          exports_this_month?: number
           id?: string
           industry?: string | null
           name?: string
@@ -1023,6 +1029,7 @@ export type Database = {
         Args: { _photo_id: string; _token: string }
         Returns: string
       }
+      get_team_export_count: { Args: { _team_id: string }; Returns: number }
       has_project_role: {
         Args: {
           _project_id: string
@@ -1047,6 +1054,10 @@ export type Database = {
         Returns: boolean
       }
       hash_share_password: { Args: { _password: string }; Returns: string }
+      increment_team_export_count: {
+        Args: { _team_id: string }
+        Returns: undefined
+      }
       is_billing_owner: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
