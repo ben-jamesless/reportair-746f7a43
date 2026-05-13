@@ -1083,7 +1083,10 @@ const ProjectDetail = () => {
                   );
                 })}
 
+                </div>
+
                 <div className="mt-3 space-y-1 border-t pt-3">
+
                   {isMobileViewport && (albums.length > 0 || photos.length > 0) && (
                     <button
                       type="button"
