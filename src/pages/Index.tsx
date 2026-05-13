@@ -32,7 +32,7 @@ const body = { fontFamily: "'Inter', sans-serif" };
 const COPY = {
   nav: { product: "Product", reviews: "Reviews", pricing: "Pricing", cta: "Sign in" },
   hero: {
-    eyebrow: "From the field. In the air. Every time.",
+    eyebrow: "\n",
     headlineStart: "Client-ready event build reports in ",
     headlineAccent: "10 minutes.",
     sub: "Capture and sort site photos. Export a polished PDF or client-safe link in minutes.",
