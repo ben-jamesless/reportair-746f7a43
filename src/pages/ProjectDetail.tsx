@@ -1223,7 +1223,7 @@ const ProjectDetail = () => {
                           : "Select all"}
                       </Button>
                     )}
-                    {visiblePhotos.length > 0 && (
+                    {visiblePhotos.length > 0 && effectiveView !== "report" && (
                       <Button size="sm" variant={selectMode ? "default" : "outline"} onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}>
                         {selectMode ? "Done" : "Select"}
                       </Button>
