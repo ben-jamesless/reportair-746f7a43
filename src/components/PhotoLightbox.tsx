@@ -172,16 +172,12 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
           </div>
 
           <aside className="flex flex-col gap-4 border-l bg-card p-5 md:max-h-[80vh] md:overflow-y-auto">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
-              <h3 className="mt-1 break-all text-sm font-semibold">{photo.file_name}</h3>
+            <MobileSection title="Photo" defaultOpen>
+              <h3 className="break-all text-sm font-semibold">{photo.file_name}</h3>
               {photo.caption && <p className="mt-2 text-sm text-foreground">{photo.caption}</p>}
-            </div>
+            </MobileSection>
 
-            <div>
-              <p className="mb-1 flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground">
-                <MapPinned className="h-3 w-3" /> Area
-              </p>
+            <MobileSection title="Area">
               <Select
                 value={photo.area_id ?? UNASSIGNED}
                 onValueChange={async (val) => {
@@ -201,13 +197,10 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </MobileSection>
 
             {albums.length > 0 && (
-              <div>
-                <p className="mb-1 flex items-center gap-1 text-xs uppercase tracking-wide text-muted-foreground">
-                  Album
-                </p>
+              <MobileSection title="Album">
                 <Select
                   value={photo.album_id ?? UNASSIGNED}
                   onValueChange={async (val) => {
@@ -227,37 +220,40 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              </MobileSection>
             )}
 
-            <div className="space-y-3 text-sm">
-              {photo.captured_at && (
-                <Row icon={<Calendar className="h-4 w-4" />} label="Captured">
-                  {new Date(photo.captured_at).toLocaleString()}
-                </Row>
-              )}
-              {photo.gps_lat !== null && photo.gps_lng !== null && (
-                <Row icon={<MapPin className="h-4 w-4" />} label="Location">
-                  <a
-                    className="text-primary underline-offset-2 hover:underline"
-                    href={`https://www.google.com/maps?q=${photo.gps_lat},${photo.gps_lng}`}
-                    target="_blank" rel="noreferrer"
-                  >
-                    {photo.gps_lat.toFixed(4)}, {photo.gps_lng.toFixed(4)}
-                  </a>
-                </Row>
-              )}
-            </div>
+            {(photo.captured_at || (photo.gps_lat !== null && photo.gps_lng !== null)) && (
+              <MobileSection title="Details">
+                <div className="space-y-3 text-sm">
+                  {photo.captured_at && (
+                    <Row icon={<Calendar className="h-4 w-4" />} label="Captured">
+                      {new Date(photo.captured_at).toLocaleString()}
+                    </Row>
+                  )}
+                  {photo.gps_lat !== null && photo.gps_lng !== null && (
+                    <Row icon={<MapPin className="h-4 w-4" />} label="Location">
+                      <a
+                        className="text-primary underline-offset-2 hover:underline"
+                        href={`https://www.google.com/maps?q=${photo.gps_lat},${photo.gps_lng}`}
+                        target="_blank" rel="noreferrer"
+                      >
+                        {photo.gps_lat.toFixed(4)}, {photo.gps_lng.toFixed(4)}
+                      </a>
+                    </Row>
+                  )}
+                </div>
+              </MobileSection>
+            )}
 
             {projectId && photo && (
-              <PhotoCommentsThread projectId={projectId} photoId={photo.id} isOwner={isOwner} />
+              <MobileSection title="Comments">
+                <PhotoCommentsThread projectId={projectId} photoId={photo.id} isOwner={isOwner} />
+              </MobileSection>
             )}
 
             {projectId && (
-              <div className="border-t pt-4">
-                <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
-                  Client feedback <span className="ml-1 text-foreground/60">{notes.length}</span>
-                </p>
+              <MobileSection title="Client feedback" count={notes.length}>
                 {notes.length === 0 ? (
                   <p className="text-xs text-muted-foreground">No comments on this photo yet.</p>
                 ) : (
@@ -275,7 +271,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                     ))}
                   </ul>
                 )}
-              </div>
+              </MobileSection>
             )}
           </aside>
         </div>
