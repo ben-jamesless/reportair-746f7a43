@@ -20,10 +20,21 @@ interface Props {
 
 export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("ra:sidebar-collapsed") === "1";
+  });
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      const next = !c;
+      try { window.localStorage.setItem("ra:sidebar-collapsed", next ? "1" : "0"); } catch {}
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <AppSidebar />
+      <AppSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
 
       {/* Mobile top bar (sidebar hidden on mobile) */}
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur md:hidden">
@@ -45,7 +56,7 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
         </div>
       </header>
 
-      <div className="md:pl-16 lg:pl-56">
+      <div className={cn("transition-[padding] duration-200", collapsed ? "md:pl-16" : "md:pl-56")}>
         {/* Breadcrumbs — height matches the sidebar logo bar (h-14) so the two top edges align. */}
         {crumbs && crumbs.length > 0 && (
           <div className="border-b bg-background/60 backdrop-blur">
