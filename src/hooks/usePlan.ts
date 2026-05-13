@@ -35,11 +35,13 @@ interface PlanState {
   canExportPdf:     boolean;
   canUseShareLink:  boolean;
   canUseCustomLogo: boolean;
+  refetch:          () => void;
 }
 
 export const usePlan = (): PlanState => {
   const { user } = useAuth();
-  const [state, setState] = useState<PlanState>({
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [state, setState] = useState<Omit<PlanState, "refetch">>({
     plan: "free", limits: LIMITS.free, teamId: null,
     projectCount: 0, memberCount: 0, exportsThisMonth: 0,
     subscriptionStatus: null, trialEndsAt: null, currentPeriodEnd: null,
@@ -57,7 +59,7 @@ export const usePlan = (): PlanState => {
         supabase.from("teams").select(
           "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at"
         ).eq("billing_owner_user_id", user.id).maybeSingle(),
-        supabase.from("projects").select("id"),
+        supabase.rpc("my_accessible_projects"),
         supabase.from("team_members").select("id"),
       ]);
 
@@ -95,7 +97,7 @@ export const usePlan = (): PlanState => {
       });
     })();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user?.id, refreshKey]);
 
-  return state;
+  return { ...state, refetch: () => setRefreshKey(k => k + 1) };
 };
