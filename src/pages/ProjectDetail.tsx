@@ -155,6 +155,14 @@ const ProjectDetail = () => {
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const isMobileViewport = useIsMobile();
   const [datesListOpen, setDatesListOpen] = useState(false);
+  const [galleryListOpen, setGalleryListOpen] = useState(false);
+  const [openAreaKeys, setOpenAreaKeys] = useState<Set<string>>(new Set());
+  const isAreaOpen = (key: string) => !isMobileViewport || openAreaKeys.has(key);
+  const toggleAreaOpen = (key: string) => setOpenAreaKeys((c) => {
+    const n = new Set(c);
+    n.has(key) ? n.delete(key) : n.add(key);
+    return n;
+  });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
     const t = searchParams.get("tab");
@@ -1068,6 +1076,22 @@ const ProjectDetail = () => {
                 })}
 
                 <div className="mt-3 space-y-1 border-t pt-3">
+                  {isMobileViewport && (albums.length > 0 || photos.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => setGalleryListOpen((o) => !o)}
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                      aria-expanded={galleryListOpen}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <ImagePlus className="h-3.5 w-3.5 text-muted-foreground" />
+                        Gallery
+                      </span>
+                      <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", galleryListOpen && "rotate-180")} />
+                    </button>
+                  )}
+                  {(!isMobileViewport || galleryListOpen) && (
+                  <div className="space-y-1">
                   {albums.map((al) => {
                     const count = albumPhotos.get(al.id)?.length ?? 0;
                     const key = albumKey(al.id);
@@ -1140,6 +1164,8 @@ const ProjectDetail = () => {
                       </button>
                     );
                   })()}
+                  </div>
+                  )}
                 </div>
               </aside>
 
@@ -1264,10 +1290,22 @@ const ProjectDetail = () => {
                             const note = getAreaDayNote(ar.id, activeDay);
                             const accent = areaStatusAccent(st);
                             const isLast = idx === areasOnDay.length - 1;
+                            const areaKey = `report|${ar.id}|${activeDay}`;
+                            const open = isAreaOpen(areaKey);
                             return (
                               <div key={ar.id}>
                                 <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
                                   <header className="mb-3 flex flex-wrap items-center gap-2">
+                                    {isMobileViewport && (
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleAreaOpen(areaKey)}
+                                        className="text-muted-foreground"
+                                        aria-label={open ? "Collapse area" : "Expand area"}
+                                      >
+                                        <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                      </button>
+                                    )}
                                     <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
                                     <AreaStatusPicker
                                       value={st}
@@ -1276,14 +1314,16 @@ const ProjectDetail = () => {
                                       readOnly={!canEdit}
                                     />
                                   </header>
-                                  <EditableNote
-                                    value={note}
-                                    placeholder="No notes for this area yet."
-                                    onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
-                                    rich
-                                    rows={3}
-                                    readOnly={!canEdit}
-                                  />
+                                  {open && (
+                                    <EditableNote
+                                      value={note}
+                                      placeholder="No notes for this area yet."
+                                      onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                      rich
+                                      rows={3}
+                                      readOnly={!canEdit}
+                                    />
+                                  )}
                                 </article>
                                 {!isLast && (
                                   <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
@@ -1346,10 +1386,22 @@ const ProjectDetail = () => {
                           const st = getAreaDayStatus(ar.id, activeDay);
                           const accent = areaStatusAccent(st);
                           const isLast = idx === totalBlocks - 1;
+                          const areaKey = `gallery|${ar.id}|${activeDay}`;
+                          const open = isAreaOpen(areaKey);
                           return (
                             <div key={ar.id}>
                               <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
+                                  {isMobileViewport && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleAreaOpen(areaKey)}
+                                      className="text-muted-foreground"
+                                      aria-label={open ? "Collapse area" : "Expand area"}
+                                    >
+                                      <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                    </button>
+                                  )}
                                   <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
                                   <span className="text-xs" style={{ color: "#6b7280" }}>
                                     {list.length} photo{list.length === 1 ? "" : "s"}
@@ -1361,22 +1413,24 @@ const ProjectDetail = () => {
                                     readOnly={!canEdit}
                                   />
                                 </header>
-                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                                  {list.map((p) => (
-                                    <PhotoThumb
-                                      key={p.id}
-                                      path={p.storage_path}
-                                      alt={p.caption || p.file_name}
-                                      selectable={selectMode}
-                                      selected={selectedIds.has(p.id)}
-                                      onClick={() =>
-                                        selectMode
-                                          ? toggleSelect(p.id)
-                                          : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                                      }
-                                    />
-                                  ))}
-                                </div>
+                                {open && (
+                                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                    {list.map((p) => (
+                                      <PhotoThumb
+                                        key={p.id}
+                                        path={p.storage_path}
+                                        alt={p.caption || p.file_name}
+                                        selectable={selectMode}
+                                        selected={selectedIds.has(p.id)}
+                                        onClick={() =>
+                                          selectMode
+                                            ? toggleSelect(p.id)
+                                            : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                                        }
+                                      />
+                                    ))}
+                                  </div>
+                                )}
                               </article>
                               {!(isLast) && (
                                 <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
@@ -1384,32 +1438,48 @@ const ProjectDetail = () => {
                             </div>
                           );
                         })}
-                        {unassigned.length > 0 && (
+                        {unassigned.length > 0 && (() => {
+                          const areaKey = `gallery|__unassigned__|${activeDay}`;
+                          const open = isAreaOpen(areaKey);
+                          return (
                           <article className="py-4 pl-4" style={{ borderLeft: `3px solid #e5e7eb` }}>
                             <header className="mb-3 flex flex-wrap items-center gap-2">
+                              {isMobileViewport && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAreaOpen(areaKey)}
+                                  className="text-muted-foreground"
+                                  aria-label={open ? "Collapse area" : "Expand area"}
+                                >
+                                  <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                </button>
+                              )}
                               <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>Unassigned</h3>
                               <span className="text-xs" style={{ color: "#6b7280" }}>
                                 {unassigned.length} photo{unassigned.length === 1 ? "" : "s"}
                               </span>
                             </header>
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                              {unassigned.map((p) => (
-                                <PhotoThumb
-                                  key={p.id}
-                                  path={p.storage_path}
-                                  alt={p.caption || p.file_name}
-                                  selectable={selectMode}
-                                  selected={selectedIds.has(p.id)}
-                                  onClick={() =>
-                                    selectMode
-                                      ? toggleSelect(p.id)
-                                      : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                                  }
-                                />
-                              ))}
-                            </div>
+                            {open && (
+                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                {unassigned.map((p) => (
+                                  <PhotoThumb
+                                    key={p.id}
+                                    path={p.storage_path}
+                                    alt={p.caption || p.file_name}
+                                    selectable={selectMode}
+                                    selected={selectedIds.has(p.id)}
+                                    onClick={() =>
+                                      selectMode
+                                        ? toggleSelect(p.id)
+                                        : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </article>
-                        )}
+                          );
+                        })()}
                       </div>
                     );
                   })()
