@@ -54,6 +54,20 @@ serve(async (req) => {
   const email = user?.email ?? undefined;
 
   let customerId = team.stripe_customer_id;
+  if (customerId) {
+    // Verify the customer exists in the current Stripe mode (test/live)
+    try {
+      const existing = await stripe.customers.retrieve(customerId);
+      if ((existing as any).deleted) customerId = null;
+    } catch (err: any) {
+      if (err?.code === "resource_missing") {
+        console.log(JSON.stringify({ fn: "stripe-checkout", info: "customer_not_in_current_mode", customerId }));
+        customerId = null;
+      } else {
+        throw err;
+      }
+    }
+  }
   if (!customerId) {
     const customer = await stripe.customers.create({
       email,
