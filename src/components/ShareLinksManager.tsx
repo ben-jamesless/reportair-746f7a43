@@ -122,6 +122,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
   if (!canUseShareLink) {
     return (
       <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+        <Crown className="h-4 w-4 text-amber-400 inline mr-1" />
         Share links are available on the Pro plan and above.{" "}
         <a href="/billing" className="underline font-medium">Upgrade</a>
       </div>
