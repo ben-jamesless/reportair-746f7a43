@@ -1438,32 +1438,48 @@ const ProjectDetail = () => {
                             </div>
                           );
                         })}
-                        {unassigned.length > 0 && (
+                        {unassigned.length > 0 && (() => {
+                          const areaKey = `gallery|__unassigned__|${activeDay}`;
+                          const open = isAreaOpen(areaKey);
+                          return (
                           <article className="py-4 pl-4" style={{ borderLeft: `3px solid #e5e7eb` }}>
                             <header className="mb-3 flex flex-wrap items-center gap-2">
+                              {isMobileViewport && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleAreaOpen(areaKey)}
+                                  className="text-muted-foreground"
+                                  aria-label={open ? "Collapse area" : "Expand area"}
+                                >
+                                  <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                </button>
+                              )}
                               <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>Unassigned</h3>
                               <span className="text-xs" style={{ color: "#6b7280" }}>
                                 {unassigned.length} photo{unassigned.length === 1 ? "" : "s"}
                               </span>
                             </header>
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                              {unassigned.map((p) => (
-                                <PhotoThumb
-                                  key={p.id}
-                                  path={p.storage_path}
-                                  alt={p.caption || p.file_name}
-                                  selectable={selectMode}
-                                  selected={selectedIds.has(p.id)}
-                                  onClick={() =>
-                                    selectMode
-                                      ? toggleSelect(p.id)
-                                      : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                                  }
-                                />
-                              ))}
-                            </div>
+                            {open && (
+                              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                                {unassigned.map((p) => (
+                                  <PhotoThumb
+                                    key={p.id}
+                                    path={p.storage_path}
+                                    alt={p.caption || p.file_name}
+                                    selectable={selectMode}
+                                    selected={selectedIds.has(p.id)}
+                                    onClick={() =>
+                                      selectMode
+                                        ? toggleSelect(p.id)
+                                        : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </article>
-                        )}
+                          );
+                        })()}
                       </div>
                     );
                   })()
