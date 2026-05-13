@@ -971,16 +971,29 @@ const ProjectDetail = () => {
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
-                {isMobileViewport && days.length > 0 && (
+                {/* Dates toggle — mobile + tablet (lg shows full list inline) */}
+                {days.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setDatesListOpen((o) => !o)}
-                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary lg:hidden",
+                      !isMobileViewport && "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white",
+                    )}
                     aria-expanded={datesListOpen}
                   >
                     <span className="flex items-center gap-1.5">
-                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                      Dates <span className="ml-1 text-xs text-muted-foreground">{days.length}</span>
+                      <CalendarDays className={cn("h-3.5 w-3.5", isMobileViewport ? "text-muted-foreground" : "text-primary")} />
+                      {isMobileViewport ? (
+                        <>Dates <span className="ml-1 text-xs text-muted-foreground">{days.length}</span></>
+                      ) : (() => {
+                        const d = days.find((day) => day.key === activeDay);
+                        return (
+                          <span className="font-medium">
+                            {d ? SHORT_FMT.format(d.date) : "Select a date"}
+                          </span>
+                        );
+                      })()}
                     </span>
                     <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", datesListOpen && "rotate-180")} />
                   </button>
