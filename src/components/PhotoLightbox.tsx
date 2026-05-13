@@ -103,7 +103,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   return (
     <Dialog open={index !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl border-0 bg-background p-0">
+      <DialogContent className="max-h-[100dvh] max-w-6xl overflow-y-auto border-0 bg-background p-0 sm:max-h-[90vh]">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_320px]">
           <div className="relative flex min-h-[50vh] items-center justify-center bg-black md:min-h-[70vh]">
             {url && (
@@ -130,7 +130,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
             </Button>
           </div>
 
-          <aside className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto border-l bg-card p-5">
+          <aside className="flex flex-col gap-4 border-l bg-card p-5 md:max-h-[80vh] md:overflow-y-auto">
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
               <h3 className="mt-1 break-all text-sm font-semibold">{photo.file_name}</h3>
