@@ -156,6 +156,7 @@ const ProjectDetail = () => {
   const isMobileViewport = useIsMobile();
   const [galleryListOpen, setGalleryListOpen] = useState(false);
   const [datesOpenTablet, setDatesOpenTablet] = useState(false);
+  const [tabletCollapsedDays, setTabletCollapsedDays] = useState<Set<string>>(new Set());
   const [closedAreaKeys, setClosedAreaKeys] = useState<Set<string>>(new Set());
   const isAreaOpen = (key: string) => !closedAreaKeys.has(key);
   const toggleAreaOpen = (key: string) => setClosedAreaKeys((c) => {
@@ -203,7 +204,25 @@ const ProjectDetail = () => {
     });
   }, []);
 
-  // Escape exits selection mode
+  // Auto-collapse daily briefing & per-area report blocks on tablet when a day is first visited
+  useEffect(() => {
+    if (!activeDay || activeDay === ALL_DAYS || isAlbumKey(activeDay)) return;
+    if (tabletCollapsedDays.has(activeDay)) return;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+    if (!isTablet) return;
+    setTabletCollapsedDays((d) => new Set(d).add(activeDay));
+    setCollapsedDailyKeys((prev) => {
+      const n = new Set(prev);
+      ["today_objectives", "today_achievements", "tomorrow_objectives", "open_issues"].forEach((k) => n.add(`daily|${activeDay}|${k}`));
+      return n;
+    });
+    setClosedAreaKeys((prev) => {
+      const n = new Set(prev);
+      areas.forEach((ar) => n.add(`report|${ar.id}|${activeDay}`));
+      return n;
+    });
+  }, [activeDay, areas, tabletCollapsedDays]);
+
   useEffect(() => {
     if (!selectMode) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") exitSelectMode(); };
