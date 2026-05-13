@@ -89,3 +89,8 @@ export function useSignedUrl(path: string | null | undefined) {
 
   return url;
 }
+
+export function clearSignedUrlCache(): void {
+  cache.clear();
+  inflight.clear();
+}

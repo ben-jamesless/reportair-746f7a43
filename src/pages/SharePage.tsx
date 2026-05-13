@@ -31,8 +31,8 @@ type DayNote = {
 };
 type AreaDayStatus = { area_id: string; date: string; status: string };
 type AreaDayNote = { area_id: string; date: string; notes: string | null };
+// geo_lat and geo_lng are intentionally excluded — stripped at the DB layer
 type ShareProject = {
-  id: string;
   name: string;
   description: string | null;
   client_name?: string | null;

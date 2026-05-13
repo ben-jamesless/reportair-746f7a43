@@ -46,7 +46,20 @@ const Onboarding = () => {
           .from("profiles")
           .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
           .eq("id", user.id);
-        navigate(`/projects/${pm[0].project_id}`, { replace: true });
+        const slug =
+          ((profile?.full_name ?? user.email ?? "user")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .slice(0, 20)) +
+          "-" +
+          Math.random().toString(36).slice(2, 6);
+        await supabase.from("teams").insert({
+          name: profile?.full_name ?? user.email ?? "My Team",
+          slug,
+          created_by: user.id,
+          billing_owner_user_id: user.id,
+        });
+        navigate("/projects", { replace: true });
         return;
       }
       if (profile?.full_name) setFullName(profile.full_name);
