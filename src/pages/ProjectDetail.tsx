@@ -956,7 +956,22 @@ const ProjectDetail = () => {
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
-                {days.map((day) => {
+                {isMobileViewport && days.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setDatesListOpen((o) => !o)}
+                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                    aria-expanded={datesListOpen}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                      Dates <span className="ml-1 text-xs text-muted-foreground">{days.length}</span>
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", datesListOpen && "rotate-180")} />
+                  </button>
+                )}
+
+                {(!isMobileViewport || datesListOpen) && days.map((day) => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
