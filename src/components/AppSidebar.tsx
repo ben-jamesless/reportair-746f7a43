@@ -269,7 +269,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 <span className={cn("text-xs text-muted-foreground", labelCls)}>{counts.all}</span>
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
+            <TooltipContent side="right" className={tooltipCls}>
               All Projects
             </TooltipContent>
           </Tooltip>
@@ -394,7 +394,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 </span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
+            <TooltipContent side="right" className={tooltipCls}>
               {theme === "dark" ? "Light mode" : "Dark mode"}
             </TooltipContent>
           </Tooltip>
@@ -416,7 +416,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   <span className={cn(labelCls)}>Billing</span>
                 </Link>
               </TooltipTrigger>
-              <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
+              <TooltipContent side="right" className={tooltipCls}>
                 Billing
               </TooltipContent>
             </Tooltip>
@@ -438,7 +438,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   <span className={cn(labelCls)}>Admin</span>
                 </Link>
               </TooltipTrigger>
-              <TooltipContent side="right" className={mobile ? "hidden" : "lg:hidden"}>
+              <TooltipContent side="right" className={tooltipCls}>
                 Admin
               </TooltipContent>
             </Tooltip>
