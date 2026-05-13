@@ -173,6 +173,9 @@ const SharePage = () => {
     setAttempts(0);
     setLockedUntil(null);
     setData(r);
+    if (r.project?.name) {
+      document.title = `${r.project.name} — ReportAir`;
+    }
   };
 
   const loadFeedback = useCallback(async () => {
@@ -679,7 +682,7 @@ const SharePage = () => {
                 className="rounded-xl border p-12 text-center text-sm"
                 style={{ borderColor: DIVIDER, backgroundColor: SURFACE, color: MUTED }}
               >
-                No photos in this view.
+                No photos have been added for this date yet.
               </div>
             ) : (
               <div className="space-y-6">

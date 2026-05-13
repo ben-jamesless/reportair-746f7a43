@@ -144,7 +144,7 @@ export const ActivityFeed = ({ projectId }: Props) => {
         size="sm"
         icon={<Activity className="h-5 w-5" />}
         title="No activity yet"
-        description="Uploads, edits, and team actions will appear here as they happen."
+        description="Actions like photo uploads, status changes, and team invites will appear here."
       />
     );
   }
