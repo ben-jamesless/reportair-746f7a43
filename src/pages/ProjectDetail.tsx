@@ -962,7 +962,7 @@ const ProjectDetail = () => {
             <Button
               variant="outline"
               size="sm"
-              className="lg:hidden"
+              className="xl:hidden"
               onClick={() => setFeedbackSheetOpen(true)}
               title="Feedback"
             >
