@@ -998,7 +998,7 @@ const ProjectDetail = () => {
                   <button
                     type="button"
                     onClick={() => setDatesOpenTablet((o) => !o)}
-                    className="hidden md:flex xl:hidden w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                    className="flex xl:hidden w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
                     aria-expanded={datesOpenTablet}
                   >
                     <span className="flex items-center gap-1.5">
@@ -1009,7 +1009,7 @@ const ProjectDetail = () => {
                   </button>
                 )}
 
-                <div className={cn(!datesOpenTablet && "md:hidden xl:block")}>
+                <div className={cn(!datesOpenTablet && "hidden xl:block")}>
 
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
