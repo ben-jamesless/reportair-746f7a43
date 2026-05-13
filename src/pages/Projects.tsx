@@ -94,100 +94,104 @@ const Projects = () => {
   const load = async () => {
     if (!user) return;
     setLoading(true);
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarded_at")
+        .eq("id", user.id)
+        .maybeSingle();
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("onboarded_at")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    // Has the user any project access (via team OR direct invite)?
-    const { data: pmAny } = await supabase
-      .from("project_members")
-      .select("project_id")
-      .eq("user_id", user.id)
-      .limit(1);
-    const hasInvitedProjects = (pmAny?.length ?? 0) > 0;
-
-    if (!profile?.onboarded_at && !hasInvitedProjects) {
-      navigate("/onboarding", { replace: true });
-      return;
-    }
-
-    const { data: memberships } = await supabase
-      .from("team_members")
-      .select("team_id, teams(id, name)")
-      .order("created_at", { ascending: true })
-      .limit(1);
-
-    const team = memberships?.[0]?.teams as { id: string; name: string } | undefined;
-    if (team) {
-      setTeamId(team.id);
-      setTeamName(team.name);
-    } else {
-      setTeamId(null);
-      setTeamName("");
-    }
-
-    const list = (await fetchAccessibleProjects(user.id)) as Project[];
-    setProjects(list);
-
-    // Folders (owner-only via RLS)
-    const { data: fdata } = await supabase
-      .from("folders")
-      .select("id, name, color, sort_order")
-      .order("sort_order", { ascending: true });
-    setFolders((fdata ?? []) as FolderRow[]);
-
-    // Determine which projects current user owns (for showing folder controls per card)
-    const ids = list.map((p) => p.id);
-    if (ids.length > 0) {
-      const { data: pm } = await supabase
+      // Has the user any project access (via team OR direct invite)?
+      const { data: pmAny } = await supabase
         .from("project_members")
-        .select("project_id, role")
+        .select("project_id")
         .eq("user_id", user.id)
-        .in("project_id", ids);
-      const roleMap = new Map<string, ProjectRole>();
-      const owned = new Set<string>();
-      for (const row of (pm ?? []) as { project_id: string; role: ProjectRole }[]) {
-        roleMap.set(row.project_id, row.role);
-        if (row.role === "owner") owned.add(row.project_id);
+        .limit(1);
+      const hasInvitedProjects = (pmAny?.length ?? 0) > 0;
+
+      if (!profile?.onboarded_at && !hasInvitedProjects) {
+        navigate("/onboarding", { replace: true });
+        return;
       }
-      setProjectRoles(roleMap);
-      setOwnedProjectIds(owned);
-    } else {
-      setProjectRoles(new Map());
-      setOwnedProjectIds(new Set());
-    }
 
-    // Fetch last upload timestamp per project (single page, ordered desc; reduce client-side).
-    const projectIds = list.map((p) => p.id);
-    const uploads = new Map<string, string>();
-    if (projectIds.length > 0) {
-      const { data: ph } = await supabase
-        .from("photos")
-        .select("project_id, created_at")
-        .in("project_id", projectIds)
-        .order("created_at", { ascending: false })
-        .limit(1000);
-      for (const row of (ph ?? []) as { project_id: string; created_at: string }[]) {
-        if (!uploads.has(row.project_id)) uploads.set(row.project_id, row.created_at);
+      const { data: memberships } = await supabase
+        .from("team_members")
+        .select("team_id, teams(id, name)")
+        .order("created_at", { ascending: true })
+        .limit(1);
+
+      const team = memberships?.[0]?.teams as { id: string; name: string } | undefined;
+      if (team) {
+        setTeamId(team.id);
+        setTeamName(team.name);
+      } else {
+        setTeamId(null);
+        setTeamName("");
       }
-    }
-    setLastUploads(uploads);
 
-    // Pending invites for this user's email
-    if (user.email) {
-      const { data: inv } = await supabase
-        .from("project_invites")
-        .select("token")
-        .is("accepted_at", null)
-        .ilike("email", user.email)
-        .order("created_at", { ascending: false });
-      setPendingInvites({ count: inv?.length ?? 0, firstToken: inv?.[0]?.token ?? null });
-    }
+      const list = (await fetchAccessibleProjects(user.id)) as Project[];
+      setProjects(list);
 
-    setLoading(false);
+      // Folders (owner-only via RLS)
+      const { data: fdata } = await supabase
+        .from("folders")
+        .select("id, name, color, sort_order")
+        .order("sort_order", { ascending: true });
+      setFolders((fdata ?? []) as FolderRow[]);
+
+      // Determine which projects current user owns (for showing folder controls per card)
+      const ids = list.map((p) => p.id);
+      if (ids.length > 0) {
+        const { data: pm } = await supabase
+          .from("project_members")
+          .select("project_id, role")
+          .eq("user_id", user.id)
+          .in("project_id", ids);
+        const roleMap = new Map<string, ProjectRole>();
+        const owned = new Set<string>();
+        for (const row of (pm ?? []) as { project_id: string; role: ProjectRole }[]) {
+          roleMap.set(row.project_id, row.role);
+          if (row.role === "owner") owned.add(row.project_id);
+        }
+        setProjectRoles(roleMap);
+        setOwnedProjectIds(owned);
+      } else {
+        setProjectRoles(new Map());
+        setOwnedProjectIds(new Set());
+      }
+
+      // Fetch last upload timestamp per project (single page, ordered desc; reduce client-side).
+      const projectIds = list.map((p) => p.id);
+      const uploads = new Map<string, string>();
+      if (projectIds.length > 0) {
+        const { data: ph } = await supabase
+          .from("photos")
+          .select("project_id, created_at")
+          .in("project_id", projectIds)
+          .order("created_at", { ascending: false })
+          .limit(1000);
+        for (const row of (ph ?? []) as { project_id: string; created_at: string }[]) {
+          if (!uploads.has(row.project_id)) uploads.set(row.project_id, row.created_at);
+        }
+      }
+      setLastUploads(uploads);
+
+      // Pending invites for this user's email
+      if (user.email) {
+        const { data: inv } = await supabase
+          .from("project_invites")
+          .select("token")
+          .is("accepted_at", null)
+          .ilike("email", user.email)
+          .order("created_at", { ascending: false });
+        setPendingInvites({ count: inv?.length ?? 0, firstToken: inv?.[0]?.token ?? null });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load projects. Please refresh.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

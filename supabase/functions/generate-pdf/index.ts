@@ -9,6 +9,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ============ Auth helper ============
 /**
  * Validates the caller's JWT and returns their user ID.
@@ -198,7 +208,7 @@ function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjs
 // ============ Image embedding ============
 async function fetchAndEmbedImage(pdfDoc: PDFDocument, url: string): Promise<PDFImage | null> {
   try {
-    const r = await fetch(url);
+    const r = await fetchWithTimeout(url);
     if (!r.ok) return null;
     const bytes = new Uint8Array(await r.arrayBuffer());
     const ct = (r.headers.get("content-type") || "").toLowerCase();
@@ -220,7 +230,7 @@ const IR_URL = "https://cdn.jsdelivr.net/gh/rsms/inter@v4.0/docs/font-files/Inte
 async function loadFontBytes(): Promise<{ pjs: Uint8Array | null; ir: Uint8Array | null }> {
   if (_fontCache) return _fontCache;
   const fetchOne = async (url: string) => {
-    try { const r = await fetch(url); if (!r.ok) return null; return new Uint8Array(await r.arrayBuffer()); }
+    try { const r = await fetchWithTimeout(url); if (!r.ok) return null; return new Uint8Array(await r.arrayBuffer()); }
     catch { return null; }
   };
   const [pjs, ir] = await Promise.all([fetchOne(PJS_URL), fetchOne(IR_URL)]);
@@ -341,7 +351,7 @@ Deno.serve(async (req) => {
       const loc = projAny.event_location;
       let lat = projAny.geo_lat, lng = projAny.geo_lng;
       if (loc && (lat == null || lng == null || projAny.geo_location_query !== loc)) {
-        const gr = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(loc)}&count=1`);
+        const gr = await fetchWithTimeout(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(loc)}&count=1`);
         if (gr.ok) {
           const gj = await gr.json();
           const hit = gj?.results?.[0];
@@ -358,7 +368,7 @@ Deno.serve(async (req) => {
         ];
         for (const url of urls) {
           try {
-            const wr = await fetch(url);
+            const wr = await fetchWithTimeout(url);
             if (!wr.ok) continue;
             const wj = await wr.json();
             const d = wj?.daily;
