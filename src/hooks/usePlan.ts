@@ -103,7 +103,7 @@ export const usePlan = (): PlanState => {
     if (!state.teamId) return;
 
     const channel = supabase
-      .channel(`team-plan-${state.teamId}`)
+      .channel(`team-plan-${state.teamId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "teams", filter: `id=eq.${state.teamId}` },
