@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Camera, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -25,7 +25,8 @@ const Auth = () => {
   const [busy, setBusy] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
 
-  const redirect = params.get("redirect") || "/projects";
+  const rawRedirect = params.get("redirect") || "/projects";
+  const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
 
   useEffect(() => {
     if (user) navigate(redirect, { replace: true });

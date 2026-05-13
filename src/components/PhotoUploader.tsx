@@ -50,7 +50,12 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
 
   const onFilesPicked = (files: FileList | null) => {
     if (!files || !files.length) return;
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/") || /\.(heic|heif)$/i.test(f.name));
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"];
+    const list = Array.from(files).filter((f) => {
+      const type = (f.type || "").toLowerCase();
+      const name = f.name.toLowerCase();
+      return ALLOWED_TYPES.includes(type) || /\.(heic|heif|jpg|jpeg|png|webp|gif)$/i.test(name);
+    });
     if (!list.length) { toast.error("No image files selected"); return; }
     setPendingFiles(list);
     setSelectedArea(areaId ?? NO_AREA);

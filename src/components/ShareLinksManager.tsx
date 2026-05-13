@@ -93,7 +93,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
             </div>
             <div>
               <Label htmlFor="pwd">Password (optional)</Label>
-              <Input id="pwd" type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Leave blank for no password" />
+              <Input id="pwd" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Leave blank for no password" />
             </div>
             <div>
               <Label htmlFor="exp">Expires (optional)</Label>
