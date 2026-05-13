@@ -503,6 +503,36 @@ export const ExportPdfDialog = ({
             </div>
           </section>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Export quality</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setQuality("compressed")}
+                className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                  quality === "compressed"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-muted-foreground"
+                }`}
+              >
+                <p className="text-sm font-medium">Compressed</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Smaller file · ~2–4 MB</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuality("high_res")}
+                className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                  quality === "high_res"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-muted-foreground"
+                }`}
+              >
+                <p className="text-sm font-medium">High Res</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Full detail · ~6–10 MB</p>
+              </button>
+            </div>
+          </div>
+
           <Button
             className="w-full"
             onClick={startExport}
