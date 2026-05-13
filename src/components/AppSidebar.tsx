@@ -40,6 +40,8 @@ import {
   Folder,
   CreditCard,
   Shield,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -61,9 +63,13 @@ interface Props {
   mobile?: boolean;
   /** Called when a nav action is performed — used to close the mobile sheet. */
   onNavigate?: () => void;
+  /** Desktop collapsed state (icon-only). Ignored when `mobile` is true. */
+  collapsed?: boolean;
+  /** Toggle desktop collapsed state. */
+  onToggleCollapsed?: () => void;
 }
 
-export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
+export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onToggleCollapsed }: Props) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -189,28 +195,54 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
     loadFolders();
   };
 
-  // Wordmark / lockup wrapper styling tweaks for mobile
+  // Desktop expanded = not collapsed; mobile sheet always shows full content
+  const expanded = mobile || !collapsed;
+
   const containerCls = mobile
     ? "flex h-full w-full flex-col bg-background"
-    : "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-16 lg:w-56 md:border-r md:bg-background";
+    : cn(
+        "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:border-r md:bg-background transition-[width] duration-200",
+        collapsed ? "md:w-16" : "md:w-56",
+      );
 
-  // For mobile sheet show full-width text always; for desktop preserve lg:inline behaviour
-  const labelCls = mobile ? "inline" : "hidden lg:inline";
-  const folderSectionCls = mobile ? "block" : "hidden lg:block";
+  const labelCls = expanded ? "inline" : "hidden";
+  const folderSectionCls = expanded ? "block" : "hidden";
+  // Tooltip only shown for icon-only (collapsed desktop)
+  const tooltipCls = expanded ? "hidden" : "";
 
   return (
     <TooltipProvider delayDuration={0}>
       <aside className={containerCls}>
-        {/* Logo */}
-        <Link
-          to="/projects"
-          onClick={onNavigate}
-          className="flex h-14 items-center gap-2 border-b px-3 lg:px-4"
-        >
-          <ReportAirMark variant="light" className="h-7 w-7 shrink-0 dark:hidden" />
-          <ReportAirMark variant="dark" className="hidden h-7 w-7 shrink-0 dark:inline-block" />
-          <span className={cn("wordmark text-sm text-foreground", labelCls)}>REPORTAIR</span>
-        </Link>
+        {/* Logo + collapse toggle */}
+        <div className={cn("flex h-14 items-center border-b", expanded ? "px-3 lg:px-4" : "px-2 justify-center relative")}>
+          <Link
+            to="/projects"
+            onClick={onNavigate}
+            className="flex items-center gap-2 min-w-0"
+          >
+            <ReportAirMark variant="light" className="h-7 w-7 shrink-0 dark:hidden" />
+            <ReportAirMark variant="dark" className="hidden h-7 w-7 shrink-0 dark:inline-block" />
+            <span className={cn("wordmark text-sm text-foreground truncate", labelCls)}>REPORTAIR</span>
+          </Link>
+          {!mobile && onToggleCollapsed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onToggleCollapsed}
+                  aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  className={cn(
+                    "ml-auto rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors",
+                    collapsed && "absolute -right-3 top-1/2 -translate-y-1/2 ml-0 bg-background border shadow-sm",
+                  )}
+                >
+                  {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">{collapsed ? "Expand" : "Collapse"}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
 
         {/* Nav */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
