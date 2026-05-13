@@ -435,6 +435,12 @@ export const AppSidebar = ({ mobile = false, onNavigate }: Props) => {
                 <UserIcon className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
+              {billingTeamId && (
+                <DropdownMenuItem onClick={() => { onNavigate?.(); navigate("/billing"); }} className="cursor-pointer">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Billing
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
