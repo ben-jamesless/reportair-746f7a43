@@ -1420,16 +1420,14 @@ const ProjectDetail = () => {
                             <div key={ar.id}>
                               <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
-                                  {isMobileViewport && (
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleAreaOpen(areaKey)}
-                                      className="text-muted-foreground"
-                                      aria-label={open ? "Collapse area" : "Expand area"}
-                                    >
-                                      <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
-                                    </button>
-                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleAreaOpen(areaKey)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                    aria-label={open ? "Collapse area" : "Expand area"}
+                                  >
+                                    <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                  </button>
                                   <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
                                   <span className="text-xs" style={{ color: "#6b7280" }}>
                                     {list.length} photo{list.length === 1 ? "" : "s"}
