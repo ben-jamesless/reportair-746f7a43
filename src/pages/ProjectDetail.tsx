@@ -204,7 +204,25 @@ const ProjectDetail = () => {
     });
   }, []);
 
-  // Escape exits selection mode
+  // Auto-collapse daily briefing & per-area report blocks on tablet when a day is first visited
+  useEffect(() => {
+    if (!activeDay || activeDay === ALL_DAYS || isAlbumKey(activeDay)) return;
+    if (tabletCollapsedDays.has(activeDay)) return;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+    if (!isTablet) return;
+    setTabletCollapsedDays((d) => new Set(d).add(activeDay));
+    setCollapsedDailyKeys((prev) => {
+      const n = new Set(prev);
+      ["today_objectives", "today_achievements", "tomorrow_objectives", "open_issues"].forEach((k) => n.add(`daily|${activeDay}|${k}`));
+      return n;
+    });
+    setClosedAreaKeys((prev) => {
+      const n = new Set(prev);
+      areas.forEach((ar) => n.add(`report|${ar.id}|${activeDay}`));
+      return n;
+    });
+  }, [activeDay, days, areas, tabletCollapsedDays]);
+
   useEffect(() => {
     if (!selectMode) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") exitSelectMode(); };
