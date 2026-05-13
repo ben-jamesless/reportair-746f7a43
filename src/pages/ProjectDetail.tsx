@@ -123,6 +123,7 @@ const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const { canUseShareLink, canExportPdf } = usePlan();
   const [project, setProject] = useState<Project | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
