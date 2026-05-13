@@ -103,7 +103,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   return (
     <Dialog open={index !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-6xl border-0 bg-background p-0">
+      <DialogContent className="max-h-[100dvh] max-w-6xl overflow-y-auto border-0 bg-background p-0 sm:max-h-[90vh]">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_320px]">
           <div className="relative flex min-h-[50vh] items-center justify-center bg-black md:min-h-[70vh]">
             {url && (
