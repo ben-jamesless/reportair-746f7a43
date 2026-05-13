@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
@@ -160,6 +160,9 @@ const ProjectDetail = () => {
     if (t === "updates" || t === "photos") return "photos";
     return "photos";
   });
+
+  const PHOTO_PAGE_SIZE = 150;
+  const [visibleCount, setVisibleCount] = useState(PHOTO_PAGE_SIZE);
   // Session-only view toggle (overrides project default for current session). null = use project default.
   const [viewOverride, setViewOverride] = useState<ProjectView | null>(null);
   // Whether we've already auto-selected the latest day (only do this once per project load).
@@ -353,6 +356,10 @@ const ProjectDetail = () => {
       setCanEdit(data?.role === "owner" || data?.role === "editor");
     })();
   }, [user, id]);
+
+  useEffect(() => {
+    setVisibleCount(PHOTO_PAGE_SIZE);
+  }, [activeDay, activeArea]);
 
   const restoreProject = async () => {
     if (!id) return;
@@ -1389,22 +1396,32 @@ const ProjectDetail = () => {
                     );
                   })()
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {visiblePhotos.map((p) => (
-                      <PhotoThumb
-                        key={p.id}
-                        path={p.storage_path}
-                        alt={p.caption || p.file_name}
-                        selectable={selectMode}
-                        selected={selectedIds.has(p.id)}
-                        onClick={() =>
-                          selectMode
-                            ? toggleSelect(p.id)
-                            : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                        }
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                      {visiblePhotos.slice(0, visibleCount).map((p) => (
+                        <PhotoThumb
+                          key={p.id}
+                          path={p.storage_path}
+                          alt={p.caption || p.file_name}
+                          selectable={selectMode}
+                          selected={selectedIds.has(p.id)}
+                          onClick={() =>
+                            selectMode
+                              ? toggleSelect(p.id)
+                              : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                          }
+                        />
+                      ))}
+                    </div>
+                    {visiblePhotos.length > visibleCount && (
+                      <button
+                        className="mt-4 rounded border px-4 py-2 text-sm"
+                        onClick={() => setVisibleCount((c) => c + PHOTO_PAGE_SIZE)}
+                      >
+                        Load more photos ({visiblePhotos.length - visibleCount} remaining)
+                      </button>
+                    )}
+                  </>
                 )
                 )}
               </section>
