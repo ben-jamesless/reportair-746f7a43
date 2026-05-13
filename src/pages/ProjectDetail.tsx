@@ -1396,22 +1396,32 @@ const ProjectDetail = () => {
                     );
                   })()
                 ) : (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    {visiblePhotos.map((p) => (
-                      <PhotoThumb
-                        key={p.id}
-                        path={p.storage_path}
-                        alt={p.caption || p.file_name}
-                        selectable={selectMode}
-                        selected={selectedIds.has(p.id)}
-                        onClick={() =>
-                          selectMode
-                            ? toggleSelect(p.id)
-                            : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                        }
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                      {visiblePhotos.slice(0, visibleCount).map((p) => (
+                        <PhotoThumb
+                          key={p.id}
+                          path={p.storage_path}
+                          alt={p.caption || p.file_name}
+                          selectable={selectMode}
+                          selected={selectedIds.has(p.id)}
+                          onClick={() =>
+                            selectMode
+                              ? toggleSelect(p.id)
+                              : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
+                          }
+                        />
+                      ))}
+                    </div>
+                    {visiblePhotos.length > visibleCount && (
+                      <button
+                        className="mt-4 rounded border px-4 py-2 text-sm"
+                        onClick={() => setVisibleCount((c) => c + PHOTO_PAGE_SIZE)}
+                      >
+                        Load more photos ({visiblePhotos.length - visibleCount} remaining)
+                      </button>
+                    )}
+                  </>
                 )
                 )}
               </section>
