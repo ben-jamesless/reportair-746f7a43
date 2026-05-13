@@ -1256,7 +1256,7 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="px-4 pt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                      <div className="px-4 pt-2 grid grid-cols-1 gap-3 xl:grid-cols-2">
                         {dailyBlocks.map((b) => {
                           const dailyKey = `daily|${activeDay}|${b.key}`;
                           const open = isDailyOpen(dailyKey);
