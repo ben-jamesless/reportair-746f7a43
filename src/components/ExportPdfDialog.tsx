@@ -201,14 +201,22 @@ export const ExportPdfDialog = ({
   }, [open, projectId]);
 
   // Poll the active export until it resolves
+  const pollStartedAt = useRef<number | null>(null);
   useEffect(() => {
     if (!open || !currentExport) return;
     if (currentExport.status === "ready" || currentExport.status === "failed") return;
+    pollStartedAt.current = Date.now();
     const t = setInterval(async () => {
       const { data } = await supabase.from("project_exports")
         .select("id,status,output_path,error_message,photo_count")
         .eq("id", currentExport.id).maybeSingle();
       if (data) setCurrentExport(data as ExportRow);
+      if (pollStartedAt.current && Date.now() - pollStartedAt.current > 5 * 60 * 1000) {
+        clearInterval(t);
+        setCurrentExport((prev) => prev ? { ...prev, status: "failed", error_message: "Export timed out" } : prev);
+        toast.error("Export timed out. Please try again.");
+        return;
+      }
     }, 3000);
     return () => clearInterval(t);
   }, [open, currentExport]);
