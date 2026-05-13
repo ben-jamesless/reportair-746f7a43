@@ -99,5 +99,22 @@ export const usePlan = (): PlanState => {
     return () => { cancelled = true; };
   }, [user?.id, refreshKey]);
 
+  useEffect(() => {
+    if (!state.teamId) return;
+
+    const channel = supabase
+      .channel(`team-plan-${state.teamId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "teams", filter: `id=eq.${state.teamId}` },
+        () => {
+          setRefreshKey(k => k + 1);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [state.teamId]);
+
   return { ...state, refetch: () => setRefreshKey(k => k + 1) };
 };
