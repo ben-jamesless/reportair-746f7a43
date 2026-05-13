@@ -55,11 +55,22 @@ const Billing = () => {
     if (status === "success") {
       toast.success("Subscription activated — welcome aboard!");
 
+      const syncSubscription = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        await supabase.functions.invoke("stripe-sync-subscription", {
+          body: {},
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        });
+        await refetch?.();
+      };
+
+      void syncSubscription();
+
       // Poll for plan update — retry up to 6 times over 12 seconds
       let attempts = 0;
       const poll = setInterval(async () => {
         attempts++;
-        await refetch?.();
+        await syncSubscription();
         if (attempts >= 6) clearInterval(poll);
       }, 2000);
 
@@ -75,7 +86,7 @@ const Billing = () => {
       url.searchParams.delete("checkout");
       window.history.replaceState({}, "", url.toString());
     }
-  }, [searchParams]);
+  }, [searchParams, refetch]);
 
   const handleManage = async () => {
     setPortalLoading(true);
