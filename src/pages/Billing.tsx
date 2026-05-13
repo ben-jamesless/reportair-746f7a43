@@ -43,18 +43,39 @@ const Billing = () => {
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
+  const hasHandledCheckout = useRef(false);
 
   const crumbs = [{ label: "Projects", to: "/projects" }, { label: "Billing" }];
 
   useEffect(() => {
-    if (searchParams.get("checkout") === "success") {
+    const status = searchParams.get("checkout");
+    if (!status || hasHandledCheckout.current) return;
+    hasHandledCheckout.current = true;
+
+    if (status === "success") {
       toast.success("Subscription activated — welcome aboard!");
-      setTimeout(() => refetch?.(), 2500);
+
+      // Poll for plan update — retry up to 6 times over 12 seconds
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        await refetch?.();
+        if (attempts >= 6) clearInterval(poll);
+      }, 2000);
+
+      // Clean the query param from the URL without a page reload
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.toString());
     }
-    if (searchParams.get("checkout") === "cancelled") {
+
+    if (status === "cancelled") {
       toast.info("Checkout cancelled. No changes were made.");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.toString());
     }
-  }, [searchParams, refetch]);
+  }, [searchParams]);
 
   const handleManage = async () => {
     setPortalLoading(true);
