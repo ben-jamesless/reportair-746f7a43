@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Copy, Eye, Link2, Trash2, Plus } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { usePlan } from "@/hooks/usePlan";
 
 type ShareLink = {
   id: string;
@@ -22,6 +23,7 @@ type ShareLink = {
 };
 
 export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
+  const { canUseShareLink } = usePlan();
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState("");
@@ -74,6 +76,15 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
     navigator.clipboard.writeText(url);
     toast.success("Link copied");
   };
+
+  if (!canUseShareLink) {
+    return (
+      <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+        Share links are available on the Pro plan and above.{" "}
+        <a href="/billing" className="underline font-medium">Upgrade</a>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
