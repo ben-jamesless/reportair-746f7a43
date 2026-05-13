@@ -1357,7 +1357,7 @@ const ProjectDetail = () => {
                                   )}
                                 </article>
                                 {!isLast && (
-                                  <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
+                                  <div className="ml-4 border-t border-border" />
                                 )}
                               </div>
                             );
