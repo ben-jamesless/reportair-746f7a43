@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -124,33 +125,41 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
 
   return (
     <Collapsible open={open} onOpenChange={handleOpenChange}>
-      <CollapsibleTrigger
-        className={cn(
-          "group flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
-          "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-        )}
-        aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
-      >
-        <span className="relative inline-flex">
-          <Bell className="h-4 w-4 shrink-0" />
-          {unreadCount > 0 && (
-            <span
-              className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
-              aria-hidden
-            >
-              {unreadCount > 9 ? "9+" : unreadCount}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <CollapsibleTrigger
+            className={cn(
+              "group flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
+              "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+              compactLabel && "justify-center",
+            )}
+            aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
+          >
+            <span className="relative inline-flex">
+              <Bell className="h-4 w-4 shrink-0" />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
+                  aria-hidden
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </span>
-          )}
-        </span>
-        <span className={cn("flex-1 text-left", labelCls)}>Notifications</span>
-        <ChevronDown
-          className={cn(
-            "h-3.5 w-3.5 shrink-0 transition-transform",
-            open && "rotate-180",
-            labelCls,
-          )}
-        />
-      </CollapsibleTrigger>
+            <span className={cn("flex-1 text-left", labelCls)}>Notifications</span>
+            <ChevronDown
+              className={cn(
+                "h-3.5 w-3.5 shrink-0 transition-transform",
+                open && "rotate-180",
+                labelCls,
+              )}
+            />
+          </CollapsibleTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="right" className={compactLabel ? "" : "hidden"}>
+          Notifications
+        </TooltipContent>
+      </Tooltip>
       <CollapsibleContent>
         {items.length === 0 ? (
           <div className="px-3 py-3 text-xs text-muted-foreground">You're all caught up.</div>
