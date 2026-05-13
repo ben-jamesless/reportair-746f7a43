@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Check, FileText, Flag, Loader2, Mail, MapPinned, Music, Plus, PartyPopper, Presentation, Trash2, Trophy, X } from "lucide-react";
+import { Check, Crown, FileText, Flag, Loader2, Mail, MapPinned, Music, Plus, PartyPopper, Presentation, Trash2, Trophy, X } from "lucide-react";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
@@ -44,8 +45,9 @@ const TOTAL_STEPS = 4;
 export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { canCreateProject } = usePlan();
+  const { canCreateProject, plan } = usePlan();
   const [open, setOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [step, setStep] = useState(1);
 
   // Step 1+2 fields
@@ -189,20 +191,30 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
 
   const canAdvanceStep1 = !!name.trim();
 
+  if (!canCreateProject) {
+    return (
+      <>
+        <Button
+          onClick={() => setUpgradeOpen(true)}
+          style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
+          className="font-semibold"
+        >
+          <Crown className="mr-2 h-4 w-4" />
+          Create New Project
+        </Button>
+        <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlan={plan} />
+      </>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
-        {!canCreateProject ? (
-          <Button asChild variant="outline">
-            <a href="/billing">Upgrade to create more projects</a>
+        {trigger ?? (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New project
           </Button>
-        ) : (
-          trigger ?? (
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New project
-            </Button>
-          )
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
