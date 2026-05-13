@@ -153,6 +153,8 @@ const ProjectDetail = () => {
     return a;
   });
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
+  const isMobileViewport = useIsMobile();
+  const [datesListOpen, setDatesListOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
     const t = searchParams.get("tab");
