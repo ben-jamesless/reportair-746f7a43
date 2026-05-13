@@ -1090,7 +1090,10 @@ const ProjectDetail = () => {
                       <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", galleryListOpen && "rotate-180")} />
                     </button>
                   )}
-                  {(!isMobileViewport || galleryListOpen) && (<></>)}
+                  {(!isMobileViewport || galleryListOpen) && (<>
+                  </>)}
+                  {(!isMobileViewport || galleryListOpen) && (
+                  <div className="space-y-1">
                   {albums.map((al) => {
                     const count = albumPhotos.get(al.id)?.length ?? 0;
                     const key = albumKey(al.id);
