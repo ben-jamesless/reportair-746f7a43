@@ -23,13 +23,7 @@ type Event = {
   created_at: string;
 };
 
-type GuestNoteRow = {
-  id: string;
-  photo_id: string;
-  guest_name: string;
-  body: string;
-  created_at: string;
-};
+import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
 type ActorMap = Record<string, { full_name: string | null; avatar_url: string | null }>;
 

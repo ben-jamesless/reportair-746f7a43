@@ -8,14 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 
-type GuestNote = {
-  id: string;
-  photo_id: string;
-  guest_name: string;
-  guest_email: string | null;
-  body: string;
-  created_at: string;
-};
+import type { GuestNote } from "@/lib/types";
 
 type InternalComment = {
   id: string;

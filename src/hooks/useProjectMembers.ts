@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { ProjectRole } from "@/lib/projectPermissions";
+export type { ProjectRole };
 
-export type ProjectRole = "owner" | "editor" | "viewer";
 
 export type ProjectMember = {
   user_id: string;
