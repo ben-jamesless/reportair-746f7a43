@@ -384,7 +384,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 variant="ghost"
                 onClick={toggleTheme}
                 aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                className="h-auto w-full justify-start gap-3 px-2 py-2 text-muted-foreground hover:text-foreground lg:px-3"
+                className={cn("h-auto w-full gap-3 px-2 py-2 text-muted-foreground hover:text-foreground lg:px-3", expanded ? "justify-start" : "justify-center")}
               >
                 {theme === "dark" ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
                 <span className={cn("text-sm", labelCls)}>
@@ -405,6 +405,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   onClick={onNavigate}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors lg:px-3",
+                    expanded ? "justify-start" : "justify-center",
                     isBillingActive
                       ? "bg-secondary text-foreground"
                       : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
@@ -427,6 +428,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   onClick={onNavigate}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors lg:px-3",
+                    expanded ? "justify-start" : "justify-center",
                     isAdminActive
                       ? "bg-secondary text-foreground"
                       : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
@@ -443,7 +445,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-auto w-full justify-start gap-3 px-2 py-2 lg:px-3">
+              <Button variant="ghost" className={cn("h-auto w-full gap-3 px-2 py-2 lg:px-3", expanded ? "justify-start" : "justify-center")}>
                 <Avatar className="h-7 w-7">
                   {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
                   <AvatarFallback className="bg-secondary text-xs">{initials}</AvatarFallback>
