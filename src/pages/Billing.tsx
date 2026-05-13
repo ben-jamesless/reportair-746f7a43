@@ -44,6 +44,7 @@ const Billing = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const hasHandledCheckout = useRef(false);
+  const hasSyncedExistingSubscription = useRef(false);
 
   const crumbs = [{ label: "Projects", to: "/projects" }, { label: "Billing" }];
 
@@ -87,6 +88,21 @@ const Billing = () => {
       window.history.replaceState({}, "", url.toString());
     }
   }, [searchParams, refetch]);
+
+  useEffect(() => {
+    if (loading || plan !== "free" || hasSyncedExistingSubscription.current) return;
+    hasSyncedExistingSubscription.current = true;
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data } = await supabase.functions.invoke("stripe-sync-subscription", {
+        body: {},
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+
+      if (data?.updated) await refetch?.();
+    })();
+  }, [loading, plan, refetch]);
 
   const handleManage = async () => {
     setPortalLoading(true);
