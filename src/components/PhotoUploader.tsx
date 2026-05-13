@@ -57,7 +57,14 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
       return ALLOWED_TYPES.includes(type) || /\.(heic|heif|jpg|jpeg|png|webp|gif)$/i.test(name);
     });
     if (!list.length) { toast.error("No image files selected"); return; }
-    setPendingFiles(list);
+    const MAX_SIZE_MB = 100;
+    const oversized = list.filter((f) => f.size > MAX_SIZE_MB * 1024 * 1024);
+    if (oversized.length > 0) {
+      toast.error(`${oversized.length} file(s) exceed the ${MAX_SIZE_MB}MB limit and were removed.`);
+    }
+    const sizedList = list.filter((f) => f.size <= MAX_SIZE_MB * 1024 * 1024);
+    if (!sizedList.length) return;
+    setPendingFiles(sizedList);
     setSelectedArea(areaId ?? NO_AREA);
   };
 

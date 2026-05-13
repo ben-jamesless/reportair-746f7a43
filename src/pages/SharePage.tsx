@@ -131,6 +131,8 @@ const SharePage = () => {
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState("");
   const [needPassword, setNeedPassword] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [activeKey, setActiveKey] = useState<string>(ALL_DAYS); // ALL_DAYS | dateKey | __album_<id>
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [guest, setGuest] = useState<{ name: string; email: string } | null>(null);
@@ -147,6 +149,7 @@ const SharePage = () => {
   }, [token]);
 
   const resolve = async (pwd: string | null) => {
+    if (lockedUntil && Date.now() < lockedUntil) return;
     setLoading(true);
     const { data: res, error } = await supabase.rpc("resolve_share_link", { _token: token, _password: pwd });
     setLoading(false);
@@ -154,10 +157,21 @@ const SharePage = () => {
     const r = res as unknown as Resolved;
     if (!r.ok) {
       if (r.error === "password_required") { setNeedPassword(true); return; }
+      // Treat any non-ok response when a password was supplied as a wrong-password attempt.
+      if (pwd) {
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        if (newAttempts >= 5) {
+          setLockedUntil(Date.now() + 60 * 1000);
+          setAttempts(0);
+        }
+      }
       setData(r);
       return;
     }
     setNeedPassword(false);
+    setAttempts(0);
+    setLockedUntil(null);
     setData(r);
   };
 
@@ -338,7 +352,19 @@ const SharePage = () => {
               <p className="text-sm" style={{ color: MUTED }}>Enter the password to view this gallery.</p>
             </div>
             <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={() => resolve(password)}>Unlock</Button>
+            <Button
+              className="w-full text-white"
+              style={{ backgroundColor: TEAL }}
+              onClick={() => resolve(password)}
+              disabled={!!(lockedUntil && Date.now() < lockedUntil)}
+            >
+              Unlock
+            </Button>
+            {lockedUntil && Date.now() < lockedUntil && (
+              <p className="text-center text-sm" style={{ color: "#FF3B30" }}>
+                Too many attempts — please try again later
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -95,7 +95,24 @@ export const ActivityFeed = ({ projectId }: Props) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "activity_events", filter: `project_id=eq.${projectId}` },
         (payload) => {
-          setEvents((prev) => [payload.new as Event, ...prev].slice(0, 200));
+          const ev = payload.new as Event;
+          setEvents((prev) => [ev, ...prev].slice(0, 200));
+          if (ev.actor_id) {
+            setActors((prev) => {
+              if (prev[ev.actor_id!]) return prev;
+              supabase
+                .from("profiles")
+                .select("id, full_name, avatar_url")
+                .eq("id", ev.actor_id)
+                .maybeSingle()
+                .then(({ data }) => {
+                  if (data) {
+                    setActors((p) => ({ ...p, [data.id]: { full_name: data.full_name, avatar_url: data.avatar_url } }));
+                  }
+                });
+              return prev;
+            });
+          }
         },
       )
       .on(
