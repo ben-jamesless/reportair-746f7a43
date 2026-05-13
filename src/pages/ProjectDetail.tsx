@@ -357,6 +357,10 @@ const ProjectDetail = () => {
     })();
   }, [user, id]);
 
+  useEffect(() => {
+    setVisibleCount(PHOTO_PAGE_SIZE);
+  }, [activeDay, activeArea]);
+
   const restoreProject = async () => {
     if (!id) return;
     const { error } = await supabase.from("projects").update({ archived_at: null }).eq("id", id);
