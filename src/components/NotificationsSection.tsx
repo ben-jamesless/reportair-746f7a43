@@ -120,7 +120,7 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
     navigate(`/projects/${n.project_id}${qs ? `?${qs}` : ""}`);
   };
 
-  const labelCls = compactLabel ? "hidden lg:inline" : "inline";
+  const labelCls = compactLabel ? "hidden" : "inline";
 
   return (
     <Collapsible open={open} onOpenChange={handleOpenChange}>
