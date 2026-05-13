@@ -45,6 +45,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [canManageAlbums, setCanManageAlbums] = useState(false);
+  const { canUseShareLink } = usePlan();
 
   useEffect(() => {
     if (!open) return;
