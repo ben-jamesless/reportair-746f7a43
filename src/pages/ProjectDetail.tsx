@@ -156,9 +156,9 @@ const ProjectDetail = () => {
   const isMobileViewport = useIsMobile();
   const [datesListOpen, setDatesListOpen] = useState(false);
   const [galleryListOpen, setGalleryListOpen] = useState(false);
-  const [openAreaKeys, setOpenAreaKeys] = useState<Set<string>>(new Set());
-  const isAreaOpen = (key: string) => !isMobileViewport || openAreaKeys.has(key);
-  const toggleAreaOpen = (key: string) => setOpenAreaKeys((c) => {
+  const [closedAreaKeys, setClosedAreaKeys] = useState<Set<string>>(new Set());
+  const isAreaOpen = (key: string) => !closedAreaKeys.has(key);
+  const toggleAreaOpen = (key: string) => setClosedAreaKeys((c) => {
     const n = new Set(c);
     n.has(key) ? n.delete(key) : n.add(key);
     return n;
@@ -1326,16 +1326,14 @@ const ProjectDetail = () => {
                               <div key={ar.id}>
                                 <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
                                   <header className="mb-3 flex flex-wrap items-center gap-2">
-                                    {isMobileViewport && (
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleAreaOpen(areaKey)}
-                                        className="text-muted-foreground"
-                                        aria-label={open ? "Collapse area" : "Expand area"}
-                                      >
-                                        <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
-                                      </button>
-                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleAreaOpen(areaKey)}
+                                      className="text-muted-foreground hover:text-foreground transition-colors"
+                                      aria-label={open ? "Collapse area" : "Expand area"}
+                                    >
+                                      <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                    </button>
                                     <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
                                     <AreaStatusPicker
                                       value={st}
@@ -1422,16 +1420,14 @@ const ProjectDetail = () => {
                             <div key={ar.id}>
                               <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
-                                  {isMobileViewport && (
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleAreaOpen(areaKey)}
-                                      className="text-muted-foreground"
-                                      aria-label={open ? "Collapse area" : "Expand area"}
-                                    >
-                                      <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
-                                    </button>
-                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleAreaOpen(areaKey)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                    aria-label={open ? "Collapse area" : "Expand area"}
+                                  >
+                                    <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                  </button>
                                   <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
                                   <span className="text-xs" style={{ color: "#6b7280" }}>
                                     {list.length} photo{list.length === 1 ? "" : "s"}
@@ -1474,16 +1470,14 @@ const ProjectDetail = () => {
                           return (
                           <article className="py-4 pl-4" style={{ borderLeft: `3px solid #e5e7eb` }}>
                             <header className="mb-3 flex flex-wrap items-center gap-2">
-                              {isMobileViewport && (
-                                <button
-                                  type="button"
-                                  onClick={() => toggleAreaOpen(areaKey)}
-                                  className="text-muted-foreground"
-                                  aria-label={open ? "Collapse area" : "Expand area"}
-                                >
-                                  <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
-                                </button>
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => toggleAreaOpen(areaKey)}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                                aria-label={open ? "Collapse area" : "Expand area"}
+                              >
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                              </button>
                               <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>Unassigned</h3>
                               <span className="text-xs" style={{ color: "#6b7280" }}>
                                 {unassigned.length} photo{unassigned.length === 1 ? "" : "s"}
