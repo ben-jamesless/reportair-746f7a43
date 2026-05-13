@@ -1290,10 +1290,22 @@ const ProjectDetail = () => {
                             const note = getAreaDayNote(ar.id, activeDay);
                             const accent = areaStatusAccent(st);
                             const isLast = idx === areasOnDay.length - 1;
+                            const areaKey = `report|${ar.id}|${activeDay}`;
+                            const open = isAreaOpen(areaKey);
                             return (
                               <div key={ar.id}>
                                 <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
                                   <header className="mb-3 flex flex-wrap items-center gap-2">
+                                    {isMobileViewport && (
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleAreaOpen(areaKey)}
+                                        className="text-muted-foreground"
+                                        aria-label={open ? "Collapse area" : "Expand area"}
+                                      >
+                                        <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
+                                      </button>
+                                    )}
                                     <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
                                     <AreaStatusPicker
                                       value={st}
@@ -1302,14 +1314,16 @@ const ProjectDetail = () => {
                                       readOnly={!canEdit}
                                     />
                                   </header>
-                                  <EditableNote
-                                    value={note}
-                                    placeholder="No notes for this area yet."
-                                    onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
-                                    rich
-                                    rows={3}
-                                    readOnly={!canEdit}
-                                  />
+                                  {open && (
+                                    <EditableNote
+                                      value={note}
+                                      placeholder="No notes for this area yet."
+                                      onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
+                                      rich
+                                      rows={3}
+                                      readOnly={!canEdit}
+                                    />
+                                  )}
                                 </article>
                                 {!isLast && (
                                   <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
