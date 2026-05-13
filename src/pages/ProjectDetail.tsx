@@ -154,7 +154,6 @@ const ProjectDetail = () => {
   });
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const isMobileViewport = useIsMobile();
-  const [datesListOpen, setDatesListOpen] = useState(false);
   const [galleryListOpen, setGalleryListOpen] = useState(false);
   const [closedAreaKeys, setClosedAreaKeys] = useState<Set<string>>(new Set());
   const isAreaOpen = (key: string) => !closedAreaKeys.has(key);
