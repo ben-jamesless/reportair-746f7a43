@@ -35,7 +35,7 @@ interface PlanState {
   canExportPdf:     boolean;
   canUseShareLink:  boolean;
   canUseCustomLogo: boolean;
-  refetch:          () => void;
+  refetch?:         () => void;
 }
 
 export const usePlan = (): PlanState => {
