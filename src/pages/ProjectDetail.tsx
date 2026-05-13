@@ -210,7 +210,7 @@ const ProjectDetail = () => {
   useEffect(() => {
     if (!activeDay || activeDay === ALL_DAYS || isAlbumKey(activeDay)) return;
     if (tabletCollapsedDays.has(activeDay)) return;
-    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1280;
     if (!isTablet) return;
     setTabletCollapsedDays((d) => new Set(d).add(activeDay));
     setCollapsedDailyKeys((prev) => {
