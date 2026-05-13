@@ -11,6 +11,34 @@ const PRICE_TO_PLAN: Record<string, string> = {
   "price_0TWWl01c550c7HdPy7nsH4qG": "enterprise",
 };
 
+async function sendTransactionalEmail(payload: { to: string; template: string; data: Record<string, string> }) {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`;
+  await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-internal-secret": Deno.env.get("INTERNAL_SECRET")!,
+    },
+    body: JSON.stringify(payload),
+  }).catch(e => console.error(JSON.stringify({ fn: "stripe-webhook", error: "email dispatch failed", detail: String(e) })));
+}
+
+async function getBillingOwner(service: ReturnType<typeof createClient>, teamId: string): Promise<{ email: string; name: string } | null> {
+  const { data: team } = await service.from("teams").select("billing_owner_user_id").eq("id", teamId).maybeSingle();
+  if (!team?.billing_owner_user_id) return null;
+  const { data: { user } } = await service.auth.admin.getUserById(team.billing_owner_user_id);
+  if (!user?.email) return null;
+  return {
+    email: user.email,
+    name: (user.user_metadata?.full_name as string) ?? user.email.split("@")[0],
+  };
+}
+
+function fmtDate(unix: number | null | undefined): string {
+  if (!unix) return "";
+  return new Date(unix * 1000).toLocaleDateString("en-HK", { day: "numeric", month: "long", year: "numeric" });
+}
+
 serve(async (req) => {
   const body      = await req.text();
   const signature = req.headers.get("stripe-signature") ?? "";
@@ -49,6 +77,19 @@ serve(async (req) => {
       current_period_end:     new Date(sub.current_period_end * 1000).toISOString(),
       trial_ends_at:          sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
     }).eq("id", teamId);
+
+    const owner = await getBillingOwner(service, teamId);
+    if (owner) {
+      await sendTransactionalEmail({
+        to: owner.email,
+        template: "upgrade",
+        data: {
+          name: owner.name,
+          plan,
+          renewalDate: fmtDate(sub.current_period_end),
+        },
+      });
+    }
   }
 
   else if (event.type === "customer.subscription.updated") {
@@ -73,6 +114,10 @@ serve(async (req) => {
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return new Response("ok");
 
+    const priceId = sub.items.data[0]?.price?.id;
+    const plan    = PRICE_TO_PLAN[priceId] ?? "";
+    const endDate = fmtDate(sub.current_period_end);
+
     await service.from("teams").update({
       plan:                 "free",
       subscription_status:  "canceled",
@@ -80,6 +125,19 @@ serve(async (req) => {
       current_period_end:   null,
       trial_ends_at:        null,
     }).eq("id", teamId);
+
+    const owner = await getBillingOwner(service, teamId);
+    if (owner) {
+      await sendTransactionalEmail({
+        to: owner.email,
+        template: "cancelled",
+        data: {
+          name: owner.name,
+          plan,
+          endDate,
+        },
+      });
+    }
   }
 
   else if (event.type === "invoice.payment_failed") {
@@ -94,6 +152,45 @@ serve(async (req) => {
     await service.from("teams").update({
       subscription_status: "past_due",
     }).eq("id", teamId);
+
+    const owner = await getBillingOwner(service, teamId);
+    if (owner) {
+      await sendTransactionalEmail({
+        to: owner.email,
+        template: "payment_failed",
+        data: {
+          name: owner.name,
+          plan: PRICE_TO_PLAN[sub.items.data[0]?.price?.id ?? ""] ?? "",
+        },
+      });
+    }
+  }
+
+  else if (event.type === "customer.subscription.trial_will_end") {
+    const sub = event.data.object as Stripe.Subscription;
+    const teamId = sub.metadata?.supabase_team_id;
+    if (!teamId) return new Response("ok");
+
+    const priceId = sub.items.data[0]?.price?.id;
+    const plan = PRICE_TO_PLAN[priceId ?? ""] ?? "pro";
+    const trialEnd = sub.trial_end ? new Date(sub.trial_end * 1000) : null;
+    const daysLeft = trialEnd
+      ? Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      : 2;
+
+    const owner = await getBillingOwner(service, teamId);
+    if (owner && trialEnd) {
+      await sendTransactionalEmail({
+        to: owner.email,
+        template: "trial_ending",
+        data: {
+          name: owner.name,
+          plan,
+          daysLeft: String(daysLeft),
+          trialEnd: trialEnd.toLocaleDateString("en-HK", { day: "numeric", month: "long", year: "numeric" }),
+        },
+      });
+    }
   }
 
   return new Response("ok");

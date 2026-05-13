@@ -92,6 +92,18 @@ const Onboarding = () => {
       return toast.error(teamErr.message);
     }
 
+    // Welcome email — fire and forget, does not block onboarding completion
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user?.email) return;
+      supabase.functions.invoke("send-transactional-email", {
+        body: {
+          to: session.user.email,
+          template: "welcome",
+          data: { name: fullName ?? session.user.user_metadata?.full_name ?? "" },
+        },
+      }).catch(() => {});
+    });
+
     setBusy(false);
     toast.success(`Welcome, ${fullName.split(" ")[0]}!`);
     navigate("/projects", { replace: true });
