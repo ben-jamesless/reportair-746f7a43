@@ -257,6 +257,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 onClick={() => goToFolder(null)}
                 className={cn(
                   "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
+                  expanded ? "justify-start" : "justify-center",
                   onProjects && !activeFolder
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
