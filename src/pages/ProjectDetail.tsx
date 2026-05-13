@@ -998,7 +998,7 @@ const ProjectDetail = () => {
                   <button
                     type="button"
                     onClick={() => setDatesOpenTablet((o) => !o)}
-                    className="hidden md:flex lg:hidden w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                    className="hidden md:flex xl:hidden w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
                     aria-expanded={datesOpenTablet}
                   >
                     <span className="flex items-center gap-1.5">
