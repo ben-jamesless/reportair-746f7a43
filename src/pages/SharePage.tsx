@@ -57,7 +57,7 @@ type Resolved = {
   latest_export?: LatestExport | null;
 };
 
-type GuestNoteRow = { id: string; photo_id: string; guest_name: string; body: string; created_at: string };
+import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
 // ReportAir design tokens
 const TEAL = "#1A6EFF"; // SKY — kept variable name for compat

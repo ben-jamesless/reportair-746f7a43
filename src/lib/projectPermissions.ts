@@ -1,4 +1,4 @@
-export type ProjectRole = "owner" | "editor" | "viewer";
+export type ProjectRole = "owner" | "editor" | "viewer" | "commenter";
 
 /**
  * Source of truth for project-level UI gating.
@@ -17,7 +17,10 @@ export const canMoveProjectToFolder = (role: ProjectRole | null | undefined) =>
   role === "owner";
 
 export const canExportProject = (role: ProjectRole | null | undefined) =>
-  role === "owner" || role === "editor" || role === "viewer";
+  role === "owner" || role === "editor" || role === "viewer" || role === "commenter";
+
+export const canCommentProject = (role: ProjectRole | null | undefined) =>
+  role === "owner" || role === "editor" || role === "viewer" || role === "commenter";
 
 export const canLeaveProject = (role: ProjectRole | null | undefined) =>
-  role === "editor" || role === "viewer";
+  role === "editor" || role === "viewer" || role === "commenter";

@@ -19,8 +19,7 @@ import {
 import { toast } from "sonner";
 import { Trash2, Mail, Copy, Send, LogOut } from "lucide-react";
 import { z } from "zod";
-
-type ProjectRole = "owner" | "editor" | "viewer";
+import type { ProjectRole } from "@/lib/projectPermissions";
 
 type Invite = {
   id: string;
@@ -43,6 +42,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
   owner: "Full access — manage members, edit, and delete the project.",
   editor: "Can upload photos and edit project content.",
   viewer: "Read-only access to the project and reports.",
+  commenter: "Can view photos and leave comments.",
 };
 
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
@@ -237,6 +237,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 <SelectItem value="owner">Owner</SelectItem>
                 <SelectItem value="editor">Editor</SelectItem>
                 <SelectItem value="viewer">Viewer</SelectItem>
+                <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={addInvite} disabled={loading}>
@@ -280,6 +281,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                       <SelectItem value="owner">Owner</SelectItem>
                       <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="viewer">Viewer</SelectItem>
+                      <SelectItem value="commenter">Commenter</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (

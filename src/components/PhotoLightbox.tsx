@@ -49,7 +49,7 @@ interface Props {
 
 const UNASSIGNED = "__unassigned__";
 
-type GuestNote = { id: string; guest_name: string; guest_email: string | null; body: string; created_at: string };
+import type { GuestNote } from "@/lib/types";
 
 export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId, isOwner = false }: Props) => {
   const [i, setI] = useState(index ?? 0);
