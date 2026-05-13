@@ -771,11 +771,19 @@ Deno.serve(async (req) => {
       options: { ...(exp.options ?? {}), quality: exportQuality },
     }).eq("id", exportId);
 
+    console.log(JSON.stringify({ fn: "generate-pdf", event: "complete", export_id: exportId, output_path: outputPath, ts: new Date().toISOString() }));
+
     return new Response(JSON.stringify({ ok: true, output_path: outputPath }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("generate-pdf error", e);
+    console.error(JSON.stringify({
+      fn: "generate-pdf",
+      export_id: exportId ?? "unknown",
+      error: (e as Error)?.message ?? String(e),
+      stack: (e as Error)?.stack?.split("\n").slice(0, 5) ?? [],
+      ts: new Date().toISOString(),
+    }));
     if (exportId) await fail(supabase, exportId, String((e as Error)?.message ?? e));
     return new Response(JSON.stringify({ error: String((e as Error)?.message ?? e) }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
