@@ -10,9 +10,9 @@ const corsHeaders = {
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-04-10" });
 
 const PRICE_IDS: Record<string, string> = {
-  pro:        "price_0TWVf21c550c7HdPB7reS14B",
-  team:       "price_0TWVfw1c550c7HdPixmHoZxm",
-  enterprise: "price_0TWVh21c550c7HdP3C2WQVnm",
+  pro:        "price_0TWWkf1c550c7HdPqtOvUZJC",
+  team:       "price_0TWWko1c550c7HdPLsR4Dqy8",
+  enterprise: "price_0TWWl01c550c7HdPy7nsH4qG",
 };
 
 async function getCallerUserId(req: Request): Promise<string | null> {
