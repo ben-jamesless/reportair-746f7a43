@@ -17,7 +17,7 @@ function UsageMeter({ label, used, max }: { label: string; used: number; max: nu
     <div className="space-y-1.5">
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">{label}</span>
-        <span className={`font-medium ${over ? "text-red-600" : ""}`} style={!over ? { color: "#0B2A4A" } : undefined}>
+        <span className={`font-medium ${over ? "text-red-600" : "text-foreground"}`}>
           {used}{unlimited ? "" : ` / ${max}`}
           {unlimited && " · Unlimited"}
         </span>
@@ -162,7 +162,7 @@ const Billing = () => {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold tracking-tight" style={{ color: "#0B2A4A" }}>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">
                   {planLabel}
                 </h1>
                 {statusBadge}
@@ -187,7 +187,6 @@ const Billing = () => {
                 size="sm"
                 onClick={handleManage}
                 disabled={portalLoading}
-                style={{ borderColor: "#0B2A4A", color: "#0B2A4A" }}
               >
                 {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Manage <ArrowUpRight className="h-3.5 w-3.5 ml-1" /></>}
               </Button>
@@ -196,7 +195,7 @@ const Billing = () => {
 
           {/* Usage */}
           <div className="space-y-4">
-            <p className="text-sm font-semibold" style={{ color: "#0B2A4A" }}>Usage this month</p>
+            <p className="text-sm font-semibold text-foreground">Usage this month</p>
             <UsageMeter label="Projects" used={projectCount} max={limits.maxProjects} />
             <UsageMeter label="Team members" used={memberCount} max={limits.maxMembers} />
             <UsageMeter label="PDF exports" used={exportsThisMonth} max={limits.maxExportsMonth} />
