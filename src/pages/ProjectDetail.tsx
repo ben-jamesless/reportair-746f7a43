@@ -955,6 +955,7 @@ const ProjectDetail = () => {
                 title="Manage share links"
               >
                 <Share2 className="mr-2 h-4 w-4" />
+                {!canUseShareLink && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
                 Share link
               </Button>
             )}
