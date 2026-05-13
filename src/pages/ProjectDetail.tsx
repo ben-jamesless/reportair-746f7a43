@@ -1076,6 +1076,21 @@ const ProjectDetail = () => {
                 })}
 
                 <div className="mt-3 space-y-1 border-t pt-3">
+                  {isMobileViewport && (albums.length > 0 || photos.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={() => setGalleryListOpen((o) => !o)}
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                      aria-expanded={galleryListOpen}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <ImagePlus className="h-3.5 w-3.5 text-muted-foreground" />
+                        Gallery
+                      </span>
+                      <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", galleryListOpen && "rotate-180")} />
+                    </button>
+                  )}
+                  {(!isMobileViewport || galleryListOpen) && (<></>)}
                   {albums.map((al) => {
                     const count = albumPhotos.get(al.id)?.length ?? 0;
                     const key = albumKey(al.id);
