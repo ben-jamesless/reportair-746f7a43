@@ -11,6 +11,7 @@ import { ProjectEditForm } from "./ProjectEditForm";
 import { HeicBackfillButton } from "./HeicBackfillButton";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
+import { usePlan } from "@/hooks/usePlan";
 
 interface ProjectForEdit {
   id: string;
