@@ -944,6 +944,7 @@ const ProjectDetail = () => {
               title={mostRecentDay ? `Export ${mostRecentDay.label}` : "Export project"}
             >
               <FileDown className="mr-2 h-4 w-4" />
+              {!canExportPdf && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
             {canEdit && (
