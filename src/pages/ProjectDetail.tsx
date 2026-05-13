@@ -1169,6 +1169,7 @@ const ProjectDetail = () => {
                   </div>
                   )}
                 </div>
+              </aside>
 
               {/* Main grid */}
               <section>
