@@ -6,9 +6,9 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "202
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_0TWVf21c550c7HdPB7reS14B": "pro",
-  "price_0TWVfw1c550c7HdPixmHoZxm": "team",
-  "price_0TWVh21c550c7HdP3C2WQVnm": "enterprise",
+  "price_0TWWkf1c550c7HdPqtOvUZJC": "pro",
+  "price_0TWWko1c550c7HdPLsR4Dqy8": "team",
+  "price_0TWWl01c550c7HdPy7nsH4qG": "enterprise",
 };
 
 serve(async (req) => {
