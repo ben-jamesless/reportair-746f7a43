@@ -163,7 +163,7 @@ const Billing = () => {
               <Button
                 className="w-full font-semibold"
                 onClick={() => setUpgradeOpen(true)}
-                style={{ backgroundColor: "#0B2A4A", color: "#fff", border: "none" }}
+                style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
               >
                 Upgrade
               </Button>
