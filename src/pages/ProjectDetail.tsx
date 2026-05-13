@@ -1166,8 +1166,9 @@ const ProjectDetail = () => {
                       </button>
                     );
                   })()}
+                  </div>
+                  )}
                 </div>
-              </aside>
 
               {/* Main grid */}
               <section>
