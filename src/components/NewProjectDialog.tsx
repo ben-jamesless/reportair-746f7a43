@@ -45,8 +45,9 @@ const TOTAL_STEPS = 4;
 export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { canCreateProject } = usePlan();
+  const { canCreateProject, plan } = usePlan();
   const [open, setOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [step, setStep] = useState(1);
 
   // Step 1+2 fields
