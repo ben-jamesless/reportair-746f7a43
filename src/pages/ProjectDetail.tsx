@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2 } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2, Crown } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import JSZip from "jszip";
@@ -45,6 +45,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePlan } from "@/hooks/usePlan";
 
 type ProjectView = "report" | "gallery";
 
@@ -122,6 +123,7 @@ const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const { canUseShareLink, canExportPdf } = usePlan();
   const [project, setProject] = useState<Project | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [canEdit, setCanEdit] = useState(false);
@@ -942,6 +944,7 @@ const ProjectDetail = () => {
               title={mostRecentDay ? `Export ${mostRecentDay.label}` : "Export project"}
             >
               <FileDown className="mr-2 h-4 w-4" />
+              {!canExportPdf && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
               Export {mostRecentDay ? "latest day" : "project"}
             </Button>
             {canEdit && (
@@ -952,6 +955,7 @@ const ProjectDetail = () => {
                 title="Manage share links"
               >
                 <Share2 className="mr-2 h-4 w-4" />
+                {!canUseShareLink && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
                 Share link
               </Button>
             )}

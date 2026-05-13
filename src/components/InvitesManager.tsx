@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2, Mail, Copy, Send, LogOut } from "lucide-react";
+import { Trash2, Mail, Copy, Send, LogOut, Crown } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
 import { usePlan } from "@/hooks/usePlan";
@@ -243,6 +243,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               </SelectContent>
             </Select>
             <Button onClick={addInvite} disabled={loading || !canInviteMember}>
+              {!canInviteMember && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
               <Mail className="mr-2 h-4 w-4" />Send invite
             </Button>
           </div>

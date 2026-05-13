@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Archive, CalendarIcon, Check, ImageIcon, Loader2, Trash2, Upload, X } from "lucide-react";
+import { AlertTriangle, Archive, CalendarIcon, Check, ImageIcon, Loader2, Trash2, Upload, X, Crown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -542,7 +542,7 @@ export const ProjectEditForm = ({
           </div>
         ) : (
           <div className="space-y-2 sm:col-span-2">
-            <Label>Project logo</Label>
+            <Label>Project logo <Crown className="ml-1 h-3 w-3 text-amber-400 inline" /></Label>
             <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
               Custom logos are available on the Team plan and above.{" "}
               <a href="/billing" className="underline font-medium">Upgrade</a>

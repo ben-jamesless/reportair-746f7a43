@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Settings } from "lucide-react";
+import { Settings, Crown } from "lucide-react";
 import { AreasManager } from "./AreasManager";
 import { AlbumsManager } from "./AlbumsManager";
 import { InvitesManager } from "./InvitesManager";
@@ -11,6 +11,7 @@ import { ProjectEditForm } from "./ProjectEditForm";
 import { HeicBackfillButton } from "./HeicBackfillButton";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
+import { usePlan } from "@/hooks/usePlan";
 
 interface ProjectForEdit {
   id: string;
@@ -44,6 +45,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [canManageAlbums, setCanManageAlbums] = useState(false);
+  const { canUseShareLink } = usePlan();
 
   useEffect(() => {
     if (!open) return;
@@ -94,7 +96,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               <TabsTrigger value="areas">Areas</TabsTrigger>
               {canManageAlbums && <TabsTrigger value="albums">Albums</TabsTrigger>}
               <TabsTrigger value="members">Members</TabsTrigger>
-              <TabsTrigger value="share">Share</TabsTrigger>
+              <TabsTrigger value="share">Share{!canUseShareLink && <Crown className="ml-1 h-3 w-3 text-amber-400 inline" />}</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">

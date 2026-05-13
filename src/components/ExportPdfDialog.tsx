@@ -38,6 +38,7 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   History,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlan } from "@/hooks/usePlan";
@@ -555,6 +556,7 @@ export const ExportPdfDialog = ({
             }
           >
             {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {!canExportPdf && !(submitting || inProgress) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
             {inProgress ? "Generating…" : "Generate PDF"}
           </Button>
 
