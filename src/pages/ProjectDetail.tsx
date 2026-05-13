@@ -971,6 +971,23 @@ const ProjectDetail = () => {
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
+                {days.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setDatesOpenTablet((o) => !o)}
+                    className="hidden md:flex lg:hidden w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                    aria-expanded={datesOpenTablet}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                      Dates
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", datesOpenTablet && "rotate-180")} />
+                  </button>
+                )}
+
+                <div className={cn(!datesOpenTablet && "md:hidden lg:block")}>
+
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
