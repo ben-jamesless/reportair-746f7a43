@@ -155,6 +155,7 @@ const ProjectDetail = () => {
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const isMobileViewport = useIsMobile();
   const [galleryListOpen, setGalleryListOpen] = useState(false);
+  const [datesOpenTablet, setDatesOpenTablet] = useState(false);
   const [closedAreaKeys, setClosedAreaKeys] = useState<Set<string>>(new Set());
   const isAreaOpen = (key: string) => !closedAreaKeys.has(key);
   const toggleAreaOpen = (key: string) => setClosedAreaKeys((c) => {
@@ -970,6 +971,23 @@ const ProjectDetail = () => {
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
 
+                {days.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setDatesOpenTablet((o) => !o)}
+                    className="hidden md:flex lg:hidden w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-secondary"
+                    aria-expanded={datesOpenTablet}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                      Dates
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", datesOpenTablet && "rotate-180")} />
+                  </button>
+                )}
+
+                <div className={cn(!datesOpenTablet && "md:hidden lg:block")}>
+
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
@@ -1065,7 +1083,10 @@ const ProjectDetail = () => {
                   );
                 })}
 
+                </div>
+
                 <div className="mt-3 space-y-1 border-t pt-3">
+
                   {isMobileViewport && (albums.length > 0 || photos.length > 0) && (
                     <button
                       type="button"
@@ -1165,30 +1186,6 @@ const ProjectDetail = () => {
                 <div className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur">
                   <div className="flex items-baseline gap-3 min-w-0">
                     <h2 className="truncate text-base font-bold text-foreground">{selectionTitle}</h2>
-                    <span className="shrink-0 text-xs text-muted-foreground">
-                      {visiblePhotos.length} photo{visiblePhotos.length === 1 ? "" : "s"}
-                    </span>
-                    {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && (() => {
-                      const dayPool = days.find((d) => d.key === activeDay)?.photos ?? [];
-                      const areaIds = new Set<string>();
-                      dayPool.forEach((p) => { if (p.area_id) areaIds.add(p.area_id); });
-                      const counts: Record<AreaStatus, number> = {
-                        no_status: 0, on_track: 0, requires_discussion: 0, concern: 0, complete: 0,
-                      };
-                      areaIds.forEach((aid) => { counts[getAreaDayStatus(aid, activeDay)]++; });
-                      const parts: string[] = [];
-                      if (counts.complete) parts.push(`${counts.complete} Complete`);
-                      if (counts.on_track) parts.push(`${counts.on_track} On Track`);
-                      if (counts.requires_discussion) parts.push(`${counts.requires_discussion} Requires Discussion`);
-                      if (counts.concern) parts.push(`${counts.concern} Concern`);
-                      if (counts.no_status) parts.push(`${counts.no_status} No Status`);
-                      if (parts.length === 0) return null;
-                      return (
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          · {parts.join(" · ")}
-                        </span>
-                      );
-                    })()}
                   </div>
                   <div className="flex items-center gap-2">
                     {visiblePhotos.length > 0 && selectMode && (
@@ -1235,7 +1232,7 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="px-4 pt-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                      <div className="px-4 pt-2 grid grid-cols-1 gap-3 xl:grid-cols-2">
                         {dailyBlocks.map((b) => {
                           const dailyKey = `daily|${activeDay}|${b.key}`;
                           const open = isDailyOpen(dailyKey);
