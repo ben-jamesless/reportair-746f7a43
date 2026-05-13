@@ -243,6 +243,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               </SelectContent>
             </Select>
             <Button onClick={addInvite} disabled={loading || !canInviteMember}>
+              {!canInviteMember && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
               <Mail className="mr-2 h-4 w-4" />Send invite
             </Button>
           </div>
