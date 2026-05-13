@@ -30,6 +30,10 @@ const Auth = () => {
   const suspendedError = params.get("error") === "suspended";
 
   useEffect(() => {
+    document.title = "Sign in — ReportAir";
+  }, []);
+
+  useEffect(() => {
     if (user) navigate(redirect, { replace: true });
   }, [user, navigate, redirect]);
 

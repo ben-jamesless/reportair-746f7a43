@@ -49,18 +49,18 @@ const App = () => (
             <Suspense fallback={<RouteFallback />}>
               <ErrorBoundary label="page">
                 <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-                  <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-                  <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                  <Route path="/invite/:token" element={<InviteAccept />} />
-                  <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-                  <Route path="/s/:token" element={<SharePage />} />
-                  <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute>}>
+                  <Route path="/" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
+                  <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
+                  <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
+                  <Route path="/reset-password" element={<ErrorBoundary label="page"><ResetPassword /></ErrorBoundary>} />
+                  <Route path="/onboarding" element={<ErrorBoundary label="page"><ProtectedRoute><Onboarding /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/projects" element={<ErrorBoundary label="page"><ProtectedRoute><Projects /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/projects/:id" element={<ErrorBoundary label="page"><ProtectedRoute><ProjectDetail /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/profile" element={<ErrorBoundary label="page"><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/invite/:token" element={<ErrorBoundary label="page"><InviteAccept /></ErrorBoundary>} />
+                  <Route path="/billing" element={<ErrorBoundary label="page"><ProtectedRoute><Billing /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />
+                  <Route path="/admin" element={<ErrorBoundary label="page"><ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute></ErrorBoundary>}>
                     <Route index element={<AdminSummary />} />
                     <Route path="summary" element={<AdminSummary />} />
                     <Route path="users" element={<AdminUsers />} />

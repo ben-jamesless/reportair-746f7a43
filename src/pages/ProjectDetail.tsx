@@ -964,7 +964,7 @@ const ProjectDetail = () => {
                         <button
                           onClick={() => toggleDay(day.key)}
                           className="flex items-center px-2 text-muted-foreground hover:text-foreground"
-                          aria-label={isOpen ? "Collapse" : "Expand"}
+                          aria-label={isOpen ? "Collapse day" : "Expand day"}
                         >
                           {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </button>

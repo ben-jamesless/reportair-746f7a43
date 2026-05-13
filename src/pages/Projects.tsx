@@ -524,8 +524,8 @@ const Projects = () => {
         <EmptyState
           className="mx-auto max-w-xl"
           icon={<Camera className="h-6 w-6" />}
-          title="No projects yet"
-          description="Spin up your first project to start uploading and organising photos."
+          title="Your first project starts here"
+          description="Create a project to start uploading site photos, tracking area progress, and sharing daily reports with your team."
           action={
             <NewProjectDialog
               teamId={teamId}
