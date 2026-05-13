@@ -132,6 +132,7 @@ export const ExportPdfDialog = ({
   const [accent, setAccent] = useState("#01696F");
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
+  const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");
   const orientation = "portrait" as const;
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
@@ -274,7 +275,7 @@ export const ExportPdfDialog = ({
     const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
     const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
 
-    const options: Record<string, unknown> = { sections, orientation };
+    const options: Record<string, unknown> = { sections, orientation, quality };
     if (mode === "single") {
       options.day_key = dayKey ?? null;
       options.day_label = dayLabel ?? null;
@@ -501,6 +502,36 @@ export const ExportPdfDialog = ({
               <SectionToggle label="Activity log" checked={sections.activity} onChange={(v) => setSections((s) => ({ ...s, activity: v }))} />
             </div>
           </section>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Export quality</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setQuality("compressed")}
+                className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                  quality === "compressed"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-muted-foreground"
+                }`}
+              >
+                <p className="text-sm font-medium">Compressed</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Smaller file · ~2–4 MB</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuality("high_res")}
+                className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                  quality === "high_res"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    : "border-border hover:border-muted-foreground"
+                }`}
+              >
+                <p className="text-sm font-medium">High Res</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Full detail · ~6–10 MB</p>
+              </button>
+            </div>
+          </div>
 
           <Button
             className="w-full"

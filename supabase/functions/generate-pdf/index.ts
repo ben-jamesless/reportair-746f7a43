@@ -415,10 +415,19 @@ Deno.serve(async (req) => {
       } catch (_) { /* fall through */ }
     }
 
+    const exportQuality: "compressed" | "high_res" = exp.options?.quality === "high_res" ? "high_res" : "compressed";
+    const IMAGE_TRANSFORM = {
+      compressed: { width: 900,  quality: 65 },
+      high_res:   { width: 1800, quality: 80 },
+    } as const;
+    const transform = IMAGE_TRANSFORM[exportQuality];
+
     const photoUrlFor = async (p: { storage_path: string; report_path: string | null }): Promise<string | null> => {
       try {
         const sourcePath = p.report_path || p.storage_path;
-        const { data: signed } = await supabase.storage.from("photos").createSignedUrl(sourcePath, 600);
+        const { data: signed } = await supabase.storage.from("photos").createSignedUrl(sourcePath, 600, {
+          transform: { width: transform.width, quality: transform.quality, resize: "contain" },
+        });
         return signed?.signedUrl ?? null;
       } catch { return null; }
     };
@@ -753,7 +762,11 @@ Deno.serve(async (req) => {
     if (upErr) throw upErr;
 
     await supabase.from("project_exports").update({
-      status: "ready", output_path: outputPath, photo_count: dayPhotos.length, completed_at: new Date().toISOString(),
+      status: "ready",
+      output_path: outputPath,
+      photo_count: dayPhotos.length,
+      completed_at: new Date().toISOString(),
+      options: { ...(exp.options ?? {}), quality: exportQuality },
     }).eq("id", exportId);
 
     return new Response(JSON.stringify({ ok: true, output_path: outputPath }), {
