@@ -68,11 +68,11 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
           </p>
         </DialogHeader>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+        <div className="grid gap-4 items-stretch sm:grid-cols-2 lg:grid-cols-3 mt-4">
           {availablePlans.map(plan => (
             <div
               key={plan.key}
-              className={`relative rounded-xl border p-5 flex flex-col gap-4 ${
+              className={`relative rounded-xl border flex flex-col h-full p-6 gap-4 ${
                 plan.recommended
                   ? "border-[#FF6A1A] bg-[#0B2A4A] text-white"
                   : "bg-card"
@@ -98,21 +98,6 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
                 </span>
               </div>
 
-              <Button
-                className="w-full font-semibold"
-                onClick={() => handleUpgrade(plan.key)}
-                disabled={loading === plan.key}
-                style={
-                  plan.recommended
-                    ? { backgroundColor: "#FF6A1A", color: "#fff", border: "none" }
-                    : undefined
-                }
-              >
-                {loading === plan.key
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : "Start 7-day free trial →"}
-              </Button>
-
               <ul className="space-y-2 flex-1">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm">
@@ -121,6 +106,17 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
                   </li>
                 ))}
               </ul>
+
+              <Button
+                className={`w-full ${plan.recommended ? "font-bold" : "font-semibold"}`}
+                onClick={() => handleUpgrade(plan.key)}
+                disabled={loading === plan.key}
+                style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
+              >
+                {loading === plan.key
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : "Start 7-day free trial →"}
+              </Button>
             </div>
           ))}
         </div>

@@ -86,6 +86,12 @@ const Billing = () => {
   const isPastDue = subscriptionStatus === "past_due";
   const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
 
+  const PLAN_PRICES: Record<string, string> = {
+    pro: "HK$80",
+    team: "HK$240",
+    enterprise: "HK$800",
+  };
+
   const statusBadge = isTrial
     ? <Badge className="bg-[#FF6A1A] text-white hover:bg-[#FF6A1A]">Trial</Badge>
     : isPastDue
@@ -114,6 +120,18 @@ const Billing = () => {
                 {statusBadge}
               </div>
               <p className="text-sm text-muted-foreground mt-1">{renewalLine}</p>
+              {isSubscribed && !isTrial && currentPeriodEnd && PLAN_PRICES[plan] && (
+                <p className="text-sm font-medium mt-2">
+                  Next charge: <span className="text-foreground">{PLAN_PRICES[plan]}</span>
+                  <span className="text-muted-foreground"> on {new Date(currentPeriodEnd).toLocaleDateString("en-HK", { day: "numeric", month: "long", year: "numeric" })}</span>
+                </p>
+              )}
+              {isTrial && trialEndsAt && PLAN_PRICES[plan] && (
+                <p className="text-sm font-medium mt-2">
+                  After trial: <span className="text-foreground">{PLAN_PRICES[plan]} / month</span>
+                  <span className="text-muted-foreground"> — cancel before {new Date(trialEndsAt).toLocaleDateString("en-HK", { day: "numeric", month: "long" })}</span>
+                </p>
+              )}
             </div>
             {isSubscribed && (
               <Button
@@ -145,7 +163,7 @@ const Billing = () => {
               <Button
                 className="w-full font-semibold"
                 onClick={() => setUpgradeOpen(true)}
-                style={{ backgroundColor: "#0B2A4A", color: "#fff", border: "none" }}
+                style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
               >
                 Upgrade
               </Button>
