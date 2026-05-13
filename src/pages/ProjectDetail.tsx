@@ -1337,7 +1337,7 @@ const ProjectDetail = () => {
                                     >
                                       <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
                                     </button>
-                                    <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
+                                    <h3 className="text-sm font-medium text-foreground">{ar.name}</h3>
                                     <AreaStatusPicker
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
@@ -1357,7 +1357,7 @@ const ProjectDetail = () => {
                                   )}
                                 </article>
                                 {!isLast && (
-                                  <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
+                                  <div className="ml-4 border-t border-border" />
                                 )}
                               </div>
                             );
