@@ -23,9 +23,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setLoading(false);
+      if (event === "SIGNED_IN" && newSession?.user) {
+        // Defer Supabase calls to avoid deadlocks inside the auth callback
+        setTimeout(async () => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarded_at")
+            .eq("id", newSession.user.id)
+            .maybeSingle();
+          if (!profile?.onboarded_at) {
+            const path = window.location.pathname;
+            if (!path.startsWith("/onboarding") && !path.startsWith("/invite/")) {
+              window.location.replace("/onboarding");
+            }
+          }
+        }, 0);
+      }
     });
 
     // THEN check existing session
