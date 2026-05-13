@@ -221,7 +221,7 @@ const ProjectDetail = () => {
       areas.forEach((ar) => n.add(`report|${ar.id}|${activeDay}`));
       return n;
     });
-  }, [activeDay, days, areas, tabletCollapsedDays]);
+  }, [activeDay, areas, tabletCollapsedDays]);
 
   useEffect(() => {
     if (!selectMode) return;
