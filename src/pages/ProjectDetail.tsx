@@ -155,6 +155,14 @@ const ProjectDetail = () => {
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const isMobileViewport = useIsMobile();
   const [datesListOpen, setDatesListOpen] = useState(false);
+  const [galleryListOpen, setGalleryListOpen] = useState(false);
+  const [openAreaKeys, setOpenAreaKeys] = useState<Set<string>>(new Set());
+  const isAreaOpen = (key: string) => !isMobileViewport || openAreaKeys.has(key);
+  const toggleAreaOpen = (key: string) => setOpenAreaKeys((c) => {
+    const n = new Set(c);
+    n.has(key) ? n.delete(key) : n.add(key);
+    return n;
+  });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
     const t = searchParams.get("tab");
