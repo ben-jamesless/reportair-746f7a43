@@ -14,6 +14,22 @@ const PRICE_TO_PLAN: Record<string, string> = {
 
 const BILLING_STATUSES = new Set(["active", "trialing", "past_due"]);
 
+interface StripeSubscriptionSummary {
+  id: string;
+  status: string;
+  created?: number;
+  current_period_end?: number | null;
+  trial_end?: number | null;
+  items?: {
+    data?: Array<{
+      price?: {
+        id?: string;
+        recurring?: { interval?: string | null } | null;
+      } | null;
+    }>;
+  };
+}
+
 async function getCallerUserId(req: Request): Promise<string | null> {
   const auth = req.headers.get("authorization") ?? "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
@@ -69,9 +85,9 @@ serve(async (req) => {
       limit: "20",
     });
 
-    const subscription = (subscriptions.data ?? [])
-      .filter((sub: any) => BILLING_STATUSES.has(sub.status))
-      .sort((a: any, b: any) => (b.created ?? 0) - (a.created ?? 0))[0];
+    const subscription = ((subscriptions.data ?? []) as StripeSubscriptionSummary[])
+      .filter((sub) => BILLING_STATUSES.has(sub.status))
+      .sort((a, b) => (b.created ?? 0) - (a.created ?? 0))[0];
 
     if (!subscription) {
       return new Response(JSON.stringify({ updated: false, reason: "no_active_subscription" }), {
