@@ -132,6 +132,7 @@ export const ExportPdfDialog = ({
   const [accent, setAccent] = useState("#01696F");
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
+  const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");
   const orientation = "portrait" as const;
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
