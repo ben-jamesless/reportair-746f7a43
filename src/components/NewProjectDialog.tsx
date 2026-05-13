@@ -191,20 +191,30 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
 
   const canAdvanceStep1 = !!name.trim();
 
+  if (!canCreateProject) {
+    return (
+      <>
+        <Button
+          onClick={() => setUpgradeOpen(true)}
+          style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
+          className="font-semibold"
+        >
+          <Crown className="mr-2 h-4 w-4" />
+          Create New Project
+        </Button>
+        <UpgradeDialog open={upgradeOpen} onOpenChange={setUpgradeOpen} currentPlan={plan} />
+      </>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
-        {!canCreateProject ? (
-          <Button asChild variant="outline">
-            <a href="/billing">Upgrade to create more projects</a>
+        {trigger ?? (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New project
           </Button>
-        ) : (
-          trigger ?? (
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New project
-            </Button>
-          )
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
