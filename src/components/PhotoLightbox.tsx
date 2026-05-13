@@ -1,12 +1,53 @@
 import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, MapPin, Calendar, MapPinned } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, MapPin, Calendar, MapPinned, ChevronDown } from "lucide-react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PhotoCommentsThread } from "@/components/PhotoCommentsThread";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+
+/** Section that's collapsible on mobile, always-open on md+. */
+const MobileSection = ({
+  title,
+  defaultOpen = false,
+  children,
+  count,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  count?: number;
+}) => {
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(defaultOpen);
+  const expanded = !isMobile || open;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => isMobile && setOpen((o) => !o)}
+        className={cn(
+          "flex w-full items-center justify-between text-xs uppercase tracking-wide text-muted-foreground",
+          isMobile ? "cursor-pointer py-1" : "cursor-default mb-1",
+        )}
+        aria-expanded={expanded}
+      >
+        <span className="flex items-center gap-1">
+          {title}
+          {typeof count === "number" && <span className="ml-1 text-foreground/60 normal-case">{count}</span>}
+        </span>
+        {isMobile && (
+          <ChevronDown className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")} />
+        )}
+      </button>
+      {expanded && <div className={isMobile ? "mt-2" : ""}>{children}</div>}
+    </div>
+  );
+};
 
 export type LightboxPhoto = {
   id: string;
