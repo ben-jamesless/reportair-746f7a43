@@ -96,7 +96,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               <TabsTrigger value="areas">Areas</TabsTrigger>
               {canManageAlbums && <TabsTrigger value="albums">Albums</TabsTrigger>}
               <TabsTrigger value="members">Members</TabsTrigger>
-              <TabsTrigger value="share">Share</TabsTrigger>
+              <TabsTrigger value="share">Share{!canUseShareLink && <Crown className="ml-1 h-3 w-3 text-amber-400 inline" />}</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
