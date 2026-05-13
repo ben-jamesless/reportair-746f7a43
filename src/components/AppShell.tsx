@@ -56,7 +56,7 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
         </div>
       </header>
 
-      <div className="md:pl-16 lg:pl-56">
+      <div className={cn("transition-[padding] duration-200", collapsed ? "md:pl-16" : "md:pl-56")}>
         {/* Breadcrumbs — height matches the sidebar logo bar (h-14) so the two top edges align. */}
         {crumbs && crumbs.length > 0 && (
           <div className="border-b bg-background/60 backdrop-blur">
