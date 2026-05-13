@@ -9,6 +9,45 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ============ Auth helper ============
+/**
+ * Validates the caller's JWT and returns their user ID.
+ * Returns null if the token is missing, invalid, or expired.
+ */
+async function getCallerUserId(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  const jwt = authHeader.replace("Bearer ", "").trim();
+  // Use the anon-key client so we validate against Supabase Auth, not the service role.
+  const anonClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+  );
+  const { data: { user }, error } = await anonClient.auth.getUser(jwt);
+  if (error || !user) return null;
+  return user.id;
+}
+
+/**
+ * Checks the caller has at least editor-level access to the given project.
+ * Editors, admins, and owners may trigger PDF generation; members/viewers may not.
+ * Uses the service-role client so RLS does not block the lookup.
+ */
+async function callerCanExport(
+  supabase: SupabaseClient,
+  userId: string,
+  projectId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("project_members")
+    .select("role")
+    .eq("project_id", projectId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error || !data) return false;
+  return ["owner", "admin", "editor"].includes(data.role);
+}
+
 // ============ Brand tokens (V3) ============
 const MM = 2.83465;
 const HEX = (h: string) => {
@@ -92,11 +131,7 @@ function drawRoundedRect(page: PDFPage, opts: {
 }) {
   const { x, y, width: w, height: h } = opts;
   const r = Math.max(0, Math.min(opts.radius, w / 2, h / 2));
-  // Build SVG path (pdf-lib drawSvgPath uses top-left origin from x,y).
-  // We translate from bottom-left coords by passing x,y of rectangle bottom-left and using y+h as svg-top.
   const path = `M ${r} 0 H ${w - r} A ${r} ${r} 0 0 1 ${w} ${r} V ${h - r} A ${r} ${r} 0 0 1 ${w - r} ${h} H ${r} A ${r} ${r} 0 0 1 0 ${h - r} V ${r} A ${r} ${r} 0 0 1 ${r} 0 Z`;
-  // drawSvgPath treats y as the TOP of the path (SVG y grows downward in PDF).
-  // We want (x, y) to be the bottom-left of the rectangle, so pass y + h as the SVG top.
   page.drawSvgPath(path, {
     x, y: y + h,
     color: opts.fill,
@@ -128,10 +163,7 @@ function drawPill(
 }
 
 function drawLogomark(page: PDFPage, x: number, y: number, size: number) {
-  // y here is bottom-left of the icon's bounding box (size x size).
   const s = size / 100;
-  // Back frame: svg x=11, y=19, w=60, h=50, stroke #A8C4FF, sw 4.4
-  // pdf_y (bottom-left of rect) = 100 - 19 - 50 = 31 (in svg-100 coords; multiply by s; offset by base y)
   page.drawRectangle({
     x: x + 11 * s,
     y: y + 31 * s,
@@ -140,7 +172,6 @@ function drawLogomark(page: PDFPage, x: number, y: number, size: number) {
     borderColor: COLOR.SKY_SOFT,
     borderWidth: 4.4 * s,
   });
-  // Front frame: svg x=27, y=35, w=60, h=50, stroke #1A6EFF, sw 6.8
   page.drawRectangle({
     x: x + 27 * s,
     y: y + 15 * s,
@@ -156,7 +187,6 @@ function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjs
   drawLogomark(page, x, y - iconSize * 0.15, iconSize);
   const gap = iconSize * 0.3;
   const text = "REPORTAIR";
-  // Approximate letter spacing 0.04em by drawing per-character with slight tracking
   let cx = x + iconSize + gap;
   const tracking = fontSize * 0.04;
   for (const ch of text) {
@@ -201,6 +231,15 @@ async function loadFontBytes(): Promise<{ pjs: Uint8Array | null; ir: Uint8Array
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  // ============ AUTH GATE ============
+  // Step 1: Validate the caller has a live session.
+  const callerId = await getCallerUserId(req);
+  if (!callerId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   let exportId: string | null = null;
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -211,11 +250,26 @@ Deno.serve(async (req) => {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-    await supabase.from("project_exports").update({ status: "processing" }).eq("id", exportId);
+    // Step 2: Load the export row to get the project_id.
     const { data: exp, error: expErr } = await supabase.from("project_exports").select("*").eq("id", exportId).single();
-    if (expErr || !exp) throw new Error("Export row not found");
+    if (expErr || !exp) {
+      return new Response(JSON.stringify({ error: "Export not found" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    // Step 3: Confirm the caller owns or has editor access to the project this export belongs to.
     const projectId = exp.project_id as string;
+    const allowed = await callerCanExport(supabase, callerId, projectId);
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // ============ END AUTH GATE ============
+
+    await supabase.from("project_exports").update({ status: "processing" }).eq("id", exportId);
+
     // Determine report_date — prefer day_key, else date_from, else today.
     const reportDateStr: string = exp.options?.day_key
       ?? exp.options?.date_from
@@ -351,9 +405,6 @@ Deno.serve(async (req) => {
       } catch (_) { /* fall through */ }
     }
 
-    // Photo URL helper: signed URL for the stored/report image at its own aspect ratio.
-    // Do not request a fixed width+height transform here: that was forcing portrait
-    // photos into landscape 400×250 images before pdf-lib could read their real size.
     const photoUrlFor = async (p: { storage_path: string; report_path: string | null }): Promise<string | null> => {
       try {
         const sourcePath = p.report_path || p.storage_path;
@@ -510,23 +561,17 @@ Deno.serve(async (req) => {
       for (let i = 0; i < areaData.length; i++) {
         const a = areaData[i];
         const meta = statusMeta(a.status);
-        // Background
         if (i % 2 === 0) {
           page.drawRectangle({ x: M + 8, y: rowY - ROW_H, width: TABLE_W, height: ROW_H, color: COLOR.FOG });
         }
-        // Status accent bar
         page.drawRectangle({ x: M + 8, y: rowY - ROW_H, width: 4, height: ROW_H, color: meta.text });
-        // Area name
         const areaName = (a.name ?? "");
         page.drawText(areaName.length > 38 ? areaName.slice(0, 37) + "..." : areaName, {
           x: M + 16, y: rowY - ROW_H / 2 - 3, size: 8.5, font: pjsFont, color: COLOR.INK,
         });
-        // Status pill (vertically centred in row)
         const rowPillH = 8 + 4 * 2;
         drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - rowPillH / 2, meta.label, meta.text, meta.bg, irFont, 8);
-        // Photo count
         page.drawText(String(a.photoCount), { x: M + 16 + C_AREA + C_STATUS, y: rowY - ROW_H / 2 - 3, size: 8.5, font: irFont, color: COLOR.SLATE });
-        // Notes (wrapped, max 3 lines)
         const notesX = M + 16 + C_AREA + C_STATUS + C_PHOTO;
         const notesMaxW = W - M - notesX - 10;
         const noteLines = wrapLines(a.notes || "—", irFont, 8, notesMaxW).slice(0, 3);
@@ -536,7 +581,6 @@ Deno.serve(async (req) => {
           page.drawText(ln, { x: notesX, y: ny, size: 8, font: irFont, color: COLOR.SLATE });
           ny -= 11;
         }
-        // Row divider
         page.drawLine({ start: { x: M + 8, y: rowY - ROW_H }, end: { x: M + 8 + TABLE_W, y: rowY - ROW_H }, thickness: 0.25, color: COLOR.BORDER });
         rowY -= ROW_H;
       }
@@ -550,16 +594,13 @@ Deno.serve(async (req) => {
       const CW = W - 2 * M;
       const page = pdfDoc.addPage([W, H]);
 
-      // Decorations
       const HDR_H = 30 * MM;
       page.drawRectangle({ x: 0, y: H - HDR_H, width: W, height: HDR_H, color: COLOR.INK });
       page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: meta.text });
 
-      // Header text
       page.drawText(`AREA ${ai + 1} OF ${areaData.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
       page.drawText((area.name ?? ""), { x: M + 6, y: H - 21 * MM, size: 18, font: pjsFont, color: COLOR.WHITE });
 
-      // Status pill top-right (inline so background and text share origin)
       const pillLabel = meta.label;
       const pillFontSize = 8;
       const pillPadX = 9;
@@ -572,17 +613,14 @@ Deno.serve(async (req) => {
       drawRoundedRect(page, { x: pillX, y: pillY, width: pillW, height: pillH, radius: pillH / 2, fill: meta.bg });
       page.drawText(pillLabel, { x: pillX + pillPadX, y: pillY + pillPadY + 0.8, size: pillFontSize, font: irFont, color: meta.text });
 
-      // Meta strip
       const META_H = 12 * MM;
       const META_Y = H - HDR_H - META_H;
       page.drawRectangle({ x: 0, y: META_Y, width: W, height: META_H, color: COLOR.CLOUD });
-      // Left status stripe — drawn AFTER header/meta backgrounds so it isn't overdrawn
       page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
       const metaLeft = `Photos: ${area.photoCount}  ·  ${reportDateLabel}  ·  ${buildDayLabel}`;
       page.drawText((metaLeft ?? ""), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
       drawWordmark(page, W - M - 70, META_Y + 3.5 * MM, 8.5, pjsFont);
 
-      // Area Notes
       const NOTES_TOP = META_Y - 10 * MM;
       page.drawText("AREA NOTES", { x: M + 6, y: NOTES_TOP, size: 9, font: pjsFont, color: COLOR.INK });
       const anW = pjsFont.widthOfTextAtSize("AREA NOTES", 9);
@@ -593,14 +631,13 @@ Deno.serve(async (req) => {
       if (trimmedNotes.length > 0) {
         const noteLines = wrapLines(trimmedNotes, irFont, 10, CW - 14);
         for (const ln of noteLines) {
-          if (noteY < 80) break; // leave room for photos+footer
+          if (noteY < 80) break;
           page.drawText(ln, { x: M + 6, y: noteY, size: 10, font: irFont, color: COLOR.SLATE });
           noteY -= 14;
         }
       }
       const endY = noteY;
 
-      // Photos — only render heading + grid when there are photos for this area.
       const PH_TOP = endY - 12;
       if (area.photoCount > 0) {
         page.drawText("PHOTOS", { x: M + 6, y: PH_TOP, size: 9, font: pjsFont, color: COLOR.INK });
@@ -624,7 +661,6 @@ Deno.serve(async (req) => {
         const photo_w = (CW - gutter * (PCOLS - 1)) / PCOLS;
         const MAX_TILE_H = 110 * MM;
         const CAPTION_H = 14;
-        // Per-row caption presence (only reserve space when at least one photo in the row has a caption).
         const rowHasCaption: boolean[] = [];
         for (let r = 0; r < PROWS; r++) {
           const start = r * PCOLS;
@@ -632,11 +668,9 @@ Deno.serve(async (req) => {
           rowHasCaption.push(slice.some((c) => c && c.length > 0));
         }
         const totalCaptionH = rowHasCaption.reduce((s, has) => s + (has ? CAPTION_H : 0), 0);
-        // Cap per-tile height so the grid still fits the available area.
         const maxTileFromAvail = PROWS > 0 ? (avail_h - gutter * (PROWS - 1) - totalCaptionH) / PROWS : avail_h;
         const tileCap = Math.min(MAX_TILE_H, Math.max(24, maxTileFromAvail));
 
-        // Pre-compute each tile's height (per natural aspect) and each row's height (max in row).
         const tileHeights: number[] = photoImages.map((img) => {
           const ar = img.height / img.width;
           return Math.min(photo_w * ar, tileCap);
@@ -647,7 +681,6 @@ Deno.serve(async (req) => {
           const slice = tileHeights.slice(start, start + PCOLS);
           rowHeights.push(slice.reduce((m, h) => Math.max(m, h), 0));
         }
-        // Cumulative y offset (top of row r) from the photos area top.
         const rowTopOffset: number[] = [];
         let acc = 0;
         for (let r = 0; r < PROWS; r++) {
@@ -661,7 +694,6 @@ Deno.serve(async (req) => {
           const tile_w = photo_w;
           const tile_h = tileHeights[i];
           const px = M + col * (photo_w + gutter);
-          // Row's top sits at PH_TOP - 14 - rowTopOffset; tile bottom = top - tile_h.
           const rowTopY = PH_TOP - 14 - rowTopOffset[row];
           const py = rowTopY - tile_h;
           const img = photoImages[i];
@@ -672,7 +704,6 @@ Deno.serve(async (req) => {
           const caption = photoCaptions[i];
           if (caption && caption.length > 0) {
             page.drawRectangle({ x: px, y: py - CAPTION_H, width: tile_w, height: CAPTION_H, color: COLOR.CAPTION_BAR });
-            // Truncate caption to fit width.
             let cap = caption;
             const maxW = tile_w - 8;
             while (cap.length > 0 && irFont.widthOfTextAtSize(cap, 7) > maxW) {

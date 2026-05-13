@@ -21,6 +21,24 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+// ============ Auth helper ============
+/**
+ * Validates the caller's JWT and returns their user ID.
+ * Returns null if the token is missing, invalid, or expired.
+ */
+async function getCallerUserId(req: Request): Promise<string | null> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  const jwt = authHeader.replace("Bearer ", "").trim();
+  const anonClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+  );
+  const { data: { user }, error } = await anonClient.auth.getUser(jwt);
+  if (error || !user) return null;
+  return user.id;
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -91,6 +109,13 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // ============ AUTH GATE ============
+  // Step 1: Validate the caller has a live session.
+  const callerId = await getCallerUserId(req);
+  if (!callerId) {
+    return json({ ok: false, error: "Unauthorized" }, 401);
+  }
+
   try {
     const body = await req.json().catch(() => ({}));
     const inviteId: unknown = body?.inviteId;
@@ -115,6 +140,20 @@ Deno.serve(async (req) => {
     if (!invite) {
       return json({ ok: false, error: "Invite not found" }, 404);
     }
+
+    // Step 2: Verify the caller is an owner or admin of the project this invite belongs to.
+    // This prevents any authenticated user from triggering emails for invites they don't own.
+    const { data: membership, error: memberErr } = await supabase
+      .from("project_members")
+      .select("role")
+      .eq("project_id", invite.project_id)
+      .eq("user_id", callerId)
+      .maybeSingle();
+
+    if (memberErr || !membership || !["owner", "admin"].includes(membership.role)) {
+      return json({ ok: false, error: "Forbidden" }, 403);
+    }
+    // ============ END AUTH GATE ============
 
     const [{ data: project }, { data: inviterProfile }] = await Promise.all([
       supabase.from("projects").select("name").eq("id", invite.project_id).maybeSingle(),
@@ -153,7 +192,6 @@ Deno.serve(async (req) => {
 
     const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
     let fromAddress = rawFrom.trim().replace(/^['"]|['"]$/g, "").trim();
-    // If angle brackets are missing but a "Name email@x" pattern is present, normalize.
     if (!/<[^>]+>/.test(fromAddress)) {
       const m = fromAddress.match(/^(.*?)([^\s<>"]+@[^\s<>"]+)\s*$/);
       if (m && m[1].trim()) {
