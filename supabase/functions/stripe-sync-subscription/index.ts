@@ -71,19 +71,63 @@ serve(async (req) => {
     .eq("billing_owner_user_id", callerId)
     .maybeSingle();
 
-  if (teamError || !team?.stripe_customer_id) {
-    return new Response(JSON.stringify({ updated: false, reason: "no_billing_customer" }), {
+  if (teamError || !team) {
+    return new Response(JSON.stringify({ updated: false, reason: "no_team" }), {
       status: teamError ? 500 : 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  try {
-    const subscriptions = await stripeGet("/subscriptions", {
-      customer: team.stripe_customer_id,
+  // Look up caller email for customer fallback search
+  const { data: profile } = await service
+    .from("profiles")
+    .select("email")
+    .eq("id", callerId)
+    .maybeSingle();
+  const callerEmail = profile?.email ?? null;
+
+  async function findSubscriptionsForCustomer(customerId: string) {
+    return await stripeGet("/subscriptions", {
+      customer: customerId,
       status: "all",
       limit: "20",
     });
+  }
+
+  try {
+    let customerId = team.stripe_customer_id as string | null;
+    let subscriptions: any = null;
+
+    if (customerId) {
+      try {
+        subscriptions = await findSubscriptionsForCustomer(customerId);
+      } catch (err) {
+        const msg = String(err);
+        if (/No such customer/i.test(msg)) {
+          console.log(JSON.stringify({ fn: "stripe-sync-subscription", info: "stale_customer", customerId }));
+          customerId = null;
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    // Fallback: find a customer in current Stripe mode by email
+    if (!customerId && callerEmail) {
+      const customers = await stripeGet("/customers", { email: callerEmail, limit: "10" });
+      const match = (customers.data ?? [])[0];
+      if (match?.id) {
+        customerId = match.id;
+        await service.from("teams").update({ stripe_customer_id: customerId }).eq("id", team.id);
+        subscriptions = await findSubscriptionsForCustomer(customerId);
+      }
+    }
+
+    if (!customerId || !subscriptions) {
+      return new Response(JSON.stringify({ updated: false, reason: "no_billing_customer" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const subscription = ((subscriptions.data ?? []) as StripeSubscriptionSummary[])
       .filter((sub) => BILLING_STATUSES.has(sub.status))
