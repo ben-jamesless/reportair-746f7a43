@@ -160,6 +160,9 @@ const ProjectDetail = () => {
     if (t === "updates" || t === "photos") return "photos";
     return "photos";
   });
+
+  const PHOTO_PAGE_SIZE = 150;
+  const [visibleCount, setVisibleCount] = useState(PHOTO_PAGE_SIZE);
   // Session-only view toggle (overrides project default for current session). null = use project default.
   const [viewOverride, setViewOverride] = useState<ProjectView | null>(null);
   // Whether we've already auto-selected the latest day (only do this once per project load).
