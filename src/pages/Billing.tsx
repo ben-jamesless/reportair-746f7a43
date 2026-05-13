@@ -44,6 +44,7 @@ const Billing = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const hasHandledCheckout = useRef(false);
+  const hasSyncedExistingSubscription = useRef(false);
 
   const crumbs = [{ label: "Projects", to: "/projects" }, { label: "Billing" }];
 
@@ -55,11 +56,22 @@ const Billing = () => {
     if (status === "success") {
       toast.success("Subscription activated — welcome aboard!");
 
+      const syncSubscription = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        await supabase.functions.invoke("stripe-sync-subscription", {
+          body: {},
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        });
+        await refetch?.();
+      };
+
+      void syncSubscription();
+
       // Poll for plan update — retry up to 6 times over 12 seconds
       let attempts = 0;
       const poll = setInterval(async () => {
         attempts++;
-        await refetch?.();
+        await syncSubscription();
         if (attempts >= 6) clearInterval(poll);
       }, 2000);
 
@@ -75,7 +87,22 @@ const Billing = () => {
       url.searchParams.delete("checkout");
       window.history.replaceState({}, "", url.toString());
     }
-  }, [searchParams]);
+  }, [searchParams, refetch]);
+
+  useEffect(() => {
+    if (loading || plan !== "free" || hasSyncedExistingSubscription.current) return;
+    hasSyncedExistingSubscription.current = true;
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data } = await supabase.functions.invoke("stripe-sync-subscription", {
+        body: {},
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+
+      if (data?.updated) await refetch?.();
+    })();
+  }, [loading, plan, refetch]);
 
   const handleManage = async () => {
     setPortalLoading(true);
