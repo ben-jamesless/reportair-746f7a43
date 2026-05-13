@@ -987,7 +987,7 @@ const ProjectDetail = () => {
         </div>
 
           <TabsContent value="photos" className="mt-6">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] lg:grid-cols-[200px_minmax(0,1fr)_260px] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1 rounded-lg dark:bg-card dark:p-2">
                 {days.length === 0 && albumPhotos.size === 0 && (
