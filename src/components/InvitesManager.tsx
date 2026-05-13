@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Trash2, Mail, Copy, Send, LogOut } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
+import { usePlan } from "@/hooks/usePlan";
 
 type Invite = {
   id: string;
@@ -48,6 +49,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { canInviteMember } = usePlan();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
@@ -240,11 +242,16 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={addInvite} disabled={loading}>
+            <Button onClick={addInvite} disabled={loading || !canInviteMember}>
               <Mail className="mr-2 h-4 w-4" />Send invite
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
+          {!canInviteMember && (
+            <p className="text-xs text-muted-foreground">
+              Member limit reached. <a href="/billing" className="underline">Upgrade your plan</a> to invite more.
+            </p>
+          )}
         </section>
       )}
 

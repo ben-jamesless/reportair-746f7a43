@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/projectStatus";
+import { usePlan } from "@/hooks/usePlan";
 
 export type ProjectDefaultView = "report" | "gallery";
 
@@ -488,55 +489,65 @@ export const ProjectEditForm = ({
           </div>
         </div>
 
-        <div className="space-y-2 sm:col-span-2">
-          <Label>Project logo</Label>
-          <p className="text-xs text-muted-foreground">
-            Used on every PDF report exported from this project. PNG or JPG, under 2MB.
-          </p>
-          <input
-            ref={logoInputRef}
-            type="file"
-            accept="image/png,image/jpeg"
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) onLogoFile(f);
-              e.target.value = "";
-            }}
-          />
-          <div className="flex items-center gap-3">
-            <div className="flex h-16 w-24 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Project logo" className="max-h-full max-w-full object-contain" />
-              ) : (
-                <ImageIcon className="h-6 w-6 text-muted-foreground" />
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => logoInputRef.current?.click()}
-                disabled={logoUploading}
-              >
-                {logoUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                {logoPath ? "Replace logo" : "Upload logo"}
-              </Button>
-              {logoPath && (
+        {canUseCustomLogo ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Project logo</Label>
+            <p className="text-xs text-muted-foreground">
+              Used on every PDF report exported from this project. PNG or JPG, under 2MB.
+            </p>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/png,image/jpeg"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onLogoFile(f);
+                e.target.value = "";
+              }}
+            />
+            <div className="flex items-center gap-3">
+              <div className="flex h-16 w-24 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Project logo" className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={removeLogo}
+                  onClick={() => logoInputRef.current?.click()}
                   disabled={logoUploading}
                 >
-                  <X className="mr-2 h-4 w-4" /> Remove
+                  {logoUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                  {logoPath ? "Replace logo" : "Upload logo"}
                 </Button>
-              )}
+                {logoPath && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeLogo}
+                    disabled={logoUploading}
+                  >
+                    <X className="mr-2 h-4 w-4" /> Remove
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Project logo</Label>
+            <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+              Custom logos are available on the Team plan and above.{" "}
+              <a href="/billing" className="underline font-medium">Upgrade</a>
+            </div>
+          </div>
+        )}
       </div>
 
       {!hideDangerZone && isOwner && (

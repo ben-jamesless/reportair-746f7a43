@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { z } from "zod";
+import { usePlan } from "@/hooks/usePlan";
 
 type Template = "blank" | "golf_day" | "corporate_event" | "music_festival" | "conference" | "wedding";
 
@@ -43,6 +44,7 @@ const TOTAL_STEPS = 4;
 export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { canCreateProject } = usePlan();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -190,11 +192,17 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
-        {trigger ?? (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            New project
+        {!canCreateProject ? (
+          <Button asChild variant="outline">
+            <a href="/billing">Upgrade to create more projects</a>
           </Button>
+        ) : (
+          trigger ?? (
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New project
+            </Button>
+          )
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">

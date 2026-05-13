@@ -40,6 +40,7 @@ import {
   History,
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
 
 const PHOTO_CAP = 300;
 
@@ -125,6 +126,7 @@ export const ExportPdfDialog = ({
   open: controlledOpen,
   onOpenChange,
 }: Props) => {
+  const { canExportPdf, exportsThisMonth, limits } = usePlan();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
@@ -533,6 +535,13 @@ export const ExportPdfDialog = ({
             </div>
           </div>
 
+          {!canExportPdf && (
+            <p className="text-xs text-destructive">
+              You've used all {limits.maxExportsMonth} exports this month. Resets on the 1st.{" "}
+              <a href="/billing" className="underline">Upgrade for unlimited exports.</a>
+            </p>
+          )}
+
           <Button
             className="w-full"
             onClick={startExport}
@@ -540,6 +549,7 @@ export const ExportPdfDialog = ({
               submitting ||
               overCap ||
               !!inProgress ||
+              !canExportPdf ||
               (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0)) ||
               (mode === "album" && (!selectedAlbumId || effectivePhotoCount === 0))
             }
