@@ -156,9 +156,9 @@ const ProjectDetail = () => {
   const isMobileViewport = useIsMobile();
   const [datesListOpen, setDatesListOpen] = useState(false);
   const [galleryListOpen, setGalleryListOpen] = useState(false);
-  const [openAreaKeys, setOpenAreaKeys] = useState<Set<string>>(new Set());
-  const isAreaOpen = (key: string) => !isMobileViewport || openAreaKeys.has(key);
-  const toggleAreaOpen = (key: string) => setOpenAreaKeys((c) => {
+  const [closedAreaKeys, setClosedAreaKeys] = useState<Set<string>>(new Set());
+  const isAreaOpen = (key: string) => !closedAreaKeys.has(key);
+  const toggleAreaOpen = (key: string) => setClosedAreaKeys((c) => {
     const n = new Set(c);
     n.has(key) ? n.delete(key) : n.add(key);
     return n;
