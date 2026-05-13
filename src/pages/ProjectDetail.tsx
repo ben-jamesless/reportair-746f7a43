@@ -1646,8 +1646,7 @@ const ProjectDetail = () => {
 
         {selectMode && selectedIds.size > 0 && (
           <div
-            className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center gap-3 px-4 py-3 text-white shadow-lg"
-            style={{ backgroundColor: "#01696F" }}
+            className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center gap-3 bg-primary px-4 py-3 text-primary-foreground shadow-lg"
             role="toolbar"
             aria-label="Bulk photo actions"
           >
