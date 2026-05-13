@@ -40,8 +40,7 @@ import {
   Folder,
   CreditCard,
   Shield,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
@@ -213,8 +212,8 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
   return (
     <TooltipProvider delayDuration={0}>
       <aside className={containerCls}>
-        {/* Logo + collapse toggle */}
-        <div className={cn("flex h-14 items-center border-b", expanded ? "px-3 lg:px-4" : "px-2 justify-center relative")}>
+        {/* Logo */}
+        <div className={cn("flex h-14 items-center border-b", expanded ? "px-3 lg:px-4" : "px-2 justify-center")}>
           <Link
             to="/projects"
             onClick={onNavigate}
@@ -224,28 +223,27 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             <ReportAirMark variant="dark" className="hidden h-7 w-7 shrink-0 dark:inline-block" />
             <span className={cn("wordmark text-sm text-foreground truncate", labelCls)}>REPORTAIR</span>
           </Link>
-          {!mobile && onToggleCollapsed && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={onToggleCollapsed}
-                  aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                  className={cn(
-                    "ml-auto rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors",
-                    collapsed && "absolute -right-3 top-1/2 -translate-y-1/2 ml-0 bg-background border shadow-sm",
-                  )}
-                >
-                  {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">{collapsed ? "Expand" : "Collapse"}</TooltipContent>
-            </Tooltip>
-          )}
         </div>
 
+        {/* Floating collapse/expand toggle on the right edge */}
+        {!mobile && onToggleCollapsed && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onToggleCollapsed}
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                className="absolute right-0 top-7 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-foreground hover:bg-secondary transition-colors"
+              >
+                <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", !collapsed && "rotate-180")} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">{collapsed ? "Expand" : "Collapse"}</TooltipContent>
+          </Tooltip>
+        )}
+
         {/* Nav */}
-        <nav className="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-2 pt-4 lg:p-3 lg:pt-5">
           {/* Notifications (top, above folders) */}
           <NotificationsSection compactLabel={!expanded} onNavigate={onNavigate} />
 
