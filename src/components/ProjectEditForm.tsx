@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Archive, CalendarIcon, Check, ImageIcon, Loader2, Trash2, Upload, X } from "lucide-react";
+import { AlertTriangle, Archive, CalendarIcon, Check, ImageIcon, Loader2, Trash2, Upload, X, Crown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,

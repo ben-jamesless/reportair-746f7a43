@@ -38,6 +38,7 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   History,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePlan } from "@/hooks/usePlan";

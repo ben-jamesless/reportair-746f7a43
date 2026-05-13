@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Copy, Eye, Link2, Trash2, Plus, Loader2 } from "lucide-react";
+import { Copy, Eye, Link2, Trash2, Plus, Loader2, Crown } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { usePlan } from "@/hooks/usePlan";
 

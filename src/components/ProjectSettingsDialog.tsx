@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Settings } from "lucide-react";
+import { Settings, Crown } from "lucide-react";
 import { AreasManager } from "./AreasManager";
 import { AlbumsManager } from "./AlbumsManager";
 import { InvitesManager } from "./InvitesManager";

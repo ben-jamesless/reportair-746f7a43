@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2, Mail, Copy, Send, LogOut } from "lucide-react";
+import { Trash2, Mail, Copy, Send, LogOut, Crown } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
 import { usePlan } from "@/hooks/usePlan";
