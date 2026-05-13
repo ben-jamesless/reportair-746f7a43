@@ -1,21 +1,43 @@
-import { useRef } from "react";
+import { useState } from "react";
 
 const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
 const body = { fontFamily: "'Inter', sans-serif" };
 
+type Status = "complete" | "progress" | "pending";
+
 type UseCase = {
-  title: string;
+  id: string;
   accent: string;
+  title: string;
   description: string;
+  bullets: string[];
+  reportTitle: string;
+  reportDay: string;
+  rows: { label: string; status: Status }[];
   icon: JSX.Element;
 };
 
 const useCases: UseCase[] = [
   {
-    title: "Music Festivals",
+    id: "festivals",
     accent: "#1A6EFF",
+    title: "Music Festivals",
     description:
       "Build phase reporting across stages, infrastructure, and vendor setups. Track 20+ areas simultaneously.",
+    bullets: [
+      "Track progress across 20+ event areas at once",
+      "Document stages, rigging, power, fencing, and vendor zones",
+      "Daily reports sent to production manager before site closes",
+      "Photo evidence for H&S sign-off and client handover",
+    ],
+    reportTitle: "Greenfield Festival — Build Phase",
+    reportDay: "Day 3 of 5",
+    rows: [
+      { label: "Main Stage", status: "complete" },
+      { label: "Arena Stage", status: "progress" },
+      { label: "Vendor Village", status: "pending" },
+      { label: "Power Infrastructure", status: "complete" },
+    ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
         <path d="M9 18V5l12-2v13" />
@@ -25,10 +47,25 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    title: "Golf Tournaments",
+    id: "golf",
     accent: "#1DB87A",
+    title: "Golf Tournaments",
     description:
       "Hole-by-hole setup documentation. Keep sponsors, clients, and ops teams aligned from day one.",
+    bullets: [
+      "Document each hole: grandstands, hospitality, signage, scoring",
+      "Sponsor activation tracking with photo proof",
+      "Course walk reports shared with tournament director daily",
+      "Flag incomplete branding installs before client walkthrough",
+    ],
+    reportTitle: "DP World Tour — Course Setup",
+    reportDay: "Day 1 of 3",
+    rows: [
+      { label: "Holes 1–6", status: "complete" },
+      { label: "Sponsor Village", status: "progress" },
+      { label: "Holes 7–18", status: "pending" },
+      { label: "Scoring Towers", status: "complete" },
+    ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
         <line x1="5" y1="3" x2="5" y2="21" />
@@ -38,10 +75,25 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    title: "Marathon & Road Races",
+    id: "marathons",
     accent: "#FF8C00",
+    title: "Marathon & Road Races",
     description:
       "Route infrastructure, barriers, signage, and water stations. Photo evidence for safety sign-off.",
+    bullets: [
+      "Document route setup km by km or zone by zone",
+      "Barrier placement, water stations, medical post positioning",
+      "Photo evidence submitted to local authority for road permits",
+      "Flag missing signage or incomplete setups instantly",
+    ],
+    reportTitle: "City Marathon — Route Check",
+    reportDay: "Race Eve",
+    rows: [
+      { label: "Zone A (km 1–10)", status: "complete" },
+      { label: "Zone B (km 11–21)", status: "complete" },
+      { label: "Water Stations", status: "progress" },
+      { label: "Finish Line Setup", status: "pending" },
+    ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
         <circle cx="13" cy="4" r="2" />
@@ -51,9 +103,24 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    title: "Corporate Events",
+    id: "corporate",
     accent: "#7A5CFA",
+    title: "Corporate Events",
     description: "AV, staging, branding installs. Branded reports ready for client approval in minutes.",
+    bullets: [
+      "Track AV setup, staging, lighting, and branding by room or zone",
+      "Client-ready branded report generated on the day of setup",
+      "Before/after photo documentation for venue handover",
+      "Suitable for conferences, awards ceremonies, product launches",
+    ],
+    reportTitle: "Annual Awards — Venue Setup",
+    reportDay: "Setup Day",
+    rows: [
+      { label: "Main Stage AV", status: "complete" },
+      { label: "Branding & Signage", status: "progress" },
+      { label: "Breakout Rooms", status: "pending" },
+      { label: "Registration Desk", status: "complete" },
+    ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
         <rect x="3" y="3" width="7" height="7" />
@@ -64,10 +131,25 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    title: "Home Renovation",
+    id: "renovation",
     accent: "#A8C4FF",
+    title: "Home Renovation",
     description:
       "Document each phase for clients or insurers. Replace WhatsApp chaos with structured daily reports.",
+    bullets: [
+      "Daily photo reports for each trade (plumber, electrician, plasterer)",
+      "Client receives a link — no app download required to view",
+      "Insurer-ready photo documentation at each milestone",
+      "Replace chaotic WhatsApp threads with a single organised report",
+    ],
+    reportTitle: "34 Hillside Ave — Kitchen Reno",
+    reportDay: "Week 4",
+    rows: [
+      { label: "Structural Works", status: "complete" },
+      { label: "Electrical & Plumbing", status: "complete" },
+      { label: "Tiling & Plastering", status: "progress" },
+      { label: "Cabinetry Install", status: "pending" },
+    ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
         <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
@@ -76,9 +158,24 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    title: "Construction & Site Works",
+    id: "construction",
     accent: "#FF8C00",
+    title: "Construction & Site Works",
     description: "Progress reporting for site managers. Photo-to-report in the field, no desk required.",
+    bullets: [
+      "Daily site progress reports with geo-tagged photo evidence",
+      "Document structural work, groundworks, MEP, and finishing trades",
+      "Flag defects or non-conformances on site with photo + note",
+      "Report shared with principal contractor before end of day",
+    ],
+    reportTitle: "Block C — Residential Build",
+    reportDay: "Day 42",
+    rows: [
+      { label: "Groundworks", status: "complete" },
+      { label: "Structural Frame", status: "complete" },
+      { label: "MEP First Fix", status: "progress" },
+      { label: "External Cladding", status: "pending" },
+    ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
         <path d="M2 17h2m16 0h2M6 17v-5a6 6 0 0 1 12 0v5" />
@@ -89,6 +186,15 @@ const useCases: UseCase[] = [
   },
 ];
 
+const tabLabels: Record<string, string> = {
+  festivals: "Festivals",
+  golf: "Golf",
+  marathons: "Marathons",
+  corporate: "Corporate",
+  renovation: "Renovation",
+  construction: "Construction",
+};
+
 function hexToRgba(hex: string, alpha: number) {
   const h = hex.replace("#", "");
   const r = parseInt(h.substring(0, 2), 16);
@@ -97,172 +203,289 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export default function UseCasesSection() {
-  const trackRef = useRef<HTMLDivElement>(null);
+function StatusPill({ status }: { status: Status }) {
+  const map = {
+    complete: { bg: "rgba(29,184,122,0.15)", color: "#1DB87A", label: "Complete" },
+    progress: { bg: "rgba(255,140,0,0.15)", color: "#FF8C00", label: "In Progress" },
+    pending: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)", label: "Pending" },
+  }[status];
+  return (
+    <span
+      style={{
+        ...body,
+        fontSize: 11,
+        fontWeight: 600,
+        padding: "3px 10px",
+        borderRadius: 100,
+        background: map.bg,
+        color: map.color,
+      }}
+    >
+      {map.label}
+    </span>
+  );
+}
 
-  const scroll = (dir: -1 | 1) => {
-    trackRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
-  };
+export default function UseCasesSection() {
+  const [active, setActive] = useState("festivals");
+  const current = useCases.find((u) => u.id === active)!;
+  const accent = current.accent;
 
   return (
-    <section style={{ background: "#060D18", padding: "86px 0", overflow: "hidden", position: "relative" }}>
+    <section style={{ background: "#060D18", padding: "86px 0", overflow: "hidden" }}>
       <style>{`
-        .uc-track::-webkit-scrollbar { display: none; }
-        .uc-card { transition: transform 0.25s ease; position: relative; }
-        .uc-card:hover { transform: translateY(-4px); }
-        .uc-card::before {
-          content: '';
-          position: absolute;
-          inset: -1px;
-          border-radius: 21px;
-          background: linear-gradient(135deg, var(--card-accent-color) 0%, transparent 60%);
-          opacity: 0.35;
-          z-index: -1;
-          pointer-events: none;
+        @keyframes uc-fadeUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        @media (max-width: 679px) {
-          .uc-card { width: 240px !important; }
-          .uc-arrows { display: none !important; }
+        .uc-panel { animation: uc-fadeUp 0.35s ease forwards; }
+        .uc-export:hover { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
+        @media (max-width: 900px) {
+          .uc-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          .uc-headline { font-size: 36px !important; }
+          .uc-tab { font-size: 12px !important; }
+          .uc-card { padding: 20px !important; }
         }
       `}</style>
 
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
-        <div
+      <div className="container mx-auto px-6">
+        <p
           style={{
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            marginBottom: 48,
-            gap: 24,
+            ...body,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "rgba(168,196,255,0.6)",
+            margin: "0 0 14px 0",
           }}
         >
-        <div style={{ textAlign: "left" }}>
-          <p
-            style={{
-              ...body,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "rgba(168,196,255,0.6)",
-              margin: "0 0 14px 0",
-            }}
-          >
-            MADE FOR
-          </p>
-          <h2
-            style={{
-              ...display,
-              fontWeight: 800,
-              fontSize: 44,
-              color: "#fff",
-              letterSpacing: "-0.02em",
-              lineHeight: 1.1,
-              margin: 0,
-            }}
-          >
-            Every kind of site.
-          </h2>
+          WHO IT'S FOR
+        </p>
+        <h2
+          className="uc-headline"
+          style={{
+            ...display,
+            fontWeight: 800,
+            fontSize: 48,
+            color: "#fff",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.05,
+            margin: "0 0 48px 0",
+          }}
+        >
+          One tool.<br />Every site.
+        </h2>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 40 }}>
+          {useCases.map((u) => {
+            const isActive = u.id === active;
+            return (
+              <button
+                key={u.id}
+                className="uc-tab"
+                onClick={() => setActive(u.id)}
+                style={{
+                  ...body,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  padding: "8px 18px",
+                  borderRadius: 100,
+                  border: `1px solid ${isActive ? "transparent" : "rgba(255,255,255,0.12)"}`,
+                  background: isActive ? u.accent : "transparent",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {tabLabels[u.id]}
+              </button>
+            );
+          })}
         </div>
-        <div className="uc-arrows" style={{ display: "flex", gap: 10 }}>
-          {[-1, 1].map((d) => (
-            <button
-              key={d}
-              onClick={() => scroll(d as -1 | 1)}
-              aria-label={d === -1 ? "Scroll left" : "Scroll right"}
+
+        {/* Content panel */}
+        <div
+          key={active}
+          className="uc-panel uc-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 48,
+            alignItems: "center",
+            minHeight: 380,
+          }}
+        >
+          {/* Left column */}
+          <div>
+            <div
               style={{
-                width: 40,
-                height: 40,
+                width: 56,
+                height: 56,
                 borderRadius: "50%",
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(255,255,255,0.05)",
-                color: "rgba(255,255,255,0.6)",
-                cursor: "pointer",
-                fontSize: 20,
+                background: hexToRgba(accent, 0.15),
+                color: accent,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                lineHeight: 1,
+                marginBottom: 20,
               }}
             >
-              {d === -1 ? "‹" : "›"}
-            </button>
-          ))}
-        </div>
-      </div>
-      </div>
-
-      <div style={{ position: "relative" }}>
-        <div
-          ref={trackRef}
-          className="uc-track"
-          style={{
-            display: "flex",
-            gap: 20,
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            paddingLeft: "max(20px, calc((100vw - 1200px) / 2 + 24px))",
-            paddingBottom: 20,
-            paddingRight: 160,
-            scrollbarWidth: "none",
-          }}
-        >
-          {useCases.map((c) => (
-            <article
-              key={c.title}
-              className="uc-card"
-              style={
-                {
-                  width: 280,
-                  minHeight: 400,
-                  flexShrink: 0,
-                  scrollSnapAlign: "start",
-                  borderRadius: 20,
-                  padding: "32px 28px",
-                  display: "flex",
-                  flexDirection: "column",
-                  background: "linear-gradient(160deg, rgba(11,24,48,0.95), rgba(8,16,36,0.98))",
-                  ["--card-accent-color" as any]: c.accent,
-                } as React.CSSProperties
-              }
+              {current.icon}
+            </div>
+            <h3
+              style={{
+                ...display,
+                fontSize: 28,
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "#fff",
+                margin: "0 0 12px 0",
+              }}
             >
-              <div
+              {current.title}
+            </h3>
+            <p
+              style={{
+                ...body,
+                fontSize: 15,
+                color: "rgba(255,255,255,0.55)",
+                lineHeight: 1.65,
+                margin: "0 0 24px 0",
+              }}
+            >
+              {current.description}
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+              {current.bullets.map((b) => (
+                <li
+                  key={b}
+                  style={{
+                    ...body,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                    fontSize: 14,
+                    color: "rgba(255,255,255,0.65)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: accent,
+                      flexShrink: 0,
+                      marginTop: 6,
+                    }}
+                  />
+                  {b}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Right column — mock report card */}
+          <div
+            className="uc-card"
+            style={{
+              background: "linear-gradient(160deg, rgba(15,26,52,0.95), rgba(10,18,38,0.98))",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 20,
+              padding: 28,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: -1,
+                borderRadius: 21,
+                background: `linear-gradient(135deg, ${accent} 0%, transparent 55%)`,
+                opacity: 0.2,
+                zIndex: 0,
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <span
+                  style={{
+                    ...body,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    background: hexToRgba(accent, 0.2),
+                    color: accent,
+                    padding: "4px 10px",
+                    borderRadius: 100,
+                  }}
+                >
+                  Live Report
+                </span>
+                <span style={{ ...body, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>{current.reportDay}</span>
+              </div>
+              <h4 style={{ ...display, fontWeight: 700, fontSize: 16, color: "#fff", margin: "0 0 20px 0" }}>
+                {current.reportTitle}
+              </h4>
+              <div style={{ marginBottom: 14 }}>
+                {current.rows.map((r) => (
+                  <div
+                    key={r.label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 14px",
+                      background: "rgba(255,255,255,0.04)",
+                      borderRadius: 10,
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <span style={{ ...body, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>{r.label}</span>
+                    <StatusPill status={r.status} />
+                  </div>
+                ))}
+              </div>
+              <button
+                className="uc-export"
                 style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: "50%",
-                  background: hexToRgba(c.accent, 0.15),
-                  color: c.accent,
-                  marginBottom: 20,
+                  ...body,
+                  width: "100%",
+                  padding: 12,
+                  borderRadius: 10,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "rgba(255,255,255,0.05)",
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: 13,
+                  fontWeight: 600,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                  marginTop: 4,
+                  transition: "background 0.2s, color 0.2s",
                 }}
               >
-                {c.icon}
-              </div>
-              <h3 style={{ ...display, fontWeight: 800, fontSize: 20, color: "#fff", margin: "0 0 12px 0" }}>
-                {c.title}
-              </h3>
-              <p style={{ ...body, fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: 0, flex: 1 }}>
-                {c.description}
-              </p>
-            </article>
-          ))}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export PDF Report
+              </button>
+            </div>
+          </div>
         </div>
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            right: 0,
-            top: 0,
-            bottom: 20,
-            width: 120,
-            background: "linear-gradient(to left, #060D18, transparent)",
-            pointerEvents: "none",
-            zIndex: 2,
-          }}
-        />
       </div>
     </section>
   );
