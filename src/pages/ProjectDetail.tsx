@@ -135,6 +135,7 @@ const ProjectDetail = () => {
   // status keyed by `${areaId}|${dateKey}` -> AreaStatus
   const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   // Initialise filter state from URL so refreshing / sharing a link preserves the view.
   const [activeDay, setActiveDay] = useState<string>(() => {
     const d = searchParams.get("day");
@@ -288,46 +289,53 @@ const ProjectDetail = () => {
 
   const loadAll = useCallback(async () => {
     if (!id) return;
-    const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
-      supabase.from("projects").select("id, name, description, template, color, event_date, build_start_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
-      supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-      supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
-      supabase
-        .from("photos")
-        .select(
-          "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
-        )
-        .eq("project_id", id)
-        .order("captured_at", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false }),
-      supabase.from("day_notes").select("date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues").eq("project_id", id),
-      supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
-      supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
-    ]);
-    setProject(p ?? null);
-    setAlbums(a ?? []);
-    setAreas((ar ?? []) as Area[]);
-    setPhotos((ph ?? []) as LightboxPhoto[]);
-    const map = new Map<string, string | null>();
-    const fieldMap = new Map<string, DailyFields>();
-    for (const row of (dn ?? []) as DayNote[]) {
-      map.set(row.date, row.notes ?? null);
-      fieldMap.set(row.date, {
-        today_objectives: row.today_objectives ?? null,
-        today_achievements: row.today_achievements ?? null,
-        tomorrow_objectives: row.tomorrow_objectives ?? null,
-        open_issues: row.open_issues ?? null,
-      });
+    try {
+      const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
+        supabase.from("projects").select("id, name, description, template, color, event_date, build_start_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
+        supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
+        supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
+        supabase
+          .from("photos")
+          .select(
+            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
+          )
+          .eq("project_id", id)
+          .order("captured_at", { ascending: false, nullsFirst: false })
+          .order("created_at", { ascending: false }),
+        supabase.from("day_notes").select("date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues").eq("project_id", id),
+        supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
+        supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
+      ]);
+      setProject(p ?? null);
+      setAlbums(a ?? []);
+      setAreas((ar ?? []) as Area[]);
+      setPhotos((ph ?? []) as LightboxPhoto[]);
+      const map = new Map<string, string | null>();
+      const fieldMap = new Map<string, DailyFields>();
+      for (const row of (dn ?? []) as DayNote[]) {
+        map.set(row.date, row.notes ?? null);
+        fieldMap.set(row.date, {
+          today_objectives: row.today_objectives ?? null,
+          today_achievements: row.today_achievements ?? null,
+          tomorrow_objectives: row.tomorrow_objectives ?? null,
+          open_issues: row.open_issues ?? null,
+        });
+      }
+      setDayNotes(map);
+      setDailyFields(fieldMap);
+      const sm = new Map<string, AreaStatus>();
+      for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
+      setAreaDayStatus(sm);
+      const nm = new Map<string, string | null>();
+      for (const row of (adn ?? []) as { area_id: string; date: string; notes: string | null }[]) nm.set(`${row.area_id}|${row.date}`, row.notes ?? null);
+      setAreaDayNotes(nm);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load project data. Please refresh.");
+      setLoadError(true);
+    } finally {
+      setLoading(false);
     }
-    setDayNotes(map);
-    setDailyFields(fieldMap);
-    const sm = new Map<string, AreaStatus>();
-    for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
-    setAreaDayStatus(sm);
-    const nm = new Map<string, string | null>();
-    for (const row of (adn ?? []) as { area_id: string; date: string; notes: string | null }[]) nm.set(`${row.area_id}|${row.date}`, row.notes ?? null);
-    setAreaDayNotes(nm);
-    setLoading(false);
   }, [id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
@@ -638,6 +646,10 @@ const ProjectDetail = () => {
   // Days available for the date-range picker (only those with photos).
   // MUST be declared before any early returns to keep hook order stable across renders.
   const availableDaysForExport = days.map((d) => ({ key: d.key, label: d.label, date: d.date, photoCount: d.photos.length }));
+
+  if (loadError) {
+    return <p className="p-8 text-center text-destructive">Failed to load project data. Please refresh the page.</p>;
+  }
 
   if (loading) {
     return (

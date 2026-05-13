@@ -27,6 +27,7 @@ const Auth = () => {
 
   const rawRedirect = params.get("redirect") || "/projects";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
+  const suspendedError = params.get("error") === "suspended";
 
   useEffect(() => {
     if (user) navigate(redirect, { replace: true });
@@ -89,6 +90,11 @@ const Auth = () => {
             <CardDescription>Sign in or create an account to continue.</CardDescription>
           </CardHeader>
           <CardContent>
+            {suspendedError && (
+              <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                Your account has been suspended. Please contact support.
+              </div>
+            )}
             <Tabs defaultValue={initialTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign in</TabsTrigger>
