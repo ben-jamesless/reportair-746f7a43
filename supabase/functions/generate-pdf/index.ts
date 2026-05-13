@@ -278,6 +278,8 @@ Deno.serve(async (req) => {
     }
     // ============ END AUTH GATE ============
 
+    console.log(JSON.stringify({ fn: "generate-pdf", event: "start", export_id: exportId, caller: callerId, ts: new Date().toISOString() }));
+
     await supabase.from("project_exports").update({ status: "processing" }).eq("id", exportId);
 
     // Determine report_date — prefer day_key, else date_from, else today.
