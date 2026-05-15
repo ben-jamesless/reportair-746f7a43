@@ -1676,28 +1676,6 @@ const ProjectDetail = () => {
                 )}
               </section>
 
-              <FeedbackPanel
-                projectId={project.id}
-                visiblePhotos={visiblePhotos}
-                allPhotos={photos}
-                onOpenPhoto={(photoId) => {
-                  const idx = photoIndexById.get(photoId);
-                  if (idx !== undefined) {
-                    setLightboxIndex(idx);
-                  } else {
-                    setActiveDay(ALL_DAYS);
-                    setActiveArea(null);
-                    setTimeout(() => {
-                      const all = photos.findIndex((p) => p.id === photoId);
-                      if (all >= 0) setLightboxIndex(all);
-                    }, 0);
-                  }
-                }}
-                className={cn(
-                  "xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6 xl:pl-4",
-                  feedbackSheetOpen ? "hidden" : "hidden xl:flex"
-                )}
-              />
             </div>
 
             {/* Feedback right-side panel — all breakpoints */}
