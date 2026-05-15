@@ -263,19 +263,19 @@ const Billing = () => {
 
           <div className="flex items-center gap-4 flex-wrap">
             {/* Pill toggle */}
-            <div className="inline-flex items-center rounded-full border border-border bg-muted/40 p-1">
+            <div className="inline-flex items-center rounded-full border-2 border-[#D4D1CA] bg-[#F5F4F0] p-1.5">
               <button
                 onClick={() => setAnnual(true)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  annual ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                className={`px-6 py-2.5 text-base font-semibold rounded-full transition-all ${
+                  annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-[#7A7974] hover:text-[#0F1724]"
                 }`}
               >
                 Pay Once a Year
               </button>
               <button
                 onClick={() => setAnnual(false)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  !annual ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                className={`px-6 py-2.5 text-base font-semibold rounded-full transition-all ${
+                  !annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-[#7A7974] hover:text-[#0F1724]"
                 }`}
               >
                 Pay Once a Month
