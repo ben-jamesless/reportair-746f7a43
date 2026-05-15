@@ -1293,7 +1293,7 @@ const ProjectDetail = () => {
                             key={ar.id}
                             onClick={() => setActiveArea(isActive ? null : ar.id)}
                             className={cn(
-                              "flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors",
+                              "flex w-full items-center justify-between rounded-lg px-3 text-sm transition-colors py-[8px]",
                               isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-[#0F1724] hover:bg-[#FBFBF9]"
                             )}
                           >
