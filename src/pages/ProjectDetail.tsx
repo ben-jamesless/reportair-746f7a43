@@ -1245,12 +1245,34 @@ const ProjectDetail = () => {
                   <div className="flex items-center justify-between px-3 mb-1">
                     <p className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Areas</p>
                     {canEdit && (
-                      <button
-                        onClick={() => setSettingsDialogOpen(true)}
-                        className="flex items-center gap-0.5 text-[10px] text-[#1A6EFF] hover:text-[#1A6EFF]/80 font-medium"
-                      >
-                        <span className="text-base leading-none">+</span> New area
-                      </button>
+                      addingArea ? (
+                        <input
+                          autoFocus
+                          type="text"
+                          value={newAreaName}
+                          onChange={(e) => setNewAreaName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") createArea();
+                            if (e.key === "Escape") { setAddingArea(false); setNewAreaName(""); }
+                          }}
+                          onBlur={() => {
+                            if (newAreaName.trim()) {
+                              createArea();
+                            } else {
+                              setAddingArea(false);
+                            }
+                          }}
+                          placeholder="Area name..."
+                          className="w-full px-2 h-7 text-xs rounded-lg border border-[#1A6EFF] bg-white text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => setAddingArea(true)}
+                          className="flex items-center gap-0.5 text-[10px] text-[#1A6EFF] hover:text-[#1A6EFF]/80 font-medium"
+                        >
+                          <span className="text-base leading-none">+</span> New area
+                        </button>
+                      )
                     )}
                   </div>
                   {areas.length === 0 ? (
