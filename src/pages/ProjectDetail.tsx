@@ -1226,7 +1226,7 @@ const ProjectDetail = () => {
                             <button
                               onClick={() => selectDayArea(day.key, NO_AREA)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                                "flex w-full items-center justify-between rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                                 activeDay === day.key && activeArea === NO_AREA
                                   ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
                                   : "text-[#0F1724] hover:bg-[#FBFBF9]",
