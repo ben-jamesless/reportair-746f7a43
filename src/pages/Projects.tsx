@@ -281,14 +281,14 @@ const Projects = () => {
 
       {/* ── Filter toolbar ── */}
       {!showSkeleton && hasAnyVisibleSource && (
-        <div className="flex items-center gap-4 px-6 pb-4 border-b border-[#D4D1CA]">
+        <div className="flex flex-col gap-3 px-4 sm:px-6 pb-4 border-b border-[#D4D1CA] sm:flex-row sm:items-center sm:gap-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full sm:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A7974]" />
             <input
               type="text"
               placeholder="Search events…"
-              className="pl-9 pr-3 h-9 rounded-lg border border-[#D4D1CA] bg-[#FBFBF9] text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30 w-56"
+              className="w-full pl-9 pr-3 h-9 rounded-lg border border-[#D4D1CA] bg-[#FBFBF9] text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -304,13 +304,13 @@ const Projects = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-1">
+          <div className="-mx-4 sm:mx-0 flex items-center gap-1 overflow-x-auto px-4 sm:px-0 sm:overflow-visible">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  "px-3 h-9 text-sm font-medium rounded-md transition-colors",
+                  "px-3 h-9 text-sm font-medium rounded-md transition-colors whitespace-nowrap shrink-0",
                   activeTab === tab
                     ? "text-[#1A6EFF] bg-[#1A6EFF]/8"
                     : "text-[#7A7974] hover:text-[#0F1724] hover:bg-[#D4D1CA]/30"
@@ -326,7 +326,7 @@ const Projects = () => {
 
           {/* Solo counter */}
           {plan === "solo" && limits.maxProjects > 0 && (
-            <span className="ml-auto text-xs text-[#7A7974]">
+            <span className="sm:ml-auto text-xs text-[#7A7974]">
               {projectCount} / {limits.maxProjects} events used
             </span>
           )}
