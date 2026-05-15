@@ -133,10 +133,10 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
     return (
       <button
         onClick={() => window.dispatchEvent(new CustomEvent("open-share-settings"))}
-        className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors"
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
       >
         <Share2 className="w-3.5 h-3.5" />
-        Share
+        Share link
       </button>
     );
   }
@@ -148,7 +148,7 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
         className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#7A7974] font-medium hover:bg-[#FBFBF9] transition-colors"
       >
         <Lock className="w-3.5 h-3.5" />
-        Share
+        Share link
       </button>
       {showUpgrade && (
         <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-[#D4D1CA] bg-white shadow-lg p-4">
@@ -916,7 +916,38 @@ const ProjectDetail = () => {
         {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#0F1724] leading-tight">{project.name}</h1>
+            {project.event_type && (
+              <p className="text-xs font-semibold tracking-widest uppercase text-[#7A7974] mb-1">
+                {project.event_type}
+              </p>
+            )}
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-[#0F1724] leading-tight">{project.name}</h1>
+              {canEdit ? (
+                <Select
+                  value={project.overall_status ?? "no_status"}
+                  onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}
+                >
+                  <SelectTrigger className={cn(
+                    "h-6 px-2.5 rounded-full text-xs font-semibold border w-auto gap-1",
+                    projectStatusMeta(project.overall_status).pillClass
+                  )}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className={cn("text-xs px-2.5 py-0.5 rounded-full border font-semibold", projectStatusMeta(project.overall_status).pillClass)}>
+                  {projectStatusMeta(project.overall_status).label}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-1 text-sm text-[#7A7974]">
               {project.event_location && (
                 <>
@@ -931,18 +962,24 @@ const ProjectDetail = () => {
                   <span>{new Date(project.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
                 </>
               )}
-              {(project.overall_status ?? "no_status") !== "no_status" && (
-                <span className="ml-1">
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", projectStatusMeta(project.overall_status).pillClass)}>
-                    {projectStatusMeta(project.overall_status).label}
-                  </span>
-                </span>
+              {project.client_name && (
+                <>
+                  <span className="text-[#D4D1CA]">·</span>
+                  <span>{project.client_name}</span>
+                </>
               )}
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <button
+              onClick={() => setFeedbackSheetOpen(true)}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              Feedback
+            </button>
             <ShareButton projectId={project.id} canUseShareLink={canUseShareLink} />
             <button
               onClick={openTopExport}
@@ -952,6 +989,23 @@ const ProjectDetail = () => {
               <Download className="w-3.5 h-3.5" />
               Export PDF
             </button>
+            {canEdit && (
+              <ErrorBoundary label="uploader-header">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={loadAll}
+                  trigger={
+                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors">
+                      <ImagePlus className="w-3.5 h-3.5" />
+                      Upload photos
+                    </button>
+                  }
+                />
+              </ErrorBoundary>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="w-8 h-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9]">
@@ -987,12 +1041,18 @@ const ProjectDetail = () => {
 
         {/* Horizontal tab bar */}
         <TabBar
-          tabs={["Photos", "Activity", "Details"]}
-          activeTab={activeTab === "photos" ? "Photos" : activeTab === "activity" ? "Activity" : "Details"}
+          tabs={["Updates", "Activity", "Gallery", "Settings"]}
+          activeTab={
+            activeTab === "photos" ? "Updates"
+            : activeTab === "activity" ? "Activity"
+            : activeTab === "details" ? "Settings"
+            : "Updates"
+          }
           onChange={(t) => {
-            if (t === "Photos") setActiveTab("photos");
+            if (t === "Updates") setActiveTab("photos");
             else if (t === "Activity") setActiveTab("activity");
-            else setActiveTab("details");
+            else if (t === "Gallery") setActiveTab("photos");
+            else if (t === "Settings") setActiveTab("details");
           }}
         />
       </div>
@@ -1050,34 +1110,29 @@ const ProjectDetail = () => {
 
                 <div className={cn(!datesOpenTablet && "hidden xl:block")}>
 
+                <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Daily Log</p>
+
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
                   return (
-                    <div key={day.key} className="rounded-md">
+                    <div key={day.key} className="rounded-lg">
                       <div className="flex items-stretch gap-1">
                         <button
-                          onClick={() => toggleDay(day.key)}
-                          className="flex items-center px-2 text-muted-foreground hover:text-foreground"
-                          aria-label={isOpen ? "Collapse day" : "Expand day"}
-                        >
-                          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                        <button
-                          onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => new Set(p).add(day.key)); }}
+                          onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
                           className={cn(
-                            "flex flex-1 items-center justify-between rounded-md px-2 py-2 text-left text-sm transition-colors",
+                            "flex flex-1 items-center justify-between px-3 py-1.5 text-left text-sm transition-colors",
                             dayActive
-                              ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                              : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                              ? "rounded-lg bg-[#1A6EFF] text-white font-semibold"
+                              : "rounded-lg text-[#0F1724] hover:bg-[#FBFBF9]",
                           )}
                         >
-                          <span className="flex items-center gap-1.5">
-                            <Calendar className={cn("h-3.5 w-3.5", dayActive ? "text-primary" : "text-muted-foreground")} />
-                            <span className="font-medium">{SHORT_FMT.format(day.date)}</span>
-                          </span>
-                          <span className={cn("text-xs", dayActive ? "text-primary" : "text-muted-foreground")}>
+                          <span>{SHORT_FMT.format(day.date)}</span>
+                          <span className={cn(
+                            "ml-2 inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold",
+                            dayActive ? "bg-white/20 text-white" : "bg-[#F0EFEA] text-[#7A7974]"
+                          )}>
                             {day.photos.length}
                           </span>
                         </button>
@@ -1092,7 +1147,7 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
+                        <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#D4D1CA] pl-2">
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
@@ -1105,14 +1160,13 @@ const ProjectDetail = () => {
                                 className={cn(
                                   "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                   sel
-                                    ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                                    : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                                    ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
+                                    : "text-[#0F1724] hover:bg-[#FBFBF9]",
                                 )}
                               >
                                 <AreaStatusDot status={st} className="shrink-0" />
-                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "text-primary" : "text-muted-foreground")} />
                                 <span className="flex-1 truncate">{ar.name}</span>
-                                <span className={cn("ml-1 text-[10px]", sel ? "text-primary" : "text-muted-foreground")}>{c}</span>
+                                <span className={cn("ml-1 text-[10px]", sel ? "text-[#1A6EFF]" : "text-[#7A7974]")}>{c}</span>
                               </button>
                             );
                           })}
@@ -1122,22 +1176,16 @@ const ProjectDetail = () => {
                               className={cn(
                                 "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                 activeDay === day.key && activeArea === NO_AREA
-                                  ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                                  : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                                  ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
+                                  : "text-[#0F1724] hover:bg-[#FBFBF9]",
                               )}
                             >
-                              <span className="flex items-center gap-1.5">
-                                <MapPinned className="h-3 w-3 shrink-0 text-muted-foreground" />
-                                Unassigned
-                              </span>
+                              <span>Unassigned</span>
                               <span className={cn(
                                 "ml-2 text-[10px]",
-                                activeDay === day.key && activeArea === NO_AREA ? "text-primary" : "text-muted-foreground"
+                                activeDay === day.key && activeArea === NO_AREA ? "text-[#1A6EFF]" : "text-[#7A7974]"
                               )}>{unassigned}</span>
                             </button>
-                          )}
-                          {areas.length === 0 && unassigned === 0 && (
-                            <p className="px-2 py-1 text-[11px] text-muted-foreground">No areas defined.</p>
                           )}
                         </div>
                       )}
@@ -1145,6 +1193,45 @@ const ProjectDetail = () => {
                   );
                 })}
 
+                </div>
+
+                {/* Areas section */}
+                <div className="mt-4 border-t border-[#D4D1CA] pt-3">
+                  <div className="flex items-center justify-between px-3 mb-1">
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Areas</p>
+                    {canEdit && (
+                      <button
+                        onClick={() => setSettingsDialogOpen(true)}
+                        className="flex items-center gap-0.5 text-[10px] text-[#1A6EFF] hover:text-[#1A6EFF]/80 font-medium"
+                      >
+                        <span className="text-base leading-none">+</span> New area
+                      </button>
+                    )}
+                  </div>
+                  {areas.length === 0 ? (
+                    <p className="px-3 text-xs text-[#7A7974]">No areas yet.</p>
+                  ) : (
+                    <div className="space-y-0.5">
+                      {areas.map((ar) => {
+                        const isActive = activeArea === ar.id;
+                        return (
+                          <button
+                            key={ar.id}
+                            onClick={() => setActiveArea(isActive ? null : ar.id)}
+                            className={cn(
+                              "flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors",
+                              isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-[#0F1724] hover:bg-[#FBFBF9]"
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-sm bg-[#D4D1CA]" />
+                              {ar.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-3 space-y-1 border-t pt-3">
@@ -1294,42 +1381,26 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="px-4 pt-2 grid grid-cols-1 gap-3 xl:grid-cols-2">
+                      <div className="px-4 pt-2 grid grid-cols-2 gap-3 mb-4">
                         {dailyBlocks.map((b) => {
-                          const dailyKey = `daily|${activeDay}|${b.key}`;
-                          const open = isDailyOpen(dailyKey);
                           const value = getDailyField(activeDay, b.key);
-                          const hasValue = !!(value && value.trim());
                           return (
                             <div key={b.key} className="rounded-xl border border-[#D4D1CA] bg-white overflow-hidden">
-                              <button
-                                type="button"
-                                onClick={() => toggleDailyOpen(dailyKey)}
-                                className="flex w-full items-center justify-between gap-2 text-left hover:bg-[#FBFBF9] transition-colors"
-                                aria-expanded={open}
-                              >
-                                <span className="text-[10px] font-semibold tracking-widest text-[#7A7974] uppercase px-4 pt-3 pb-1">
+                              <div className="px-4 pt-3 pb-1">
+                                <span className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">
                                   {b.label}
                                 </span>
-                                <span className="flex items-center gap-2 px-4 pt-3 pb-1">
-                                  {!hasValue && (
-                                    <span className="text-[10px] uppercase tracking-wide text-[#7A7974]">Empty</span>
-                                  )}
-                                  <ChevronDown className={cn("h-4 w-4 text-[#D4D1CA] transition-transform", !open && "-rotate-90")} />
-                                </span>
-                              </button>
-                              {open && (
-                                <div className="min-h-[72px] px-4 pb-3 text-sm text-[#0F1724]">
-                                  <EditableNote
-                                    value={value}
-                                    placeholder={`Add ${b.label.toLowerCase()}…`}
-                                    onSave={(next) => saveDailyField(activeDay, b.key, next)}
-                                    rich
-                                    rows={3}
-                                    readOnly={!canEdit}
-                                  />
-                                </div>
-                              )}
+                              </div>
+                              <div className="px-4 pb-3 min-h-[72px] text-sm text-[#0F1724]">
+                                <EditableNote
+                                  value={value}
+                                  placeholder={`Add ${b.label.toLowerCase()}…`}
+                                  onSave={(next) => saveDailyField(activeDay, b.key, next)}
+                                  rich
+                                  rows={3}
+                                  readOnly={!canEdit}
+                                />
+                              </div>
                             </div>
                           );
                         })}
@@ -1367,33 +1438,18 @@ const ProjectDetail = () => {
                             return (
                               <div key={ar.id}>
                                 <article
-                                  className={cn(
-                                    "rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
-                                    st === "complete" && "border-l-[#10b981]",
-                                    st === "on_track" && "border-l-[#1A6EFF]",
-                                    st === "requires_discussion" && "border-l-[#f97316]",
-                                    st === "concern" && "border-l-[#ef4444]",
-                                    !st && "border-l-[#D4D1CA]",
-                                  )}
+                                  className="mb-3 rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4"
+                                  style={{ borderLeftColor: accent }}
                                 >
-                                  <header className="mb-3 flex flex-wrap items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleAreaOpen(areaKey)}
-                                      className="text-muted-foreground hover:text-foreground transition-colors"
-                                      aria-label={open ? "Collapse area" : "Expand area"}
-                                    >
-                                      <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
-                                    </button>
-                                    <h3 className="text-sm font-semibold text-[#0F1724]">{ar.name}</h3>
+                                  <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm font-semibold text-[#0F1724]">{ar.name}</span>
                                     <AreaStatusPicker
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
-                                      className="ml-auto"
                                       readOnly={!canEdit}
                                     />
-                                  </header>
-                                  {open && (
+                                  </div>
+                                  <div className="px-4 pb-3">
                                     <EditableNote
                                       value={note}
                                       placeholder="No notes for this area yet."
@@ -1402,7 +1458,7 @@ const ProjectDetail = () => {
                                       rows={3}
                                       readOnly={!canEdit}
                                     />
-                                  )}
+                                  </div>
                                 </article>
                               </div>
                             );
