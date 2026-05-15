@@ -209,7 +209,7 @@ const Billing = () => {
   const planLabel     = PLAN_LABELS[plan] ?? plan.charAt(0).toUpperCase() + plan.slice(1);
 
   const statusBadge = isTrial
-    ? <Badge style={{ backgroundColor: "#01696F", color: "#fff" }}>Trial</Badge>
+    ? <Badge className="bg-primary text-primary-foreground hover:bg-primary">Trial</Badge>
     : isPastDue
     ? <Badge variant="destructive">Payment failed</Badge>
     : isSubscribed
@@ -321,10 +321,9 @@ const Billing = () => {
                 </div>
 
                 <Button
-                  className="w-full font-semibold"
+                  className="w-full font-semibold bg-primary text-primary-foreground hover:bg-primary-hover"
                   onClick={() => handleChoosePlan(p.key)}
                   disabled={!!checkoutLoading}
-                  style={{ backgroundColor: "#01696F", color: "#fff", border: "none" }}
                 >
                   {checkoutLoading === p.key
                     ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -336,7 +335,7 @@ const Billing = () => {
                   <ul className="space-y-2">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                        <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: "#01696F" }} />
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
                         <span>{f}</span>
                       </li>
                     ))}
