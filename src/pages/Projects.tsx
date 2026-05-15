@@ -376,8 +376,8 @@ const Projects = () => {
         </div>
       ) : (
         <div className="flex flex-col">
-          {/* Table header */}
-          <div className="grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-6 py-2 text-xs font-medium text-[#7A7974] uppercase tracking-wide border-b border-[#D4D1CA] bg-[#FBFBF9]">
+          {/* Table header — desktop/tablet only */}
+          <div className="hidden md:grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-4 sm:px-6 py-2 text-xs font-medium text-[#7A7974] uppercase tracking-wide border-b border-[#D4D1CA] bg-[#FBFBF9]">
             <div />
             <div>Event</div>
             <div>Status</div>
