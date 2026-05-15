@@ -1167,7 +1167,7 @@ const ProjectDetail = () => {
                   const { counts, unassigned } = areaCountsForDay(day.photos);
                   return (
                     <div key={day.key} className="rounded-lg">
-                      <div className="flex items-stretch gap-1">
+                      <div className="flex items-stretch gap-1 py-[8px]">
                         <button
                           onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
                           className={cn(
