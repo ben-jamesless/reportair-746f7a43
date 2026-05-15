@@ -916,7 +916,38 @@ const ProjectDetail = () => {
         {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-[#0F1724] leading-tight">{project.name}</h1>
+            {project.event_type && (
+              <p className="text-xs font-semibold tracking-widest uppercase text-[#7A7974] mb-1">
+                {project.event_type}
+              </p>
+            )}
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-[#0F1724] leading-tight">{project.name}</h1>
+              {canEdit ? (
+                <Select
+                  value={project.overall_status ?? "no_status"}
+                  onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}
+                >
+                  <SelectTrigger className={cn(
+                    "h-6 px-2.5 rounded-full text-xs font-semibold border w-auto gap-1",
+                    projectStatusMeta(project.overall_status).pillClass
+                  )}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROJECT_STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className={cn("text-xs px-2.5 py-0.5 rounded-full border font-semibold", projectStatusMeta(project.overall_status).pillClass)}>
+                  {projectStatusMeta(project.overall_status).label}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2 mt-1 text-sm text-[#7A7974]">
               {project.event_location && (
                 <>
@@ -931,18 +962,24 @@ const ProjectDetail = () => {
                   <span>{new Date(project.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
                 </>
               )}
-              {(project.overall_status ?? "no_status") !== "no_status" && (
-                <span className="ml-1">
-                  <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", projectStatusMeta(project.overall_status).pillClass)}>
-                    {projectStatusMeta(project.overall_status).label}
-                  </span>
-                </span>
+              {project.client_name && (
+                <>
+                  <span className="text-[#D4D1CA]">·</span>
+                  <span>{project.client_name}</span>
+                </>
               )}
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <button
+              onClick={() => setFeedbackSheetOpen(true)}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              Feedback
+            </button>
             <ShareButton projectId={project.id} canUseShareLink={canUseShareLink} />
             <button
               onClick={openTopExport}
@@ -952,6 +989,23 @@ const ProjectDetail = () => {
               <Download className="w-3.5 h-3.5" />
               Export PDF
             </button>
+            {canEdit && (
+              <ErrorBoundary label="uploader-header">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={loadAll}
+                  trigger={
+                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors">
+                      <ImagePlus className="w-3.5 h-3.5" />
+                      Upload photos
+                    </button>
+                  }
+                />
+              </ErrorBoundary>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="w-8 h-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9]">
@@ -987,12 +1041,18 @@ const ProjectDetail = () => {
 
         {/* Horizontal tab bar */}
         <TabBar
-          tabs={["Photos", "Activity", "Details"]}
-          activeTab={activeTab === "photos" ? "Photos" : activeTab === "activity" ? "Activity" : "Details"}
+          tabs={["Updates", "Activity", "Gallery", "Settings"]}
+          activeTab={
+            activeTab === "photos" ? "Updates"
+            : activeTab === "activity" ? "Activity"
+            : activeTab === "details" ? "Settings"
+            : "Updates"
+          }
           onChange={(t) => {
-            if (t === "Photos") setActiveTab("photos");
+            if (t === "Updates") setActiveTab("photos");
             else if (t === "Activity") setActiveTab("activity");
-            else setActiveTab("details");
+            else if (t === "Gallery") setActiveTab("photos");
+            else if (t === "Settings") setActiveTab("details");
           }}
         />
       </div>
