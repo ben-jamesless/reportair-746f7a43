@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ArrowUpRight, CheckCircle2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
+
+const SYNC_TIMEOUT_MS = 30000;
 
 const PLAN_LABELS: Record<string, string> = {
   solo: "Solo",
@@ -117,19 +120,29 @@ const Billing = () => {
 
       const syncSubscription = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        await supabase.functions.invoke("stripe-sync-subscription", {
-          body: {},
-          headers: { Authorization: `Bearer ${session?.access_token}` },
-        });
+        await withTimeout(
+          supabase.functions.invoke("stripe-sync-subscription", {
+            body: {},
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+          }),
+          SYNC_TIMEOUT_MS,
+          "Subscription sync"
+        );
         await refetch?.();
       };
 
-      void syncSubscription();
+      void syncSubscription().catch((err) => {
+        console.warn("[Billing] initial sync failed:", err);
+      });
 
       let attempts = 0;
       const poll = setInterval(async () => {
         attempts++;
-        await syncSubscription();
+        try {
+          await syncSubscription();
+        } catch (err) {
+          console.warn("[Billing] poll sync failed:", err);
+        }
         if (attempts >= 6) clearInterval(poll);
       }, 2000);
 
