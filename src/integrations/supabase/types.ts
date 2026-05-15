@@ -1053,6 +1053,7 @@ export type Database = {
         Returns: string
       }
       admin_billing_summary: { Args: never; Returns: Json }
+      admin_delete_team: { Args: { _team_id: string }; Returns: undefined }
       admin_list_projects: {
         Args: { _phase?: string; _project_type?: string; _team_id?: string }
         Returns: {
