@@ -529,8 +529,13 @@ const ProjectDetail = () => {
     loadAll();
   };
 
+  const [settingsDefaultTab, setSettingsDefaultTab] = useState<"details" | "areas" | "albums" | "members" | "share">("details");
   useEffect(() => {
-    const handler = () => setShareSettingsOpen(true);
+    const handler = () => {
+      setShareSettingsOpen(true);
+      setSettingsDefaultTab("share");
+      setSettingsDialogOpen(true);
+    };
     window.addEventListener("open-share-settings", handler);
     return () => window.removeEventListener("open-share-settings", handler);
   }, []);
