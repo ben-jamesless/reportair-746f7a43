@@ -8,6 +8,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ArrowUpRight, CheckCircle2, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const PLAN_LABELS: Record<string, string> = {
   solo: "Solo",
