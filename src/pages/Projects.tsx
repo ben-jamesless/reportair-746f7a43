@@ -668,6 +668,49 @@ const Projects = () => {
                 <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
                 Uncategorised
               </button>
+
+              {folders.length === 0 && (
+                <p className="px-3 pt-2 text-xs text-muted-foreground">
+                  No folders yet. Create one to organise your events.
+                </p>
+              )}
+
+              <div className="border-t pt-3 mt-2">
+                {creatingNewFolder ? (
+                  <div className="flex items-center gap-2 px-1">
+                    <Input
+                      autoFocus
+                      placeholder="Folder name"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); handleCreateAndMove(); }
+                        if (e.key === "Escape") { setCreatingNewFolder(false); setNewFolderName(""); }
+                      }}
+                      disabled={creatingFolderBusy}
+                    />
+                    <Button size="sm" onClick={handleCreateAndMove} disabled={creatingFolderBusy || !newFolderName.trim()}>
+                      Create
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setCreatingNewFolder(false); setNewFolderName(""); }}
+                      disabled={creatingFolderBusy}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setCreatingNewFolder(true)}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#1A6EFF] hover:bg-muted"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add a new folder
+                  </button>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
