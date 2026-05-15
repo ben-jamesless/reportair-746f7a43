@@ -1043,15 +1043,15 @@ const ProjectDetail = () => {
         <TabBar
           tabs={["Updates", "Activity", "Gallery", "Settings"]}
           activeTab={
-            activeTab === "photos" ? "Updates"
-            : activeTab === "activity" ? "Activity"
+            activeTab === "activity" ? "Activity"
             : activeTab === "details" ? "Settings"
+            : viewOverride === "gallery" ? "Gallery"
             : "Updates"
           }
           onChange={(t) => {
-            if (t === "Updates") setActiveTab("photos");
+            if (t === "Updates") { setActiveTab("photos"); setViewOverride("report"); }
             else if (t === "Activity") setActiveTab("activity");
-            else if (t === "Gallery") setActiveTab("photos");
+            else if (t === "Gallery") { setActiveTab("photos"); setViewOverride("gallery"); }
             else if (t === "Settings") setActiveTab("details");
           }}
         />
@@ -1086,9 +1086,9 @@ const ProjectDetail = () => {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
+            <div className="grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
-              <aside className="space-y-1 rounded-lg dark:bg-card dark:p-2">
+              <aside className="space-y-1 rounded-lg pr-4 xl:border-r xl:border-[#E8E6DF] dark:bg-card dark:p-2">
                 {days.length === 0 && albumPhotos.size === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
@@ -1122,16 +1122,19 @@ const ProjectDetail = () => {
                         <button
                           onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
                           className={cn(
-                            "flex flex-1 items-center justify-between px-3 py-1.5 text-left text-sm transition-colors",
-                            dayActive
-                              ? "rounded-lg bg-[#1A6EFF] text-white font-semibold"
-                              : "rounded-lg text-[#0F1724] hover:bg-[#FBFBF9]",
+                            "flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-[#FBFBF9]",
                           )}
                         >
-                          <span>{SHORT_FMT.format(day.date)}</span>
                           <span className={cn(
-                            "ml-2 inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold",
-                            dayActive ? "bg-white/20 text-white" : "bg-[#F0EFEA] text-[#7A7974]"
+                            "flex flex-col items-center justify-center shrink-0 w-9 h-9 rounded-md text-[9px] font-bold uppercase leading-none",
+                            dayActive ? "bg-[#1A6EFF] text-white" : "bg-[#F0EFEA] text-[#7A7974]"
+                          )}>
+                            <span className="text-[12px] leading-none">{day.date.getDate()}</span>
+                            <span className="mt-0.5">{day.date.toLocaleString(undefined, { month: "short" }).toUpperCase()}</span>
+                          </span>
+                          <span className={cn("flex-1 min-w-0", dayActive ? "text-[#0F1724] font-semibold" : "text-[#0F1724]")}>{SHORT_FMT.format(day.date)}</span>
+                          <span className={cn(
+                            "ml-auto inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold bg-[#F0EFEA] text-[#7A7974]"
                           )}>
                             {day.photos.length}
                           </span>
@@ -1330,7 +1333,7 @@ const ProjectDetail = () => {
               </aside>
 
               {/* Main grid */}
-              <section>
+              <section className="px-4 xl:border-r xl:border-[#E8E6DF]">
                 {/* Day / selection header — full-width flush strip, sticky */}
                 <div className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur">
                   <div className="flex items-baseline gap-3 min-w-0">
@@ -1381,7 +1384,7 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="px-4 pt-2 grid grid-cols-2 gap-3 mb-4">
+                      <div className="grid grid-cols-2 gap-3 mb-4">
                         {dailyBlocks.map((b) => {
                           const value = getDailyField(activeDay, b.key);
                           return (
@@ -1667,7 +1670,7 @@ const ProjectDetail = () => {
                     }, 0);
                   }
                 }}
-                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
+                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6 xl:pl-4"
               />
             </div>
 
