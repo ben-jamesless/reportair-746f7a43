@@ -1240,6 +1240,7 @@ export type Database = {
         }[]
       }
       my_latest_invited_project: { Args: never; Returns: string }
+      my_owned_projects_count: { Args: never; Returns: number }
       my_pending_invites_count: { Args: never; Returns: number }
       plan_monthly_hkd: { Args: { _plan: string }; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }

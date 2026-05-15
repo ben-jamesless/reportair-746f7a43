@@ -115,11 +115,11 @@ export const usePlan = (): PlanState => {
     (async () => {
       if (!user?.id) { setState(s => ({ ...s, loading: false })); return; }
 
-      const [{ data: team }, { data: projects }, { data: members }] = await Promise.all([
+      const [{ data: team }, { data: ownedCount }, { data: members }] = await Promise.all([
         supabase.from("teams").select(
           "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at"
         ).eq("billing_owner_user_id", user.id).maybeSingle(),
-        supabase.rpc("my_accessible_projects"),
+        supabase.rpc("my_owned_projects_count"),
         supabase.from("team_members").select("id"),
       ]);
 
@@ -128,7 +128,9 @@ export const usePlan = (): PlanState => {
       const planName = normalisePlan(team?.plan);
       const limits   = LIMITS[planName];
 
-      const projectCount = projects?.length ?? 0;
+      // Only events on teams the user belongs to (and not archived) count toward
+      // the plan quota. Invited-only events on other teams are excluded.
+      const projectCount = typeof ownedCount === "number" ? ownedCount : 0;
       const memberCount  = members?.length  ?? 1;
 
       setState({

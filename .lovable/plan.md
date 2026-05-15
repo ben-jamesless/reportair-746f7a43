@@ -1,47 +1,67 @@
-# Prevent multiple teams per billing owner
+## Findings
 
-## Context
+**1. `project_role` enum values:** `owner`, `editor`, `commenter`, `viewer`. There is **no `invited` role** — invitations live in a separate `project_invites` table, and once accepted they become a row in `project_members` with one of those four roles. So we can't distinguish "invited" purely by role; we have to distinguish by *which team owns the project* vs. which projects the user merely has membership on.
 
-Today, a user can end up as `billing_owner_user_id` of more than one team. We already have one such case in the database (`184b…972480` owns 2 teams). The biggest offender is the invited-user shortcut in onboarding: when an already-invited user logs in for the first time, `Onboarding.tsx` *unconditionally* creates a brand-new team for them at line 56 — even though they were just added to someone else's project. That's the duplicate generator.
+**2. `team_role` enum values:** `owner`, `admin`, `member`. Each `teams` row has a single `billing_owner_user_id`.
 
-Your two SQL options are both useful, but neither is sufficient on its own:
+**3. Current quota source:** `usePlan.ts` calls `my_accessible_projects()` and counts the array length. That RPC unions `project_members` (per-project invites) with `team_members` (team-mates), so a Solo user invited to one foreign project sees `1/1`.
 
-- **Option A (UNIQUE constraint)** — correct long-term guarantee, but the column is actually `billing_owner_user_id` (not `owner_user_id`), and the migration will fail until the existing duplicate is resolved.
-- **Option B (pre-insert SELECT)** — race-prone (two parallel inserts can both pass the check), and only protects the code paths you remember to update.
+**4. Canonical "counts toward quota" definition (confirming your intuition):** an event counts against a user's plan if it lives on a team they belong to — i.e. `projects.team_id IN (teams the user is a team_member of)`. This is correct because:
+   - Solo plan = a one-person team where the user is the sole `team_member` and `billing_owner_user_id`. Their owned events are exactly the events on that team.
+   - Pro/Studio = team-mates share the team's quota. A Pro team-mate creating an event consumes one of the team's 5 slots, even though they're not the billing owner. So filtering by `billing_owner_user_id = auth.uid()` would *under*-count for team-mates. Filtering by `team_members.user_id = auth.uid()` is the right pivot.
+   - Invited users on `project_members` for a project on *someone else's* team are excluded, which is what we want.
 
-Recommendation: do **both** — Option A as the hard guarantee in the database, plus fix the app logic so users don't hit it as a runtime error.
+**5. Archived events:** `projects.archived_at IS NOT NULL` should be excluded. The pricing page says "active events", and archiving is the user's escape hatch when they hit the limit, so it must drop the count.
 
 ## Plan
 
-### 1. Reconcile the existing duplicate
-- Inspect the two teams owned by `184b…972480` (names, member counts, project counts, Stripe subscription).
-- Either:
-  - Reassign `billing_owner_user_id` of the secondary team to another team member (using `admin_set_team_billing_owner`), or
-  - Delete the empty/unused one via `admin_delete_team` if it has no real content.
-- Decide based on what the data shows — will surface options once we look.
+### a. New SQL migration
 
-### 2. Fix the onboarding logic that creates extra teams
-
-In `src/pages/Onboarding.tsx`:
-
-- **Invited-user shortcut (lines ~40–65)**: stop creating a team here. An invited user already belongs to someone else's project/team — they don't need their own workspace just to land in `/projects`. Mark `onboarded_at`, then redirect.
-- **All 3 insert sites**: before inserting a team, check whether the current user is already `billing_owner_user_id` of an existing team. If so, skip the insert and reuse it. This makes the flows idempotent (e.g. retry after a transient failure won't double-create).
-- Surface a friendly error if the DB constraint ever does fire ("You already own a workspace").
-
-### 3. Add the database constraint (after step 1)
+`supabase/migrations/<ts>_my_owned_projects_count.sql`:
 
 ```sql
-ALTER TABLE public.teams
-  ADD CONSTRAINT teams_billing_owner_unique UNIQUE (billing_owner_user_id);
+CREATE OR REPLACE FUNCTION public.my_owned_projects_count()
+RETURNS integer
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COUNT(*)::int
+  FROM public.projects p
+  WHERE auth.uid() IS NOT NULL
+    AND p.archived_at IS NULL
+    AND EXISTS (
+      SELECT 1 FROM public.team_members tm
+      WHERE tm.team_id = p.team_id AND tm.user_id = auth.uid()
+    );
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.my_owned_projects_count() FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION public.my_owned_projects_count() TO authenticated;
 ```
 
-This is the durable guarantee. Even if some future code path tries to insert a second team for the same billing owner, Postgres will reject it.
+Returning a scalar `int` keeps the wire payload tiny and avoids re-shaping a row type. `my_accessible_projects()` is left untouched and still feeds the visible list.
 
-### 4. Verify
+### b. `src/hooks/usePlan.ts`
 
-- Re-run the duplicates query — should return 0 rows.
-- Walk through the three onboarding paths mentally / via preview to confirm none of them double-insert.
+Add a parallel `supabase.rpc("my_owned_projects_count")` call alongside the existing `my_accessible_projects()` call. Use the scalar return value for `projectCount` (and therefore `canCreateProject`). The accessible list keeps being fetched only if other hook consumers need it — a quick check shows it's only used here for `.length`, so we can drop that call entirely from `usePlan` and rely on the scalar. Confirm during impl by grepping for any other reader of the hook's `projectCount`.
 
-## Notes / open question
+### c. `src/pages/Projects.tsx`
 
-Do you want this rule to be **permanent** ("a user can only ever billing-own one team")? That's what the UNIQUE constraint enforces. If you ever want to support a user owning multiple workspaces (common for agencies/consultants), we'd instead keep this as an app-level guard only and skip step 3. My read is you want the hard rule — but flag it before I run the migration.
+- Counter + `canCreateProject` + the `atLimit` flag automatically pick up the corrected `projectCount` from the hook — no display change required.
+- The page already calls `my_accessible_projects()` separately (via the `accessibleProjects` lib) for the list itself, so invited events keep showing up in the list.
+- **No section-header redesign.** Keeping the existing flat list — the counter accurately reflecting "1/1" vs "0/1" already disambiguates ownership for the user, and a redesign is out of scope.
+
+### d. Files NOT touched
+
+- `LIMITS` constant (values are correct).
+- `20260515135500_pm_self_leave_policy.sql` and the leave-event handler (PR #2 territory).
+- `my_accessible_projects()` RPC (still needed for the list).
+
+## Verification after implementation
+
+- `npx tsc --noEmit -p tsconfig.app.json`
+- `npx eslint .`
+- Manual matrix against the four acceptance scenarios (Solo invited-only → 0/1, Solo owner → 1/1, Pro team with 3 events → 3/5, archived event excluded).
+
+Approve and I'll run the migration + apply the code changes.
