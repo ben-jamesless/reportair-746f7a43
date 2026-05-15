@@ -698,10 +698,20 @@ const DayPickerField = ({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={cn("mt-1 w-full justify-start text-left font-normal", !valueDay && "text-muted-foreground")}
+            className={cn(
+              "mt-1 w-full justify-start text-left font-normal px-2 sm:px-3 truncate",
+              !valueDay && "text-muted-foreground",
+            )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {valueDay ? format(valueDay.date, "PPP") : <span>Pick a date</span>}
+            <CalendarIcon className="mr-1.5 h-4 w-4 shrink-0 sm:mr-2" />
+            {valueDay ? (
+              <>
+                <span className="truncate sm:hidden">{format(valueDay.date, "d MMM yyyy")}</span>
+                <span className="hidden truncate sm:inline">{format(valueDay.date, "PPP")}</span>
+              </>
+            ) : (
+              <span className="truncate">Pick a date</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
