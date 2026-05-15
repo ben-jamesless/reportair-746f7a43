@@ -905,9 +905,9 @@ const ProjectDetail = () => {
       />
 
       {/* ── Sticky page header ── */}
-      <div className="border-b border-[#D4D1CA] bg-white px-6 pt-5 pb-0 -mx-4 sm:-mx-6 lg:-mx-8 sticky top-10 z-30">
+      <div className="sticky top-10 z-30 bg-white border-b border-[#D4D1CA] -mx-4 sm:-mx-6 lg:-mx-8 px-6 pt-5 pb-0">
         {/* Breadcrumb */}
-        <nav className="text-xs text-[#7A7974] mb-3 flex items-center gap-1.5">
+        <nav className="text-xs text-[#7A7974] mb-2 flex items-center gap-1.5">
           <Link to="/projects" className="hover:text-[#0F1724]">Events</Link>
           <ChevronRight className="w-3 h-3" />
           <span className="text-[#0F1724]">{project.name}</span>
