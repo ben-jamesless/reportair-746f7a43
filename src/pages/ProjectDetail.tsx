@@ -1210,7 +1210,7 @@ const ProjectDetail = () => {
                                 key={ar.id}
                                 onClick={() => selectDayArea(day.key, ar.id)}
                                 className={cn(
-                                  "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                                  "flex w-full items-center gap-1.5 rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                                   sel
                                     ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
                                     : "text-[#0F1724] hover:bg-[#FBFBF9]",
