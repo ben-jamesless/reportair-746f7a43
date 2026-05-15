@@ -975,16 +975,18 @@ const ProjectDetail = () => {
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={() => setFeedbackSheetOpen(true)}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Feedback
             </button>
-            <ShareButton projectId={project.id} canUseShareLink={canUseShareLink} />
+            <div className="hidden sm:block">
+              <ShareButton projectId={project.id} canUseShareLink={canUseShareLink} />
+            </div>
             <button
               onClick={openTopExport}
               disabled={photos.length === 0}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors disabled:opacity-40"
+              className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors disabled:opacity-40"
             >
               <Download className="w-3.5 h-3.5" />
               Export PDF
@@ -1000,7 +1002,8 @@ const ProjectDetail = () => {
                   trigger={
                     <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors">
                       <ImagePlus className="w-3.5 h-3.5" />
-                      Upload photos
+                      <span className="hidden sm:inline">Upload photos</span>
+                      <span className="sm:hidden">Upload</span>
                     </button>
                   }
                 />
@@ -1013,6 +1016,24 @@ const ProjectDetail = () => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {/* Mobile-only quick actions (hidden ≥sm where buttons are visible) */}
+                <DropdownMenuItem className="sm:hidden" onSelect={() => setFeedbackSheetOpen(true)}>
+                  <MessageSquare className="mr-2 h-4 w-4" /> Feedback
+                </DropdownMenuItem>
+                <DropdownMenuItem className="sm:hidden" onSelect={() => {
+                  if (canUseShareLink) window.dispatchEvent(new CustomEvent("open-share-settings"));
+                  else toast.message("Share links are a Pro feature");
+                }}>
+                  <Share2 className="mr-2 h-4 w-4" /> Share link
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="sm:hidden"
+                  disabled={photos.length === 0}
+                  onSelect={() => openTopExport()}
+                >
+                  <Download className="mr-2 h-4 w-4" /> Export PDF
+                </DropdownMenuItem>
+                {canEdit && <DropdownMenuSeparator className="sm:hidden" />}
                 {canEdit && (
                   <>
                     <DropdownMenuItem onSelect={() => setSettingsDialogOpen(true)}>
