@@ -24,6 +24,10 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
+const Reports = lazy(() => import("./pages/Reports.tsx"));
+const ShareLinks = lazy(() => import("./pages/ShareLinks.tsx"));
+const Team = lazy(() => import("./pages/Team.tsx"));
+const Settings = lazy(() => import("./pages/Settings.tsx"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
@@ -59,6 +63,10 @@ const App = () => (
                   <Route path="/profile" element={<ErrorBoundary label="page"><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
                   <Route path="/invite/:token" element={<ErrorBoundary label="page"><InviteAccept /></ErrorBoundary>} />
                   <Route path="/billing" element={<ErrorBoundary label="page"><ProtectedRoute><Billing /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/reports" element={<ErrorBoundary label="page"><ProtectedRoute><Reports /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/share-links" element={<ErrorBoundary label="page"><ProtectedRoute><ShareLinks /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/team" element={<ErrorBoundary label="page"><ProtectedRoute><Team /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/settings" element={<ErrorBoundary label="page"><ProtectedRoute><Settings /></ProtectedRoute></ErrorBoundary>} />
                   <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />
                   <Route path="/admin" element={<ErrorBoundary label="page"><ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute></ErrorBoundary>}>
                     <Route index element={<AdminSummary />} />

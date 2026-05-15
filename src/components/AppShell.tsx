@@ -2,6 +2,7 @@ import { ReportAirLockup } from "@/components/brand/ReportAirMark";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppSidebar } from "./AppSidebar";
+import { TrialBanner } from "./TrialBanner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChevronRight, Menu } from "lucide-react";
@@ -56,8 +57,11 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
         </div>
       </header>
 
-      <div className={cn("transition-[padding] duration-200", collapsed ? "md:pl-16" : "md:pl-56")}>
-        {/* Breadcrumbs — height matches the sidebar logo bar (h-14) so the two top edges align. */}
+      <div className={cn("flex flex-col transition-[padding] duration-200", collapsed ? "md:pl-16" : "md:pl-56")}>
+        {/* Trial banner — sticky at top of main content */}
+        <TrialBanner />
+
+        {/* Breadcrumbs */}
         {crumbs && crumbs.length > 0 && (
           <div className="border-b bg-background/60 backdrop-blur">
             <div className={cn(fluid ? "px-4 sm:px-6 lg:px-8" : "container", "flex h-14 items-center")}>

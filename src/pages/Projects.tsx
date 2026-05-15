@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
 import { NewProjectDialog } from "@/components/NewProjectDialog";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -22,14 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, ArrowUpDown, Archive, ArchiveRestore, SlidersHorizontal } from "lucide-react";
+import { CalendarDays, Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, Archive, ArchiveRestore, FolderInput, LogOut, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
-import { PROJECT_STATUSES, projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
+import { projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,14 +42,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { FolderInput } from "lucide-react";
 import { fetchAccessibleProjects, isProjectInFolderView, type AccessibleProject } from "@/lib/accessibleProjects";
 import { canDeleteProject, canEditProject, canArchiveProject, canMoveProjectToFolder, canLeaveProject, type ProjectRole } from "@/lib/projectPermissions";
-import { LogOut } from "lucide-react";
+import { usePlan } from "@/hooks/usePlan";
+import { formatDistanceToNow } from "date-fns";
 
 type FolderRow = { id: string; name: string; color: string | null };
 const FOLDER_ALL = "__all__";
@@ -57,15 +55,12 @@ const FOLDER_UNFOLDERED = "__unfoldered__";
 
 type Project = Omit<AccessibleProject, "overall_status"> & { overall_status: ProjectStatus | null };
 
-type SortKey = "alpha" | "created" | "event_date" | "last_upload";
-
-const ALL = "__all__";
+type ActiveTab = "All Events" | "Active" | "Archived";
 
 const Projects = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [teamId, setTeamId] = useState<string | null>(null);
-  const [teamName, setTeamName] = useState<string>("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [lastUploads, setLastUploads] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -76,10 +71,10 @@ const Projects = () => {
 
   // Toolbar state
   const [search, setSearch] = useState("");
-  const [filterClient, setFilterClient] = useState<string>(ALL);
-  const [filterEventType, setFilterEventType] = useState<string>(ALL);
-  const [filterStatus, setFilterStatus] = useState<string>(ALL);
-  const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [activeTab, setActiveTab] = useState<ActiveTab>("All Events");
+  const [filterClient, setFilterClient] = useState<string>("__all__");
+  const [filterEventType, setFilterEventType] = useState<string>("__all__");
+  const [filterStatus, setFilterStatus] = useState<string>("__all__");
   const [showArchived, setShowArchived] = useState(false);
   const [pendingInvites, setPendingInvites] = useState<{ count: number; firstToken: string | null }>({ count: 0, firstToken: null });
   const [folders, setFolders] = useState<FolderRow[]>([]);
@@ -91,6 +86,8 @@ const Projects = () => {
   const [leavingProject, setLeavingProject] = useState<Project | null>(null);
   const [leaving, setLeaving] = useState(false);
 
+  const { plan, projectCount, limits, canCreateProject } = usePlan();
+
   const load = async () => {
     if (!user) return;
     setLoading(true);
@@ -101,7 +98,6 @@ const Projects = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      // Has the user any project access (via team OR direct invite)?
       const { data: pmAny } = await supabase
         .from("project_members")
         .select("project_id")
@@ -121,25 +117,18 @@ const Projects = () => {
         .limit(1);
 
       const team = memberships?.[0]?.teams as { id: string; name: string } | undefined;
-      if (team) {
-        setTeamId(team.id);
-        setTeamName(team.name);
-      } else {
-        setTeamId(null);
-        setTeamName("");
-      }
+      if (team) setTeamId(team.id);
+      else setTeamId(null);
 
       const list = (await fetchAccessibleProjects(user.id)) as Project[];
       setProjects(list);
 
-      // Folders (owner-only via RLS)
       const { data: fdata } = await supabase
         .from("folders")
         .select("id, name, color, sort_order")
         .order("sort_order", { ascending: true });
       setFolders((fdata ?? []) as FolderRow[]);
 
-      // Determine which projects current user owns (for showing folder controls per card)
       const ids = list.map((p) => p.id);
       if (ids.length > 0) {
         const { data: pm } = await supabase
@@ -160,7 +149,6 @@ const Projects = () => {
         setOwnedProjectIds(new Set());
       }
 
-      // Fetch last upload timestamp per project (single page, ordered desc; reduce client-side).
       const projectIds = list.map((p) => p.id);
       const uploads = new Map<string, string>();
       if (projectIds.length > 0) {
@@ -176,7 +164,6 @@ const Projects = () => {
       }
       setLastUploads(uploads);
 
-      // Pending invites for this user's email
       if (user.email) {
         const { data: inv } = await supabase
           .from("project_invites")
@@ -199,12 +186,12 @@ const Projects = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user?.id]);
 
-  // Distinct option lists for filter dropdowns
   const clientOptions = useMemo(() => {
     const set = new Set<string>();
     projects.forEach((p) => { if (p.client_name) set.add(p.client_name); });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [projects]);
+
   const eventTypeOptions = useMemo(() => {
     const set = new Set<string>();
     projects.forEach((p) => { if (p.event_type) set.add(p.event_type); });
@@ -216,65 +203,28 @@ const Projects = () => {
     [projects],
   );
 
-  const folderCounts = useMemo(() => {
-    const byFolder: Record<string, number> = {};
-    let unfoldered = 0;
-    let all = 0;
-    for (const p of projects) {
-      if (!showArchived && p.archived_at) continue;
-      all += 1;
-      if (p.folder_id && folders.some((f) => f.id === p.folder_id)) {
-        byFolder[p.folder_id] = (byFolder[p.folder_id] ?? 0) + 1;
-      } else {
-        unfoldered += 1;
-      }
-    }
-    return { all, unfoldered, byFolder };
-  }, [projects, folders, showArchived]);
-
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const folderIds = new Set(folders.map((f) => f.id));
     let arr = projects.filter((p) => {
-      if (!showArchived && p.archived_at) return false;
+      if (activeTab === "Active" && p.archived_at) return false;
+      if (activeTab === "Archived" && !p.archived_at) return false;
+      if (activeTab === "All Events" && p.archived_at) return false;
       if (!isProjectInFolderView(p, selectedFolder, folderIds, FOLDER_ALL, FOLDER_UNFOLDERED)) return false;
-      if (filterClient !== ALL && (p.client_name ?? "") !== filterClient) return false;
-      if (filterEventType !== ALL && (p.event_type ?? "") !== filterEventType) return false;
-      if (filterStatus !== ALL && (p.overall_status ?? "no_status") !== filterStatus) return false;
+      if (filterClient !== "__all__" && (p.client_name ?? "") !== filterClient) return false;
+      if (filterEventType !== "__all__" && (p.event_type ?? "") !== filterEventType) return false;
+      if (filterStatus !== "__all__" && (p.overall_status ?? "no_status") !== filterStatus) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
         (p.client_name ?? "").toLowerCase().includes(q) ||
-        (p.event_type ?? "").toLowerCase().includes(q)
+        (p.event_type ?? "").toLowerCase().includes(q) ||
+        (p.event_location ?? "").toLowerCase().includes(q)
       );
     });
-    arr = [...arr].sort((a, b) => {
-      switch (sortKey) {
-        case "alpha":
-          return a.name.localeCompare(b.name);
-        case "event_date": {
-          const av = a.event_date ?? "";
-          const bv = b.event_date ?? "";
-          if (!av && !bv) return 0;
-          if (!av) return 1;
-          if (!bv) return -1;
-          return bv.localeCompare(av); // newest first
-        }
-        case "last_upload": {
-          const av = lastUploads.get(a.id) ?? "";
-          const bv = lastUploads.get(b.id) ?? "";
-          if (!av && !bv) return 0;
-          if (!av) return 1;
-          if (!bv) return -1;
-          return bv.localeCompare(av);
-        }
-        case "created":
-        default:
-          return b.created_at.localeCompare(a.created_at);
-      }
-    });
+    arr = [...arr].sort((a, b) => b.created_at.localeCompare(a.created_at));
     return arr;
-  }, [projects, search, filterClient, filterEventType, filterStatus, sortKey, lastUploads, showArchived, selectedFolder, folders]);
+  }, [projects, search, activeTab, filterClient, filterEventType, filterStatus, selectedFolder, folders]);
 
   const assignProjectToFolder = async (projectId: string, folderId: string | null) => {
     const { error } = await supabase
@@ -285,21 +235,6 @@ const Projects = () => {
     toast.success(folderId ? "Moved to folder" : "Removed from folder");
     window.dispatchEvent(new Event("projects:changed"));
     load();
-  };
-
-  const filtersActive =
-    !!search.trim() ||
-    filterClient !== ALL ||
-    filterEventType !== ALL ||
-    filterStatus !== ALL ||
-    sortKey !== "created";
-
-  const clearFilters = () => {
-    setSearch("");
-    setFilterClient(ALL);
-    setFilterEventType(ALL);
-    setFilterStatus(ALL);
-    setSortKey("created");
   };
 
   const setProjectArchived = async (p: Project, archived: boolean) => {
@@ -313,23 +248,28 @@ const Projects = () => {
   };
 
   const showSkeleton = authLoading || loading;
-  const nonArchivedCount = projects.length - archivedCount;
-  const hasAnyVisibleSource = (showArchived ? projects.length : nonArchivedCount) > 0;
+  const hasAnyVisibleSource = projects.filter((p) => !p.archived_at).length > 0 || activeTab === "Archived";
+  const atLimit = plan === "solo" && projectCount >= limits.maxProjects && limits.maxProjects !== -1;
+
+  const tabs: ActiveTab[] = ["All Events", "Active", "Archived"];
 
   return (
-    <AppShell crumbs={[{ label: "Projects" }]}>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8">
-        <div>
-          {teamName && <p className="text-sm text-muted-foreground">{teamName}</p>}
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Projects</h1>
-        </div>
-        {!showSkeleton && nonArchivedCount > 0 && (
-          <NewProjectDialog teamId={teamId} onCreated={load} />
-        )}
+    <AppShell crumbs={[{ label: "Events" }]}>
+      {/* ── Header row ── */}
+      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+        <h1 className="text-xl font-semibold text-[#0F1724]">Events</h1>
+        <NewEventButton
+          teamId={teamId}
+          onCreated={load}
+          atLimit={atLimit}
+          projectCount={projectCount}
+          maxProjects={limits.maxProjects}
+        />
       </div>
 
+      {/* Pending invites banner */}
       {!showSkeleton && pendingInvites.count > 0 && pendingInvites.firstToken && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+        <div className="mx-6 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
           <span>
             You have <strong>{pendingInvites.count}</strong> pending project invitation{pendingInvites.count === 1 ? "" : "s"}.
           </span>
@@ -339,221 +279,118 @@ const Projects = () => {
         </div>
       )}
 
+      {/* ── Filter toolbar ── */}
       {!showSkeleton && hasAnyVisibleSource && (
-        <div className="mb-5 flex flex-col gap-3 rounded-lg border bg-card/50 p-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="relative min-w-[200px] flex-1">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
+        <div className="flex items-center gap-4 px-6 pb-4 border-b border-[#D4D1CA]">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A7974]" />
+            <input
+              type="text"
+              placeholder="Search events…"
+              className="pl-9 pr-3 h-9 rounded-lg border border-[#D4D1CA] bg-[#FBFBF9] text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30 w-56"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, client, or type…"
-              className="pl-8"
-              aria-label="Search projects"
             />
             {search && (
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
-                aria-label="Clear search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#7A7974] hover:text-[#0F1724]"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
 
-          {/* Mobile: collapsed Filter sheet */}
-          <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="relative w-full justify-center">
-                  <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  Filter
-                  {(filterClient !== ALL || filterEventType !== ALL || filterStatus !== ALL || sortKey !== "created") && (
-                    <span className="absolute right-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-primary" aria-hidden />
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="rounded-t-xl">
-                <SheetHeader>
-                  <SheetTitle>Filter projects</SheetTitle>
-                </SheetHeader>
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Client</Label>
-                    <Select value={filterClient} onValueChange={setFilterClient}>
-                      <SelectTrigger><SelectValue placeholder="Client" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={ALL}>All clients</SelectItem>
-                        {clientOptions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Event type</Label>
-                    <Select value={filterEventType} onValueChange={setFilterEventType}>
-                      <SelectTrigger><SelectValue placeholder="Event type" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={ALL}>All types</SelectItem>
-                        {eventTypeOptions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Status</Label>
-                    <Select value={filterStatus} onValueChange={setFilterStatus}>
-                      <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={ALL}>All statuses</SelectItem>
-                        {PROJECT_STATUSES.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>
-                            <span className="flex items-center gap-2">
-                              <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
-                              {s.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Sort by</Label>
-                    <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="created">Date added</SelectItem>
-                        <SelectItem value="alpha">Alphabetical</SelectItem>
-                        <SelectItem value="event_date">Event date</SelectItem>
-                        <SelectItem value="last_upload">Last upload</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <SheetFooter className="mt-5 flex-row gap-2">
-                  <Button variant="outline" className="flex-1" onClick={clearFilters}>
-                    Clear
-                  </Button>
-                  <SheetClose asChild>
-                    <Button className="flex-1">Done</Button>
-                  </SheetClose>
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
+          {/* Tabs */}
+          <div className="flex items-center gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-3 h-9 text-sm font-medium rounded-md transition-colors",
+                  activeTab === tab
+                    ? "text-[#1A6EFF] bg-[#1A6EFF]/8"
+                    : "text-[#7A7974] hover:text-[#0F1724] hover:bg-[#D4D1CA]/30"
+                )}
+              >
+                {tab}
+                {tab === "Archived" && archivedCount > 0 && (
+                  <span className="ml-1 text-xs text-[#7A7974]">({archivedCount})</span>
+                )}
+              </button>
+            ))}
           </div>
 
-          {/* Desktop: original inline filter selects */}
-          <Select value={filterClient} onValueChange={setFilterClient}>
-            <SelectTrigger className="hidden sm:w-[160px] md:flex" aria-label="Filter by client">
-              <SelectValue placeholder="Client" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>All clients</SelectItem>
-              {clientOptions.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filterEventType} onValueChange={setFilterEventType}>
-            <SelectTrigger className="hidden sm:w-[160px] md:flex" aria-label="Filter by event type">
-              <SelectValue placeholder="Event type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>All types</SelectItem>
-              {eventTypeOptions.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="hidden sm:w-[180px] md:flex" aria-label="Filter by status">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>All statuses</SelectItem>
-              {PROJECT_STATUSES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  <span className="flex items-center gap-2">
-                    <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
-                    {s.label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-            <SelectTrigger className="hidden sm:w-[180px] md:flex" aria-label="Sort projects">
-              <ArrowUpDown className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="created">Date added</SelectItem>
-              <SelectItem value="alpha">Alphabetical</SelectItem>
-              <SelectItem value="event_date">Event date</SelectItem>
-              <SelectItem value="last_upload">Last upload</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {filtersActive && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="hidden md:inline-flex">
-              <X className="mr-1.5 h-3.5 w-3.5" /> Clear
-            </Button>
-          )}
-
-          {archivedCount > 0 && (
-            <label className="ml-auto flex shrink-0 cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-              <Switch
-                checked={showArchived}
-                onCheckedChange={setShowArchived}
-                aria-label="Show archived projects"
-              />
-              <span>
-                Show archived
-                <span className="ml-1 text-muted-foreground/70">({archivedCount})</span>
-              </span>
-            </label>
+          {/* Solo counter */}
+          {plan === "solo" && limits.maxProjects > 0 && (
+            <span className="ml-auto text-xs text-[#7A7974]">
+              {projectCount} / {limits.maxProjects} events used
+            </span>
           )}
         </div>
       )}
 
+      {/* ── Content ── */}
       {showSkeleton ? (
         <ProjectGridSkeleton />
       ) : !hasAnyVisibleSource ? (
         <EmptyState
           className="mx-auto max-w-xl"
           icon={<Camera className="h-6 w-6" />}
-          title="Your first project starts here"
-          description="Create a project to start uploading site photos, tracking area progress, and sharing daily reports with your team."
+          title="Your first event starts here"
+          description="Create an event to start uploading site photos, tracking area progress, and sharing daily reports with your team."
           action={
-            <NewProjectDialog
+            <NewEventButton
               teamId={teamId}
               onCreated={load}
-              trigger={
-                <Button size="lg">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create your first project
-                </Button>
-              }
+              atLimit={atLimit}
+              projectCount={projectCount}
+              maxProjects={limits.maxProjects}
+              primary
             />
           }
         />
       ) : filtered.length === 0 ? (
-        <EmptyState
-          className="mx-auto max-w-md"
-          icon={<Search className="h-5 w-5" />}
-          title="No matching projects"
-          description="Try changing your search or filters."
-          action={<Button variant="outline" onClick={clearFilters}>Clear filters</Button>}
-        />
+        <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-[#1A6EFF]/10 flex items-center justify-center mb-4">
+            <CalendarDays className="w-8 h-8 text-[#1A6EFF]" />
+          </div>
+          <h2 className="text-base font-semibold text-[#0F1724] mb-1">
+            {activeTab === "Archived" ? "No archived events" : "No matching events"}
+          </h2>
+          <p className="text-sm text-[#7A7974] max-w-xs mb-6">
+            {activeTab === "Archived"
+              ? "Events you archive will appear here."
+              : "Try changing your search or filters."}
+          </p>
+          {activeTab !== "Archived" && (
+            <button
+              onClick={() => { setSearch(""); setActiveTab("All Events"); }}
+              className="px-4 h-9 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div className="flex flex-col">
+          {/* Table header */}
+          <div className="grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-6 py-2 text-xs font-medium text-[#7A7974] uppercase tracking-wide border-b border-[#D4D1CA] bg-[#FBFBF9]">
+            <div />
+            <div>Event</div>
+            <div>Status</div>
+            <div>Last Updated</div>
+            <div />
+          </div>
+
+          {/* Rows */}
           {filtered.map((p) => {
             const color = p.color || DEFAULT_PROJECT_COLOR;
             const lastUpload = lastUploads.get(p.id);
             const statusMeta = projectStatusMeta(p.overall_status);
-            const showStatus = (p.overall_status ?? "no_status") !== "no_status";
             const isArchived = !!p.archived_at;
             const isOwner = ownedProjectIds.has(p.id);
             const role = projectRoles.get(p.id) ?? null;
@@ -563,10 +400,12 @@ const Projects = () => {
             const canDelete = canDeleteProject(role);
             const canLeave = canLeaveProject(role);
             const hasAnyAction = canEdit || canArchive || canMove || canDelete || canLeave;
+
             return (
               <div
                 key={p.id}
-                className={cn("group relative", isArchived && "opacity-70 saturate-[0.4] hover:opacity-100")}
+                className="group grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-6 py-3 border-b border-[#D4D1CA] hover:bg-[#FBFBF9] cursor-pointer transition-colors"
+                onClick={() => navigate(`/projects/${p.id}`)}
                 draggable={isOwner}
                 onDragStart={(e) => {
                   if (!isOwner) return;
@@ -574,81 +413,66 @@ const Projects = () => {
                   e.dataTransfer.effectAllowed = "move";
                 }}
               >
-                <Link to={`/projects/${p.id}`} className="block">
-                  <Card
-                    className={cn(
-                      "relative h-full cursor-pointer overflow-hidden border-l-4 transition-all hover:shadow-soft group-hover:border-primary/40",
-                      isArchived && "bg-muted/30",
+                {/* Thumbnail */}
+                <div
+                  className="h-[60px] w-[60px] rounded-lg shrink-0"
+                  style={{
+                    background: `linear-gradient(135deg, ${color}33, ${color}11)`,
+                  }}
+                >
+                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[#0F1724]/30">
+                    {p.name.slice(0, 2).toUpperCase()}
+                  </div>
+                </div>
+
+                {/* Event name + meta */}
+                <div className="min-w-0">
+                  <h3 className="truncate text-sm font-semibold text-[#0F1724]">{p.name}</h3>
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-[#7A7974]">
+                    {p.event_location && <span className="truncate">{p.event_location}</span>}
+                    {p.event_date && (
+                      <>
+                        {p.event_location && <span className="text-[#D4D1CA]">·</span>}
+                        <span>{new Date(p.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
+                      </>
                     )}
-                    style={{ borderLeftColor: color }}
-                  >
-                    <div className="p-5 pr-12">
-                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-                            {p.template === "event_production" ? "Event" : "Project"}
-                          </Badge>
-                          {isArchived && (
-                            <Badge variant="outline" className="gap-1 text-[10px] uppercase tracking-wide">
-                              <Archive className="h-2.5 w-2.5" />
-                              Archived
-                            </Badge>
-                          )}
-                        </div>
-                        {showStatus && (
-                          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                            <span className={cn("h-2 w-2 rounded-full", statusMeta.dotClass)} />
-                            {statusMeta.label}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="truncate text-base font-semibold tracking-tight">{p.name}</h3>
-                      {p.client_name && (
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{p.client_name}</p>
-                      )}
-                      {p.description && (
-                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
-                      )}
-                      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                        {p.event_type && <span>{p.event_type}</span>}
-                        {p.event_date && (
-                          <span>
-                            {new Date(p.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
-                          </span>
-                        )}
-                        {p.event_location && <span className="truncate">{p.event_location}</span>}
-                        {lastUpload && (
-                          <span>Last upload {new Date(lastUpload).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-                {hasAnyAction && (
-                  <div className="absolute right-2 top-2">
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div>
+                  {(p.overall_status ?? "no_status") !== "no_status" ? (
+                    <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
+                      {statusMeta.label}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-[#7A7974]">—</span>
+                  )}
+                </div>
+
+                {/* Last Updated */}
+                <div className="text-xs text-[#7A7974]">
+                  {lastUpload
+                    ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true })
+                    : "—"}
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end">
+                  {hasAnyAction && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 opacity-70 hover:opacity-100"
+                        <button
+                          className="h-8 w-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9] opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                          aria-label={`Project options for ${p.name}`}
                         >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
+                          <MoreVertical className="h-4 w-4 text-[#7A7974]" />
+                        </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        {canEdit && (
-                          <DropdownMenuItem onSelect={() => setEditingProject(p)}>
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                        )}
-                        {canMove && (
-                          <DropdownMenuItem onSelect={() => setMoveProject(p)}>
-                            <FolderInput className="mr-2 h-4 w-4" /> Move to folder
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onSelect={() => setEditingProject(p)}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
                         {canArchive && (
                           isArchived ? (
                             <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
@@ -678,22 +502,21 @@ const Projects = () => {
                               className="text-destructive focus:text-destructive"
                               onSelect={() => setLeavingProject(p)}
                             >
-                              <LogOut className="mr-2 h-4 w-4" /> Leave project
+                              <LogOut className="mr-2 h-4 w-4" /> Leave
                             </DropdownMenuItem>
                           </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-
-      {/* Edit dialog (controlled, opens for any selected project) */}
+      {/* ── Dialogs (preserved) ── */}
       {editingProject && (
         <EditProjectDialog
           key={editingProject.id}
@@ -712,17 +535,16 @@ const Projects = () => {
         />
       )}
 
-      {/* Delete confirmation */}
       <AlertDialog
         open={!!deletingProject}
         onOpenChange={(o) => { if (!o) { setDeletingProject(null); setDeleteConfirm(""); } }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
             <AlertDialogDescription>
               All albums, areas, photos, comments, share links, and history for{" "}
-              <span className="font-semibold text-foreground">{deletingProject?.name}</span> will be permanently deleted. This cannot be undone.
+              <span className="font-semibold text-foreground">{deletingProject?.name}</span> will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
@@ -748,30 +570,29 @@ const Projects = () => {
                 const { error } = await supabase.rpc("delete_project", { _project_id: deletingProject.id });
                 setDeleting(false);
                 if (error) { toast.error(error.message); return; }
-                toast.success("Project deleted");
+                toast.success("Event deleted");
                 setDeletingProject(null);
                 setDeleteConfirm("");
                 load();
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleting ? "Deleting…" : "Delete project"}
+              {deleting ? "Deleting…" : "Delete event"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {/* Leave project confirmation */}
+
       <AlertDialog
         open={!!leavingProject}
         onOpenChange={(o) => { if (!o) setLeavingProject(null); }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Leave this project?</AlertDialogTitle>
+            <AlertDialogTitle>Leave this event?</AlertDialogTitle>
             <AlertDialogDescription>
               You will lose access to{" "}
               <span className="font-semibold text-foreground">{leavingProject?.name}</span>.
-              The project and its content remain for other members. You can be re-invited later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -782,56 +603,114 @@ const Projects = () => {
                 e.preventDefault();
                 if (!leavingProject) return;
                 setLeaving(true);
-                const { error } = await supabase.rpc("leave_project", { _project_id: leavingProject.id });
+                const { error } = await supabase
+                  .from("project_members")
+                  .delete()
+                  .eq("project_id", leavingProject.id)
+                  .eq("user_id", user!.id);
                 setLeaving(false);
                 if (error) { toast.error(error.message); return; }
-                toast.success("You left the project");
+                toast.success("Left event");
                 setLeavingProject(null);
                 load();
               }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {leaving ? "Leaving…" : "Leave project"}
+              {leaving ? "Leaving…" : "Leave event"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Move to folder dialog */}
-      <Dialog open={!!moveProject} onOpenChange={(o) => !o && setMoveProject(null)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Move to folder</DialogTitle>
-          </DialogHeader>
-          <RadioGroup
-            value={moveProject?.folder_id ?? "__none__"}
-            onValueChange={async (val) => {
-              if (!moveProject) return;
-              const folderId = val === "__none__" ? null : val;
-              await assignProjectToFolder(moveProject.id, folderId);
-              setMoveProject(null);
-            }}
-            className="max-h-[60vh] overflow-y-auto"
-          >
-            <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
-              <RadioGroupItem value="__none__" id="move-none" />
-              <span className="text-sm">No folder</span>
-            </label>
-            {folders.map((f) => (
-              <label key={f.id} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-accent">
-                <RadioGroupItem value={f.id} id={`move-${f.id}`} />
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color || "hsl(var(--muted-foreground))" }} />
-                <span className="text-sm">{f.name}</span>
-              </label>
-            ))}
-            {folders.length === 0 && (
-              <p className="px-2 py-3 text-xs text-muted-foreground">No folders yet. Create one from the sidebar.</p>
-            )}
-          </RadioGroup>
-        </DialogContent>
-      </Dialog>
-
+      {moveProject && (
+        <Dialog open onOpenChange={() => setMoveProject(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Move to folder</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              {folders.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => { assignProjectToFolder(moveProject.id, f.id); setMoveProject(null); }}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
+                >
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: f.color || "#ccc" }} />
+                  {f.name}
+                </button>
+              ))}
+              <button
+                onClick={() => { assignProjectToFolder(moveProject.id, null); setMoveProject(null); }}
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-muted"
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
+                Uncategorised
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </AppShell>
   );
 };
+
+/* ── New Event button with Solo plan gate ── */
+function NewEventButton({
+  teamId,
+  onCreated,
+  atLimit,
+  projectCount,
+  maxProjects,
+  primary = false,
+}: {
+  teamId: string | null;
+  onCreated?: () => void;
+  atLimit: boolean;
+  projectCount: number;
+  maxProjects: number;
+  primary?: boolean;
+}) {
+  if (atLimit) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            disabled
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-[#1A6EFF]/30 text-white/50 text-sm font-medium cursor-not-allowed"
+          >
+            <Plus className="w-4 h-4" />
+            New Event
+            <span className="ml-1 text-xs opacity-70">{projectCount}/{maxProjects}</span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your Solo plan.</p>
+          <Link to="/billing" className="text-[#1A6EFF] underline text-xs">Upgrade to Pro →</Link>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <NewProjectDialog
+      teamId={teamId}
+      onCreated={onCreated}
+      trigger={
+        <button
+          className={cn(
+            "flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium transition-colors",
+            primary
+              ? "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
+              : "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
+          )}
+        >
+          <Plus className="w-4 h-4" />
+          New Event
+        </button>
+      }
+    />
+  );
+}
 
 export default Projects;

@@ -798,77 +798,98 @@ const ProjectDetail = () => {
         onOpenFeedback={() => setFeedbackSheetOpen(true)}
         onLoadAll={loadAll}
       />
-      <div className="mb-6 hidden flex-col gap-4 sm:mb-8 md:flex md:flex-row md:flex-wrap md:items-start md:justify-between">
-        <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span
-              className="inline-block h-3 w-3 rounded-full"
-              style={{ backgroundColor: accent }}
-              aria-hidden
-            />
-            <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-              {project.template === "event_production" ? "Event production" : "Project"}
-            </Badge>
-            {canEdit ? (
-              <Select value={project.overall_status ?? "no_status"} onValueChange={(v) => saveProjectStatus(v as ProjectStatus)}>
-                <SelectTrigger
-                  aria-label="Project status"
-                  className={cn(
-                    "h-7 w-auto gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors",
-                    projectStatusMeta(project.overall_status).pillClass,
-                  )}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
-                    <span>{projectStatusMeta(project.overall_status).label}</span>
+
+      {/* ── Sticky page header ── */}
+      <div className="border-b border-[#D4D1CA] bg-white px-6 pt-5 pb-0 -mx-4 sm:-mx-6 lg:-mx-8 sticky top-10 z-30">
+        {/* Breadcrumb */}
+        <nav className="text-xs text-[#7A7974] mb-3 flex items-center gap-1.5">
+          <Link to="/projects" className="hover:text-[#0F1724]">Events</Link>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-[#0F1724]">{project.name}</span>
+        </nav>
+
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-[#0F1724] leading-tight">{project.name}</h1>
+            <div className="flex items-center gap-2 mt-1 text-sm text-[#7A7974]">
+              {project.event_location && (
+                <>
+                  <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <span>{project.event_location}</span>
+                </>
+              )}
+              {project.event_date && (
+                <>
+                  {project.event_location && <span className="text-[#D4D1CA]">·</span>}
+                  <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+                  <span>{new Date(project.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
+                </>
+              )}
+              {(project.overall_status ?? "no_status") !== "no_status" && (
+                <span className="ml-1">
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", projectStatusMeta(project.overall_status).pillClass)}>
+                    {projectStatusMeta(project.overall_status).label}
                   </span>
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      <span className="flex items-center gap-2">
-                        <span className={cn("h-2 w-2 rounded-full", s.dotClass)} />
-                        {s.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <span
-                className={cn(
-                  "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium",
-                  projectStatusMeta(project.overall_status).pillClass,
-                )}
-              >
-                <span className={cn("h-2 w-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
-                <span>{projectStatusMeta(project.overall_status).label}</span>
-              </span>
-            )}
-          </div>
-          <h1 className="break-words text-2xl font-semibold tracking-tight sm:text-3xl">{project.name}</h1>
-          {project.description && (
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{project.description}</p>
-          )}
-        </div>
-        {canEdit && (
-          <div className="flex flex-col gap-2 sm:items-end">
-            <div className="flex flex-wrap items-center gap-2">
-              <ErrorBoundary label="uploader">
-                <PhotoUploader
-                  projectId={project.id}
-                  albumId={uploadAlbumId}
-                  areaId={uploadAreaId}
-                  areas={areas}
-                  onUploaded={loadAll}
-                />
-              </ErrorBoundary>
+                </span>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Uploading to: <span className="font-medium">{uploadContextLabel}</span>
-            </p>
           </div>
-        )}
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 shrink-0">
+            <ShareButton projectId={project.id} canUseShareLink={canUseShareLink} />
+            <button
+              onClick={openTopExport}
+              disabled={photos.length === 0}
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors disabled:opacity-40"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export PDF
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-8 h-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9]">
+                  <MoreVertical className="w-4 h-4 text-[#7A7974]" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canEdit && (
+                  <>
+                    <DropdownMenuItem onSelect={() => setEditingProject(project)}>
+                      <Pencil className="mr-2 h-4 w-4" /> Edit event details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setShareSettingsOpen(true)}>
+                      <Share2 className="mr-2 h-4 w-4" /> Share links
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isOwner && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={() => setProjectArchived(project, true)}
+                    >
+                      <Archive className="mr-2 h-4 w-4" /> Archive event
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Horizontal tab bar */}
+        <TabBar
+          tabs={["Photos", "Activity", "Details"]}
+          activeTab={activeTab === "photos" ? "Photos" : activeTab === "activity" ? "Activity" : "Details"}
+          onChange={(t) => {
+            if (t === "Photos") setActiveTab("photos");
+            else if (t === "Activity") setActiveTab("activity");
+            else setActiveTab("details");
+          }}
+        />
       </div>
 
       {project?.archived_at && (
@@ -876,7 +897,7 @@ const ProjectDetail = () => {
           <div className="flex items-center gap-2">
             <Archive className="h-4 w-4 text-amber-600 dark:text-amber-400" aria-hidden />
             <span>
-              This project was archived on{" "}
+              This event was archived on{" "}
               <span className="font-medium">
                 {new Date(project.archived_at).toLocaleDateString(undefined, {
                   day: "numeric",
@@ -895,96 +916,9 @@ const ProjectDetail = () => {
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="w-full">
-        {/* Top controls row: tabs + settings + export */}
-        <div className="mb-6 hidden flex-wrap items-center justify-between gap-3 border-b pb-3 md:flex">
-          <TabsList>
-            <TabsTrigger value="photos">Updates</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
-          </TabsList>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-md border bg-background p-0.5" role="radiogroup" aria-label="Project view">
-              <button
-                type="button"
-                role="radio"
-                aria-checked={effectiveView === "report"}
-                onClick={() => setViewOverride("report")}
-                title="Daily report view"
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors",
-                  effectiveView === "report"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-secondary",
-                )}
-              >
-                <FileText className="h-3.5 w-3.5" /> Report
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={effectiveView === "gallery"}
-                onClick={() => setViewOverride("gallery")}
-                title="Gallery view"
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors",
-                  effectiveView === "gallery"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-secondary",
-                )}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" /> Gallery
-              </button>
-            </div>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={openTopExport}
-              disabled={photos.length === 0}
-              title={mostRecentDay ? `Export ${mostRecentDay.label}` : "Export project"}
-            >
-              <FileDown className="mr-2 h-4 w-4" />
-              {!canExportPdf && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
-              Export {mostRecentDay ? "latest day" : "project"}
-            </Button>
-            {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShareSettingsOpen(true)}
-                title="Manage share links"
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                {!canUseShareLink && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
-                Share link
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              className="xl:hidden"
-              onClick={() => setFeedbackSheetOpen(true)}
-              title="Feedback"
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Feedback
-            </Button>
-            {canEdit && (
-              <ProjectSettingsDialog projectId={project.id} project={project} onChanged={loadAll} />
-            )}
-            {canEdit && (
-              <ProjectSettingsDialog
-                projectId={project.id}
-                project={project}
-                onChanged={loadAll}
-                trigger={null}
-                defaultTab="share"
-                open={shareSettingsOpen}
-                onOpenChange={setShareSettingsOpen}
-              />
-            )}
-          </div>
-        </div>
+      <div className="flex flex-1 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+        {/* Main tab content */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
