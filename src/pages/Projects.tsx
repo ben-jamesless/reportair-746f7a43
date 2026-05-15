@@ -86,6 +86,32 @@ const Projects = () => {
   const [leavingProject, setLeavingProject] = useState<Project | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [newEventPanelOpen, setNewEventPanelOpen] = useState(false);
+  const [creatingNewFolder, setCreatingNewFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [creatingFolderBusy, setCreatingFolderBusy] = useState(false);
+
+  const handleCreateAndMove = async () => {
+    if (!user || !moveProject) return;
+    const n = newFolderName.trim();
+    if (!n) return;
+    setCreatingFolderBusy(true);
+    const nextSortOrder = folders.length;
+    const { data, error } = await supabase
+      .from("folders")
+      .insert({ name: n, color: "#1A6EFF", owner_id: user.id, sort_order: nextSortOrder })
+      .select("id, name, color")
+      .single();
+    if (error || !data) {
+      setCreatingFolderBusy(false);
+      toast.error(error?.message ?? "Failed to create folder");
+      return;
+    }
+    await assignProjectToFolder(moveProject.id, data.id);
+    setCreatingFolderBusy(false);
+    setCreatingNewFolder(false);
+    setNewFolderName("");
+    setMoveProject(null);
+  };
 
   const { plan, projectCount, limits, canCreateProject } = usePlan();
 
