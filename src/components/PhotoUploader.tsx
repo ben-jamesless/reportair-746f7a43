@@ -33,11 +33,12 @@ interface Props {
   areaId?: string | null;
   areas?: AreaOption[];
   onUploaded?: () => void;
+  trigger?: React.ReactNode;
 }
 
 const NO_AREA = "__no_area__";
 
-export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded }: Props) => {
+export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger }: Props) => {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
