@@ -86,6 +86,7 @@ const Projects = () => {
   const [moveProject, setMoveProject] = useState<Project | null>(null);
   const [leavingProject, setLeavingProject] = useState<Project | null>(null);
   const [leaving, setLeaving] = useState(false);
+  const [newEventPanelOpen, setNewEventPanelOpen] = useState(false);
 
   const { plan, projectCount, limits, canCreateProject } = usePlan();
 
@@ -260,8 +261,7 @@ const Projects = () => {
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
         <h1 className="text-xl font-semibold text-[#0F1724]">Events</h1>
         <NewEventButton
-          teamId={teamId}
-          onCreated={load}
+          onOpen={() => setNewEventPanelOpen(true)}
           atLimit={atLimit}
           projectCount={projectCount}
           maxProjects={limits.maxProjects}
@@ -345,8 +345,7 @@ const Projects = () => {
           description="Create an event to start uploading site photos, tracking area progress, and sharing daily reports with your team."
           action={
             <NewEventButton
-              teamId={teamId}
-              onCreated={load}
+              onOpen={() => setNewEventPanelOpen(true)}
               atLimit={atLimit}
               projectCount={projectCount}
               maxProjects={limits.maxProjects}
@@ -652,21 +651,26 @@ const Projects = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      <NewEventPanel
+        open={newEventPanelOpen}
+        onOpenChange={setNewEventPanelOpen}
+        teamId={teamId}
+        onCreated={load}
+      />
     </AppShell>
   );
 };
 
 /* ── New Event button with Solo plan gate ── */
 function NewEventButton({
-  teamId,
-  onCreated,
+  onOpen,
   atLimit,
   projectCount,
   maxProjects,
   primary = false,
 }: {
-  teamId: string | null;
-  onCreated?: () => void;
+  onOpen: () => void;
   atLimit: boolean;
   projectCount: number;
   maxProjects: number;
@@ -694,23 +698,18 @@ function NewEventButton({
   }
 
   return (
-    <NewProjectDialog
-      teamId={teamId}
-      onCreated={onCreated}
-      trigger={
-        <button
-          className={cn(
-            "flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium transition-colors",
-            primary
-              ? "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
-              : "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
-          )}
-        >
-          <Plus className="w-4 h-4" />
-          New Event
-        </button>
-      }
-    />
+    <button
+      onClick={onOpen}
+      className={cn(
+        "flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium transition-colors",
+        primary
+          ? "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
+          : "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
+      )}
+    >
+      <Plus className="w-4 h-4" />
+      New Event
+    </button>
   );
 }
 
