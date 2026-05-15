@@ -495,6 +495,23 @@ const ProjectDetail = () => {
     loadAll();
   };
 
+  const archiveProject = async () => {
+    if (!id) return;
+    const { error } = await supabase
+      .from("projects")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Event archived");
+    loadAll();
+  };
+
+  useEffect(() => {
+    const handler = () => setShareSettingsOpen(true);
+    window.addEventListener("open-share-settings", handler);
+    return () => window.removeEventListener("open-share-settings", handler);
+  }, []);
+
   // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
   const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
     areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
