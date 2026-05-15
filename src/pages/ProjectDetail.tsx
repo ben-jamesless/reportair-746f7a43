@@ -1335,7 +1335,7 @@ const ProjectDetail = () => {
               {/* Main grid */}
               <section className="px-4 xl:border-r xl:border-[#E8E6DF]">
                 {/* Day / selection header — full-width flush strip, sticky */}
-                <div className="sticky top-0 z-20 -mx-1 mb-0 flex flex-wrap items-center justify-between gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur">
+                <div className="sticky top-0 z-20 -mx-1 mb-4 flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
                   <div className="flex items-baseline gap-3 min-w-0">
                     <h2 className="truncate text-base font-bold text-foreground">{selectionTitle}</h2>
                   </div>
