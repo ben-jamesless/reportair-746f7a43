@@ -80,13 +80,14 @@ async function stripeGet(path: string, params: Record<string, string>) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const cors = corsFor(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   const callerId = await getCallerUserId(req);
   if (!callerId) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
@@ -100,7 +101,7 @@ serve(async (req) => {
   if (teamError || !team) {
     return new Response(JSON.stringify({ updated: false, reason: "no_team" }), {
       status: teamError ? 500 : 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
@@ -151,7 +152,7 @@ serve(async (req) => {
 
     if (!customerId || !subscriptions) {
       return new Response(JSON.stringify({ updated: false, reason: "no_billing_customer" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -161,7 +162,7 @@ serve(async (req) => {
 
     if (!subscription) {
       return new Response(JSON.stringify({ updated: false, reason: "no_active_subscription" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -172,7 +173,7 @@ serve(async (req) => {
     if (!plan) {
       console.error(JSON.stringify({ fn: "stripe-sync-subscription", error: "unknown_price", priceId }));
       return new Response(JSON.stringify({ updated: false, reason: "unknown_price" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...cors, "Content-Type": "application/json" },
       });
     }
 
@@ -188,13 +189,13 @@ serve(async (req) => {
     if (updateError) throw updateError;
 
     return new Response(JSON.stringify({ updated: true, plan, status: subscription.status }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error(JSON.stringify({ fn: "stripe-sync-subscription", error: String(error) }));
     return new Response(JSON.stringify({ error: "Could not sync subscription" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 });
