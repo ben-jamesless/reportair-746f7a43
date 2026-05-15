@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2, Crown, MoreVertical, Pencil, Lock } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, Check, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2, Crown, MoreVertical, Pencil, Lock, Plus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   DropdownMenu,
