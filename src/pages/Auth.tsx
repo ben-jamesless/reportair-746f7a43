@@ -94,12 +94,24 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
+    try {
+      const { error } = await withTimeout(
+        supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: `${window.location.origin}/projects` },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Google sign-in"
+      );
+      if (error) {
+        setBusy(false);
+        toast.error("Google sign-in failed", { description: error.message });
+      }
+      // On success the browser navigates away — keep busy=true.
+    } catch (err) {
       setBusy(false);
-      toast.error("Google sign-in failed");
+      const msg = err instanceof Error ? err.message : "Google sign-in failed";
+      toast.error(msg, { description: NETWORK_HELP });
     }
   };
 
