@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSection from "@/components/marketing/HeroSection";
 import HowItWorksSection from "@/components/marketing/HowItWorksSection";
@@ -168,6 +169,7 @@ const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [annual, setAnnual] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && user) navigate("/projects", { replace: true });
@@ -207,8 +209,28 @@ const Index = () => {
             >
               Sign up
             </Link>
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((v) => !v)}
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileNavOpen}
+              className="inline-flex md:hidden items-center justify-center rounded-full h-9 w-9 transition-colors"
+              style={{ color: BRAND.ink, border: `1px solid ${BRAND.border}`, backgroundColor: "#fff" }}
+            >
+              {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+        {mobileNavOpen && (
+          <div className="md:hidden border-t" style={{ borderColor: BRAND.border, background: "rgba(255,255,255,0.98)" }}>
+            <nav className="mx-auto flex max-w-[1360px] flex-col px-5 py-3 sm:px-6" aria-label="Mobile">
+              <a href="#how-it-works" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>How it works</a>
+              <a href="#faq" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>FAQ</a>
+              <a href="#pricing" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>Pricing</a>
+              <Link to="/auth?tab=signin" onClick={() => setMobileNavOpen(false)} className="sm:hidden py-2 text-sm font-semibold" style={{ color: BRAND.ink }}>Sign in</Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* ============ HERO ============ */}
