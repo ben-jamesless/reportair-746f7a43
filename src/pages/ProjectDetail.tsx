@@ -1049,9 +1049,9 @@ const ProjectDetail = () => {
             : "Updates"
           }
           onChange={(t) => {
-            if (t === "Updates") setActiveTab("photos");
+            if (t === "Updates") { setActiveTab("photos"); setViewOverride("report"); }
             else if (t === "Activity") setActiveTab("activity");
-            else if (t === "Gallery") setActiveTab("photos");
+            else if (t === "Gallery") { setActiveTab("photos"); setViewOverride("gallery"); }
             else if (t === "Settings") setActiveTab("details");
           }}
         />
