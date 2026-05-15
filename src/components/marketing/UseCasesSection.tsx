@@ -131,56 +131,56 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    id: "renovation",
-    accent: "#A8C4FF",
-    title: "Home Renovation",
+    id: "filmsets",
+    accent: "#E94560",
+    title: "Film Sets",
     description:
-      "Document each phase for clients or insurers. Replace WhatsApp chaos with structured daily reports.",
+      "Shooting locations, set builds, and location dressing. Keep continuity, art dept, and production aligned.",
     bullets: [
-      "Daily photo reports for each trade (plumber, electrician, plasterer)",
-      "Client receives a link — no app download required to view",
-      "Insurer-ready photo documentation at each milestone",
-      "Replace chaotic WhatsApp threads with a single organised report",
+      "Document set builds, prop placement, and dressing changes",
+      "Continuity photo logs shared between shoots and wrap",
+      "Location manager receives a daily update before wrap",
+      "Insurance-ready evidence of site condition before and after",
     ],
-    reportTitle: "34 Hillside Ave — Kitchen Reno",
-    reportDay: "Week 4",
+    reportTitle: "Pinewood Studio — Set Build",
+    reportDay: "Day 2 of 12",
     rows: [
-      { label: "Structural Works", status: "complete" },
-      { label: "Electrical & Plumbing", status: "complete" },
-      { label: "Tiling & Plastering", status: "progress" },
-      { label: "Cabinetry Install", status: "pending" },
+      { label: "Main Set Build", status: "complete" },
+      { label: "Prop Dressing", status: "progress" },
+      { label: "Lighting Rig", status: "pending" },
+      { label: "Location Condition", status: "complete" },
     ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
-        <path d="M3 9.5L12 3l9 6.5V21H3V9.5z" />
-        <path d="M9 21V12h6v9" />
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="10,8 16,12 10,16 10,8" />
       </svg>
     ),
   },
   {
-    id: "construction",
+    id: "activations",
     accent: "#FF8C00",
-    title: "Construction & Site Works",
-    description: "Progress reporting for site managers. Photo-to-report in the field, no desk required.",
+    title: "Brand Activations",
+    description: "Pop-ups, roadshows, and retail installations. Proof of build quality and brand compliance in real time.",
     bullets: [
-      "Daily site progress reports with geo-tagged photo evidence",
-      "Document structural work, groundworks, MEP, and finishing trades",
-      "Flag defects or non-conformances on site with photo + note",
-      "Report shared with principal contractor before end of day",
+      "Capture build quality and brand compliance at every activation",
+      "Flag missing assets or off-brand execution instantly",
+      "Client receives a live link to the day's install progress",
+      "Suitable for roadshows, retail fit-outs, and experiential builds",
     ],
-    reportTitle: "Block C — Residential Build",
-    reportDay: "Day 42",
+    reportTitle: "Summer Roadshow — Install",
+    reportDay: "Stop 3 of 8",
     rows: [
-      { label: "Groundworks", status: "complete" },
-      { label: "Structural Frame", status: "complete" },
-      { label: "MEP First Fix", status: "progress" },
-      { label: "External Cladding", status: "pending" },
+      { label: "Structure Build", status: "complete" },
+      { label: "Branding & Graphics", status: "complete" },
+      { label: "Product Display", status: "progress" },
+      { label: "Lighting & AV", status: "pending" },
     ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
-        <path d="M2 17h2m16 0h2M6 17v-5a6 6 0 0 1 12 0v5" />
-        <rect x="6" y="17" width="12" height="4" rx="1" />
-        <path d="M9 8h6" />
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5" />
+        <path d="M2 12l10 5 10-5" />
       </svg>
     ),
   },
@@ -191,8 +191,8 @@ const tabLabels: Record<string, string> = {
   golf: "Golf",
   marathons: "Marathons",
   corporate: "Corporate",
-  renovation: "Renovation",
-  construction: "Construction",
+  filmsets: "Film sets",
+  activations: "Activations",
 };
 
 function hexToRgba(hex: string, alpha: number) {
