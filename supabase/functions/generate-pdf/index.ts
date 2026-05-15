@@ -412,7 +412,7 @@ Deno.serve(async (req) => {
       .eq("id", (proj as { team_id: string }).team_id)
       .maybeSingle();
     const teamPlan = (teamData as { plan?: string } | null)?.plan ?? "free";
-    const canUseLogo = teamPlan === "team" || teamPlan === "enterprise";
+    const canUseLogo = teamPlan === "studio";
     const effectiveLogoPath: string | null = canUseLogo
       ? ((exp.logo_path as string | null) || ((proj as { logo_path?: string | null }).logo_path ?? null))
       : null;

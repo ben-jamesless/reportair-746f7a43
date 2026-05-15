@@ -8,26 +8,55 @@ import type { PlanName } from "@/hooks/usePlan";
 
 const PLANS = [
   {
-    key: "pro",
-    name: "Pro",
-    price: "HK$80",
-    description: "For solo operators who need more.",
-    features: ["5 projects", "5 team members", "Unlimited PDF exports", "Share links"],
+    key: "solo",
+    name: "Solo",
+    monthlyPrice: "HK$128",
+    annualPrice:  "HK$1,229",
+    annualMonthly: "HK$102",
+    description: "For solo operators running events.",
+    features: [
+      "1 active event",
+      "Unlimited PDF exports",
+      "14-day free trial",
+    ],
   },
   {
-    key: "team",
-    name: "Team",
-    price: "HK$240",
+    key: "pro",
+    name: "Pro",
+    monthlyPrice: "HK$298",
+    annualPrice:  "HK$2,860",
+    annualMonthly: "HK$238",
     description: "For growing event teams.",
-    features: ["20 projects", "15 team members", "Unlimited PDF exports", "Share links", "Custom logo on PDF"],
+    features: [
+      "5 active events",
+      "5 team members",
+      "Unlimited PDF exports",
+      "Share & client links",
+      "Password-protected links",
+      "Project folders",
+      "Project invites",
+      "14-day free trial",
+    ],
     recommended: true,
   },
   {
-    key: "enterprise",
-    name: "Enterprise",
-    price: "HK$800",
-    description: "For large organisations.",
-    features: ["Unlimited projects", "Unlimited members", "Unlimited exports", "Share links", "Custom logo on PDF", "Priority support"],
+    key: "studio",
+    name: "Studio",
+    monthlyPrice: "HK$688",
+    annualPrice:  "HK$6,604",
+    annualMonthly: "HK$550",
+    description: "For agencies and large organisations.",
+    features: [
+      "Unlimited events",
+      "Unlimited team members",
+      "Unlimited PDF exports",
+      "Share & client links",
+      "Custom logo on PDF",
+      "White-label report header",
+      "Priority support",
+      "Onboarding call",
+      "14-day free trial",
+    ],
   },
 ];
 
@@ -38,16 +67,17 @@ interface Props {
 }
 
 export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading]   = useState<string | null>(null);
+  const [annual, setAnnual]     = useState(false);
 
-  const planOrder: Record<string, number> = { free: 0, pro: 1, team: 2, enterprise: 3 };
+  const planOrder: Record<string, number> = { solo: 0, pro: 1, studio: 2 };
   const availablePlans = PLANS.filter(p => (planOrder[p.key] ?? 0) > (planOrder[currentPlan] ?? 0));
 
   const handleUpgrade = async (planKey: string) => {
     setLoading(planKey);
     const { data: { session } } = await supabase.auth.getSession();
     const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-      body: { plan: planKey },
+      body: { plan: planKey, interval: annual ? "annual" : "monthly" },
       headers: { Authorization: `Bearer ${session?.access_token}` },
     });
     if (error || !data?.url) {
@@ -64,9 +94,23 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
         <DialogHeader>
           <DialogTitle className="text-xl">Upgrade your plan</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Start a 7-day free trial. Cancel anytime.
+            14-day free trial on all plans. Cancel anytime.
           </p>
         </DialogHeader>
+
+        {/* Billing toggle */}
+        <div className="flex items-center gap-3 mt-2">
+          <span className={`text-sm font-medium ${!annual ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
+          <button
+            onClick={() => setAnnual(a => !a)}
+            className={`relative w-10 h-6 rounded-full transition-colors ${annual ? "bg-[#01696F]" : "bg-muted"}`}
+          >
+            <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${annual ? "translate-x-4" : ""}`} />
+          </button>
+          <span className={`text-sm font-medium ${annual ? "text-foreground" : "text-muted-foreground"}`}>
+            Annual <span className="ml-1 text-xs font-semibold text-[#01696F] bg-[#01696F]/10 px-1.5 py-0.5 rounded-full">Save 20%</span>
+          </span>
+        </div>
 
         <div className="grid gap-4 items-stretch sm:grid-cols-2 lg:grid-cols-3 mt-4">
           {availablePlans.map(plan => (
@@ -74,13 +118,13 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
               key={plan.key}
               className={`relative rounded-xl border flex flex-col h-full p-6 gap-4 ${
                 plan.recommended
-                  ? "border-[#FF6A1A] bg-[#0B2A4A] text-white"
+                  ? "border-[#01696F] bg-[#01696F] text-white"
                   : "bg-card"
               }`}
             >
               {plan.recommended && (
-                <span className="absolute -top-3 left-4 bg-[#FF6A1A] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
-                  Recommended
+                <span className="absolute -top-3 left-4 bg-[#01696F] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/30">
+                  Most popular
                 </span>
               )}
 
@@ -91,31 +135,41 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
                 </p>
               </div>
 
-              <div className="text-3xl font-bold">
-                {plan.price}
-                <span className={`text-sm font-normal ml-1 ${plan.recommended ? "text-white/70" : "text-muted-foreground"}`}>
-                  / month
-                </span>
+              <div>
+                <div className="text-3xl font-bold">
+                  {annual ? plan.annualMonthly : plan.monthlyPrice}
+                  <span className={`text-sm font-normal ml-1 ${plan.recommended ? "text-white/70" : "text-muted-foreground"}`}>
+                    / month
+                  </span>
+                </div>
+                {annual && (
+                  <p className={`text-xs mt-0.5 ${plan.recommended ? "text-white/60" : "text-muted-foreground"}`}>
+                    {plan.annualPrice} billed annually
+                  </p>
+                )}
               </div>
 
               <ul className="space-y-2 flex-1">
                 {plan.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-sm">
-                    <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: plan.recommended ? "#FF6A1A" : "#0B2A4A" }} />
+                    <Check className="h-4 w-4 shrink-0 mt-0.5" style={{ color: plan.recommended ? "#ffffff" : "#01696F" }} />
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
 
               <Button
-                className={`w-full ${plan.recommended ? "font-bold" : "font-semibold"}`}
+                className="w-full font-semibold"
                 onClick={() => handleUpgrade(plan.key)}
-                disabled={loading === plan.key}
-                style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
+                disabled={!!loading}
+                style={plan.recommended
+                  ? { backgroundColor: "#ffffff", color: "#01696F", border: "none" }
+                  : { backgroundColor: "#01696F", color: "#ffffff", border: "none" }
+                }
               >
                 {loading === plan.key
                   ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : "Start 7-day free trial →"}
+                  : "Start 14-day free trial →"}
               </Button>
             </div>
           ))}

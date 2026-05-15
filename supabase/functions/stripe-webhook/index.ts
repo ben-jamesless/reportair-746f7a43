@@ -5,11 +5,27 @@ import Stripe from "https://esm.sh/stripe@14?target=deno";
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-04-10" });
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
 
-const PRICE_TO_PLAN: Record<string, string> = {
-  "price_0TWWkf1c550c7HdPqtOvUZJC": "pro",
-  "price_0TWWko1c550c7HdPLsR4Dqy8": "team",
-  "price_0TWWl01c550c7HdPy7nsH4qG": "enterprise",
-};
+// ── Price → Plan mapping ────────────────────────────────────────────────────
+// All 6 price IDs (monthly + annual per tier) resolve to the plan name.
+// Add your real Stripe price IDs to Supabase Edge Function secrets and they'll
+// be picked up automatically here.
+function buildPriceToPlan(): Record<string, string> {
+  const map: Record<string, string> = {};
+  const pairs: Array<[string, string]> = [
+    ["STRIPE_PRICE_SOLO_MONTHLY",   "solo"],
+    ["STRIPE_PRICE_SOLO_ANNUAL",    "solo"],
+    ["STRIPE_PRICE_PRO_MONTHLY",    "pro"],
+    ["STRIPE_PRICE_PRO_ANNUAL",     "pro"],
+    ["STRIPE_PRICE_STUDIO_MONTHLY", "studio"],
+    ["STRIPE_PRICE_STUDIO_ANNUAL",  "studio"],
+  ];
+  for (const [envKey, plan] of pairs) {
+    const id = Deno.env.get(envKey);
+    if (id) map[id] = plan;
+  }
+  return map;
+}
+const PRICE_TO_PLAN = buildPriceToPlan();
 
 async function sendTransactionalEmail(payload: { to: string; template: string; data: Record<string, string> }) {
   const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`;
@@ -62,12 +78,12 @@ serve(async (req) => {
     const session = event.data.object as Stripe.Checkout.Session;
     if (session.mode !== "subscription") return new Response("ok");
 
-    const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+    const sub    = await stripe.subscriptions.retrieve(session.subscription as string);
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return new Response("ok");
 
     const priceId = sub.items.data[0]?.price?.id;
-    const plan    = PRICE_TO_PLAN[priceId] ?? "pro";
+    const plan    = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
 
     await service.from("teams").update({
       plan,
@@ -83,11 +99,7 @@ serve(async (req) => {
       await sendTransactionalEmail({
         to: owner.email,
         template: "upgrade",
-        data: {
-          name: owner.name,
-          plan,
-          renewalDate: fmtDate(sub.current_period_end),
-        },
+        data: { name: owner.name, plan, renewalDate: fmtDate(sub.current_period_end) },
       });
     }
   }
@@ -98,7 +110,7 @@ serve(async (req) => {
     if (!teamId) return new Response("ok");
 
     const priceId = sub.items.data[0]?.price?.id;
-    const plan    = PRICE_TO_PLAN[priceId] ?? "pro";
+    const plan    = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
 
     await service.from("teams").update({
       plan,
@@ -114,16 +126,18 @@ serve(async (req) => {
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return new Response("ok");
 
-    const priceId = sub.items.data[0]?.price?.id;
-    const plan    = PRICE_TO_PLAN[priceId] ?? "";
-    const endDate = fmtDate(sub.current_period_end);
+    const priceId  = sub.items.data[0]?.price?.id;
+    const oldPlan  = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
+    const endDate  = fmtDate(sub.current_period_end);
 
+    // Cancel → downgrade to solo (no free plan)
     await service.from("teams").update({
-      plan:                 "free",
-      subscription_status:  "canceled",
+      plan:                   "solo",
       stripe_subscription_id: null,
-      current_period_end:   null,
-      trial_ends_at:        null,
+      subscription_status:    "canceled",
+      billing_interval:       null,
+      current_period_end:     null,
+      trial_ends_at:          null,
     }).eq("id", teamId);
 
     const owner = await getBillingOwner(service, teamId);
@@ -131,11 +145,7 @@ serve(async (req) => {
       await sendTransactionalEmail({
         to: owner.email,
         template: "cancelled",
-        data: {
-          name: owner.name,
-          plan,
-          endDate,
-        },
+        data: { name: owner.name, plan: oldPlan, endDate },
       });
     }
   }
@@ -149,30 +159,25 @@ serve(async (req) => {
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return new Response("ok");
 
-    await service.from("teams").update({
-      subscription_status: "past_due",
-    }).eq("id", teamId);
+    await service.from("teams").update({ subscription_status: "past_due" }).eq("id", teamId);
 
     const owner = await getBillingOwner(service, teamId);
     if (owner) {
       await sendTransactionalEmail({
         to: owner.email,
         template: "payment_failed",
-        data: {
-          name: owner.name,
-          plan: PRICE_TO_PLAN[sub.items.data[0]?.price?.id ?? ""] ?? "",
-        },
+        data: { name: owner.name, plan: PRICE_TO_PLAN[sub.items.data[0]?.price?.id ?? ""] ?? "" },
       });
     }
   }
 
   else if (event.type === "customer.subscription.trial_will_end") {
-    const sub = event.data.object as Stripe.Subscription;
+    const sub    = event.data.object as Stripe.Subscription;
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return new Response("ok");
 
-    const priceId = sub.items.data[0]?.price?.id;
-    const plan = PRICE_TO_PLAN[priceId ?? ""] ?? "pro";
+    const priceId  = sub.items.data[0]?.price?.id;
+    const plan     = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
     const trialEnd = sub.trial_end ? new Date(sub.trial_end * 1000) : null;
     const daysLeft = trialEnd
       ? Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -184,7 +189,7 @@ serve(async (req) => {
         to: owner.email,
         template: "trial_ending",
         data: {
-          name: owner.name,
+          name:     owner.name,
           plan,
           daysLeft: String(daysLeft),
           trialEnd: trialEnd.toLocaleDateString("en-HK", { day: "numeric", month: "long", year: "numeric" }),

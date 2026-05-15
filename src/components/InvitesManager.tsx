@@ -49,7 +49,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canInviteMember } = usePlan();
+  const { canInviteMember, planIncludesInvites } = usePlan();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
@@ -242,13 +242,19 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={addInvite} disabled={loading || !canInviteMember}>
-              {!canInviteMember && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
+            <Button onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
+              {(!canInviteMember || !planIncludesInvites) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
               <Mail className="mr-2 h-4 w-4" />Send invite
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
-          {!canInviteMember && (
+          {!planIncludesInvites && (
+            <p className="text-xs text-muted-foreground">
+              External project invites are available on the <strong>Pro</strong> plan and above.{" "}
+              <a href="/billing" className="underline">Upgrade</a> to invite collaborators.
+            </p>
+          )}
+          {planIncludesInvites && !canInviteMember && (
             <p className="text-xs text-muted-foreground">
               Member limit reached. <a href="/billing" className="underline">Upgrade your plan</a> to invite more.
             </p>

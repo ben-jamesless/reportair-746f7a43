@@ -73,15 +73,15 @@ function infoBox(content: string, borderColor = "#1A6EFF", bg = "#EDF1F7"): stri
   return `<table cellpadding="0" cellspacing="0" style="width:100%;background:${bg};border-radius:10px;margin-bottom:28px;border-left:4px solid ${borderColor};"><tr><td style="padding:16px 20px;">${content}</td></tr></table>`;
 }
 
-const PLAN_PRICES: Record<string, string> = { pro: "HK$80", team: "HK$240", enterprise: "HK$800" };
+const PLAN_PRICES: Record<string, string> = { solo: "HK$128", pro: "HK$298", studio: "HK$688" };
 const PLAN_FEATURES: Record<string, string[][]> = {
-  pro:        [["5 projects","Share links"],["5 team members","Unlimited PDF exports"]],
-  team:       [["20 projects","Share links"],["15 team members","Custom logo on PDF"],["Unlimited PDF exports",""]],
-  enterprise: [["Unlimited projects","Share links"],["Unlimited members","Custom logo on PDF"],["Unlimited exports","Priority support"]],
+  solo:   [["1 active event","Unlimited PDF exports"],["1 team member","14-day free trial"]],
+  pro:    [["5 active events","Share & client links"],["5 team members","Password-protected links"],["Unlimited PDF exports","Project invites"]],
+  studio: [["Unlimited events","Share & client links"],["Unlimited members","Custom logo on PDF"],["Unlimited PDF exports","White-label header"],["Priority support","Onboarding call"]],
 };
 
 function featureGrid(plan: string): string {
-  const rows = PLAN_FEATURES[plan] ?? PLAN_FEATURES.pro;
+  const rows = PLAN_FEATURES[plan] ?? PLAN_FEATURES.solo;
   const rowsHtml = rows.map(([a, b]) => `<tr>
     <td style="padding:4px 0;font-size:14px;color:#334155;width:50%;">&#10003;&nbsp; ${escapeHtml(a)}</td>
     <td style="padding:4px 0;font-size:14px;color:#334155;">${b ? `&#10003;&nbsp; ${escapeHtml(b)}` : ""}</td>
@@ -105,7 +105,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
     html: baseWrapper("", `
       <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Welcome, ${escapeHtml(d.name || "there")}!</h1>
       <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your ReportAir account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
-      <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;re on the <strong style="color:#0F1724;">Free plan</strong>. Upgrade anytime to unlock share links, more projects, and custom branding.</p>
+      <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;re on the <strong style="color:#0F1724;">Solo plan</strong>. Upgrade anytime to unlock share links, more events, team members, and custom branding.</p>
       ${ctaBtn("https://reportair.co/projects", "Go to your projects")}
     `),
   }),
@@ -136,8 +136,8 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       html: baseWrapper("", `
         <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Subscription cancelled</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription has been cancelled.</p>
-        ${d.endDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;ll have full access until <strong style="color:#0F1724;">${escapeHtml(d.endDate)}</strong>, after which your account reverts to the Free plan. All your projects and photos are safe &mdash; nothing gets deleted.</p>` : ""}
-        ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#0F1724;">Your data is safe.</strong> Projects, photos, and reports remain accessible on the Free plan. Upgrade again anytime to restore full access.</p>`)}
+        ${d.endDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;ll have full access until <strong style="color:#0F1724;">${escapeHtml(d.endDate)}</strong>, after which your account reverts to the Solo plan. All your projects and photos are safe &mdash; nothing gets deleted.</p>` : ""}
+        ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#0F1724;">Your data is safe.</strong> Projects, photos, and reports remain accessible on the Solo plan. Upgrade again anytime to restore full access.</p>`)}
         ${ctaBtn("https://reportair.co/billing", "Reactivate subscription")}
         <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Have feedback on why you left? Just reply to this email &mdash; we read every response.</p>
       `),
@@ -155,7 +155,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       html: baseWrapper(alertStrip, `
         <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">We couldn&rsquo;t process your payment</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your payment${price ? ` of <strong style="color:#0F1724;">${escapeHtml(price)}</strong>` : ""} for the ${escapeHtml(planLabel)} plan was declined.</p>
-        <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Please update your payment method to keep your subscription active. If we can&rsquo;t collect payment, your account will revert to the Free plan.</p>
+        <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Please update your payment method to keep your subscription active. If we can&rsquo;t collect payment, your account will revert to the Solo plan.</p>
         ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#DC2626;">Subscription at risk.</strong> Update your card within 3 days to avoid losing access to share links, team members, and unlimited exports.</p>`, "#DC2626", "#FEF2F2")}
         ${ctaBtn("https://reportair.co/billing", "Update payment method", "#DC2626")}
         <p style="margin:20px 0 0;font-size:13px;color:#64748b;">If you need help, reply to this email and we&rsquo;ll sort it out.</p>
@@ -174,13 +174,13 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       subject: `Your ReportAir trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
       html: baseWrapper(strip, `
         <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Make the most of ReportAir</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your 7-day free trial of the <strong style="color:#0F1724;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1724;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#334155;">After that, you&rsquo;ll move to the Free plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your 14-day free trial of the <strong style="color:#0F1724;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1724;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#334155;">After that, you&rsquo;ll move to the Solo plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
         <table cellpadding="0" cellspacing="0" style="width:100%;background:#EDF1F7;border-radius:10px;margin-bottom:28px;">
           <tr><td style="padding:20px 24px;">
             <p style="margin:0 0 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#0F1724;letter-spacing:0.04em;text-transform:uppercase;">Keep with ${escapeHtml(planLabel)} plan</p>
             <table cellpadding="0" cellspacing="0" style="width:100%;">
-              ${(PLAN_FEATURES[d.plan] ?? PLAN_FEATURES.pro).map(([a, b]) => `<tr>
+              ${(PLAN_FEATURES[d.plan] ?? PLAN_FEATURES.solo).map(([a, b]) => `<tr>
                 <td style="padding:4px 0;font-size:14px;color:#334155;width:50%;">&#10003;&nbsp; ${escapeHtml(a)}</td>
                 <td style="padding:4px 0;font-size:14px;color:#334155;">${b ? `&#10003;&nbsp; ${escapeHtml(b)}` : ""}</td>
               </tr>`).join("")}

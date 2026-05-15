@@ -544,7 +544,7 @@ export const ProjectEditForm = ({
           <div className="space-y-2 sm:col-span-2">
             <Label>Project logo <Crown className="ml-1 h-3 w-3 text-amber-400 inline" /></Label>
             <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-              Custom logos are available on the Team plan and above.{" "}
+              Custom logos are available on the Studio plan.{" "}
               <a href="/billing" className="underline font-medium">Upgrade</a>
             </div>
           </div>
