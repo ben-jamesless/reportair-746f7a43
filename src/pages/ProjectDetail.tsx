@@ -1085,7 +1085,7 @@ const ProjectDetail = () => {
 
         {/* Horizontal tab bar */}
         <TabBar
-          tabs={["Updates", "Activity", "Gallery", "Settings"]}
+          tabs={["Updates", "Gallery", "Activity", "Settings"]}
           activeTab={
             activeTab === "activity" ? "Activity"
             : activeTab === "details" ? "Settings"
