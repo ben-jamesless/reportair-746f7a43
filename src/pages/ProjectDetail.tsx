@@ -975,10 +975,10 @@ const ProjectDetail = () => {
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={() => setFeedbackSheetOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
             >
               <MessageSquare className="w-3.5 h-3.5" />
-              Feedback
+              <span className="hidden sm:inline">Feedback</span>
             </button>
             <div className="hidden sm:block">
               <ShareButton projectId={project.id} canUseShareLink={canUseShareLink} />
