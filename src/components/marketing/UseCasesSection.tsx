@@ -191,8 +191,8 @@ const tabLabels: Record<string, string> = {
   golf: "Golf",
   marathons: "Marathons",
   corporate: "Corporate",
-  renovation: "Renovation",
-  construction: "Construction",
+  filmsets: "Film sets",
+  activations: "Activations",
 };
 
 function hexToRgba(hex: string, alpha: number) {
