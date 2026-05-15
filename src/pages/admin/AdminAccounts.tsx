@@ -107,8 +107,11 @@ const AdminAccounts = () => {
     (r.billing_owner_email ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
-  const afterFree = hideFree
-    ? filtered.filter((t) => t.plan !== "free" && !!t.subscription_status && Number(t.unit_amount ?? 0) > 0)
+  const afterTrials = showTrials
+    ? filtered.filter((t) => {
+        const trialEnd = t.trial_end ?? t.trial_ends_at;
+        return !!trialEnd && new Date(trialEnd) > new Date();
+      })
     : filtered;
 
   const sorted = sortDir == null ? afterFree : [...afterFree].sort((a, b) => {
