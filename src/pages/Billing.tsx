@@ -343,7 +343,7 @@ const Billing = () => {
               <div
                 key={p.key}
                 className={cn(
-                  "rounded-2xl border-2 p-6 flex flex-col gap-5",
+                  "rounded-2xl border-2 p-4 sm:p-6 flex flex-col gap-4 sm:gap-5",
                   isCurrent
                     ? "border-[#1A6EFF] bg-[#1A6EFF]/[0.03] shadow-md"
                     : "border-border bg-card"
