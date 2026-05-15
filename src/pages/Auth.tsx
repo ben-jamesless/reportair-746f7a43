@@ -41,18 +41,20 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}${redirect.startsWith("/") ? redirect : "/onboarding"}`,
         data: { full_name: fullName },
       },
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    setSignupSent(true);
-    toast.success("Account created — check your email to confirm");
+    if (data.session) {
+      navigate("/onboarding", { replace: true });
+    } else {
+      setSignupSent(true);
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
