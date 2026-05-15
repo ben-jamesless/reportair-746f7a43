@@ -1676,7 +1676,7 @@ const ProjectDetail = () => {
 
             {/* Feedback right-side panel — all breakpoints */}
             <Sheet open={feedbackSheetOpen} onOpenChange={setFeedbackSheetOpen}>
-              <SheetContent side="right" className="flex w-full sm:w-[400px] flex-col p-0">
+              <SheetContent side="right" className="flex w-full sm:w-[400px] flex-col p-0 [&>button]:hidden">
                 {/* Panel header */}
                 <header className="flex items-center justify-between px-4 py-3 border-b border-[#D4D1CA]">
                   <div className="flex items-center gap-2">
