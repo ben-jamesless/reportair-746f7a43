@@ -452,7 +452,14 @@ const Projects = () => {
 
                 {/* Event name + meta */}
                 <div className="min-w-0">
-                  <h3 className="truncate text-sm font-semibold text-[#0F1724]">{p.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="truncate text-sm font-semibold text-[#0F1724]">{p.name}</h3>
+                    {!isOwner && (
+                      <span className="shrink-0 inline-flex items-center rounded-full border border-[#D4D1CA] bg-[#FBFBF9] px-2 py-0.5 text-[10px] font-medium text-[#7A7974] leading-none">
+                        Invited
+                      </span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-[#7A7974]">
                     {p.event_location && <span className="truncate">{p.event_location}</span>}
                     {p.event_date && (
