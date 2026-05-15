@@ -1405,7 +1405,7 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                         {dailyBlocks.map((b) => {
                           const value = getDailyField(activeDay, b.key);
                           return (
