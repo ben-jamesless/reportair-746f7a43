@@ -1107,11 +1107,7 @@ const ProjectDetail = () => {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-4">
-            <div className={cn(
-              "grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr]",
-              !feedbackSheetOpen && "xl:grid-cols-[220px_minmax(0,1fr)_320px]",
-              feedbackSheetOpen && "xl:grid-cols-[220px_1fr]"
-            )}>
+            <div className="grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_1fr]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1 rounded-lg pr-4 xl:border-r xl:border-[#E8E6DF] dark:bg-card dark:p-2">
                 {days.length === 0 && albumPhotos.size === 0 && (
@@ -1676,28 +1672,6 @@ const ProjectDetail = () => {
                 )}
               </section>
 
-              <FeedbackPanel
-                projectId={project.id}
-                visiblePhotos={visiblePhotos}
-                allPhotos={photos}
-                onOpenPhoto={(photoId) => {
-                  const idx = photoIndexById.get(photoId);
-                  if (idx !== undefined) {
-                    setLightboxIndex(idx);
-                  } else {
-                    setActiveDay(ALL_DAYS);
-                    setActiveArea(null);
-                    setTimeout(() => {
-                      const all = photos.findIndex((p) => p.id === photoId);
-                      if (all >= 0) setLightboxIndex(all);
-                    }, 0);
-                  }
-                }}
-                className={cn(
-                  "xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6 xl:pl-4",
-                  feedbackSheetOpen ? "hidden" : "hidden xl:flex"
-                )}
-              />
             </div>
 
             {/* Feedback right-side panel — all breakpoints */}
