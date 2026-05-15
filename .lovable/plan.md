@@ -1,31 +1,54 @@
-## Update home pricing section
 
-Replace the three "TBC" pricing cards in `src/pages/Index.tsx` with the live Solo / Pro / Studio plans, and add a Monthly ↔ Annual toggle above the cards. Source of truth is the existing `UpgradeDialog` (same prices, same features) so the marketing page stays in sync with the in-app upgrade flow.
+## Step 1 — Fix `src/pages/ProjectDetail.tsx` build errors (surgical)
 
-### Pricing data
+Currently broken: undefined `setEditingProject`, `setProjectArchived`, `ShareButton`, `TabBar`; orphan `</Tabs>`; missing dropdown imports; `ProjectSettingsDialog` never rendered.
 
-| Plan | Monthly | Annual (billed yearly) | Effective /mo |
-|---|---|---|---|
-| Solo | HK$128 | HK$1,229 | HK$102 |
-| Pro (featured) | HK$298 | HK$2,860 | HK$238 |
-| Studio | HK$688 | HK$6,604 | HK$550 |
+Edits to `src/pages/ProjectDetail.tsx`:
 
-Annual saves ~20% — surfaced as a "Save 20%" pill next to the toggle.
+1. **Imports**: add `DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger` from `@/components/ui/dropdown-menu`, and `MoreVertical, Pencil, Lock` from `lucide-react` (merge into existing lucide import).
+2. **State**: add `const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);` near `shareSettingsOpen`.
+3. **Archive handler**: add `archiveProject` async function next to `restoreProject` that updates `archived_at` to now and reloads.
+4. **Replace dropdown calls**:
+   - `setEditingProject(project)` → `setSettingsDialogOpen(true)`
+   - `setProjectArchived(project, true)` → `archiveProject`
+5. **Inline components at module scope** (above `const ProjectDetail`): define `ShareButton({ projectId, canUseShareLink })` and `TabBar({ tabs, activeTab, onChange })` per spec. Use `Crown`, `Share2`, `Lock`, `Link`, `cn` (already imported / will be).
+6. **Wrap tabs**: change the `<div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">` (line ~921) to `<Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">` and remove its matching `</div>` (the `</Tabs>` at line 1547 already closes it).
+7. **Render `ProjectSettingsDialog`** before `</AppShell>` in controlled mode (`open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}`, `trigger={null}`). Add a `useEffect` listener for `"open-share-settings"` that calls `setShareSettingsOpen(true)`.
 
-### Feature lists (mirroring UpgradeDialog)
+Verify zero TS errors after edit.
 
-- **Solo** — 1 active event · Unlimited PDF exports · 14-day free trial
-- **Pro** — 5 active events · 5 team members · Unlimited PDFs · Share & client links · Password-protected links · Project folders · Project invites · 14-day free trial
-- **Studio** — Unlimited events · Unlimited team members · Unlimited PDFs · Share & client links · Custom logo on PDF · White-label report header · Priority support · Onboarding call · 14-day free trial
+## Step 2 — Onboarding split-screen redesign (Prompt 5)
 
-### Changes (frontend only, `src/pages/Index.tsx`)
+New file `src/components/OnboardingLayout.tsx`: split layout with dark left panel (radial-gradient `#0D2A6E → #0A0F1E`), `ReportAirLockup` top-left, headline with `"10 minutes."` highlighted in `#1A6EFF`, glassmorphism testimonial card. Right white panel with step indicator (1/2/3) using `#1A6EFF` active pill. Hidden on mobile (`hidden lg:flex`).
 
-1. Replace the `COPY.pricing.plans` array with the three plans above, each carrying `monthlyPrice`, `annualPrice`, `annualMonthly`, feature list, CTA, and `featured` flag (Pro = featured, "Most teams start here").
-2. Drop the `note` about "pricing being finalized".
-3. Add local `useState` for `annual` in the Index component, and render a Monthly/Annual pill toggle above the grid (matching the UpgradeDialog visual: two labels with a switch and a "Save 20%" badge).
-4. In each card:
-   - Show `annual ? annualMonthly : monthlyPrice` as the big number, with `per: "/month"` underneath.
-   - When annual, add a small line: "HK$X,XXX billed annually".
-5. CTA buttons stay pointing at `#cta` (early-access form) — no checkout wiring on the marketing page.
+Refactor `src/pages/Auth.tsx` sign-up tab to render under `<OnboardingLayout step={1}>` when in signup mode (keep sign-in tab unchanged route — only redesign signup view). Keep all existing supabase auth + Google OAuth logic.
 
-Layout, colors, gradient, featured-card scale, and "Most teams start here" flag all stay as-is. No other files change.
+Refactor `src/pages/Onboarding.tsx` (existing) to wrap in `<OnboardingLayout step={2}>` showing first/last name + team/company + role select + referral source. Persist via existing `profiles` update + `teams` insert flow (no schema changes). On submit → `/onboarding/plan`.
+
+New page `src/pages/onboarding/Plan.tsx` registered in `App.tsx` at `/onboarding/plan` (protected). Wrapped in `<OnboardingLayout step={3}>`. Monthly/Annual toggle, three plan cards (Solo/Pro/Studio) sourced from existing pricing constants used on `Index.tsx`. "Start free trial" calls existing `stripe-checkout` edge function with selected plan + interval; "Skip for now" navigates to `/projects` and shows toast.
+
+## Step 3 — New Event slide-in panel (Prompt 6)
+
+New file `src/components/NewEventPanel.tsx` using shadcn `Sheet` (`side="right"`, `w-full sm:w-[480px]`). 3 steps with header pill indicator + footer Back/Next/Create:
+- Step 1: event name (required), event type select, location with map placeholder.
+- Step 2: build start date, event date, client name, status.
+- Step 3: Solo plan → upgrade card linking to `/billing`; Pro/Studio → `InviteTeamField` (email tag list).
+
+Inline helpers `FormField`, `FormSelect`, `FormDateField`, `InviteTeamField` defined in same file (semantic tokens where possible, hex `#1A6EFF` accents per spec).
+
+Create logic: reuse the existing project-create code path from `NewProjectDialog.finish()` — insert into `projects`, then `areas` (none here), then `project_invites` + `send-invite-email` edge function for invitees. No schema changes.
+
+Wire into `src/pages/Projects.tsx`:
+- Add `const [newEventPanelOpen, setNewEventPanelOpen] = useState(false);`
+- Existing `NewEventButton` `onClick` → `setNewEventPanelOpen(true)`.
+- Mount `<NewEventPanel open={...} onClose={...} teamId={...} onCreated={loadProjects} />` at the bottom.
+- Leave existing `NewProjectDialog` import/usage in place if referenced elsewhere; only switch the Events list trigger.
+
+## Verification
+After each step, confirm TypeScript build succeeds and the specific user flow works (project detail loads, onboarding pages render, New Event sheet creates a project and refreshes the list).
+
+## Files touched
+- edit: `src/pages/ProjectDetail.tsx`, `src/pages/Auth.tsx`, `src/pages/Onboarding.tsx`, `src/pages/Projects.tsx`, `src/App.tsx`
+- create: `src/components/OnboardingLayout.tsx`, `src/pages/onboarding/Plan.tsx`, `src/components/NewEventPanel.tsx`
+
+No DB migrations, no auth changes, no edge function changes.

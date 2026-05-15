@@ -6,8 +6,15 @@ import { AppShell } from "@/components/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2, Crown } from "lucide-react";
+import { ArrowLeft, Archive, ArchiveRestore, ImagePlus, MapPinned, Calendar, ChevronDown, ChevronRight, FileDown, Layers, Trash2, FileText, LayoutGrid, MapPin, CalendarDays, Download, X, MessageSquare, Share2, Crown, MoreVertical, Pencil, Lock } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import JSZip from "jszip";
 import {
@@ -118,6 +125,86 @@ const dayKey = (p: LightboxPhoto): string => {
   const d = raw ? new Date(raw) : new Date(0);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
+
+function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUseShareLink: boolean }) {
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  if (canUseShareLink) {
+    return (
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent("open-share-settings"))}
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors"
+      >
+        <Share2 className="w-3.5 h-3.5" />
+        Share
+      </button>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowUpgrade((v) => !v)}
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#7A7974] font-medium hover:bg-[#FBFBF9] transition-colors"
+      >
+        <Lock className="w-3.5 h-3.5" />
+        Share
+      </button>
+      {showUpgrade && (
+        <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-[#D4D1CA] bg-white shadow-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Crown className="w-4 h-4 text-[#1A6EFF]" />
+            <span className="text-sm font-semibold text-[#0F1724]">Pro feature</span>
+          </div>
+          <p className="text-xs text-[#7A7974] mb-3">
+            Share live event links with clients. Available on Pro and Studio plans.
+          </p>
+          <Link
+            to="/billing"
+            className="block w-full text-center px-3 py-1.5 rounded-lg bg-[#1A6EFF] text-white text-xs font-medium hover:bg-[#1A6EFF]/90"
+          >
+            Upgrade to Pro →
+          </Link>
+          <button
+            onClick={() => setShowUpgrade(false)}
+            className="block w-full text-center text-xs text-[#7A7974] mt-2 hover:text-[#0F1724]"
+          >
+            Not now
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TabBar({
+  tabs,
+  activeTab,
+  onChange,
+}: {
+  tabs: string[];
+  activeTab: string;
+  onChange: (t: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-0 -mb-px">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => onChange(tab)}
+          className={cn(
+            "px-4 h-10 text-sm font-medium border-b-2 transition-colors",
+            activeTab === tab
+              ? "border-[#1A6EFF] text-[#1A6EFF]"
+              : "border-transparent text-[#7A7974] hover:text-[#0F1724] hover:border-[#D4D1CA]"
+          )}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -408,6 +495,23 @@ const ProjectDetail = () => {
     loadAll();
   };
 
+  const archiveProject = async () => {
+    if (!id) return;
+    const { error } = await supabase
+      .from("projects")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Event archived");
+    loadAll();
+  };
+
+  useEffect(() => {
+    const handler = () => setShareSettingsOpen(true);
+    window.addEventListener("open-share-settings", handler);
+    return () => window.removeEventListener("open-share-settings", handler);
+  }, []);
+
   // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
   const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
     areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
@@ -679,6 +783,7 @@ const ProjectDetail = () => {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportLockMode, setExportLockMode] = useState<"single" | null>(null);
   const [shareSettingsOpen, setShareSettingsOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
     e.stopPropagation();
@@ -856,7 +961,7 @@ const ProjectDetail = () => {
               <DropdownMenuContent align="end">
                 {canEdit && (
                   <>
-                    <DropdownMenuItem onSelect={() => setEditingProject(project)}>
+                    <DropdownMenuItem onSelect={() => setSettingsDialogOpen(true)}>
                       <Pencil className="mr-2 h-4 w-4" /> Edit event details
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setShareSettingsOpen(true)}>
@@ -869,7 +974,7 @@ const ProjectDetail = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onSelect={() => setProjectArchived(project, true)}
+                      onSelect={archiveProject}
                     >
                       <Archive className="mr-2 h-4 w-4" /> Archive event
                     </DropdownMenuItem>
@@ -918,7 +1023,7 @@ const ProjectDetail = () => {
 
       <div className="flex flex-1 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
         {/* Main tab content */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
@@ -1545,6 +1650,16 @@ const ProjectDetail = () => {
             />
           </TabsContent>
         </Tabs>
+      </div>
+
+      <ProjectSettingsDialog
+        projectId={project.id}
+        project={project}
+        onChanged={loadAll}
+        trigger={null}
+        open={settingsDialogOpen}
+        onOpenChange={setSettingsDialogOpen}
+      />
 
         <ErrorBoundary label="lightbox">
           <PhotoLightbox
