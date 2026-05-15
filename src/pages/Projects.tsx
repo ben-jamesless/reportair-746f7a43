@@ -257,7 +257,7 @@ const Projects = () => {
   return (
     <AppShell crumbs={[{ label: "Events" }]}>
       {/* ── Header row ── */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+      <div className="flex items-center justify-between px-4 sm:px-6 pt-6 pb-4">
         <h1 className="text-xl font-semibold text-[#0F1724]">Events</h1>
         <NewEventButton
           onOpen={() => setNewEventPanelOpen(true)}
@@ -281,14 +281,14 @@ const Projects = () => {
 
       {/* ── Filter toolbar ── */}
       {!showSkeleton && hasAnyVisibleSource && (
-        <div className="flex items-center gap-4 px-6 pb-4 border-b border-[#D4D1CA]">
+        <div className="flex flex-col gap-3 px-4 sm:px-6 pb-4 border-b border-[#D4D1CA] sm:flex-row sm:items-center sm:gap-4">
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full sm:w-56">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A7974]" />
             <input
               type="text"
               placeholder="Search events…"
-              className="pl-9 pr-3 h-9 rounded-lg border border-[#D4D1CA] bg-[#FBFBF9] text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30 w-56"
+              className="w-full pl-9 pr-3 h-9 rounded-lg border border-[#D4D1CA] bg-[#FBFBF9] text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -304,13 +304,13 @@ const Projects = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-1">
+          <div className="-mx-4 sm:mx-0 flex items-center gap-1 overflow-x-auto px-4 sm:px-0 sm:overflow-visible">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  "px-3 h-9 text-sm font-medium rounded-md transition-colors",
+                  "px-3 h-9 text-sm font-medium rounded-md transition-colors whitespace-nowrap shrink-0",
                   activeTab === tab
                     ? "text-[#1A6EFF] bg-[#1A6EFF]/8"
                     : "text-[#7A7974] hover:text-[#0F1724] hover:bg-[#D4D1CA]/30"
@@ -326,7 +326,7 @@ const Projects = () => {
 
           {/* Solo counter */}
           {plan === "solo" && limits.maxProjects > 0 && (
-            <span className="ml-auto text-xs text-[#7A7974]">
+            <span className="sm:ml-auto text-xs text-[#7A7974]">
               {projectCount} / {limits.maxProjects} events used
             </span>
           )}
@@ -376,8 +376,8 @@ const Projects = () => {
         </div>
       ) : (
         <div className="flex flex-col">
-          {/* Table header */}
-          <div className="grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-6 py-2 text-xs font-medium text-[#7A7974] uppercase tracking-wide border-b border-[#D4D1CA] bg-[#FBFBF9]">
+          {/* Table header — desktop/tablet only */}
+          <div className="hidden md:grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-4 sm:px-6 py-2 text-xs font-medium text-[#7A7974] uppercase tracking-wide border-b border-[#D4D1CA] bg-[#FBFBF9]">
             <div />
             <div>Event</div>
             <div>Status</div>
@@ -403,7 +403,7 @@ const Projects = () => {
             return (
               <div
                 key={p.id}
-                className="group grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-6 py-3 border-b border-[#D4D1CA] hover:bg-[#FBFBF9] cursor-pointer transition-colors"
+                className="group grid grid-cols-[48px_1fr_40px] sm:grid-cols-[60px_1fr_140px_140px_48px] items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-[#D4D1CA] hover:bg-[#FBFBF9] cursor-pointer transition-colors"
                 onClick={() => navigate(`/projects/${p.id}`)}
                 draggable={isOwner}
                 onDragStart={(e) => {
@@ -414,7 +414,7 @@ const Projects = () => {
               >
                 {/* Thumbnail */}
                 <div
-                  className="h-[60px] w-[60px] rounded-lg shrink-0"
+                  className="h-12 w-12 sm:h-[60px] sm:w-[60px] rounded-lg shrink-0"
                   style={{
                     background: `linear-gradient(135deg, ${color}33, ${color}11)`,
                   }}
@@ -427,7 +427,7 @@ const Projects = () => {
                 {/* Event name + meta */}
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-[#0F1724]">{p.name}</h3>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-[#7A7974]">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-[#7A7974]">
                     {p.event_location && <span className="truncate">{p.event_location}</span>}
                     {p.event_date && (
                       <>
@@ -435,11 +435,28 @@ const Projects = () => {
                         <span>{new Date(p.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
                       </>
                     )}
+                    {/* Mobile-only: inline status + last-updated since columns are hidden */}
+                    <span className="md:hidden contents">
+                      {(p.overall_status ?? "no_status") !== "no_status" && (
+                        <>
+                          <span className="text-[#D4D1CA]">·</span>
+                          <span className={cn("px-1.5 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
+                            {statusMeta.label}
+                          </span>
+                        </>
+                      )}
+                      {lastUpload && (
+                        <>
+                          <span className="text-[#D4D1CA]">·</span>
+                          <span>{formatDistanceToNow(new Date(lastUpload), { addSuffix: true })}</span>
+                        </>
+                      )}
+                    </span>
                   </div>
                 </div>
 
-                {/* Status */}
-                <div>
+                {/* Status — desktop only */}
+                <div className="hidden md:block">
                   {(p.overall_status ?? "no_status") !== "no_status" ? (
                     <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
                       {statusMeta.label}
@@ -449,8 +466,8 @@ const Projects = () => {
                   )}
                 </div>
 
-                {/* Last Updated */}
-                <div className="text-xs text-[#7A7974]">
+                {/* Last Updated — desktop only */}
+                <div className="hidden md:block text-xs text-[#7A7974]">
                   {lastUpload
                     ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true })
                     : "—"}
@@ -462,7 +479,7 @@ const Projects = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="h-8 w-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9] opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-8 w-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9] md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                         >
                           <MoreVertical className="h-4 w-4 text-[#7A7974]" />
