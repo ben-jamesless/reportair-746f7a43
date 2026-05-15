@@ -917,12 +917,12 @@ const ProjectDetail = () => {
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="min-w-0">
             {project.event_type && (
-              <p className="text-xs font-semibold tracking-widest uppercase text-[#7A7974] mb-1">
+              <p className="text-xs font-semibold tracking-widest uppercase text-[#7A7974] mb-1 my-[5px]">
                 {project.event_type}
               </p>
             )}
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-[#0F1724] leading-tight">{project.name}</h1>
+            <div className="flex items-center gap-3 flex-wrap my-[5px]">
+              <h1 className="text-2xl font-bold text-[#0F1724] leading-tight my-[5px]">{project.name}</h1>
               {canEdit ? (
                 <Select
                   value={project.overall_status ?? "no_status"}
@@ -948,7 +948,7 @@ const ProjectDetail = () => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1 text-sm text-[#7A7974]">
+            <div className="mt-1 text-sm text-[#7A7974] gap-[10px] flex items-center justify-start my-[5px]">
               {project.event_location && (
                 <>
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
