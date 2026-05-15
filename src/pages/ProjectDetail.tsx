@@ -278,6 +278,27 @@ const ProjectDetail = () => {
   const [feedbackSheetOpen, setFeedbackSheetOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [addingArea, setAddingArea] = useState(false);
+  const [newAreaName, setNewAreaName] = useState("");
+
+  const createArea = async () => {
+    const name = newAreaName.trim();
+    if (!name || !id) return;
+    const nextOrder = areas.length
+      ? Math.max(...areas.map((a) => a.sort_order)) + 1
+      : 0;
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("areas").insert({
+      project_id: id,
+      name,
+      sort_order: nextOrder,
+      created_by: user?.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    setNewAreaName("");
+    setAddingArea(false);
+    loadAll();
+  };
 
   const exitSelectMode = useCallback(() => {
     setSelectMode(false);
