@@ -133,10 +133,10 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
     return (
       <button
         onClick={() => window.dispatchEvent(new CustomEvent("open-share-settings"))}
-        className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors"
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
       >
         <Share2 className="w-3.5 h-3.5" />
-        Share
+        Share link
       </button>
     );
   }
@@ -148,7 +148,7 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
         className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#7A7974] font-medium hover:bg-[#FBFBF9] transition-colors"
       >
         <Lock className="w-3.5 h-3.5" />
-        Share
+        Share link
       </button>
       {showUpgrade && (
         <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-[#D4D1CA] bg-white shadow-lg p-4">
