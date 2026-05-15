@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { OnboardingLayout } from "@/components/OnboardingLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,12 +49,14 @@ export default function Plan() {
   const navigate = useNavigate();
   const [annual, setAnnual] = useState(false);
   const [loading, setLoading] = useState<PlanKey | null>(null);
+  const autoLaunched = useRef(false);
 
-  const startTrial = async (planKey: PlanKey) => {
+  const startTrial = async (planKey: PlanKey, intervalOverride?: "annual" | "monthly") => {
     setLoading(planKey);
     const { data: { session } } = await supabase.auth.getSession();
+    const interval = intervalOverride ?? (annual ? "annual" : "monthly");
     const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-      body: { plan: planKey, interval: annual ? "annual" : "monthly" },
+      body: { plan: planKey, interval },
       headers: { Authorization: `Bearer ${session?.access_token}` },
     });
     if (error || !data?.url) {
@@ -62,8 +64,27 @@ export default function Plan() {
       setLoading(null);
       return;
     }
+    // Clear pending plan metadata so we don't auto-launch again
+    await supabase.auth.updateUser({ data: { pending_plan_choice: null, pending_plan_interval: null } }).catch(() => {});
     window.location.href = data.url;
   };
+
+  // Auto-launch checkout if signup metadata included a plan choice
+  useEffect(() => {
+    if (autoLaunched.current) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+      const pendingPlan = meta.pending_plan_choice as PlanKey | null | undefined;
+      const pendingInterval = (meta.pending_plan_interval as "annual" | "monthly" | null | undefined) ?? "monthly";
+      if (pendingPlan && ["solo", "pro", "studio"].includes(pendingPlan)) {
+        autoLaunched.current = true;
+        setAnnual(pendingInterval === "annual");
+        startTrial(pendingPlan, pendingInterval);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <OnboardingLayout step={3}>
