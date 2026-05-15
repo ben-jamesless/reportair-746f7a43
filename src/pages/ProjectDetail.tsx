@@ -783,6 +783,7 @@ const ProjectDetail = () => {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportLockMode, setExportLockMode] = useState<"single" | null>(null);
   const [shareSettingsOpen, setShareSettingsOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   const openDayExport = (e: React.MouseEvent, day: { key: string; label: string; photos: LightboxPhoto[] }) => {
     e.stopPropagation();
@@ -960,7 +961,7 @@ const ProjectDetail = () => {
               <DropdownMenuContent align="end">
                 {canEdit && (
                   <>
-                    <DropdownMenuItem onSelect={() => setEditingProject(project)}>
+                    <DropdownMenuItem onSelect={() => setSettingsDialogOpen(true)}>
                       <Pencil className="mr-2 h-4 w-4" /> Edit event details
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setShareSettingsOpen(true)}>
@@ -973,7 +974,7 @@ const ProjectDetail = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onSelect={() => setProjectArchived(project, true)}
+                      onSelect={archiveProject}
                     >
                       <Archive className="mr-2 h-4 w-4" /> Archive event
                     </DropdownMenuItem>
