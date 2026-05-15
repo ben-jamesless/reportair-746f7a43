@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, FileText, Shield } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSection from "@/components/marketing/HeroSection";
 import HowItWorksSection from "@/components/marketing/HowItWorksSection";
