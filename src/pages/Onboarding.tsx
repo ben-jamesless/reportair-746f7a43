@@ -42,23 +42,28 @@ const Onboarding = () => {
         .eq("user_id", user.id)
         .limit(1);
       if (pm && pm.length > 0) {
+        // Invited user already belongs to someone else's project — don't create
+        // a duplicate workspace for them. Just complete onboarding and redirect.
         await supabase
           .from("profiles")
           .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
           .eq("id", user.id);
-        const slug =
-          ((profile?.full_name ?? user.email ?? "user")
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .slice(0, 20)) +
-          "-" +
-          Math.random().toString(36).slice(2, 6);
-        await supabase.from("teams").insert({
-          name: profile?.full_name ?? user.email ?? "My Team",
-          slug,
-          created_by: user.id,
-          billing_owner_user_id: user.id,
-        });
+        navigate("/projects", { replace: true });
+        return;
+      }
+      // Defensive: if user already owns a team (e.g. retry after a partial
+      // onboarding), skip team creation and finish.
+      const { data: existingOwned } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("billing_owner_user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (existingOwned) {
+        await supabase
+          .from("profiles")
+          .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
+          .eq("id", user.id);
         navigate("/projects", { replace: true });
         return;
       }
@@ -122,7 +127,14 @@ const Onboarding = () => {
       .insert({ name: teamName, slug, created_by: user.id, billing_owner_user_id: user.id });
     if (teamErr) {
       setBusy(false);
-      return toast.error(teamErr.message);
+      const msg = /teams_billing_owner_unique|duplicate key/i.test(teamErr.message)
+        ? "You already own a workspace. Redirecting…"
+        : teamErr.message;
+      toast.error(msg);
+      if (/teams_billing_owner_unique|duplicate key/i.test(teamErr.message)) {
+        navigate("/projects", { replace: true });
+      }
+      return;
     }
 
     // Welcome email — fire and forget, does not block onboarding completion

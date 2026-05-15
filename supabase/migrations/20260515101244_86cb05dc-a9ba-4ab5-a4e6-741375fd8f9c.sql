@@ -1,0 +1,1 @@
+ALTER TABLE public.teams ADD CONSTRAINT teams_billing_owner_unique UNIQUE (billing_owner_user_id);
