@@ -181,20 +181,8 @@ const Auth = () => {
     </Card>
   );
 
-  if (isSignup) {
-    return <OnboardingLayout step={1}>{card}</OnboardingLayout>;
-  }
+  return <OnboardingLayout step={1}>{card}</OnboardingLayout>;
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
-      <div className="w-full max-w-md">
-        <Link to="/" className="mb-8 flex items-center justify-center">
-          <ReportAirLockup variant="light" markClassName="h-9 w-9" textClassName="text-xl" />
-        </Link>
-        {card}
-      </div>
-    </div>
-  );
 };
 
 export default Auth;
