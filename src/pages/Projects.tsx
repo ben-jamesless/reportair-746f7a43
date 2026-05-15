@@ -403,7 +403,7 @@ const Projects = () => {
             return (
               <div
                 key={p.id}
-                className="group grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-6 py-3 border-b border-[#D4D1CA] hover:bg-[#FBFBF9] cursor-pointer transition-colors"
+                className="group grid grid-cols-[48px_1fr_40px] sm:grid-cols-[60px_1fr_140px_140px_48px] items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-[#D4D1CA] hover:bg-[#FBFBF9] cursor-pointer transition-colors"
                 onClick={() => navigate(`/projects/${p.id}`)}
                 draggable={isOwner}
                 onDragStart={(e) => {
@@ -414,7 +414,7 @@ const Projects = () => {
               >
                 {/* Thumbnail */}
                 <div
-                  className="h-[60px] w-[60px] rounded-lg shrink-0"
+                  className="h-12 w-12 sm:h-[60px] sm:w-[60px] rounded-lg shrink-0"
                   style={{
                     background: `linear-gradient(135deg, ${color}33, ${color}11)`,
                   }}
@@ -427,7 +427,7 @@ const Projects = () => {
                 {/* Event name + meta */}
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold text-[#0F1724]">{p.name}</h3>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-[#7A7974]">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-[#7A7974]">
                     {p.event_location && <span className="truncate">{p.event_location}</span>}
                     {p.event_date && (
                       <>
@@ -435,11 +435,28 @@ const Projects = () => {
                         <span>{new Date(p.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
                       </>
                     )}
+                    {/* Mobile-only: inline status + last-updated since columns are hidden */}
+                    <span className="md:hidden contents">
+                      {(p.overall_status ?? "no_status") !== "no_status" && (
+                        <>
+                          <span className="text-[#D4D1CA]">·</span>
+                          <span className={cn("px-1.5 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
+                            {statusMeta.label}
+                          </span>
+                        </>
+                      )}
+                      {lastUpload && (
+                        <>
+                          <span className="text-[#D4D1CA]">·</span>
+                          <span>{formatDistanceToNow(new Date(lastUpload), { addSuffix: true })}</span>
+                        </>
+                      )}
+                    </span>
                   </div>
                 </div>
 
-                {/* Status */}
-                <div>
+                {/* Status — desktop only */}
+                <div className="hidden md:block">
                   {(p.overall_status ?? "no_status") !== "no_status" ? (
                     <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
                       {statusMeta.label}
@@ -449,8 +466,8 @@ const Projects = () => {
                   )}
                 </div>
 
-                {/* Last Updated */}
-                <div className="text-xs text-[#7A7974]">
+                {/* Last Updated — desktop only */}
+                <div className="hidden md:block text-xs text-[#7A7974]">
                   {lastUpload
                     ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true })
                     : "—"}
