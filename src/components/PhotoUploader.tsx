@@ -166,10 +166,16 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
         className="hidden"
         onChange={(e) => onFilesPicked(e.target.files)}
       />
-      <Button onClick={() => inputRef.current?.click()} disabled={busy}>
-        {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-        {busy ? `Uploading ${progress.done}/${progress.total}` : "Upload photos"}
-      </Button>
+      {trigger ? (
+        <span onClick={() => !busy && inputRef.current?.click()} style={{ display: "contents" }}>
+          {trigger}
+        </span>
+      ) : (
+        <Button onClick={() => inputRef.current?.click()} disabled={busy}>
+          {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+          {busy ? `Uploading ${progress.done}/${progress.total}` : "Upload photos"}
+        </Button>
+      )}
       {busy && progress.total > 0 && (
         <div className="mt-3 w-full max-w-sm">
           <Progress value={(progress.done / progress.total) * 100} />
