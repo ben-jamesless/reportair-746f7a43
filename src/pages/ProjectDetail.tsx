@@ -126,6 +126,86 @@ const dayKey = (p: LightboxPhoto): string => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
+function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUseShareLink: boolean }) {
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
+  if (canUseShareLink) {
+    return (
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent("open-share-settings"))}
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors"
+      >
+        <Share2 className="w-3.5 h-3.5" />
+        Share
+      </button>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowUpgrade((v) => !v)}
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#7A7974] font-medium hover:bg-[#FBFBF9] transition-colors"
+      >
+        <Lock className="w-3.5 h-3.5" />
+        Share
+      </button>
+      {showUpgrade && (
+        <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-[#D4D1CA] bg-white shadow-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Crown className="w-4 h-4 text-[#1A6EFF]" />
+            <span className="text-sm font-semibold text-[#0F1724]">Pro feature</span>
+          </div>
+          <p className="text-xs text-[#7A7974] mb-3">
+            Share live event links with clients. Available on Pro and Studio plans.
+          </p>
+          <Link
+            to="/billing"
+            className="block w-full text-center px-3 py-1.5 rounded-lg bg-[#1A6EFF] text-white text-xs font-medium hover:bg-[#1A6EFF]/90"
+          >
+            Upgrade to Pro →
+          </Link>
+          <button
+            onClick={() => setShowUpgrade(false)}
+            className="block w-full text-center text-xs text-[#7A7974] mt-2 hover:text-[#0F1724]"
+          >
+            Not now
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TabBar({
+  tabs,
+  activeTab,
+  onChange,
+}: {
+  tabs: string[];
+  activeTab: string;
+  onChange: (t: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-0 -mb-px">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => onChange(tab)}
+          className={cn(
+            "px-4 h-10 text-sm font-medium border-b-2 transition-colors",
+            activeTab === tab
+              ? "border-[#1A6EFF] text-[#1A6EFF]"
+              : "border-transparent text-[#7A7974] hover:text-[#0F1724] hover:border-[#D4D1CA]"
+          )}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
