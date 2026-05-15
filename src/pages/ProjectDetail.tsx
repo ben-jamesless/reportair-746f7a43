@@ -1137,7 +1137,7 @@ const ProjectDetail = () => {
           <TabsContent value="photos" className="mt-4">
             <div className="grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_1fr]">
               {/* Day → Area sidebar */}
-              <aside className="space-y-1 rounded-lg pr-4 xl:border-r xl:border-[#E8E6DF] dark:bg-card dark:p-2">
+              <aside className="space-y-1 rounded-lg xl:border-r xl:border-[#E8E6DF] dark:bg-card dark:p-2 px-[8px] py-[10px] pr-[3px] pb-[10px] pl-[3px] my-0 mx-0">
                 {days.length === 0 && albumPhotos.size === 0 && (
                   <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
                 )}
@@ -1167,7 +1167,7 @@ const ProjectDetail = () => {
                   const { counts, unassigned } = areaCountsForDay(day.photos);
                   return (
                     <div key={day.key} className="rounded-lg">
-                      <div className="flex items-stretch gap-1">
+                      <div className="flex items-stretch gap-1 py-[8px]">
                         <button
                           onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
                           className={cn(
@@ -1210,7 +1210,7 @@ const ProjectDetail = () => {
                                 key={ar.id}
                                 onClick={() => selectDayArea(day.key, ar.id)}
                                 className={cn(
-                                  "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                                  "flex w-full items-center gap-1.5 rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                                   sel
                                     ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
                                     : "text-[#0F1724] hover:bg-[#FBFBF9]",
@@ -1226,7 +1226,7 @@ const ProjectDetail = () => {
                             <button
                               onClick={() => selectDayArea(day.key, NO_AREA)}
                               className={cn(
-                                "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+                                "flex w-full items-center justify-between rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                                 activeDay === day.key && activeArea === NO_AREA
                                   ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
                                   : "text-[#0F1724] hover:bg-[#FBFBF9]",
@@ -1249,7 +1249,7 @@ const ProjectDetail = () => {
 
                 {/* Areas section */}
                 <div className="mt-4 border-t border-[#D4D1CA] pt-3">
-                  <div className="flex items-center justify-between px-3 mb-1">
+                  <div className="flex items-center justify-between px-3 mb-1 py-[5px]">
                     <p className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Areas</p>
                     {canEdit && (
                       addingArea ? (
@@ -1293,7 +1293,7 @@ const ProjectDetail = () => {
                             key={ar.id}
                             onClick={() => setActiveArea(isActive ? null : ar.id)}
                             className={cn(
-                              "flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors",
+                              "flex w-full items-center justify-between rounded-lg px-3 text-sm transition-colors py-[8px]",
                               isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-[#0F1724] hover:bg-[#FBFBF9]"
                             )}
                           >
