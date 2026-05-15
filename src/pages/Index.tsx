@@ -188,15 +188,26 @@ const Index = () => {
             <a href="#reviews" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Reviews</a>
             <a href="#pricing" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Pricing</a>
           </nav>
-          <Link
-            to="/auth"
-            className="rounded-full px-3.5 py-2 text-[0.88rem] font-semibold text-white transition-colors"
-            style={{ backgroundColor: BRAND.sky }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
-          >
-            {COPY.nav.cta}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/auth?tab=signin"
+              className="hidden sm:inline-flex rounded-full px-3.5 py-2 text-[0.88rem] font-semibold transition-colors"
+              style={{ color: BRAND.ink, border: `1px solid ${BRAND.border}`, backgroundColor: "#fff" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.cloud)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#fff")}
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/auth?tab=signup"
+              className="rounded-full px-3.5 py-2 text-[0.88rem] font-semibold text-white transition-colors"
+              style={{ backgroundColor: BRAND.sky }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
+            >
+              Sign up
+            </Link>
+          </div>
         </div>
       </header>
 
