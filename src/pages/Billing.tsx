@@ -305,7 +305,7 @@ const Billing = () => {
 
         {/* Compare plans heading */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Compare Plans</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Compare Plans</h1>
 
           <div className="flex items-center gap-3 flex-wrap">
             {/* Pill toggle */}
