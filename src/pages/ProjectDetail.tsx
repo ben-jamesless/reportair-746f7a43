@@ -1381,42 +1381,26 @@ const ProjectDetail = () => {
                   return (
                     <div className="space-y-6">
                       {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="px-4 pt-2 grid grid-cols-1 gap-3 xl:grid-cols-2">
+                      <div className="px-4 pt-2 grid grid-cols-2 gap-3 mb-4">
                         {dailyBlocks.map((b) => {
-                          const dailyKey = `daily|${activeDay}|${b.key}`;
-                          const open = isDailyOpen(dailyKey);
                           const value = getDailyField(activeDay, b.key);
-                          const hasValue = !!(value && value.trim());
                           return (
                             <div key={b.key} className="rounded-xl border border-[#D4D1CA] bg-white overflow-hidden">
-                              <button
-                                type="button"
-                                onClick={() => toggleDailyOpen(dailyKey)}
-                                className="flex w-full items-center justify-between gap-2 text-left hover:bg-[#FBFBF9] transition-colors"
-                                aria-expanded={open}
-                              >
-                                <span className="text-[10px] font-semibold tracking-widest text-[#7A7974] uppercase px-4 pt-3 pb-1">
+                              <div className="px-4 pt-3 pb-1">
+                                <span className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">
                                   {b.label}
                                 </span>
-                                <span className="flex items-center gap-2 px-4 pt-3 pb-1">
-                                  {!hasValue && (
-                                    <span className="text-[10px] uppercase tracking-wide text-[#7A7974]">Empty</span>
-                                  )}
-                                  <ChevronDown className={cn("h-4 w-4 text-[#D4D1CA] transition-transform", !open && "-rotate-90")} />
-                                </span>
-                              </button>
-                              {open && (
-                                <div className="min-h-[72px] px-4 pb-3 text-sm text-[#0F1724]">
-                                  <EditableNote
-                                    value={value}
-                                    placeholder={`Add ${b.label.toLowerCase()}…`}
-                                    onSave={(next) => saveDailyField(activeDay, b.key, next)}
-                                    rich
-                                    rows={3}
-                                    readOnly={!canEdit}
-                                  />
-                                </div>
-                              )}
+                              </div>
+                              <div className="px-4 pb-3 min-h-[72px] text-sm text-[#0F1724]">
+                                <EditableNote
+                                  value={value}
+                                  placeholder={`Add ${b.label.toLowerCase()}…`}
+                                  onSave={(next) => saveDailyField(activeDay, b.key, next)}
+                                  rich
+                                  rows={3}
+                                  readOnly={!canEdit}
+                                />
+                              </div>
                             </div>
                           );
                         })}
