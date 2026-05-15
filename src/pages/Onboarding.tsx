@@ -62,6 +62,39 @@ const Onboarding = () => {
         navigate("/projects", { replace: true });
         return;
       }
+      // Auto-complete onboarding from signup metadata if available
+      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      const metaTeamName = typeof meta.pending_team_name === "string" ? meta.pending_team_name.trim() : "";
+      const metaFullName =
+        (profile?.full_name as string | null | undefined) ||
+        (typeof meta.full_name === "string" ? meta.full_name : "") ||
+        user.email ||
+        "";
+      if (metaTeamName) {
+        const slug =
+          metaTeamName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") +
+          "-" +
+          Math.random().toString(36).slice(2, 6);
+        const { error: teamErr } = await supabase
+          .from("teams")
+          .insert({ name: metaTeamName, slug, created_by: user.id, billing_owner_user_id: user.id });
+        if (!teamErr) {
+          await supabase
+            .from("profiles")
+            .update({ full_name: metaFullName, onboarded_at: new Date().toISOString() })
+            .eq("id", user.id);
+          // Clear metadata so we don't retry
+          await supabase.auth.updateUser({
+            data: { ...meta, pending_team_name: null },
+          });
+          // Welcome email — fire and forget
+          supabase.functions.invoke("send-transactional-email", {
+            body: { to: user.email, template: "welcome", data: { name: metaFullName } },
+          }).catch(() => {});
+          navigate("/onboarding/plan", { replace: true });
+          return;
+        }
+      }
       if (profile?.full_name) setFullName(profile.full_name);
       setChecking(false);
     })();
