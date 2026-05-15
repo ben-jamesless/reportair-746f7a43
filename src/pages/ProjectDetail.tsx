@@ -1438,33 +1438,18 @@ const ProjectDetail = () => {
                             return (
                               <div key={ar.id}>
                                 <article
-                                  className={cn(
-                                    "rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
-                                    st === "complete" && "border-l-[#10b981]",
-                                    st === "on_track" && "border-l-[#1A6EFF]",
-                                    st === "requires_discussion" && "border-l-[#f97316]",
-                                    st === "concern" && "border-l-[#ef4444]",
-                                    !st && "border-l-[#D4D1CA]",
-                                  )}
+                                  className="mb-3 rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4"
+                                  style={{ borderLeftColor: accent }}
                                 >
-                                  <header className="mb-3 flex flex-wrap items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleAreaOpen(areaKey)}
-                                      className="text-muted-foreground hover:text-foreground transition-colors"
-                                      aria-label={open ? "Collapse area" : "Expand area"}
-                                    >
-                                      <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
-                                    </button>
-                                    <h3 className="text-sm font-semibold text-[#0F1724]">{ar.name}</h3>
+                                  <div className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm font-semibold text-[#0F1724]">{ar.name}</span>
                                     <AreaStatusPicker
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
-                                      className="ml-auto"
                                       readOnly={!canEdit}
                                     />
-                                  </header>
-                                  {open && (
+                                  </div>
+                                  <div className="px-4 pb-3">
                                     <EditableNote
                                       value={note}
                                       placeholder="No notes for this area yet."
@@ -1473,7 +1458,7 @@ const ProjectDetail = () => {
                                       rows={3}
                                       readOnly={!canEdit}
                                     />
-                                  )}
+                                  </div>
                                 </article>
                               </div>
                             );
