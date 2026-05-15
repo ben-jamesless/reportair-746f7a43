@@ -1366,7 +1366,16 @@ const ProjectDetail = () => {
                             const open = isAreaOpen(areaKey);
                             return (
                               <div key={ar.id}>
-                                <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
+                                <article
+                                  className={cn(
+                                    "rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
+                                    st === "complete" && "border-l-[#10b981]",
+                                    st === "on_track" && "border-l-[#1A6EFF]",
+                                    st === "requires_discussion" && "border-l-[#f97316]",
+                                    st === "concern" && "border-l-[#ef4444]",
+                                    !st && "border-l-[#D4D1CA]",
+                                  )}
+                                >
                                   <header className="mb-3 flex flex-wrap items-center gap-2">
                                     <button
                                       type="button"
@@ -1376,7 +1385,7 @@ const ProjectDetail = () => {
                                     >
                                       <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
                                     </button>
-                                    <h3 className="text-sm font-medium text-foreground">{ar.name}</h3>
+                                    <h3 className="text-sm font-semibold text-[#0F1724]">{ar.name}</h3>
                                     <AreaStatusPicker
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
@@ -1395,9 +1404,6 @@ const ProjectDetail = () => {
                                     />
                                   )}
                                 </article>
-                                {!isLast && (
-                                  <div className="ml-4 border-t border-border" />
-                                )}
                               </div>
                             );
                           })}
