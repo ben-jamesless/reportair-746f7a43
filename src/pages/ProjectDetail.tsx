@@ -904,7 +904,7 @@ const ProjectDetail = () => {
   const accent = project.color || "#01696F";
 
   return (
-    <AppShell crumbs={[]}>
+    <AppShell crumbs={[{ label: "Events", to: "/projects" }, { label: project.name }]}>
       <MobileProjectToolbar
         project={project}
         photosCount={photos.length}
