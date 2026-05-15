@@ -358,7 +358,7 @@ const Billing = () => {
 
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold tracking-tight text-foreground">{price}</span>
+                    <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{price}</span>
                     <span className="text-sm text-muted-foreground">*/month</span>
                   </div>
                 </div>
