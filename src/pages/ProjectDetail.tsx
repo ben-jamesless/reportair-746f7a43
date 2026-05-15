@@ -1107,7 +1107,11 @@ const ProjectDetail = () => {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-4">
-            <div className="grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
+            <div className={cn(
+              "grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr]",
+              !feedbackSheetOpen && "xl:grid-cols-[220px_minmax(0,1fr)_320px]",
+              feedbackSheetOpen && "xl:grid-cols-[220px_1fr]"
+            )}>
               {/* Day → Area sidebar */}
               <aside className="space-y-1 rounded-lg pr-4 xl:border-r xl:border-[#E8E6DF] dark:bg-card dark:p-2">
                 {days.length === 0 && albumPhotos.size === 0 && (
