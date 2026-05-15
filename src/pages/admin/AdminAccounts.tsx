@@ -114,7 +114,7 @@ const AdminAccounts = () => {
       })
     : filtered;
 
-  const sorted = sortDir == null ? afterFree : [...afterFree].sort((a, b) => {
+  const sorted = sortDir == null ? afterTrials : [...afterTrials].sort((a, b) => {
     const av = Number(a.unit_amount ?? 0);
     const bv = Number(b.unit_amount ?? 0);
     return sortDir === "desc" ? bv - av : av - bv;
@@ -128,8 +128,8 @@ const AdminAccounts = () => {
       <div className="flex items-center gap-4 flex-wrap">
         <Input placeholder="Search team or billing owner…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
         <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <Checkbox checked={hideFree} onCheckedChange={(v) => setHideFree(!!v)} />
-          Hide free accounts
+          <Checkbox checked={showTrials} onCheckedChange={(v) => setShowTrials(!!v)} />
+          Active trial memberships
         </label>
       </div>
       <div className="rounded-md border overflow-x-auto">
