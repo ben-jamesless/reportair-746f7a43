@@ -305,26 +305,26 @@ const Billing = () => {
 
         {/* Compare plans heading */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Compare Plans</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Compare Plans</h1>
 
-          <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Pill toggle */}
-            <div className="inline-flex items-center rounded-full border-2 border-[#D4D1CA] bg-[#F5F4F0] p-1.5">
+            <div className="inline-flex w-full sm:w-auto items-center rounded-full border-2 border-[#D4D1CA] bg-[#F5F4F0] p-1">
               <button
                 onClick={() => setAnnual(true)}
-                className={`px-6 py-2.5 text-base font-semibold rounded-full transition-all ${
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
                   annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-[#7A7974] hover:text-[#0F1724]"
                 }`}
               >
-                Pay Once a Year
+                Yearly
               </button>
               <button
                 onClick={() => setAnnual(false)}
-                className={`px-6 py-2.5 text-base font-semibold rounded-full transition-all ${
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
                   !annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-[#7A7974] hover:text-[#0F1724]"
                 }`}
               >
-                Pay Once a Month
+                Monthly
               </button>
             </div>
             <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
@@ -343,7 +343,7 @@ const Billing = () => {
               <div
                 key={p.key}
                 className={cn(
-                  "rounded-2xl border-2 p-6 flex flex-col gap-5",
+                  "rounded-2xl border-2 p-4 sm:p-6 flex flex-col gap-4 sm:gap-5",
                   isCurrent
                     ? "border-[#1A6EFF] bg-[#1A6EFF]/[0.03] shadow-md"
                     : "border-border bg-card"
@@ -358,7 +358,7 @@ const Billing = () => {
 
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold tracking-tight text-foreground">{price}</span>
+                    <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{price}</span>
                     <span className="text-sm text-muted-foreground">*/month</span>
                   </div>
                 </div>
