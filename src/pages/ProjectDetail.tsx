@@ -1790,8 +1790,9 @@ const ProjectDetail = () => {
         project={project}
         onChanged={loadAll}
         trigger={null}
+        defaultTab={settingsDefaultTab}
         open={settingsDialogOpen}
-        onOpenChange={setSettingsDialogOpen}
+        onOpenChange={(o) => { setSettingsDialogOpen(o); if (!o) setSettingsDefaultTab("details"); }}
       />
 
         <ErrorBoundary label="lightbox">
