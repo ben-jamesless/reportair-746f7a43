@@ -6,11 +6,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PRICE_TO_PLAN: Record<string, string> = {
-  "price_0TWWkf1c550c7HdPqtOvUZJC": "pro",
-  "price_0TWWko1c550c7HdPLsR4Dqy8": "team",
-  "price_0TWWl01c550c7HdPy7nsH4qG": "enterprise",
-};
+// Price → Plan mapping. All 6 price IDs (monthly + annual per tier) map here
+// from Edge Function secrets — same source of truth as stripe-checkout & stripe-webhook.
+function buildPriceToPlan(): Record<string, string> {
+  const map: Record<string, string> = {};
+  const pairs: Array<[string, string]> = [
+    ["STRIPE_PRICE_SOLO_MONTHLY",   "solo"],
+    ["STRIPE_PRICE_SOLO_ANNUAL",    "solo"],
+    ["STRIPE_PRICE_PRO_MONTHLY",    "pro"],
+    ["STRIPE_PRICE_PRO_ANNUAL",     "pro"],
+    ["STRIPE_PRICE_STUDIO_MONTHLY", "studio"],
+    ["STRIPE_PRICE_STUDIO_ANNUAL",  "studio"],
+  ];
+  for (const [envKey, plan] of pairs) {
+    const id = Deno.env.get(envKey);
+    if (id) map[id] = plan;
+  }
+  return map;
+}
+const PRICE_TO_PLAN = buildPriceToPlan();
 
 const BILLING_STATUSES = new Set(["active", "trialing", "past_due"]);
 
