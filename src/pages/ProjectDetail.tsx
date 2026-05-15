@@ -193,10 +193,10 @@ function TabBar({
           key={tab}
           onClick={() => onChange(tab)}
           className={cn(
-            "px-4 h-10 text-sm font-medium border-b-2 transition-colors",
+            "px-4 pb-3 pt-2 text-sm transition-colors",
             activeTab === tab
-              ? "border-[#1A6EFF] text-[#1A6EFF]"
-              : "border-transparent text-[#7A7974] hover:text-[#0F1724] hover:border-[#D4D1CA]"
+              ? "border-b-2 border-[#1A6EFF] text-[#1A6EFF] font-semibold"
+              : "border-b-2 border-transparent text-[#7A7974] hover:text-[#0F1724]"
           )}
         >
           {tab}
@@ -876,7 +876,7 @@ const ProjectDetail = () => {
   const accent = project.color || "#01696F";
 
   return (
-    <AppShell crumbs={crumbs}>
+    <AppShell crumbs={[]}>
       <MobileProjectToolbar
         project={project}
         photosCount={photos.length}
@@ -905,9 +905,9 @@ const ProjectDetail = () => {
       />
 
       {/* ── Sticky page header ── */}
-      <div className="border-b border-[#D4D1CA] bg-white px-6 pt-5 pb-0 -mx-4 sm:-mx-6 lg:-mx-8 sticky top-10 z-30">
+      <div className="sticky top-10 z-30 bg-white border-b border-[#D4D1CA] -mx-4 sm:-mx-6 lg:-mx-8 px-6 pt-5 pb-0">
         {/* Breadcrumb */}
-        <nav className="text-xs text-[#7A7974] mb-3 flex items-center gap-1.5">
+        <nav className="text-xs text-[#7A7974] mb-2 flex items-center gap-1.5">
           <Link to="/projects" className="hover:text-[#0F1724]">Events</Link>
           <ChevronRight className="w-3 h-3" />
           <span className="text-[#0F1724]">{project.name}</span>
@@ -1025,7 +1025,7 @@ const ProjectDetail = () => {
         {/* Main tab content */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
-          <TabsContent value="photos" className="mt-6">
+          <TabsContent value="photos" className="mt-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
               {/* Day → Area sidebar */}
               <aside className="space-y-1 rounded-lg dark:bg-card dark:p-2">
@@ -1301,25 +1301,25 @@ const ProjectDetail = () => {
                           const value = getDailyField(activeDay, b.key);
                           const hasValue = !!(value && value.trim());
                           return (
-                            <div key={b.key} className="rounded-md border border-border bg-card overflow-hidden">
+                            <div key={b.key} className="rounded-xl border border-[#D4D1CA] bg-white overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => toggleDailyOpen(dailyKey)}
-                                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left bg-muted/40 hover:bg-muted/60 transition-colors border-b border-border"
+                                className="flex w-full items-center justify-between gap-2 text-left hover:bg-[#FBFBF9] transition-colors"
                                 aria-expanded={open}
                               >
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
+                                <span className="text-[10px] font-semibold tracking-widest text-[#7A7974] uppercase px-4 pt-3 pb-1">
                                   {b.label}
                                 </span>
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center gap-2 px-4 pt-3 pb-1">
                                   {!hasValue && (
-                                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Empty</span>
+                                    <span className="text-[10px] uppercase tracking-wide text-[#7A7974]">Empty</span>
                                   )}
-                                  <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", !open && "-rotate-90")} />
+                                  <ChevronDown className={cn("h-4 w-4 text-[#D4D1CA] transition-transform", !open && "-rotate-90")} />
                                 </span>
                               </button>
                               {open && (
-                                <div className="p-2">
+                                <div className="min-h-[72px] px-4 pb-3 text-sm text-[#0F1724]">
                                   <EditableNote
                                     value={value}
                                     placeholder={`Add ${b.label.toLowerCase()}…`}
@@ -1366,7 +1366,16 @@ const ProjectDetail = () => {
                             const open = isAreaOpen(areaKey);
                             return (
                               <div key={ar.id}>
-                                <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
+                                <article
+                                  className={cn(
+                                    "rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
+                                    st === "complete" && "border-l-[#10b981]",
+                                    st === "on_track" && "border-l-[#1A6EFF]",
+                                    st === "requires_discussion" && "border-l-[#f97316]",
+                                    st === "concern" && "border-l-[#ef4444]",
+                                    !st && "border-l-[#D4D1CA]",
+                                  )}
+                                >
                                   <header className="mb-3 flex flex-wrap items-center gap-2">
                                     <button
                                       type="button"
@@ -1376,7 +1385,7 @@ const ProjectDetail = () => {
                                     >
                                       <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
                                     </button>
-                                    <h3 className="text-sm font-medium text-foreground">{ar.name}</h3>
+                                    <h3 className="text-sm font-semibold text-[#0F1724]">{ar.name}</h3>
                                     <AreaStatusPicker
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
@@ -1395,9 +1404,6 @@ const ProjectDetail = () => {
                                     />
                                   )}
                                 </article>
-                                {!isLast && (
-                                  <div className="ml-4 border-t border-border" />
-                                )}
                               </div>
                             );
                           })}
@@ -1460,7 +1466,16 @@ const ProjectDetail = () => {
                           const open = isAreaOpen(areaKey);
                           return (
                             <div key={ar.id}>
-                              <article className="py-4 pl-4" style={{ borderLeft: `3px solid ${accent}` }}>
+                              <article
+                                className={cn(
+                                  "rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
+                                  st === "complete" && "border-l-[#10b981]",
+                                  st === "on_track" && "border-l-[#1A6EFF]",
+                                  st === "requires_discussion" && "border-l-[#f97316]",
+                                  st === "concern" && "border-l-[#ef4444]",
+                                  !st && "border-l-[#D4D1CA]",
+                                )}
+                              >
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
                                   <button
                                     type="button"
@@ -1470,8 +1485,8 @@ const ProjectDetail = () => {
                                   >
                                     <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
                                   </button>
-                                  <h3 className="text-sm font-medium" style={{ color: "#1a1a1a" }}>{ar.name}</h3>
-                                  <span className="text-xs" style={{ color: "#6b7280" }}>
+                                  <h3 className="text-sm font-semibold text-[#0F1724]">{ar.name}</h3>
+                                  <span className="text-xs text-[#7A7974]">
                                     {list.length} photo{list.length === 1 ? "" : "s"}
                                   </span>
                                   <AreaStatusPicker
@@ -1500,9 +1515,6 @@ const ProjectDetail = () => {
                                   </div>
                                 )}
                               </article>
-                              {!(isLast) && (
-                                <div className="ml-4 border-t" style={{ borderColor: "#e5e7eb" }} />
-                              )}
                             </div>
                           );
                         })}

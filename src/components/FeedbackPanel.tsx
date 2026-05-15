@@ -183,11 +183,13 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
 
   return (
     <aside className={cn("flex flex-col rounded-lg border border-border bg-card", className)}>
-      <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-[#D4D1CA]">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Feedback</h3>
-          <span className="text-xs text-muted-foreground">{total}</span>
+          <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
+          <span className="text-sm font-semibold text-[#0F1724]">Feedback</span>
+          {total > 0 && (
+            <span className="text-xs text-white bg-[#1A6EFF] rounded-full px-1.5 py-0.5 leading-none">{total}</span>
+          )}
         </div>
         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={load} aria-label="Refresh feedback">
           <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
