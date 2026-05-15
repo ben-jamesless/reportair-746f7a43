@@ -472,6 +472,11 @@ const Projects = () => {
                         <DropdownMenuItem onSelect={() => setEditingProject(p)}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
+                        {canMove && (
+                          <DropdownMenuItem onSelect={() => setMoveProject(p)}>
+                            <FolderInput className="mr-2 h-4 w-4" /> Move to folder
+                          </DropdownMenuItem>
+                        )}
                         {canArchive && (
                           isArchived ? (
                             <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
