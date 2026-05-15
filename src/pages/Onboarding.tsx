@@ -25,18 +25,13 @@ const Onboarding = () => {
       return;
     }
     (async () => {
-      // Universal guard: if user already owns a team, /onboarding is a no-op.
-      const { data: existingOwned } = await supabase
+      // Guard: if user already owns a team, skip onboarding entirely
+      const { data: existingTeam } = await supabase
         .from("teams")
         .select("id")
         .eq("billing_owner_user_id", user.id)
-        .limit(1)
         .maybeSingle();
-      if (existingOwned) {
-        await supabase
-          .from("profiles")
-          .update({ onboarded_at: new Date().toISOString() })
-          .eq("id", user.id);
+      if (existingTeam) {
         navigate("/projects", { replace: true });
         return;
       }
