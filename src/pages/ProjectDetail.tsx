@@ -1301,25 +1301,25 @@ const ProjectDetail = () => {
                           const value = getDailyField(activeDay, b.key);
                           const hasValue = !!(value && value.trim());
                           return (
-                            <div key={b.key} className="rounded-md border border-border bg-card overflow-hidden">
+                            <div key={b.key} className="rounded-xl border border-[#D4D1CA] bg-white overflow-hidden">
                               <button
                                 type="button"
                                 onClick={() => toggleDailyOpen(dailyKey)}
-                                className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left bg-muted/40 hover:bg-muted/60 transition-colors border-b border-border"
+                                className="flex w-full items-center justify-between gap-2 text-left hover:bg-[#FBFBF9] transition-colors"
                                 aria-expanded={open}
                               >
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
+                                <span className="text-[10px] font-semibold tracking-widest text-[#7A7974] uppercase px-4 pt-3 pb-1">
                                   {b.label}
                                 </span>
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center gap-2 px-4 pt-3 pb-1">
                                   {!hasValue && (
-                                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Empty</span>
+                                    <span className="text-[10px] uppercase tracking-wide text-[#7A7974]">Empty</span>
                                   )}
-                                  <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", !open && "-rotate-90")} />
+                                  <ChevronDown className={cn("h-4 w-4 text-[#D4D1CA] transition-transform", !open && "-rotate-90")} />
                                 </span>
                               </button>
                               {open && (
-                                <div className="p-2">
+                                <div className="min-h-[72px] px-4 pb-3 text-sm text-[#0F1724]">
                                   <EditableNote
                                     value={value}
                                     placeholder={`Add ${b.label.toLowerCase()}…`}
