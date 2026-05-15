@@ -25,6 +25,21 @@ const Onboarding = () => {
       return;
     }
     (async () => {
+      // Universal guard: if user already owns a team, /onboarding is a no-op.
+      const { data: existingOwned } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("billing_owner_user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (existingOwned) {
+        await supabase
+          .from("profiles")
+          .update({ onboarded_at: new Date().toISOString() })
+          .eq("id", user.id);
+        navigate("/projects", { replace: true });
+        return;
+      }
       const { data: profile } = await supabase
         .from("profiles")
         .select("full_name, onboarded_at")
@@ -42,24 +57,6 @@ const Onboarding = () => {
         .eq("user_id", user.id)
         .limit(1);
       if (pm && pm.length > 0) {
-        // Invited user already belongs to someone else's project — don't create
-        // a duplicate workspace for them. Just complete onboarding and redirect.
-        await supabase
-          .from("profiles")
-          .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
-          .eq("id", user.id);
-        navigate("/projects", { replace: true });
-        return;
-      }
-      // Defensive: if user already owns a team (e.g. retry after a partial
-      // onboarding), skip team creation and finish.
-      const { data: existingOwned } = await supabase
-        .from("teams")
-        .select("id")
-        .eq("billing_owner_user_id", user.id)
-        .limit(1)
-        .maybeSingle();
-      if (existingOwned) {
         await supabase
           .from("profiles")
           .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
