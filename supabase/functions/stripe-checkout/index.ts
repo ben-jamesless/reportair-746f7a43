@@ -48,11 +48,12 @@ async function getCallerUserId(req: Request): Promise<string | null> {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const cors = corsFor(req);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   const callerId = await getCallerUserId(req);
   if (!callerId) return new Response(JSON.stringify({ error: "Unauthorized" }), {
-    status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 401, headers: { ...cors, "Content-Type": "application/json" },
   });
 
   const service = createClient(
@@ -66,7 +67,7 @@ serve(async (req) => {
   const priceKey = interval === "annual" ? `${plan}_annual` : plan;
   const priceId  = PRICE_IDS[priceKey];
   if (!priceId) return new Response(JSON.stringify({ error: "Invalid plan or interval" }), {
-    status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 400, headers: { ...cors, "Content-Type": "application/json" },
   });
 
   const { data: team } = await service
@@ -76,7 +77,7 @@ serve(async (req) => {
     .maybeSingle();
 
   if (!team) return new Response(JSON.stringify({ error: "No billing team found" }), {
-    status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status: 403, headers: { ...cors, "Content-Type": "application/json" },
   });
 
   const { data: { user } } = await service.auth.admin.getUserById(callerId);
@@ -119,6 +120,6 @@ serve(async (req) => {
   });
 
   return new Response(JSON.stringify({ url: session.url }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...cors, "Content-Type": "application/json" },
   });
 });
