@@ -27,7 +27,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
             built for your team — in{" "}
             <span className="text-[#1A6EFF]">10 minutes.</span>
           </h1>
-          <p className="text-white/60 text-sm leading-relaxed max-w-sm">
+          <p className="text-white/60 leading-relaxed max-w-sm text-base">
             Capture progress, keep clients informed, and deliver polished reports — all in one place.
           </p>
         </div>
