@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,32 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type PlanKey = "solo" | "pro" | "studio";
+
+// Network resilience: any auth/signup call that hangs longer than this is treated
+// as a network failure (commonly caused by carriers/DNS filtering oauth or
+// supabase endpoints). Surfacing a real error beats an infinite spinner.
+const NETWORK_TIMEOUT_MS = 15000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out — your network may be blocking this request`));
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
+}
+
+const NETWORK_HELP =
+  "If this keeps failing, try Wi-Fi instead of mobile data, disable a VPN/ad-blocker, or use email signup below.";
 
 const PLANS: {
   key: PlanKey;
@@ -94,12 +119,29 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
+    try {
+      // Go directly to Supabase Auth (or a custom domain like auth.reportair.co
+      // once VITE_SUPABASE_URL points at one). This avoids oauth.lovable.app,
+      // which some cellular carriers block at the DNS/SNI level.
+      const { error } = await withTimeout(
+        supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/projects`,
+          },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Google sign-in"
+      );
+      if (error) {
+        setBusy(false);
+        toast.error(`Google sign-in failed: ${error.message}`, { description: NETWORK_HELP });
+      }
+      // On success the browser redirects, so we leave busy=true.
+    } catch (err) {
       setBusy(false);
-      toast.error("Google sign-in failed");
+      const msg = err instanceof Error ? err.message : "Network error";
+      toast.error(msg, { description: NETWORK_HELP });
     }
   };
 
@@ -120,26 +162,38 @@ const Auth = () => {
   const completeSignup = async (chosenPlan: PlanKey | null) => {
     setBusy(true);
     setPlanChoice(chosenPlan);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/projects`,
-        data: {
-          full_name: fullName,
-          pending_team_name: teamName,
-          pending_plan_choice: chosenPlan,
-          pending_plan_interval: annual ? "annual" : "monthly",
-        },
-      },
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    if (data.session) {
-      // Auto-confirmed — flow continues from Onboarding which reads metadata
-      navigate("/onboarding", { replace: true });
-    } else {
-      setSignupSent(true);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/projects`,
+            data: {
+              full_name: fullName,
+              pending_team_name: teamName,
+              pending_plan_choice: chosenPlan,
+              pending_plan_interval: annual ? "annual" : "monthly",
+            },
+          },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Account creation"
+      );
+      setBusy(false);
+      if (error) {
+        return toast.error(error.message, { description: NETWORK_HELP });
+      }
+      if (data.session) {
+        // Auto-confirmed — flow continues from Onboarding which reads metadata
+        navigate("/onboarding", { replace: true });
+      } else {
+        setSignupSent(true);
+      }
+    } catch (err) {
+      setBusy(false);
+      const msg = err instanceof Error ? err.message : "Network error";
+      toast.error(msg, { description: NETWORK_HELP });
     }
   };
 
