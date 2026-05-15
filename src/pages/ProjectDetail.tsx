@@ -1043,9 +1043,9 @@ const ProjectDetail = () => {
         <TabBar
           tabs={["Updates", "Activity", "Gallery", "Settings"]}
           activeTab={
-            activeTab === "photos" ? "Updates"
-            : activeTab === "activity" ? "Activity"
+            activeTab === "activity" ? "Activity"
             : activeTab === "details" ? "Settings"
+            : viewOverride === "gallery" ? "Gallery"
             : "Updates"
           }
           onChange={(t) => {
