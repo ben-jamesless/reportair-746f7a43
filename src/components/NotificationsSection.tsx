@@ -162,7 +162,7 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
       </Tooltip>
       <CollapsibleContent>
         {items.length === 0 ? (
-          <div className="px-3 py-3 text-xs text-muted-foreground">You're all caught up.</div>
+          <div className={cn("px-3 py-3 text-xs text-muted-foreground", compactLabel && "hidden")}>You're all caught up.</div>
         ) : (
           <ScrollArea className="max-h-80">
             <ul className="mt-1 space-y-0.5">
