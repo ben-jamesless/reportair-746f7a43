@@ -200,6 +200,9 @@ const AdminAccounts = () => {
                   <Button size="sm" variant={t.suspended_at ? "outline" : "destructive"} onClick={() => toggleSuspend(t)}>
                     {t.suspended_at ? "Unsuspend" : "Suspend"}
                   </Button>
+                  <Button size="sm" variant="destructive" onClick={() => deleteTeam(t)}>
+                    Delete
+                  </Button>
                 </TableCell>
               </TableRow>
             );})}
