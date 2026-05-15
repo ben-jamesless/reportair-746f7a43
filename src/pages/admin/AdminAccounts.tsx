@@ -69,6 +69,21 @@ const AdminAccounts = () => {
     else { toast.success("Updated"); load(); }
   };
 
+  const deleteTeam = async (t: AdminTeam) => {
+    const ok = window.confirm(
+      `Permanently delete "${t.name}"?\n\nThis will delete the team, all ${t.project_count} project(s), all photos, comments, notes, exports, share links, and remove all ${t.member_count} member(s).\n\nThis cannot be undone.`
+    );
+    if (!ok) return;
+    const confirmName = window.prompt(`Type the team name to confirm deletion:\n\n${t.name}`);
+    if (confirmName !== t.name) {
+      toast.error("Name did not match — deletion cancelled");
+      return;
+    }
+    const { error } = await supabase.rpc("admin_delete_team" as never, { _team_id: t.id } as never);
+    if (error) toast.error(error.message);
+    else { toast.success(`Deleted ${t.name}`); setDetailsTeam(null); load(); }
+  };
+
   const changePlan = async (t: AdminTeam, plan: string) => {
     const { error } = await supabase.rpc("admin_set_team_plan" as never, { _team_id: t.id, _plan: plan } as never);
     if (error) toast.error(error.message);
