@@ -80,7 +80,7 @@ const COLOR = {
 
 type StatusKey = "on_track" | "complete" | "requires_discussion" | "delayed" | "no_status";
 const STATUS: Record<StatusKey, { label: string; text: ReturnType<typeof rgb>; bg: ReturnType<typeof rgb> }> = {
-  on_track: { label: "On Track", text: HEX("#1DB87A"), bg: HEX("#E8F8F1") },
+  on_track: { label: "On Track", text: HEX("#1A6EFF"), bg: HEX("#EBF0FF") },
   complete: { label: "Complete", text: HEX("#1DB87A"), bg: HEX("#E8F8F1") },
   requires_discussion: { label: "Requires Discussion", text: HEX("#FF8C00"), bg: HEX("#FFF4E5") },
   delayed: { label: "Delayed", text: HEX("#C0392B"), bg: HEX("#FDECEA") },
