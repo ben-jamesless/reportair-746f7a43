@@ -1693,7 +1693,10 @@ const ProjectDetail = () => {
                     }, 0);
                   }
                 }}
-                className="hidden"
+                className={cn(
+                  "xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6 xl:pl-4",
+                  feedbackSheetOpen ? "hidden" : "hidden xl:flex"
+                )}
               />
             </div>
 
