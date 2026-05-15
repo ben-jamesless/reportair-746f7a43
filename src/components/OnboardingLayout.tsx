@@ -18,7 +18,9 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
         style={{ background: "radial-gradient(ellipse at 60% 80%, #0D2A6E 0%, #0A0F1E 65%)" }}
       >
         <div className="relative z-10">
-          <ReportAirLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
+          <Link to="/" aria-label="Go to home">
+            <ReportAirLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
+          </Link>
         </div>
 
         <div className="relative z-10">
