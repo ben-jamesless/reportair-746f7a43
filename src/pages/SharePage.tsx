@@ -157,6 +157,13 @@ const SharePage = () => {
     const r = res as unknown as Resolved;
     if (!r.ok) {
       if (r.error === "password_required") { setNeedPassword(true); return; }
+      // Server-side rate limit hit — lock the UI for 10 minutes to match server window.
+      if (r.error === "rate_limited") {
+        setLockedUntil(Date.now() + 10 * 60 * 1000);
+        setAttempts(0);
+        setData(r);
+        return;
+      }
       // Treat any non-ok response when a password was supplied as a wrong-password attempt.
       if (pwd) {
         const newAttempts = attempts + 1;

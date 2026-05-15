@@ -113,7 +113,6 @@ const AdminAccounts = () => {
   };
 
   const openStripe = (t: AdminTeam) => {
-    console.log("Open in Stripe", t.id);
     toast.info("Stripe integration not yet wired");
   };
 

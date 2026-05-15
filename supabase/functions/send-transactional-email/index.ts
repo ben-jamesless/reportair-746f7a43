@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "https://reportair.co",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
 
@@ -237,15 +237,49 @@ async function sendEmail(to: string, template: string, data: TemplateData) {
   return await resp.json();
 }
 
+// ── Template access control ──────────────────────────────────────────────────
+//
+// INTERNAL_SECRET callers (stripe-webhook, other edge functions): all templates.
+// Authenticated user JWT callers: only the allowlisted templates below.
+//   - "welcome"    : sent on own signup — no extra checks needed.
+//   - "share_link" : must supply share_link_token; caller must own the project
+//                   that token belongs to.
+// All billing templates (upgrade, cancelled, payment_failed, trial_ending) are
+// internal-only to prevent authenticated users from sending phishing emails.
+
+const USER_JWT_ALLOWED_TEMPLATES = new Set(["welcome", "share_link"]);
+
+// For share_link template: verify the caller owns the project the token belongs to.
+async function callerOwnsShareLinkProject(
+  supabase: ReturnType<typeof createClient>,
+  callerId: string,
+  shareLinkToken: string,
+): Promise<boolean> {
+  const { data: link } = await supabase
+    .from("share_links")
+    .select("project_id")
+    .eq("token", shareLinkToken)
+    .maybeSingle();
+  if (!link?.project_id) return false;
+  const { data: membership } = await supabase
+    .from("project_members")
+    .select("role")
+    .eq("project_id", link.project_id)
+    .eq("user_id", callerId)
+    .maybeSingle();
+  return ["owner", "editor"].includes(membership?.role ?? "");
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  // Accept either internal server-to-server secret OR a valid user JWT
   const internal = isInternalCall(req);
+  let callerId: string | null = null;
+
   if (!internal) {
-    const callerId = await getCallerUserId(req);
+    callerId = await getCallerUserId(req);
     if (!callerId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -256,6 +290,29 @@ serve(async (req) => {
     if (!to || !template) {
       return new Response(JSON.stringify({ error: "to and template required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    // JWT callers: enforce template allowlist and additional per-template checks.
+    if (!internal) {
+      if (!USER_JWT_ALLOWED_TEMPLATES.has(template)) {
+        console.error(JSON.stringify({ fn: "send-transactional-email", error: "forbidden_template", template, caller: callerId }));
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // share_link: caller must own/edit the project the share token belongs to.
+      if (template === "share_link") {
+        const shareLinkToken = (data as Record<string, string>)?.shareLinkToken;
+        if (!shareLinkToken) {
+          return new Response(JSON.stringify({ error: "shareLinkToken required for share_link template" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        const service = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+        const allowed = await callerOwnsShareLinkProject(service, callerId!, shareLinkToken);
+        if (!allowed) {
+          console.error(JSON.stringify({ fn: "send-transactional-email", error: "forbidden_share_link", caller: callerId }));
+          return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      }
+    }
+
     const result = await sendEmail(to, template, data ?? {});
     console.log(JSON.stringify({ fn: "send-transactional-email", template, to, id: result?.id }));
     return new Response(JSON.stringify({ ok: true, id: result?.id }), {

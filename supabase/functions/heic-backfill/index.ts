@@ -8,7 +8,7 @@ import decode from "https://esm.sh/heic-decode@2.0.0";
 import { encode as jpegEncode } from "https://esm.sh/jpeg-js@0.4.4";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "https://reportair.co",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };

@@ -10,7 +10,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "https://reportair.co",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
