@@ -8,6 +8,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ArrowUpRight, CheckCircle2, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const PLAN_LABELS: Record<string, string> = {
   solo: "Solo",
@@ -296,12 +297,17 @@ const Billing = () => {
             return (
               <div
                 key={p.key}
-                className="rounded-2xl border border-border bg-card p-6 flex flex-col gap-5"
+                className={cn(
+                  "rounded-2xl border-2 p-6 flex flex-col gap-5",
+                  isCurrent
+                    ? "border-[#1A6EFF] bg-[#1A6EFF]/[0.03] shadow-md"
+                    : "border-border bg-card"
+                )}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold text-foreground">{p.name}</h3>
                   {isCurrent && (
-                    <Badge variant="secondary" className="text-xs">Current</Badge>
+                    <Badge className="text-xs bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]">Current</Badge>
                   )}
                 </div>
 
