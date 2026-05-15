@@ -86,6 +86,32 @@ const Projects = () => {
   const [leavingProject, setLeavingProject] = useState<Project | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [newEventPanelOpen, setNewEventPanelOpen] = useState(false);
+  const [creatingNewFolder, setCreatingNewFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [creatingFolderBusy, setCreatingFolderBusy] = useState(false);
+
+  const handleCreateAndMove = async () => {
+    if (!user || !moveProject) return;
+    const n = newFolderName.trim();
+    if (!n) return;
+    setCreatingFolderBusy(true);
+    const nextSortOrder = folders.length;
+    const { data, error } = await supabase
+      .from("folders")
+      .insert({ name: n, color: "#1A6EFF", owner_id: user.id, sort_order: nextSortOrder })
+      .select("id, name, color")
+      .single();
+    if (error || !data) {
+      setCreatingFolderBusy(false);
+      toast.error(error?.message ?? "Failed to create folder");
+      return;
+    }
+    await assignProjectToFolder(moveProject.id, data.id);
+    setCreatingFolderBusy(false);
+    setCreatingNewFolder(false);
+    setNewFolderName("");
+    setMoveProject(null);
+  };
 
   const { plan, projectCount, limits, canCreateProject } = usePlan();
 
@@ -668,6 +694,49 @@ const Projects = () => {
                 <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
                 Uncategorised
               </button>
+
+              {folders.length === 0 && (
+                <p className="px-3 pt-2 text-xs text-muted-foreground">
+                  No folders yet. Create one to organise your events.
+                </p>
+              )}
+
+              <div className="border-t pt-3 mt-2">
+                {creatingNewFolder ? (
+                  <div className="flex items-center gap-2 px-1">
+                    <Input
+                      autoFocus
+                      placeholder="Folder name"
+                      value={newFolderName}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); handleCreateAndMove(); }
+                        if (e.key === "Escape") { setCreatingNewFolder(false); setNewFolderName(""); }
+                      }}
+                      disabled={creatingFolderBusy}
+                    />
+                    <Button size="sm" onClick={handleCreateAndMove} disabled={creatingFolderBusy || !newFolderName.trim()}>
+                      Create
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setCreatingNewFolder(false); setNewFolderName(""); }}
+                      disabled={creatingFolderBusy}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setCreatingNewFolder(true)}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#1A6EFF] hover:bg-muted"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add a new folder
+                  </button>
+                )}
+              </div>
             </div>
           </DialogContent>
         </Dialog>
