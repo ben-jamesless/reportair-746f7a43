@@ -657,13 +657,23 @@ const Projects = () => {
                 e.preventDefault();
                 if (!leavingProject) return;
                 setLeaving(true);
-                const { error } = await supabase
+                // count: "exact" forces PostgREST to return the number of
+                // affected rows. Without it, RLS-filtered deletes return
+                // error=null with zero rows affected and the UI would falsely
+                // report success while the membership row still exists.
+                const { error, count } = await supabase
                   .from("project_members")
-                  .delete()
+                  .delete({ count: "exact" })
                   .eq("project_id", leavingProject.id)
                   .eq("user_id", user!.id);
                 setLeaving(false);
                 if (error) { toast.error(error.message); return; }
+                if (!count) {
+                  toast.error(
+                    "Couldn't leave this event — you may not have permission. Please refresh and try again, or contact the event owner."
+                  );
+                  return;
+                }
                 toast.success("Left event");
                 setLeavingProject(null);
                 load();
