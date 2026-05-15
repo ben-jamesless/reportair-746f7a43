@@ -171,6 +171,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [annual, setAnnual] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [legalPanel, setLegalPanel] = useState<null | "terms" | "privacy">(null);
 
   useEffect(() => {
     if (!loading && user) navigate("/projects", { replace: true });
