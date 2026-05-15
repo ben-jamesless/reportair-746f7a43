@@ -75,6 +75,60 @@ const useCases: UseCase[] = [
     ),
   },
   {
+    id: "filmsets",
+    accent: "#E94560",
+    title: "Film Sets",
+    description:
+      "Shooting locations, set builds, and location dressing. Keep continuity, art dept, and production aligned.",
+    bullets: [
+      "Document set builds, prop placement, and dressing changes",
+      "Continuity photo logs shared between shoots and wrap",
+      "Location manager receives a daily update before wrap",
+      "Insurance-ready evidence of site condition before and after",
+    ],
+    reportTitle: "Pinewood Studio — Set Build",
+    reportDay: "Day 2 of 12",
+    rows: [
+      { label: "Main Set Build", status: "complete" },
+      { label: "Prop Dressing", status: "progress" },
+      { label: "Lighting Rig", status: "pending" },
+      { label: "Location Condition", status: "complete" },
+    ],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="10,8 16,12 10,16 10,8" />
+      </svg>
+    ),
+  },
+  {
+    id: "activations",
+    accent: "#FF8C00",
+    title: "Brand Activations",
+    description: "Pop-ups, roadshows, and retail installations. Proof of build quality and brand compliance in real time.",
+    bullets: [
+      "Capture build quality and brand compliance at every activation",
+      "Flag missing assets or off-brand execution instantly",
+      "Client receives a live link to the day's install progress",
+      "Suitable for roadshows, retail fit-outs, and experiential builds",
+    ],
+    reportTitle: "Summer Roadshow — Install",
+    reportDay: "Stop 3 of 8",
+    rows: [
+      { label: "Structure Build", status: "complete" },
+      { label: "Branding & Graphics", status: "complete" },
+      { label: "Product Display", status: "progress" },
+      { label: "Lighting & AV", status: "pending" },
+    ],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5" />
+        <path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+  },
+  {
     id: "marathons",
     accent: "#FF8C00",
     title: "Marathon & Road Races",
@@ -127,60 +181,6 @@ const useCases: UseCase[] = [
         <rect x="14" y="3" width="7" height="7" />
         <rect x="14" y="14" width="7" height="7" />
         <rect x="3" y="14" width="7" height="7" />
-      </svg>
-    ),
-  },
-  {
-    id: "filmsets",
-    accent: "#E94560",
-    title: "Film Sets",
-    description:
-      "Shooting locations, set builds, and location dressing. Keep continuity, art dept, and production aligned.",
-    bullets: [
-      "Document set builds, prop placement, and dressing changes",
-      "Continuity photo logs shared between shoots and wrap",
-      "Location manager receives a daily update before wrap",
-      "Insurance-ready evidence of site condition before and after",
-    ],
-    reportTitle: "Pinewood Studio — Set Build",
-    reportDay: "Day 2 of 12",
-    rows: [
-      { label: "Main Set Build", status: "complete" },
-      { label: "Prop Dressing", status: "progress" },
-      { label: "Lighting Rig", status: "pending" },
-      { label: "Location Condition", status: "complete" },
-    ],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
-        <circle cx="12" cy="12" r="10" />
-        <polygon points="10,8 16,12 10,16 10,8" />
-      </svg>
-    ),
-  },
-  {
-    id: "activations",
-    accent: "#FF8C00",
-    title: "Brand Activations",
-    description: "Pop-ups, roadshows, and retail installations. Proof of build quality and brand compliance in real time.",
-    bullets: [
-      "Capture build quality and brand compliance at every activation",
-      "Flag missing assets or off-brand execution instantly",
-      "Client receives a live link to the day's install progress",
-      "Suitable for roadshows, retail fit-outs, and experiential builds",
-    ],
-    reportTitle: "Summer Roadshow — Install",
-    reportDay: "Stop 3 of 8",
-    rows: [
-      { label: "Structure Build", status: "complete" },
-      { label: "Branding & Graphics", status: "complete" },
-      { label: "Product Display", status: "progress" },
-      { label: "Lighting & AV", status: "pending" },
-    ],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
-        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-        <path d="M2 17l10 5 10-5" />
-        <path d="M2 12l10 5 10-5" />
       </svg>
     ),
   },
