@@ -17,6 +17,7 @@ import Auth from "./pages/Auth.tsx";
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword.tsx"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword.tsx"));
 const Onboarding = lazy(() => import("./pages/Onboarding.tsx"));
+const Plan = lazy(() => import("./pages/Plan.tsx"));
 const Projects = lazy(() => import("./pages/Projects.tsx"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
@@ -58,6 +59,7 @@ const App = () => (
                   <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
                   <Route path="/reset-password" element={<ErrorBoundary label="page"><ResetPassword /></ErrorBoundary>} />
                   <Route path="/onboarding" element={<ErrorBoundary label="page"><ProtectedRoute><Onboarding /></ProtectedRoute></ErrorBoundary>} />
+                  <Route path="/onboarding/plan" element={<ErrorBoundary label="page"><ProtectedRoute><Plan /></ProtectedRoute></ErrorBoundary>} />
                   <Route path="/projects" element={<ErrorBoundary label="page"><ProtectedRoute><Projects /></ProtectedRoute></ErrorBoundary>} />
                   <Route path="/projects/:id" element={<ErrorBoundary label="page"><ProtectedRoute><ProjectDetail /></ProtectedRoute></ErrorBoundary>} />
                   <Route path="/profile" element={<ErrorBoundary label="page"><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />

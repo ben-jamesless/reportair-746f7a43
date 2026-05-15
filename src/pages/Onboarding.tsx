@@ -1,4 +1,4 @@
-import { ReportAirLockup } from "@/components/brand/ReportAirMark";
+import { OnboardingLayout } from "@/components/OnboardingLayout";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -106,7 +106,7 @@ const Onboarding = () => {
 
     setBusy(false);
     toast.success(`Welcome, ${fullName.split(" ")[0]}!`);
-    navigate("/projects", { replace: true });
+    navigate("/onboarding/plan", { replace: true });
   };
 
   if (loading || checking) {
@@ -118,36 +118,31 @@ const Onboarding = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 flex items-center justify-center">
-          <ReportAirLockup variant="light" markClassName="h-9 w-9" textClassName="text-xl" />
-        </div>
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle>Let's set things up</CardTitle>
-            <CardDescription>Two quick details and you're in.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Your name</Label>
-                <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Alex Rivera" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="team">Team name</Label>
-                <Input id="team" required value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Northwind Events" />
-                <p className="text-xs text-muted-foreground">You can invite teammates later.</p>
-              </div>
-              <Button type="submit" className="w-full" disabled={busy}>
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Continue
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+    <OnboardingLayout step={2}>
+      <div>
+        <h2 className="text-2xl font-bold text-[#0F1724] mb-1">Set up your workspace</h2>
+        <p className="text-sm text-[#7A7974] mb-6">A couple of quick details and you're in.</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Your name</Label>
+            <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Alex Rivera" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="team">Team / company name</Label>
+            <Input id="team" required value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Northwind Events" />
+            <p className="text-xs text-[#7A7974]">You can invite teammates later.</p>
+          </div>
+          <Button
+            type="submit"
+            className="w-full bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white"
+            disabled={busy}
+          >
+            {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Continue
+          </Button>
+        </form>
       </div>
-    </div>
+    </OnboardingLayout>
   );
 };
 
