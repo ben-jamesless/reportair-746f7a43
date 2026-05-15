@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSection from "@/components/marketing/HeroSection";
@@ -83,35 +83,60 @@ const COPY = {
     sub: "Start with one event, then scale across your builds, activations, and client reports.",
     plans: [
       {
-        name: "Starter",
-        best: "Freelancers & small event teams",
-        price: "TBC",
-        per: "per month",
-        features: ["1 active event", "Daily reports", "Photo tagging", "PDF export"],
-        cta: "Join early access",
+        name: "Solo",
+        best: "For solo operators running events",
+        monthlyPrice: "HK$128",
+        annualMonthly: "HK$102",
+        annualBilled: "HK$1,229 billed annually",
+        features: [
+          "1 active event",
+          "Unlimited PDF exports",
+          "14-day free trial",
+        ],
+        cta: "Start free trial",
         featured: false,
       },
       {
-        name: "Team",
-        best: "Agencies & production teams",
-        price: "TBC",
-        per: "per month",
-        features: ["Multiple active events", "Branded reports", "Weekly summaries", "Client-safe links", "Team access"],
-        cta: "Join early access",
+        name: "Pro",
+        best: "For growing event teams",
+        monthlyPrice: "HK$298",
+        annualMonthly: "HK$238",
+        annualBilled: "HK$2,860 billed annually",
+        features: [
+          "5 active events",
+          "5 team members",
+          "Unlimited PDF exports",
+          "Share & client links",
+          "Password-protected links",
+          "Project folders",
+          "Project invites",
+          "14-day free trial",
+        ],
+        cta: "Start free trial",
         featured: true,
         flag: "Most teams start here",
       },
       {
         name: "Studio",
-        best: "High-volume event operators",
-        price: "TBC",
-        per: "per month",
-        features: ["Advanced templates", "Custom branding", "Priority support", "Account-level reporting"],
-        cta: "Talk to us",
+        best: "For agencies and large organisations",
+        monthlyPrice: "HK$688",
+        annualMonthly: "HK$550",
+        annualBilled: "HK$6,604 billed annually",
+        features: [
+          "Unlimited events",
+          "Unlimited team members",
+          "Unlimited PDF exports",
+          "Share & client links",
+          "Custom logo on PDF",
+          "White-label report header",
+          "Priority support",
+          "Onboarding call",
+          "14-day free trial",
+        ],
+        cta: "Start free trial",
         featured: false,
       },
     ],
-    note: "Pricing is being finalized with early users. Join the early access list to help shape the plans and lock in early pricing.",
   },
   finalCta: {
     title: "Your next client report should not start from a blank deck.",
@@ -142,6 +167,7 @@ const Logo = ({ onDark = false }: { onDark?: boolean }) => (
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [annual, setAnnual] = useState(false);
 
   useEffect(() => {
     if (!loading && user) navigate("/projects", { replace: true });
@@ -237,7 +263,7 @@ const Index = () => {
       {/* ============ PRICING ============ */}
       <section id="pricing" className="py-[68px] sm:py-[95px]" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
-          <header className="mx-auto mb-12 max-w-2xl text-center">
+          <header className="mx-auto mb-8 max-w-2xl text-center">
             <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
               {COPY.pricing.title}
             </h2>
@@ -246,9 +272,32 @@ const Index = () => {
             </p>
           </header>
 
+          <div className="mb-10 flex items-center justify-center gap-3">
+            <span className={`text-sm font-medium ${!annual ? "text-white" : "text-white/50"}`}>Monthly</span>
+            <button
+              type="button"
+              onClick={() => setAnnual((a) => !a)}
+              className="relative h-6 w-11 rounded-full transition-colors"
+              style={{ background: annual ? BRAND.sky : "rgba(255,255,255,0.18)" }}
+              aria-label="Toggle annual billing"
+            >
+              <span
+                className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform"
+                style={{ transform: annual ? "translateX(20px)" : "translateX(0)" }}
+              />
+            </button>
+            <span className={`text-sm font-medium ${annual ? "text-white" : "text-white/50"}`}>
+              Annual
+              <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: "rgba(29,184,122,0.15)", color: "#1DB87A" }}>
+                Save 20%
+              </span>
+            </span>
+          </div>
+
           <div className="grid items-stretch gap-7 md:grid-cols-3 lg:gap-8">
             {COPY.pricing.plans.map((p) => {
               const isFeatured = p.featured;
+              const price = annual ? p.annualMonthly : p.monthlyPrice;
               return (
                 <article
                   key={p.name}
@@ -261,7 +310,7 @@ const Index = () => {
                       : "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.35)",
                   }}
                 >
-                  {isFeatured && p.flag && (
+                  {isFeatured && "flag" in p && p.flag && (
                     <span
                       className="absolute left-1/2 whitespace-nowrap rounded-full font-bold text-white"
                       style={{
@@ -281,10 +330,13 @@ const Index = () => {
                     <h3 className="text-xl font-bold" style={{ ...display, color: "#FFFFFF" }}>{p.name}</h3>
                     <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{p.best}</p>
                   </header>
-                  <div className="mb-5 flex items-baseline gap-2">
-                    <span className="text-3xl font-extrabold" style={{ ...display, color: "#FFFFFF" }}>{p.price}</span>
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{p.per}</span>
+                  <div className="mb-1 flex items-baseline gap-2">
+                    <span className="text-3xl font-extrabold" style={{ ...display, color: "#FFFFFF" }}>{price}</span>
+                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>/month</span>
                   </div>
+                  <p className="mb-5 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                    {annual ? p.annualBilled : "Billed monthly"}
+                  </p>
                   <ul className="mb-7 flex-1 space-y-2.5 text-[0.95rem]" style={{ color: "rgba(255,255,255,0.7)" }}>
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2.5">
@@ -314,9 +366,6 @@ const Index = () => {
               );
             })}
           </div>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-            {COPY.pricing.note}
-          </p>
         </div>
       </section>
 
