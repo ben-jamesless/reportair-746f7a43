@@ -1681,26 +1681,36 @@ const ProjectDetail = () => {
                   if (idx !== undefined) {
                     setLightboxIndex(idx);
                   } else {
-                    // Photo isn't in current visible pool — reset filters and re-target.
                     setActiveDay(ALL_DAYS);
                     setActiveArea(null);
-                    // Defer to next tick so visiblePhotos updates first.
                     setTimeout(() => {
                       const all = photos.findIndex((p) => p.id === photoId);
                       if (all >= 0) setLightboxIndex(all);
                     }, 0);
                   }
                 }}
-                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6 xl:pl-4"
+                className="hidden"
               />
             </div>
 
-            {/* Feedback bottom sheet — mobile + tablet (xl shows the sticky panel above instead) */}
+            {/* Feedback right-side panel — all breakpoints */}
             <Sheet open={feedbackSheetOpen} onOpenChange={setFeedbackSheetOpen}>
-              <SheetContent side="bottom" className="flex h-[85vh] flex-col rounded-t-xl p-0 xl:hidden">
-                <SheetHeader className="px-4 pt-4">
-                  <SheetTitle>Feedback</SheetTitle>
-                </SheetHeader>
+              <SheetContent side="right" className="flex w-full sm:w-[400px] flex-col p-0">
+                {/* Panel header */}
+                <header className="flex items-center justify-between px-4 py-3 border-b border-[#D4D1CA]">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
+                    <span className="text-sm font-semibold text-[#0F1724]">Feedback</span>
+                  </div>
+                  <button
+                    onClick={() => setFeedbackSheetOpen(false)}
+                    className="w-6 h-6 rounded flex items-center justify-center text-[#7A7974] hover:text-[#0F1724] hover:bg-[#FBFBF9] transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </header>
+
+                {/* Panel body */}
                 <div className="min-h-0 flex-1 overflow-hidden p-3">
                   <FeedbackPanel
                     projectId={project.id}
