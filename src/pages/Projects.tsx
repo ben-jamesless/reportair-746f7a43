@@ -479,7 +479,7 @@ const Projects = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="h-8 w-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9] opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-8 w-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9] md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                         >
                           <MoreVertical className="h-4 w-4 text-[#7A7974]" />
