@@ -257,7 +257,7 @@ const Projects = () => {
   return (
     <AppShell crumbs={[{ label: "Events" }]}>
       {/* ── Header row ── */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+      <div className="flex items-center justify-between px-4 sm:px-6 pt-6 pb-4">
         <h1 className="text-xl font-semibold text-[#0F1724]">Events</h1>
         <NewEventButton
           onOpen={() => setNewEventPanelOpen(true)}
