@@ -127,7 +127,14 @@ const Onboarding = () => {
       .insert({ name: teamName, slug, created_by: user.id, billing_owner_user_id: user.id });
     if (teamErr) {
       setBusy(false);
-      return toast.error(teamErr.message);
+      const msg = /teams_billing_owner_unique|duplicate key/i.test(teamErr.message)
+        ? "You already own a workspace. Redirecting…"
+        : teamErr.message;
+      toast.error(msg);
+      if (/teams_billing_owner_unique|duplicate key/i.test(teamErr.message)) {
+        navigate("/projects", { replace: true });
+      }
+      return;
     }
 
     // Welcome email — fire and forget, does not block onboarding completion
