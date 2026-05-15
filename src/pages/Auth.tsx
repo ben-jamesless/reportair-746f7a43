@@ -132,26 +132,35 @@ const Auth = () => {
   const completeSignup = async (chosenPlan: PlanKey | null) => {
     setBusy(true);
     setPlanChoice(chosenPlan);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/projects`,
-        data: {
-          full_name: fullName,
-          pending_team_name: teamName,
-          pending_plan_choice: chosenPlan,
-          pending_plan_interval: annual ? "annual" : "monthly",
-        },
-      },
-    });
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    if (data.session) {
-      // Auto-confirmed — flow continues from Onboarding which reads metadata
-      navigate("/onboarding", { replace: true });
-    } else {
-      setSignupSent(true);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/projects`,
+            data: {
+              full_name: fullName,
+              pending_team_name: teamName,
+              pending_plan_choice: chosenPlan,
+              pending_plan_interval: annual ? "annual" : "monthly",
+            },
+          },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Sign up"
+      );
+      setBusy(false);
+      if (error) return toast.error(error.message, { description: NETWORK_HELP });
+      if (data.session) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        setSignupSent(true);
+      }
+    } catch (err) {
+      setBusy(false);
+      const msg = err instanceof Error ? err.message : "Sign up failed";
+      toast.error(msg, { description: NETWORK_HELP });
     }
   };
 
