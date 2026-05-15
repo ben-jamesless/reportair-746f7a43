@@ -193,10 +193,10 @@ function TabBar({
           key={tab}
           onClick={() => onChange(tab)}
           className={cn(
-            "px-4 h-10 text-sm font-medium border-b-2 transition-colors",
+            "px-4 pb-3 pt-2 text-sm transition-colors",
             activeTab === tab
-              ? "border-[#1A6EFF] text-[#1A6EFF]"
-              : "border-transparent text-[#7A7974] hover:text-[#0F1724] hover:border-[#D4D1CA]"
+              ? "border-b-2 border-[#1A6EFF] text-[#1A6EFF] font-semibold"
+              : "border-b-2 border-transparent text-[#7A7974] hover:text-[#0F1724]"
           )}
         >
           {tab}
