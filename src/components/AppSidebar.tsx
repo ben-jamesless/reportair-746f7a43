@@ -28,26 +28,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  FolderKanban,
+  CalendarDays,
+  FileText,
+  Share2,
+  Users,
+  CreditCard,
+  Settings,
   LogOut,
-  Moon,
-  Sun,
   User as UserIcon,
   Plus,
   MoreHorizontal,
   Pencil,
   Trash2,
   Folder,
-  CreditCard,
-  Shield,
+  ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/hooks/useTheme";
 import { useMyBillingTeam } from "@/hooks/useBillingOwner";
 import { usePlatformAdmin } from "@/hooks/usePlatformAdmin";
+import { usePlan } from "@/hooks/usePlan";
 import { NotificationsSection } from "@/components/NotificationsSection";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { fetchAccessibleProjects } from "@/lib/accessibleProjects";
 
@@ -58,22 +59,29 @@ const FOLDER_COLOR_PRESETS = [
 ];
 
 interface Props {
-  /** When true, render content for a mobile sheet (no fixed positioning, full width). */
   mobile?: boolean;
-  /** Called when a nav action is performed — used to close the mobile sheet. */
   onNavigate?: () => void;
-  /** Desktop collapsed state (icon-only). Ignored when `mobile` is true. */
   collapsed?: boolean;
-  /** Toggle desktop collapsed state. */
   onToggleCollapsed?: () => void;
 }
+
+const navItems = [
+  { label: "Events", icon: CalendarDays, href: "/projects" },
+  { label: "Reports", icon: FileText, href: "/reports" },
+  { label: "Share Links", icon: Share2, href: "/share-links" },
+];
+
+const bottomNavItems = [
+  { label: "Team", icon: Users, href: "/team" },
+  { label: "Billing", icon: CreditCard, href: "/billing" },
+  { label: "Settings", icon: Settings, href: "/settings" },
+];
 
 export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onToggleCollapsed }: Props) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { theme, toggleTheme } = useTheme();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
 
@@ -89,11 +97,15 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
 
   const activeFolder = searchParams.get("folder");
   const onProjects = pathname === "/projects" || pathname.startsWith("/projects?");
-  const isProfileActive = pathname === "/profile" || pathname.startsWith("/profile/");
-  const isBillingActive = pathname === "/billing" || pathname.startsWith("/billing/");
   const { teamId: billingTeamId } = useMyBillingTeam();
   const { isAdmin } = usePlatformAdmin();
-  const isAdminActive = pathname === "/admin" || pathname.startsWith("/admin/");
+  const { subscriptionStatus, trialEndsAt, plan } = usePlan();
+
+  // Days left in trial
+  const daysLeft = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+    : null;
+  const isTrialing = subscriptionStatus === "trialing" && daysLeft !== null;
 
   // Profile load + realtime
   useEffect(() => {
@@ -126,7 +138,6 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
     setFolders((fdata ?? []) as FolderRow[]);
     const folderIds = new Set((fdata ?? []).map((f) => f.id));
 
-    // Count the same accessible projects shown by the Projects page.
     const pdata = await fetchAccessibleProjects(user.id);
     const byFolder: Record<string, number> = {};
     let unfoldered = 0;
@@ -145,7 +156,6 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
 
   useEffect(() => { loadFolders(); }, [loadFolders]);
 
-  // Refresh counts when projects/folders change anywhere in the app
   useEffect(() => {
     const handler = () => loadFolders();
     window.addEventListener("projects:changed", handler);
@@ -194,92 +204,152 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
     loadFolders();
   };
 
-  // Desktop expanded = not collapsed; mobile sheet always shows full content
   const expanded = mobile || !collapsed;
-
-  const containerCls = mobile
-    ? "flex h-full w-full flex-col bg-background"
-    : cn(
-        "hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:border-r md:bg-background transition-[width] duration-200",
-        collapsed ? "md:w-16" : "md:w-56",
-      );
-
   const labelCls = expanded ? "inline" : "hidden";
   const folderSectionCls = expanded ? "block" : "hidden";
-  // Tooltip only shown for icon-only (collapsed desktop)
-  const tooltipCls = expanded ? "hidden" : "";
+
+  const isActive = (href: string) => {
+    if (href === "/projects") return onProjects;
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside className={containerCls}>
-        {/* Logo */}
-        <div className={cn("flex h-14 items-center border-b", expanded ? "px-3 lg:px-4" : "px-2 justify-center")}>
-          <Link
-            to="/projects"
-            onClick={onNavigate}
-            className="flex items-center gap-2 min-w-0"
-          >
-            <ReportAirMark variant="light" className="h-7 w-7 shrink-0 dark:hidden" />
-            <ReportAirMark variant="dark" className="hidden h-7 w-7 shrink-0 dark:inline-block" />
-            <span className={cn("wordmark text-sm text-foreground truncate", labelCls)}>REPORTAIR</span>
+      <aside
+        className={cn(
+          "flex flex-col bg-[#0F1724] text-white transition-[width] duration-200",
+          mobile
+            ? "h-full w-full"
+            : "hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:border-r md:border-white/10",
+          collapsed ? "md:w-16" : "md:w-56"
+        )}
+      >
+        {/* ── Logo area ── */}
+        <div className={cn("flex h-14 items-center", expanded ? "px-3" : "justify-center px-2")}>
+          <Link to="/projects" onClick={onNavigate} className="flex items-center gap-2 min-w-0">
+            <ReportAirMark variant="light" className="h-7 w-7 shrink-0" />
+            <span className={cn("text-sm font-semibold text-white truncate", labelCls)}>
+              ReportAir
+            </span>
           </Link>
         </div>
 
-        {/* Floating collapse/expand toggle on the right edge */}
+        {/* ── Floating collapse toggle ── */}
         {!mobile && onToggleCollapsed && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onToggleCollapsed}
-                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className="absolute right-0 top-7 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm hover:text-foreground hover:bg-secondary transition-colors"
-              >
-                <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", !collapsed && "rotate-180")} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{collapsed ? "Expand" : "Collapse"}</TooltipContent>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-[#0F1724] text-white/70 transition-colors hover:bg-white/10"
+          >
+            <ChevronLeft className={cn("h-3 w-3 transition-transform", collapsed && "rotate-180")} />
+          </button>
         )}
 
-        {/* Nav */}
-        <nav className="flex-1 space-y-1 overflow-y-auto p-2 pt-4 lg:p-3 lg:pt-5">
-          {/* Notifications (top, above folders) */}
-          <NotificationsSection compactLabel={!expanded} onNavigate={onNavigate} />
+        {/* ── Main scrollable area ── */}
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          {/* Notifications (kept, styled for dark) */}
+          <div className="px-2 pt-2 lg:px-3">
+            <NotificationsSection compactLabel={!expanded} onNavigate={onNavigate} />
+          </div>
 
-          <Separator className="my-2" />
+          {/* ── Primary nav ── */}
+          <nav className="mt-2 space-y-0.5 px-2 lg:px-3">
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              const Icon = item.icon;
+              return (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      to={item.href}
+                      onClick={onNavigate}
+                      className={cn(
+                        "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
+                        expanded ? "justify-start" : "justify-center",
+                        active
+                          ? "bg-[#1A6EFF] font-medium text-white"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className={cn(labelCls)}>{item.label}</span>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className={expanded ? "hidden" : ""}>
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </nav>
 
-          {/* All Projects */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => goToFolder(null)}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
-                  expanded ? "justify-start" : "justify-center",
-                  onProjects && !activeFolder
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-                )}
-              >
-                <FolderKanban className="h-4 w-4 shrink-0" />
-                <span className={cn("flex-1 text-left", labelCls)}>All Projects</span>
-                <span className={cn("text-xs text-muted-foreground", labelCls)}>{counts.all}</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className={tooltipCls}>
-              All Projects
-            </TooltipContent>
-          </Tooltip>
+          {/* ── Divider ── */}
+          <div className="my-2 border-t border-white/10 mx-2 lg:mx-3" />
 
-          {/* Folders section — only shown when nav has room (lg+) or on mobile sheet */}
-          <div className={folderSectionCls}>
-            <div className="mt-4 mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+          {/* ── Bottom nav (Team / Billing / Settings) ── */}
+          <nav className="space-y-0.5 px-2 lg:px-3">
+            {bottomNavItems.map((item) => {
+              const active = isActive(item.href);
+              const Icon = item.icon;
+              return (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      to={item.href}
+                      onClick={onNavigate}
+                      className={cn(
+                        "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
+                        expanded ? "justify-start" : "justify-center",
+                        active
+                          ? "bg-[#1A6EFF] font-medium text-white"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className={cn(labelCls)}>{item.label}</span>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className={expanded ? "hidden" : ""}>
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+
+            {/* Admin — kept but less prominent; only visible to admins */}
+            {isAdmin && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to="/admin"
+                    onClick={onNavigate}
+                    className={cn(
+                      "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
+                      expanded ? "justify-start" : "justify-center",
+                      pathname.startsWith("/admin")
+                        ? "bg-[#1A6EFF] font-medium text-white"
+                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                    )}
+                  >
+                    <Users className="h-4 w-4 shrink-0" />
+                    <span className={cn(labelCls)}>Admin</span>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" className={expanded ? "hidden" : ""}>
+                  Admin
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </nav>
+
+          {/* ── Folders section (preserved, styled for dark) ── */}
+          <div className={cn("mt-4 flex-1 px-2 lg:px-3", folderSectionCls)}>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/40">
               Folders
             </div>
             {folders.map((f) => {
-              const isActive = onProjects && activeFolder === f.id;
+              const isFolderActive = onProjects && activeFolder === f.id;
               return (
                 <div
                   key={f.id}
@@ -304,11 +374,11 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                     }
                   }}
                   className={cn(
-                    "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors lg:px-3",
-                    isActive
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-                    dragOver === f.id && "ring-2 ring-primary",
+                    "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
+                    isFolderActive
+                      ? "bg-white/10 text-white"
+                      : "text-white/60 hover:bg-white/10 hover:text-white",
+                    dragOver === f.id && "ring-2 ring-[#1A6EFF]"
                   )}
                 >
                   <button
@@ -318,19 +388,19 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   >
                     <span
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: f.color || "hsl(var(--muted-foreground))" }}
+                      style={{ backgroundColor: f.color || "rgba(255,255,255,0.4)" }}
                     />
                     <span className="flex-1 truncate">{f.name}</span>
-                    <span className="text-xs text-muted-foreground">{counts.byFolder[f.id] ?? 0}</span>
+                    <span className="text-xs text-white/40">{counts.byFolder[f.id] ?? 0}</span>
                   </button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="rounded p-0.5 opacity-0 hover:bg-accent group-hover:opacity-100"
+                        className="rounded p-0.5 opacity-0 hover:bg-white/10 group-hover:opacity-100"
                         aria-label={`Folder options for ${f.name}`}
                       >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
+                        <MoreHorizontal className="h-3.5 w-3.5 text-white/60" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -338,7 +408,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                         <Pencil className="mr-2 h-3.5 w-3.5" /> Rename
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
+                        className="text-red-400 focus:text-red-400"
                         onSelect={() => setDeleting(f)}
                       >
                         <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
@@ -354,107 +424,75 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 type="button"
                 onClick={() => goToFolder("__unfoldered__")}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors lg:px-3",
+                  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                   onProjects && activeFolder === "__unfoldered__"
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                    ? "bg-white/10 text-white"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
-                <Folder className="h-3.5 w-3.5 shrink-0" />
+                <Folder className="h-3.5 w-3.5 shrink-0 text-white/60" />
                 <span className="flex-1 truncate text-left">Uncategorised</span>
-                <span className="text-xs text-muted-foreground">{counts.unfoldered}</span>
+                <span className="text-xs text-white/40">{counts.unfoldered}</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-primary/80 hover:bg-secondary/60 hover:text-primary lg:px-3"
+              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/50 hover:bg-white/10 hover:text-white"
             >
               <Plus className="h-3.5 w-3.5" /> New folder
             </button>
           </div>
+        </div>
 
-        </nav>
-
-        {/* User */}
-        <div className="space-y-1 border-t p-2 lg:p-3">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                onClick={toggleTheme}
-                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-                className={cn("h-auto w-full gap-3 px-2 py-2 text-muted-foreground hover:text-foreground lg:px-3", expanded ? "justify-start" : "justify-center")}
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
-                <span className={cn("text-sm", labelCls)}>
-                  {theme === "dark" ? "Light mode" : "Dark mode"}
-                </span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className={tooltipCls}>
-              {theme === "dark" ? "Light mode" : "Dark mode"}
-            </TooltipContent>
-          </Tooltip>
-
-          {billingTeamId && (
+        {/* ── Bottom section: user + trial pill ── */}
+        <div className="mt-auto flex flex-col gap-2 border-t border-white/10 px-3 pb-3 pt-2">
+          {/* Trial pill */}
+          {isTrialing && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
                   to="/billing"
                   onClick={onNavigate}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors lg:px-3",
-                    expanded ? "justify-start" : "justify-center",
-                    isBillingActive
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                    "flex items-center gap-1.5 rounded-full border border-[#1A6EFF] bg-[#1A6EFF]/10 px-2.5 py-1 text-xs text-[#1A6EFF]",
+                    expanded ? "w-fit" : "mx-auto w-fit justify-center"
                   )}
                 >
-                  <CreditCard className="h-4 w-4 shrink-0" />
-                  <span className={cn(labelCls)}>Billing</span>
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+                  </span>
+                  {expanded && <span>Trial ends in {daysLeft} days</span>}
                 </Link>
               </TooltipTrigger>
-              <TooltipContent side="right" className={tooltipCls}>
-                Billing
+              <TooltipContent side="right" className={expanded ? "hidden" : ""}>
+                Trial ends in {daysLeft} days
               </TooltipContent>
             </Tooltip>
           )}
-          {isAdmin && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to="/admin"
-                  onClick={onNavigate}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors lg:px-3",
-                    expanded ? "justify-start" : "justify-center",
-                    isAdminActive
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-                  )}
-                >
-                  <Shield className="h-4 w-4 shrink-0" />
-                  <span className={cn(labelCls)}>Admin</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="right" className={tooltipCls}>
-                Admin
-              </TooltipContent>
-            </Tooltip>
-          )}
+
+          {/* User row */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className={cn("h-auto w-full gap-3 px-2 py-2 lg:px-3", expanded ? "justify-start" : "justify-center")}>
-                <Avatar className="h-7 w-7">
+              <button
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10",
+                  expanded ? "" : "justify-center"
+                )}
+              >
+                <Avatar className="h-8 w-8 shrink-0">
                   {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
-                  <AvatarFallback className="bg-secondary text-xs">{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-[#1A6EFF]/20 text-xs text-white">{initials}</AvatarFallback>
                 </Avatar>
-                <span className={cn("min-w-0 flex-1 truncate text-left text-xs text-muted-foreground", labelCls)}>
-                  {fullName || user?.email}
-                </span>
-              </Button>
+                {expanded && (
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <p className="truncate text-sm font-medium text-white">{fullName || user?.email}</p>
+                    <p className="truncate text-xs text-white/50">{user?.email}</p>
+                  </div>
+                )}
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side={mobile ? "top" : "right"} className="w-56">
               <DropdownMenuLabel className="font-normal">
@@ -468,12 +506,6 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 <UserIcon className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              {billingTeamId && (
-                <DropdownMenuItem onClick={() => { onNavigate?.(); navigate("/billing"); }} className="cursor-pointer">
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Billing
-                </DropdownMenuItem>
-              )}
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out
@@ -483,7 +515,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         </div>
       </aside>
 
-      {/* Folder editor */}
+      {/* ── Folder editor dialog ── */}
       {(creating || editing) && (
         <FolderEditor
           folder={editing}
@@ -593,7 +625,7 @@ const FolderEditor = ({
                   aria-label={`Color ${c}`}
                   className={cn(
                     "h-7 w-7 rounded-full border transition-transform hover:scale-110",
-                    color === c && "ring-2 ring-foreground/40 ring-offset-2",
+                    color === c && "ring-2 ring-white/40 ring-offset-2 ring-offset-[#0F1724]",
                   )}
                   style={{ backgroundColor: c }}
                 />
