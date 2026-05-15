@@ -1023,7 +1023,7 @@ const ProjectDetail = () => {
 
       <div className="flex flex-1 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
         {/* Main tab content */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_minmax(0,1fr)_320px]">
@@ -1650,6 +1650,16 @@ const ProjectDetail = () => {
             />
           </TabsContent>
         </Tabs>
+      </div>
+
+      <ProjectSettingsDialog
+        projectId={project.id}
+        project={project}
+        onChanged={loadAll}
+        trigger={null}
+        open={settingsDialogOpen}
+        onOpenChange={setSettingsDialogOpen}
+      />
 
         <ErrorBoundary label="lightbox">
           <PhotoLightbox
