@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, ArrowUpRight, CheckCircle2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
+
+const SYNC_TIMEOUT_MS = 30000;
 
 const PLAN_LABELS: Record<string, string> = {
   solo: "Solo",
@@ -117,19 +120,29 @@ const Billing = () => {
 
       const syncSubscription = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        await supabase.functions.invoke("stripe-sync-subscription", {
-          body: {},
-          headers: { Authorization: `Bearer ${session?.access_token}` },
-        });
+        await withTimeout(
+          supabase.functions.invoke("stripe-sync-subscription", {
+            body: {},
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+          }),
+          SYNC_TIMEOUT_MS,
+          "Subscription sync"
+        );
         await refetch?.();
       };
 
-      void syncSubscription();
+      void syncSubscription().catch((err) => {
+        console.warn("[Billing] initial sync failed:", err);
+      });
 
       let attempts = 0;
       const poll = setInterval(async () => {
         attempts++;
-        await syncSubscription();
+        try {
+          await syncSubscription();
+        } catch (err) {
+          console.warn("[Billing] poll sync failed:", err);
+        }
         if (attempts >= 6) clearInterval(poll);
       }, 2000);
 
@@ -151,28 +164,48 @@ const Billing = () => {
     hasSyncedExisting.current = true;
 
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data } = await supabase.functions.invoke("stripe-sync-subscription", {
-        body: {},
-        headers: { Authorization: `Bearer ${session?.access_token}` },
-      });
-      if (data?.updated) await refetch?.();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const { data } = await withTimeout(
+          supabase.functions.invoke("stripe-sync-subscription", {
+            body: {},
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+          }),
+          SYNC_TIMEOUT_MS,
+          "Subscription sync"
+        );
+        if (data?.updated) await refetch?.();
+      } catch (err) {
+        console.warn("[Billing] on-mount sync failed:", err);
+      }
     })();
   }, [loading, plan, refetch]);
 
   const handleManage = async () => {
     setPortalLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data, error } = await supabase.functions.invoke("stripe-portal", {
-      body: {},
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
-    if (error || !data?.url) {
-      toast.error("Could not open billing portal. Please try again.");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("stripe-portal", {
+          body: {},
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Billing portal"
+      );
+      if (error || !data?.url) {
+        toast.error("Could not open billing portal", {
+          description: error?.message ?? NETWORK_HELP,
+        });
+        setPortalLoading(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch (err) {
       setPortalLoading(false);
-      return;
+      const msg = err instanceof Error ? err.message : "Network error";
+      toast.error(msg, { description: NETWORK_HELP });
     }
-    window.location.href = data.url;
   };
 
   const handleChoosePlan = async (planKey: string) => {
@@ -181,17 +214,29 @@ const Billing = () => {
       return;
     }
     setCheckoutLoading(planKey);
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-      body: { plan: planKey, interval: annual ? "annual" : "monthly" },
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
-    if (error || !data?.url) {
-      toast.error("Could not start checkout. Please try again.");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("stripe-checkout", {
+          body: { plan: planKey, interval: annual ? "annual" : "monthly" },
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Checkout"
+      );
+      if (error || !data?.url) {
+        toast.error("Could not start checkout", {
+          description: error?.message ?? NETWORK_HELP,
+        });
+        setCheckoutLoading(null);
+        return;
+      }
+      window.location.href = data.url;
+    } catch (err) {
       setCheckoutLoading(null);
-      return;
+      const msg = err instanceof Error ? err.message : "Network error";
+      toast.error(msg, { description: NETWORK_HELP });
     }
-    window.location.href = data.url;
   };
 
   if (loading) {

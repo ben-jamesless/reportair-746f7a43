@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 
 type PlanKey = "solo" | "pro" | "studio";
 
@@ -53,20 +54,32 @@ export default function Plan() {
 
   const startTrial = async (planKey: PlanKey, intervalOverride?: "annual" | "monthly") => {
     setLoading(planKey);
-    const { data: { session } } = await supabase.auth.getSession();
-    const interval = intervalOverride ?? (annual ? "annual" : "monthly");
-    const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-      body: { plan: planKey, interval },
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
-    if (error || !data?.url) {
-      toast.error("Could not start checkout. Please try again.");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const interval = intervalOverride ?? (annual ? "annual" : "monthly");
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("stripe-checkout", {
+          body: { plan: planKey, interval },
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Checkout"
+      );
+      if (error || !data?.url) {
+        toast.error("Could not start checkout", {
+          description: error?.message ?? NETWORK_HELP,
+        });
+        setLoading(null);
+        return;
+      }
+      // Clear pending plan metadata so we don't auto-launch again
+      await supabase.auth.updateUser({ data: { pending_plan_choice: null, pending_plan_interval: null } }).catch(() => {});
+      window.location.href = data.url;
+    } catch (err) {
       setLoading(null);
-      return;
+      const msg = err instanceof Error ? err.message : "Network error";
+      toast.error(msg, { description: NETWORK_HELP });
     }
-    // Clear pending plan metadata so we don't auto-launch again
-    await supabase.auth.updateUser({ data: { pending_plan_choice: null, pending_plan_interval: null } }).catch(() => {});
-    window.location.href = data.url;
   };
 
   // Auto-launch checkout if signup metadata included a plan choice
