@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import HeroSection from "@/components/marketing/HeroSection";
 import HowItWorksSection from "@/components/marketing/HowItWorksSection";
