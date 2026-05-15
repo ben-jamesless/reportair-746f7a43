@@ -260,6 +260,9 @@ const AdminAccounts = () => {
                 <Button variant={detailsTeam.suspended_at ? "outline" : "destructive"} size="sm" onClick={() => { toggleSuspend(detailsTeam); setDetailsTeam(null); }}>
                   {detailsTeam.suspended_at ? "Unsuspend" : "Suspend"}
                 </Button>
+                <Button variant="destructive" size="sm" onClick={() => deleteTeam(detailsTeam)}>
+                  Delete
+                </Button>
               </>
             )}
             <Button onClick={() => setDetailsTeam(null)}>Close</Button>
