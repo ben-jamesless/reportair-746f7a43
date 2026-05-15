@@ -1110,34 +1110,29 @@ const ProjectDetail = () => {
 
                 <div className={cn(!datesOpenTablet && "hidden xl:block")}>
 
+                <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Daily Log</p>
+
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
                   const dayActive = activeDay === day.key && activeArea === null;
                   const { counts, unassigned } = areaCountsForDay(day.photos);
                   return (
-                    <div key={day.key} className="rounded-md">
+                    <div key={day.key} className="rounded-lg">
                       <div className="flex items-stretch gap-1">
                         <button
-                          onClick={() => toggleDay(day.key)}
-                          className="flex items-center px-2 text-muted-foreground hover:text-foreground"
-                          aria-label={isOpen ? "Collapse day" : "Expand day"}
-                        >
-                          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </button>
-                        <button
-                          onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => new Set(p).add(day.key)); }}
+                          onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
                           className={cn(
-                            "flex flex-1 items-center justify-between rounded-md px-2 py-2 text-left text-sm transition-colors",
+                            "flex flex-1 items-center justify-between px-3 py-1.5 text-left text-sm transition-colors",
                             dayActive
-                              ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                              : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                              ? "rounded-lg bg-[#1A6EFF] text-white font-semibold"
+                              : "rounded-lg text-[#0F1724] hover:bg-[#FBFBF9]",
                           )}
                         >
-                          <span className="flex items-center gap-1.5">
-                            <Calendar className={cn("h-3.5 w-3.5", dayActive ? "text-primary" : "text-muted-foreground")} />
-                            <span className="font-medium">{SHORT_FMT.format(day.date)}</span>
-                          </span>
-                          <span className={cn("text-xs", dayActive ? "text-primary" : "text-muted-foreground")}>
+                          <span>{SHORT_FMT.format(day.date)}</span>
+                          <span className={cn(
+                            "ml-2 inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold",
+                            dayActive ? "bg-white/20 text-white" : "bg-[#F0EFEA] text-[#7A7974]"
+                          )}>
                             {day.photos.length}
                           </span>
                         </button>
@@ -1152,7 +1147,7 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-7 mt-0.5 space-y-0.5 border-l pl-2">
+                        <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#D4D1CA] pl-2">
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
@@ -1165,14 +1160,13 @@ const ProjectDetail = () => {
                                 className={cn(
                                   "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                   sel
-                                    ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                                    : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                                    ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
+                                    : "text-[#0F1724] hover:bg-[#FBFBF9]",
                                 )}
                               >
                                 <AreaStatusDot status={st} className="shrink-0" />
-                                <MapPinned className={cn("h-3 w-3 shrink-0", sel ? "text-primary" : "text-muted-foreground")} />
                                 <span className="flex-1 truncate">{ar.name}</span>
-                                <span className={cn("ml-1 text-[10px]", sel ? "text-primary" : "text-muted-foreground")}>{c}</span>
+                                <span className={cn("ml-1 text-[10px]", sel ? "text-[#1A6EFF]" : "text-[#7A7974]")}>{c}</span>
                               </button>
                             );
                           })}
@@ -1182,22 +1176,16 @@ const ProjectDetail = () => {
                               className={cn(
                                 "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors",
                                 activeDay === day.key && activeArea === NO_AREA
-                                  ? "border-l-[3px] border-primary bg-primary/15 text-foreground dark:text-white"
-                                  : "hover:bg-secondary dark:hover:bg-[#1E3050]",
+                                  ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
+                                  : "text-[#0F1724] hover:bg-[#FBFBF9]",
                               )}
                             >
-                              <span className="flex items-center gap-1.5">
-                                <MapPinned className="h-3 w-3 shrink-0 text-muted-foreground" />
-                                Unassigned
-                              </span>
+                              <span>Unassigned</span>
                               <span className={cn(
                                 "ml-2 text-[10px]",
-                                activeDay === day.key && activeArea === NO_AREA ? "text-primary" : "text-muted-foreground"
+                                activeDay === day.key && activeArea === NO_AREA ? "text-[#1A6EFF]" : "text-[#7A7974]"
                               )}>{unassigned}</span>
                             </button>
-                          )}
-                          {areas.length === 0 && unassigned === 0 && (
-                            <p className="px-2 py-1 text-[11px] text-muted-foreground">No areas defined.</p>
                           )}
                         </div>
                       )}
@@ -1205,6 +1193,45 @@ const ProjectDetail = () => {
                   );
                 })}
 
+                </div>
+
+                {/* Areas section */}
+                <div className="mt-4 border-t border-[#D4D1CA] pt-3">
+                  <div className="flex items-center justify-between px-3 mb-1">
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Areas</p>
+                    {canEdit && (
+                      <button
+                        onClick={() => setSettingsDialogOpen(true)}
+                        className="flex items-center gap-0.5 text-[10px] text-[#1A6EFF] hover:text-[#1A6EFF]/80 font-medium"
+                      >
+                        <span className="text-base leading-none">+</span> New area
+                      </button>
+                    )}
+                  </div>
+                  {areas.length === 0 ? (
+                    <p className="px-3 text-xs text-[#7A7974]">No areas yet.</p>
+                  ) : (
+                    <div className="space-y-0.5">
+                      {areas.map((ar) => {
+                        const isActive = activeArea === ar.id;
+                        return (
+                          <button
+                            key={ar.id}
+                            onClick={() => setActiveArea(isActive ? null : ar.id)}
+                            className={cn(
+                              "flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition-colors",
+                              isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-[#0F1724] hover:bg-[#FBFBF9]"
+                            )}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-sm bg-[#D4D1CA]" />
+                              {ar.name}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-3 space-y-1 border-t pt-3">
