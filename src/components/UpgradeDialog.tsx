@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 import { Loader2, Check } from "lucide-react";
 import type { PlanName } from "@/hooks/usePlan";
 
@@ -75,17 +76,29 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
 
   const handleUpgrade = async (planKey: string) => {
     setLoading(planKey);
-    const { data: { session } } = await supabase.auth.getSession();
-    const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-      body: { plan: planKey, interval: annual ? "annual" : "monthly" },
-      headers: { Authorization: `Bearer ${session?.access_token}` },
-    });
-    if (error || !data?.url) {
-      toast.error("Could not start checkout. Please try again.");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("stripe-checkout", {
+          body: { plan: planKey, interval: annual ? "annual" : "monthly" },
+          headers: { Authorization: `Bearer ${session?.access_token}` },
+        }),
+        NETWORK_TIMEOUT_MS,
+        "Checkout"
+      );
+      if (error || !data?.url) {
+        toast.error("Could not start checkout", {
+          description: error?.message ?? NETWORK_HELP,
+        });
+        setLoading(null);
+        return;
+      }
+      window.location.href = data.url;
+    } catch (err) {
       setLoading(null);
-      return;
+      const msg = err instanceof Error ? err.message : "Network error";
+      toast.error(msg, { description: NETWORK_HELP });
     }
-    window.location.href = data.url;
   };
 
   return (
