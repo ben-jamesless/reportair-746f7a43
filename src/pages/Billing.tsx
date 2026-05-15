@@ -362,7 +362,7 @@ const Billing = () => {
             <Button
               variant="outline"
               className="w-full font-semibold"
-              onClick={() => window.open("mailto:hello@reportair.co?subject=Reportair%20Demo%20Request", "_blank")}
+              onClick={() => window.open("mailto:ben@reportair.co?subject=Reportair%20Demo%20Request", "_blank")}
             >
               Schedule a Demo
             </Button>
