@@ -1,10 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "https://reportair.co",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function corsFor(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const fallback = Deno.env.get("APP_URL") ?? "https://reportair.co";
+  const allow =
+    /^https:\/\/([a-z0-9-]+\.)*reportair\.co$/i.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i.test(origin) ||
+    /^http:\/\/localhost(:\d+)?$/i.test(origin)
+      ? origin
+      : fallback;
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
+  };
+}
 
 // Price → Plan mapping. All 6 price IDs (monthly + annual per tier) map here
 // from Edge Function secrets — same source of truth as stripe-checkout & stripe-webhook.
