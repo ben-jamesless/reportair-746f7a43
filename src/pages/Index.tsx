@@ -167,6 +167,7 @@ const Logo = ({ onDark = false }: { onDark?: boolean }) => (
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [annual, setAnnual] = useState(false);
 
   useEffect(() => {
     if (!loading && user) navigate("/projects", { replace: true });
