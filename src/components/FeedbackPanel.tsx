@@ -182,8 +182,8 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     tab === "all" ? allEntries.length : tab === "client" ? clientEntries.length : internalComments.length;
 
   return (
-    <aside className={cn("flex flex-col rounded-lg border border-border bg-card", className)}>
-      <header className="flex items-center justify-between px-4 py-3 border-b border-[#D4D1CA]">
+    <aside className={cn("flex flex-col", className)}>
+      <header className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
           <span className="text-sm font-semibold text-[#0F1724]">Feedback</span>
@@ -197,7 +197,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
       </header>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="flex min-h-0 flex-1 flex-col">
-        <div className="border-b px-3 py-3">
+        <div className="px-3 py-3">
           <TabsList className="h-8">
             <TabsTrigger value="all" className="h-7 px-2.5 text-xs">All</TabsTrigger>
             <TabsTrigger value="client" className="h-7 px-2.5 text-xs">Client</TabsTrigger>
