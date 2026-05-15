@@ -1670,7 +1670,7 @@ const ProjectDetail = () => {
                     }, 0);
                   }
                 }}
-                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6"
+                className="hidden xl:flex xl:max-h-[calc(100vh-12rem)] xl:sticky xl:top-6 xl:pl-4"
               />
             </div>
 
