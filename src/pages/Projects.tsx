@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { AppShell } from "@/components/AppShell";
 import { NewProjectDialog } from "@/components/NewProjectDialog";
+import { NewEventPanel } from "@/components/NewEventPanel";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
