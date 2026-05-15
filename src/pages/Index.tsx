@@ -184,8 +184,8 @@ const Index = () => {
         <div className="mx-auto flex max-w-[1360px] items-center justify-between px-5 py-3.5 sm:px-6">
           <Logo />
           <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
-            <a href="#product" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Product</a>
-            <a href="#reviews" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Reviews</a>
+            <a href="#how-it-works" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>How it works</a>
+            <a href="#faq" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>FAQ</a>
             <a href="#pricing" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Pricing</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -215,7 +215,7 @@ const Index = () => {
       <HeroSection />
 
       {/* ============ HOW IT WORKS ============ */}
-      <HowItWorksSection />
+      <div id="how-it-works"><HowItWorksSection /></div>
 
       {/* ============ PRODUCT FEATURES (removed — replaced by How It Works) ============ */}
 
@@ -266,7 +266,7 @@ const Index = () => {
       </section>
 
       {/* ============ FAQ ============ */}
-      <FAQSection />
+      <div id="faq"><FAQSection /></div>
 
       {/* ============ USE CASES ============ */}
       <UseCasesSection />
