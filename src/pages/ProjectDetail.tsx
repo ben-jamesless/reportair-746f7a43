@@ -148,8 +148,9 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
         title="Upgrade to Pro to share live event links"
         className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#7A7974] font-medium hover:bg-[#FBFBF9] transition-colors"
       >
-        <Lock className="w-3.5 h-3.5" />
+        <Share2 className="w-3.5 h-3.5" />
         Share link
+        <Crown className="w-3.5 h-3.5 text-[#1A6EFF]" />
       </button>
       {showUpgrade && (
         <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-[#D4D1CA] bg-white shadow-lg p-4">
