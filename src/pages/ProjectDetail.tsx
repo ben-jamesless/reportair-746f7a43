@@ -1249,7 +1249,7 @@ const ProjectDetail = () => {
 
                 {/* Areas section */}
                 <div className="mt-4 border-t border-[#D4D1CA] pt-3">
-                  <div className="flex items-center justify-between px-3 mb-1">
+                  <div className="flex items-center justify-between px-3 mb-1 py-[5px]">
                     <p className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Areas</p>
                     {canEdit && (
                       addingArea ? (
