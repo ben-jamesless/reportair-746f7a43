@@ -22,10 +22,9 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
 
         <div className="relative z-10">
           <h1 className="text-3xl font-bold text-white leading-snug mb-4">
-            Professional event reporting,
+            Professional event reports,
             <br />
-            built for your team — in{" "}
-            <span className="text-[#1A6EFF]">10 minutes.</span>
+            made in <span className="text-[#1A6EFF]">10 minutes.</span>
           </h1>
           <p className="text-white/60 leading-relaxed max-w-sm text-base">
             Capture progress, keep clients informed, and deliver polished reports — all in one place.
