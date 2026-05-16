@@ -66,7 +66,7 @@ export const ReportAirLockup = ({ className, markClassName, textClassName, varia
       <span
         className={cn(
           "wordmark text-base",
-          variant === "dark" || variant === "onSky" ? "text-white" : "text-foreground",
+          variant === "dark" || variant === "onSky" ? "text-white" : "text-[hsl(var(--heading))]",
           textClassName,
         )}
       >
