@@ -81,6 +81,7 @@ const Onboarding = () => {
             .from("profiles")
             .update({ full_name: metaFullName, onboarded_at: new Date().toISOString() })
             .eq("id", user.id);
+          await refreshProfile();
           // Clear metadata so we don't retry
           await supabase.auth.updateUser({
             data: { ...meta, pending_team_name: null },
