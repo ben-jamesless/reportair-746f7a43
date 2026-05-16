@@ -65,13 +65,17 @@ type ExifRaw = {
 };
 
 export async function parseExif(file: File): Promise<ExifData> {
+  // Fallback: the file's own lastModified is closer to the capture date than
+  // the DB upload time. Better than nothing when EXIF is stripped (screenshots,
+  // AirDropped/edited copies, some HEIC→JPEG conversions).
+  const lastMod = file.lastModified ? new Date(file.lastModified).toISOString() : null;
   try {
     const exifr = await loadExifr();
     const data = (await exifr.parse(file, { gps: true, tiff: true, exif: true })) as ExifRaw | null;
-    if (!data) return EMPTY_EXIF;
+    if (!data) return { ...EMPTY_EXIF, captured_at: lastMod };
     const captured = data.DateTimeOriginal || data.CreateDate || data.ModifyDate || null;
     return {
-      captured_at: captured ? new Date(captured).toISOString() : null,
+      captured_at: captured ? new Date(captured).toISOString() : lastMod,
       camera_make: data.Make ?? null,
       camera_model: data.Model ?? null,
       lens: data.LensModel ?? data.Lens ?? null,
@@ -85,7 +89,7 @@ export async function parseExif(file: File): Promise<ExifData> {
       height: data.ExifImageHeight ?? data.ImageHeight ?? null,
     };
   } catch {
-    return EMPTY_EXIF;
+    return { ...EMPTY_EXIF, captured_at: lastMod };
   }
 }
 
