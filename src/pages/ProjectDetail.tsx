@@ -14,7 +14,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { PhotoUploader } from "@/components/PhotoUploader";
 import EventSetup from "@/components/EventSetup";
-import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
+import { type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
@@ -50,6 +50,7 @@ import { DayTimeline } from "@/features/projectDetail/DayTimeline";
 import { AreaGrid } from "@/features/projectDetail/AreaGrid";
 import { PhotoGallery } from "@/features/projectDetail/PhotoGallery";
 import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
+import { PhotoLightboxController } from "@/features/projectDetail/PhotoLightboxController";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -382,9 +383,6 @@ const ProjectDetail = () => {
     setActiveArea(areaId);
     setOpenDays((prev) => new Set(prev).add(dayKey));
   };
-
-  const handleAreaChanged = applyPhotoAreaChange;
-  const handleAlbumChanged = applyPhotoAlbumChange;
 
   // Upload context: when an album is the active day, uploads land in that album.
   const activeAlbumId = albumIdFromKey(activeDay);
@@ -883,20 +881,18 @@ const ProjectDetail = () => {
         onOpenChange={(o) => { setSettingsDialogOpen(o); if (!o) setSettingsDefaultTab("details"); }}
       />
 
-        <ErrorBoundary label="lightbox">
-          <PhotoLightbox
-            photos={visiblePhotos}
-            index={lightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-            onIndexChange={setLightboxIndex}
-            areas={areas}
-            albums={albums}
-            onAreaChanged={handleAreaChanged}
-            onAlbumChanged={handleAlbumChanged}
-            projectId={project.id}
-            isOwner={isOwner}
-          />
-        </ErrorBoundary>
+        <PhotoLightboxController
+          photos={visiblePhotos}
+          areas={areas}
+          albums={albums}
+          projectId={project.id}
+          isOwner={isOwner}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onAreaChanged={applyPhotoAreaChange}
+          onAlbumChanged={applyPhotoAlbumChange}
+        />
 
         {/* Day-scoped PDF export, opened from the day row in the sidebar.
             Only mount when open to avoid the polling effect + hidden Dialog
