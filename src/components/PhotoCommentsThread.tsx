@@ -10,7 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type Member = { user_id: string; full_name: string | null; avatar_url: string | null };
+type Member = { user_id: string; full_name: string | null; email: string | null; avatar_url: string | null };
+
+const displayNameOf = (m: { full_name: string | null; email: string | null } | null | undefined) =>
+  m?.full_name?.trim() || m?.email || "Unknown";
 
 type CommentRow = {
   id: string;
