@@ -296,7 +296,7 @@ const Index = () => {
       <UseCasesSection />
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="py-[68px] sm:py-[95px]" style={{ background: "#060D18" }}>
+      <section id="pricing" className="py-[34px] sm:py-[48px] md:py-[95px]" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
           <header className="mx-auto mb-8 max-w-2xl text-center">
             <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
