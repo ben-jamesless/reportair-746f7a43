@@ -481,6 +481,9 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             </Tooltip>
           )}
 
+          {/* Theme toggle */}
+          <ThemeToggle expanded={expanded} />
+
           {/* User row */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
