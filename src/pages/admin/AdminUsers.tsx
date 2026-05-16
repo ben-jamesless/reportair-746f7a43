@@ -46,6 +46,8 @@ const AdminUsers = () => {
   const [rows, setRows] = useState<UnifiedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<UnifiedRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
