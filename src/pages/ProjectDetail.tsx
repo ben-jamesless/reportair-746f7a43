@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ImagePlus, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
@@ -12,7 +12,6 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { PhotoUploader } from "@/components/PhotoUploader";
-import EventSetup from "@/components/EventSetup";
 import { type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
@@ -43,12 +42,11 @@ import {
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { ProjectHeader } from "@/features/projectDetail/ProjectHeader";
 import { DayTimeline } from "@/features/projectDetail/DayTimeline";
-import { AreaGrid } from "@/features/projectDetail/AreaGrid";
-import { PhotoGallery } from "@/features/projectDetail/PhotoGallery";
 import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
 import { PhotoLightboxController } from "@/features/projectDetail/PhotoLightboxController";
 import { DayReport } from "@/features/projectDetail/DayReport";
 import { FeedbackSheet } from "@/features/projectDetail/FeedbackSheet";
+import { PhotoContent } from "@/features/projectDetail/PhotoContent";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -654,66 +652,28 @@ const ProjectDetail = () => {
 
                 {/* Hide photo grids in Report view for dated days — Report is text-only briefing. */}
                 {!(activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report") && (
-                photos.length === 0 ? (
-                  <EventSetup
+                  <PhotoContent
                     projectId={project.id}
+                    photos={photos}
+                    visiblePhotos={visiblePhotos}
+                    days={days}
                     areas={areas}
-                    albumId={uploadAlbumId}
-                    uploadAreaId={uploadAreaId}
-                    onAreasChanged={loadAll}
-                    onUploaded={loadAll}
-                  />
-                ) : visiblePhotos.length === 0 ? (
-                  <EmptyState
-                    icon={<ImagePlus className="h-6 w-6" />}
-                    title="No photos here"
-                    description={
-                      activeDay === ALL_DAYS
-                        ? "Upload images to extract EXIF (capture time, camera, GPS) and start telling the story."
-                        : "Upload to this day + area context, or pick a different selection."
-                    }
-                    action={
-                      canEdit ? (
-                        <ErrorBoundary label="uploader">
-                          <PhotoUploader
-                            projectId={project.id}
-                            albumId={uploadAlbumId}
-                            areaId={uploadAreaId}
-                            areas={areas}
-                            onUploaded={loadAll}
-                          />
-                        </ErrorBoundary>
-                      ) : undefined
-                    }
-                  />
-                ) : activeDay !== ALL_DAYS && !isAlbumKey(activeDay) ? (
-                  <AreaGrid
                     activeDay={activeDay}
                     activeArea={activeArea}
-                    dayPhotos={days.find((d) => d.key === activeDay)?.photos ?? []}
-                    areas={areas}
+                    uploadAlbumId={uploadAlbumId}
+                    uploadAreaId={uploadAreaId}
+                    canEdit={canEdit}
                     selectMode={selectMode}
                     selectedIds={selectedIds}
                     photoIndexById={photoIndexById}
-                    canEdit={canEdit}
                     isAreaOpen={isAreaOpen}
                     onToggleAreaOpen={toggleAreaOpen}
                     getAreaDayStatus={getAreaDayStatus}
                     onSaveAreaDayStatus={saveAreaDayStatus}
                     onToggleSelect={toggleSelect}
                     onSetLightboxIndex={setLightboxIndex}
+                    onLoadAll={loadAll}
                   />
-                ) : (
-                  <PhotoGallery
-                    photos={visiblePhotos}
-                    selectMode={selectMode}
-                    selectedIds={selectedIds}
-                    photoIndexById={photoIndexById}
-                    resetKey={`${activeDay}|${activeArea ?? "null"}`}
-                    onToggleSelect={toggleSelect}
-                    onSetLightboxIndex={setLightboxIndex}
-                  />
-                )
                 )}
               </section>
 
