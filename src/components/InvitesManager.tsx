@@ -396,8 +396,19 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
           <div className="space-y-1">
             {acceptedInvites.map((inv) => (
               <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
-                <span className="truncate">{inv.email}</span>
-                <span>Accepted {new Date(inv.accepted_at!).toLocaleDateString()} · {inv.role}</span>
+                <span className="truncate flex-1">{inv.email}</span>
+                <span className="shrink-0">Accepted {new Date(inv.accepted_at!).toLocaleDateString()} · {inv.role}</span>
+                {canManage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-destructive hover:text-destructive"
+                    onClick={() => setRemoveAcceptedTarget(inv)}
+                    title="Remove from project"
+                  >
+                    ✕ Remove
+                  </Button>
+                )}
               </div>
             ))}
           </div>
