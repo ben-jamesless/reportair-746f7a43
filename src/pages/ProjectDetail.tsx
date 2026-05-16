@@ -35,6 +35,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { PhotoUploader } from "@/components/PhotoUploader";
+import EventSetup from "@/components/EventSetup";
 import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
