@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
@@ -53,8 +53,9 @@ const PLANS: {
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
   const prefillEmail = params.get("email") ?? "";
   const tabParam = params.get("tab");
   const initialTab = tabParam === "signin" ? "signin" : (tabParam === "signup" || prefillEmail ? "signup" : "signin");
