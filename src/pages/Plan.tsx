@@ -232,11 +232,15 @@ export default function Plan() {
         </div>
 
         <button
-          onClick={() => navigate("/projects", { replace: true })}
-          className="mt-6 w-full text-sm text-[#7A7974] hover:text-[#0F1724] transition-colors"
+          onClick={handleSkip}
+          disabled={skipping || loading !== null}
+          className="mt-6 w-full text-sm text-[#7A7974] hover:text-[#0F1724] transition-colors disabled:opacity-60"
         >
-          Skip for now
+          {skipping ? "Starting trial…" : "Skip for now"}
         </button>
+        <p className="mt-2 text-center text-xs text-[#7A7974]">
+          You'll start a 14-day Solo trial. Upgrade any time.
+        </p>
       </div>
     </OnboardingLayout>
   );
