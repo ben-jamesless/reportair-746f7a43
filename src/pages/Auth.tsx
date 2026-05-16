@@ -53,8 +53,9 @@ const PLANS: {
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(location.search);
   const prefillEmail = params.get("email") ?? "";
   const tabParam = params.get("tab");
   const initialTab = tabParam === "signin" ? "signin" : (tabParam === "signup" || prefillEmail ? "signup" : "signin");
