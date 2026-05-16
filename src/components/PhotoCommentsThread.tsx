@@ -326,9 +326,9 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
                   )}
                 >
                   <Avatar className="h-5 w-5 shrink-0">
-                    <AvatarFallback className="bg-secondary text-[9px]">{initialsOf(m.full_name)}</AvatarFallback>
+                    <AvatarFallback className="bg-secondary text-[9px]">{initialsOf(displayNameOf(m))}</AvatarFallback>
                   </Avatar>
-                  <span className="truncate">{m.full_name ?? "Teammate"}</span>
+                  <span className="truncate">{displayNameOf(m)}</span>
                 </button>
               </li>
             ))}
