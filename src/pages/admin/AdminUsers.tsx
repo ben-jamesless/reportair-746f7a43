@@ -49,6 +49,7 @@ const AdminUsers = () => {
   const [q, setQ] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<UnifiedRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [previewTarget, setPreviewTarget] = useState<UnifiedRow | null>(null);
 
   const load = async () => {
     setLoading(true);
