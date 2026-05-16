@@ -248,7 +248,7 @@ const Index = () => {
       <TimeSavedSection />
 
       {/* ============ REVIEWS ============ */}
-      <section id="reviews" className="py-[68px]" style={{ background: "#060D18" }}>
+      <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
           <header className="mx-auto mb-12 max-w-3xl text-center">
             <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "rgba(168,196,255,0.6)" }}>
@@ -296,7 +296,7 @@ const Index = () => {
       <UseCasesSection />
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="py-[68px] sm:py-[95px]" style={{ background: "#060D18" }}>
+      <section id="pricing" className="py-[34px] sm:py-[48px] md:py-[95px]" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
           <header className="mx-auto mb-8 max-w-2xl text-center">
             <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
@@ -405,7 +405,7 @@ const Index = () => {
       </section>
 
       {/* ============ FINAL CTA ============ */}
-      <section id="cta" className="relative overflow-hidden py-[68px] sm:py-[82px]" style={{ background: BRAND.ink }}>
+      <section id="cta" className="relative overflow-hidden py-[34px] sm:py-[41px] md:py-[82px]" style={{ background: BRAND.ink }}>
         <div
           className="pointer-events-none absolute inset-0"
           style={{

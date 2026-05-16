@@ -37,9 +37,10 @@ const HowItWorksSection = () => {
         @media (max-width: 1023px) {
           .hiw-panel-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
           .hiw-panel-headline { font-size: 28px !important; }
+          .hiw-scope { padding: 43px 48px 52px !important; }
         }
         @media (max-width: 767px) {
-          .hiw-scope { padding: 72px 20px 96px !important; }
+          .hiw-scope { padding: 36px 20px 48px !important; }
           .hiw-panel { padding: 32px 22px !important; }
           .hiw-step-name { font-size: 10px !important; }
           .hiw-section-title { font-size: 32px !important; }

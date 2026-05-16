@@ -287,7 +287,7 @@ const HeroSection = () => {
 
         /* Tablet */
         @media (min-width: 768px) and (max-width: 1023px) {
-          .ra-hero .hero-inner { padding: 40px 32px 56px; gap: 28px; align-items: center; }
+          .ra-hero .hero-inner { padding: 20px 32px 28px; gap: 28px; align-items: center; }
           .ra-hero .hero-copy { flex: 0 0 280px; }
           .ra-hero .headline { font-size: 34px; }
           .ra-hero .subline { font-size: 13px; margin-bottom: 28px; }
@@ -310,7 +310,7 @@ const HeroSection = () => {
         @media (max-width: 767px) {
           .ra-hero .hero-inner {
             flex-direction: column; align-items: stretch;
-            padding: 40px 20px 56px; gap: 36px; text-align: center;
+            padding: 20px 20px 28px; gap: 36px; text-align: center;
           }
           .ra-hero .hero-inner::before { display: none; }
           .ra-hero .hero-copy { flex: none; width: 100%; }

@@ -60,7 +60,7 @@ export default function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number>(0);
 
   return (
-    <section style={{ background: "#060D18", padding: "86px 24px" }}>
+    <section className="py-[86px] px-6 max-md:py-[43px]" style={{ background: "#060D18" }}>
       <div style={{ textAlign: "center", marginBottom: 56 }}>
         <p
           style={{
