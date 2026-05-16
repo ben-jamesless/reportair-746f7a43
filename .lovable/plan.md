@@ -1,42 +1,46 @@
-# ReportAir Brand Book — PDF
+# Quick wins from the architecture audit
 
-A polished, multi-page PDF saved to `/mnt/documents/reportair-brand-book.pdf`, built from the actual tokens, fonts, mark, and screenshots already in the repo. Generated with ReportLab (Python) using the SKY palette as the dominant brand color.
+After exploring the codebase, only one of the two "quick wins" is still real work.
 
-## Pages
+## ARCH-004 (annotations table) — nothing to do
 
-1. **Cover** — Dark INK background, large ReportAir lockup (mark + wordmark), tagline, version + date.
-2. **Brand at a glance** — One-paragraph brand essence, primary color swatch, wordmark sample.
-3. **Logo & mark** — The two-rectangle mark rendered from `public/favicon.svg`:
-   - Primary lockup (mark + REPORTAIR)
-   - Mark-only
-   - Light, Dark, and OnSky variants
-   - Clear-space + minimum-size rules
-   - Do / Don't grid (no recoloring, no stretching, no shadows, no rotating)
-4. **Color palette** — All tokens from `src/index.css` rendered as swatches with name, hex, HSL, and CSS var:
-   - Brand: SKY `#1A6EFF`, SKY_DARK `#0D47B5`, SKY_MID `#5590FF`, SKY_SOFT `#A8C4FF`
-   - Neutrals: INK `#0F1724`, MIST `#7A8FA8`, CLOUD `#EDF1F7`, FOG `#F5F7FA`, BORDER `#D0D9E8`, White
-   - Semantic: Success `#1DB87A`, Warning `#FF8C00`, Destructive `#FF3B30`
-   - Gradient: `--gradient-primary` (SKY → SKY_MID, 135°)
-5. **Typography** — Plus Jakarta Sans (display/wordmark) + Inter (body):
-   - Type scale samples (H1–H4, body, caption)
-   - Wordmark spec (Plus Jakarta Sans 600, letter-spacing 0.04em, uppercase)
-   - Font-feature-settings note (`ss01`, `cv11`)
-6. **UI tokens** — Radius `0.75rem`, shadows (`--shadow-soft`, `--shadow-elegant`), spacing scale, border color samples.
-7. **Components** — Rendered examples of primary/secondary/ghost buttons, card, input, badge — drawn as vector approximations of the live components.
-8. **Product in use** — Full-bleed screenshots from `src/assets/mockups/` (1–6) with captions.
-9. **Voice & usage** — Short do/don't writing guidance ("efficient, professional, direct"), incorrect-usage examples, contact line.
+The audit was generated against the migration list and assumed `annotations` was still alive. It isn't: migration `20260429092455_…sql` already runs `DROP TABLE IF EXISTS public.annotations CASCADE;`. Confirmed there are no references to `annotations` in `src/`, in `supabase/functions/`, or in `types.ts`. **No change needed.**
 
-## Technical details
+## ARCH-003 (duplicate HEIC libraries) — consolidate on `heic-to`
 
-- Script: `/tmp/build_brand_book.py` using `reportlab` (Platypus for flow pages, Canvas for cover/swatch pages).
-- Mark: parse `public/favicon.svg` and redraw the two rounded rects with ReportLab `canvas.roundRect` so it renders crisply at any size and recolors per variant — no external SVG renderer needed.
-- Fonts: Plus Jakarta Sans + Inter downloaded from Google Fonts at build time into `/tmp/fonts/` and registered via `pdfmetrics.registerFont`; fall back to Helvetica if download fails.
-- Screenshots: embedded directly from `src/assets/mockups/*.png`.
-- Page size: US Letter, 0.6" margins, dark cover + section dividers, light content pages.
-- QA: convert PDF to JPGs with `pdftoppm -r 150` and visually inspect every page for overflow, contrast, and missing glyphs before delivering. Iterate until clean.
+Today three components handle HEIC and they disagree:
 
-## Deliverable
+- `src/components/PhotoUploader.tsx` — uses `heic2any` only
+- `src/components/EventSetup.tsx` — uses `heic2any` only
+- `src/components/HeicBackfillButton.tsx` — tries `heic-to`, falls back to `heic2any`
 
-`<presentation-artifact path="reportair-brand-book.pdf" mime_type="application/pdf">` linking the final PDF (plus a `_v2` if revisions are requested).
+`heic-to` (libheif-js) is more reliable on modern iPhone HEVC files, which is exactly the workflow ReportAir is built for. The fallback pattern in `HeicBackfillButton` was added because the older capture paths still use `heic2any` — once we standardise, the fallback isn't needed.
 
-No app code is changed — this is a one-off artifact generation.
+### Changes
+
+1. **Add a shared helper** `src/lib/heicToJpeg.ts`
+   - Single function `convertHeicToJpeg(file: File | Blob, opts?: { quality?: number; fileName?: string })`
+   - Dynamic `import("heic-to")` so it stays out of the initial bundle (mirrors the current `heic2any` dynamic import pattern)
+   - Returns `{ jpegBlob: Blob, newName: string }`
+   - Centralises the `.heic|.heif → .jpg` rename and the `File`-wrapping required by `heic-to`
+
+2. **Switch all three consumers to the helper**
+   - `PhotoUploader.tsx` — replace the inline `heic2any` block with `convertHeicToJpeg`
+   - `EventSetup.tsx` — same replacement
+   - `HeicBackfillButton.tsx` — drop the try/catch fallback, call the helper directly; preserve the existing per-photo error handling so a single failed file still doesn't abort the batch
+
+3. **Remove the dependency**
+   - `bun remove heic2any` (also drops it from `package.json` + lockfile)
+
+4. **Verify**
+   - `rg "heic2any"` returns no hits anywhere under `src/` or `supabase/`
+   - Build passes (typecheck runs automatically)
+   - Manual smoke in preview: upload a `.heic` via PhotoUploader, run the HEIC backfill button on a project that has legacy HEIC photos
+
+### Out of scope
+
+- ARCH-001 (ProjectDetail split), ARCH-002 (TanStack Query decision), ARCH-005/006 (auth + profile caching), ARCH-008 (test coverage). These are tracked separately and we agreed to tackle them after the quick wins.
+
+### Risk
+
+Low. `heic-to` is already in production via the backfill button; this just makes it the only path. Bundle size goes down, not up. Worst case is a HEIC file that `heic-to` can't decode — the existing per-file try/catch in each consumer will surface a toast rather than crashing, same as today's `heic2any` failures.
