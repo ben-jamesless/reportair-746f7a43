@@ -248,7 +248,7 @@ const Index = () => {
       <TimeSavedSection />
 
       {/* ============ REVIEWS ============ */}
-      <section id="reviews" className="py-[68px]" style={{ background: "#060D18" }}>
+      <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#060D18" }}>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
           <header className="mx-auto mb-12 max-w-3xl text-center">
             <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "rgba(168,196,255,0.6)" }}>
