@@ -72,21 +72,31 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   const load = useCallback(async () => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
-      supabase.from("project_invites").select("id,email,role,token,accepted_at,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
+      supabase.from("project_invites").select("id,email,role,token,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
       supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
     ]);
-    setInvites((inv ?? []) as Invite[]);
+    const invRows = (inv ?? []) as Invite[];
+    setInvites(invRows);
     setProjectName((proj as { name?: string } | null)?.name ?? "");
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
-    if (pmRows.length) {
-      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", pmRows.map((m) => m.user_id));
+
+    // Collect all user IDs we need profile info for: members + accepted invitees
+    const acceptedUserIds = invRows
+      .filter((i) => i.accepted_at && i.accepted_by)
+      .map((i) => i.accepted_by as string);
+    const allIds = Array.from(new Set([...pmRows.map((m) => m.user_id), ...acceptedUserIds]));
+
+    let profMap = new Map<string, string | null>();
+    let existingIds = new Set<string>();
+    if (allIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", allIds);
       const profRows = (profs ?? []) as { id: string; full_name: string | null }[];
-      const map = new Map(profRows.map((p) => [p.id, p.full_name]));
-      setMembers(pmRows.map((m) => ({ ...m, full_name: map.get(m.user_id) ?? null })));
-    } else {
-      setMembers([]);
+      profMap = new Map(profRows.map((p) => [p.id, p.full_name]));
+      existingIds = new Set(profRows.map((p) => p.id));
     }
+    setActiveProfileIds(existingIds);
+    setMembers(pmRows.map((m) => ({ ...m, full_name: profMap.get(m.user_id) ?? null })));
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
