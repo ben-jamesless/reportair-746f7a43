@@ -405,7 +405,7 @@ const Index = () => {
       </section>
 
       {/* ============ FINAL CTA ============ */}
-      <section id="cta" className="relative overflow-hidden py-[68px] sm:py-[82px]" style={{ background: BRAND.ink }}>
+      <section id="cta" className="relative overflow-hidden py-[34px] sm:py-[41px] md:py-[82px]" style={{ background: BRAND.ink }}>
         <div
           className="pointer-events-none absolute inset-0"
           style={{
