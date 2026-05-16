@@ -16,10 +16,20 @@ export type AccessibleProject = {
   folder_id: string | null;
 };
 
-const PROJECT_COLUMNS = "id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at, folder_id";
+const PROJECT_COLUMNS = "id, name, description, template, created_at, color, event_date, event_location, overall_status, event_type, client_name, archived_at";
 
 const uniqueById = (rows: AccessibleProject[]) =>
   Array.from(new Map(rows.map((project) => [project.id, project])).values());
+
+const applyUserFolders = async (userId: string, projects: AccessibleProject[]) => {
+  if (!projects.length) return projects;
+  const { data: upf } = await supabase
+    .from("user_project_folders")
+    .select("project_id, folder_id")
+    .eq("user_id", userId);
+  const map = new Map((upf ?? []).map((r: any) => [r.project_id as string, r.folder_id as string]));
+  return projects.map((p) => ({ ...p, folder_id: map.get(p.id) ?? null }));
+};
 
 export const fetchAccessibleProjects = async (userId: string): Promise<AccessibleProject[]> => {
   const { data: rpcData, error: rpcError } = await supabase.rpc("my_accessible_projects");
@@ -31,7 +41,7 @@ export const fetchAccessibleProjects = async (userId: string): Promise<Accessibl
     .order("created_at", { ascending: false });
   if (rlsError) throw rlsError;
 
-  const projects = (rlsProjects ?? []) as AccessibleProject[];
+  const projects = ((rlsProjects ?? []) as any[]).map((p) => ({ ...p, folder_id: null })) as AccessibleProject[];
   const { data: memberships } = await supabase
     .from("project_members")
     .select("project_id")
@@ -41,16 +51,19 @@ export const fetchAccessibleProjects = async (userId: string): Promise<Accessibl
     .map((membership) => membership.project_id as string)
     .filter((projectId) => !projects.some((project) => project.id === projectId));
 
-  if (!missingProjectIds.length) return projects;
+  let merged = projects;
+  if (missingProjectIds.length) {
+    const { data: memberProjects } = await supabase
+      .from("projects")
+      .select(PROJECT_COLUMNS)
+      .in("id", missingProjectIds);
+    const extra = ((memberProjects ?? []) as any[]).map((p) => ({ ...p, folder_id: null })) as AccessibleProject[];
+    merged = uniqueById([...projects, ...extra]).sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    );
+  }
 
-  const { data: memberProjects } = await supabase
-    .from("projects")
-    .select(PROJECT_COLUMNS)
-    .in("id", missingProjectIds);
-
-  return uniqueById([...projects, ...((memberProjects ?? []) as AccessibleProject[])]).sort((a, b) =>
-    b.created_at.localeCompare(a.created_at),
-  );
+  return applyUserFolders(userId, merged);
 };
 
 export const isProjectInFolderView = (

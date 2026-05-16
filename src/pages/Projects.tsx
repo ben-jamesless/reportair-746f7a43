@@ -254,10 +254,20 @@ const Projects = () => {
   }, [projects, search, activeTab, filterClient, filterEventType, filterStatus, selectedFolder, folders]);
 
   const assignProjectToFolder = async (projectId: string, folderId: string | null) => {
-    const { error } = await supabase
-      .from("projects")
-      .update({ folder_id: folderId })
-      .eq("id", projectId);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Not signed in"); return; }
+    let error;
+    if (folderId) {
+      ({ error } = await supabase
+        .from("user_project_folders")
+        .upsert({ user_id: user.id, project_id: projectId, folder_id: folderId }, { onConflict: "user_id,project_id" }));
+    } else {
+      ({ error } = await supabase
+        .from("user_project_folders")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("project_id", projectId));
+    }
     if (error) { toast.error(error.message); return; }
     toast.success(folderId ? "Moved to folder" : "Removed from folder");
     window.dispatchEvent(new Event("projects:changed"));

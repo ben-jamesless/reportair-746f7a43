@@ -362,13 +362,18 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                     setDragOver(null);
                     const projectId = e.dataTransfer.getData("application/x-project-id");
                     if (projectId) {
-                      supabase.from("projects").update({ folder_id: f.id }).eq("id", projectId).then(({ error }) => {
+                      (async () => {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) { toast.error("Not signed in"); return; }
+                        const { error } = await supabase
+                          .from("user_project_folders")
+                          .upsert({ user_id: user.id, project_id: projectId, folder_id: f.id }, { onConflict: "user_id,project_id" });
                         if (error) toast.error(error.message);
                         else {
                           toast.success("Moved to folder");
                           window.dispatchEvent(new Event("projects:changed"));
                         }
-                      });
+                      })();
                     } else if (dragFolderId.current) {
                       handleDropOnFolder(f.id);
                     }
