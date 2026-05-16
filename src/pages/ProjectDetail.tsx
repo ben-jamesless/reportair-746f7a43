@@ -4,20 +4,8 @@ import { AppShell } from "@/components/AppShell";
 
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ImagePlus, ChevronDown, Trash2, MapPin, CalendarDays, Download, X, MessageSquare } from "lucide-react";
+import { ArrowLeft, ImagePlus, ChevronDown, X, MessageSquare } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
@@ -61,6 +49,7 @@ import { ProjectHeader } from "@/features/projectDetail/ProjectHeader";
 import { DayTimeline } from "@/features/projectDetail/DayTimeline";
 import { AreaGrid } from "@/features/projectDetail/AreaGrid";
 import { PhotoGallery } from "@/features/projectDetail/PhotoGallery";
+import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -217,13 +206,10 @@ const ProjectDetail = () => {
     await bulkDownloadZip(Array.from(selectedIds));
   }, [selectedIds, bulkDownloadZip]);
 
-  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-
   const bulkDeletePhotos = useCallback(async () => {
     if (selectedIds.size === 0) return;
     await bulkDelete(Array.from(selectedIds));
     exitSelectMode();
-    setConfirmDeleteOpen(false);
   }, [selectedIds, bulkDelete, exitSelectMode]);
 
   const [settingsDefaultTab, setSettingsDefaultTab] = useState<"details" | "areas" | "albums" | "members" | "share">("details");
@@ -929,125 +915,20 @@ const ProjectDetail = () => {
           />
         )}
 
-        {selectMode && selectedIds.size > 0 && (
-          <div
-            className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center gap-3 bg-primary px-4 py-3 text-primary-foreground shadow-lg"
-            role="toolbar"
-            aria-label="Bulk photo actions"
-          >
-            <span className="text-sm font-medium">
-              {selectedIds.size} selected
-            </span>
-            <div className="ml-auto flex flex-wrap items-center gap-2">
-              {canEdit && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button size="sm" variant="secondary" className="bg-card/15 text-white hover:bg-card/25 border-0">
-                      <MapPin className="mr-1.5 h-4 w-4" />
-                      Reassign area
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-1" align="end">
-                    <button
-                      className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
-                      onClick={() => bulkAssignArea(null)}
-                    >
-                      Unassigned
-                    </button>
-                    <div className="my-1 h-px bg-border" />
-                    <div className="max-h-64 overflow-y-auto">
-                      {areas.map((ar) => (
-                        <button
-                          key={ar.id}
-                          className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
-                          onClick={() => bulkAssignArea(ar.id)}
-                        >
-                          {ar.name}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-              {canEdit && days.length > 0 && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button size="sm" variant="secondary" className="bg-card/15 text-white hover:bg-card/25 border-0">
-                      <CalendarDays className="mr-1.5 h-4 w-4" />
-                      Move to day
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-1" align="end">
-                    <div className="max-h-64 overflow-y-auto">
-                      {days.map((d) => (
-                        <button
-                          key={d.key}
-                          className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
-                          onClick={() => bulkMoveToDay(d.key)}
-                        >
-                          {d.label}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              )}
-              <Button
-                size="sm"
-                variant="secondary"
-                className="bg-card/15 text-white hover:bg-card/25 border-0"
-                onClick={bulkDownload}
-                disabled={downloading}
-              >
-                <Download className="mr-1.5 h-4 w-4" />
-                {downloading ? "Zipping…" : "Download"}
-              </Button>
-              {canEdit && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="bg-card/15 text-white hover:bg-card/25 border-0"
-                  onClick={() => setConfirmDeleteOpen(true)}
-                >
-                  <Trash2 className="mr-1.5 h-4 w-4" />
-                  Delete
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-white hover:bg-card/15 hover:text-white"
-                onClick={exitSelectMode}
-                aria-label="Exit selection"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        <AlertDialog open={confirmDeleteOpen} onOpenChange={(o) => !deleting && setConfirmDeleteOpen(o)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Delete {selectedIds.size} photo{selectedIds.size === 1 ? "" : "s"}?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete the selected photos and remove them from the project. This cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={(e) => { e.preventDefault(); bulkDeletePhotos(); }}
-                disabled={deleting}
-                className={buttonVariants({ variant: "destructive" })}
-              >
-                {deleting ? "Deleting…" : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <SelectionToolbar
+          visible={selectMode}
+          selectedCount={selectedIds.size}
+          areas={areas}
+          days={days}
+          canEdit={canEdit}
+          downloading={downloading}
+          deleting={deleting}
+          onAssignArea={bulkAssignArea}
+          onMoveToDay={bulkMoveToDay}
+          onDownload={bulkDownload}
+          onDelete={bulkDeletePhotos}
+          onExitSelectMode={exitSelectMode}
+        />
     </AppShell>
   );
 };
