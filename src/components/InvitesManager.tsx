@@ -431,6 +431,22 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Remove accepted-invite confirmation */}
+      <AlertDialog open={!!removeAcceptedTarget} onOpenChange={(o) => !o && setRemoveAcceptedTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Remove {removeAcceptedTarget?.email} from this project? They will lose access immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveAccepted}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Leave project confirmation */}
       <AlertDialog open={leaveOpen} onOpenChange={setLeaveOpen}>
         <AlertDialogContent>
