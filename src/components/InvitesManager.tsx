@@ -76,26 +76,31 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
       supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
     ]);
     const invRows = (inv ?? []) as Invite[];
-    setInvites(invRows);
     setProjectName((proj as { name?: string } | null)?.name ?? "");
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
 
-    // Collect all user IDs we need profile info for: members + accepted invitees
+    // Hide ghost accepted invites whose user profile no longer exists.
     const acceptedUserIds = invRows
       .filter((i) => i.accepted_at && i.accepted_by)
       .map((i) => i.accepted_by as string);
     const allIds = Array.from(new Set([...pmRows.map((m) => m.user_id), ...acceptedUserIds]));
 
-    let profMap = new Map<string, string | null>();
+    let profMap = new Map<string, { full_name: string | null; email: string | null }>();
     let existingIds = new Set<string>();
     if (allIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", allIds);
-      const profRows = (profs ?? []) as { id: string; full_name: string | null }[];
-      profMap = new Map(profRows.map((p) => [p.id, p.full_name]));
+      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", allIds);
+      const profRows = (profs ?? []) as { id: string; full_name: string | null; email: string | null }[];
+      profMap = new Map(profRows.map((p) => [p.id, { full_name: p.full_name, email: p.email }]));
       existingIds = new Set(profRows.map((p) => p.id));
     }
-    setActiveProfileIds(existingIds);
-    setMembers(pmRows.map((m) => ({ ...m, full_name: profMap.get(m.user_id) ?? null })));
+    setInvites(invRows.filter((i) => !i.accepted_at || (i.accepted_by && existingIds.has(i.accepted_by))));
+    setMembers(
+      pmRows.map((m) => ({
+        ...m,
+        full_name: profMap.get(m.user_id)?.full_name ?? null,
+        email: profMap.get(m.user_id)?.email ?? null,
+      })),
+    );
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
