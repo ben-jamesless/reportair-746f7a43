@@ -37,6 +37,15 @@ type Member = {
   role: ProjectRole;
   full_name: string | null;
   email: string | null;
+  last_active_at: string | null;
+  created_at: string | null;
+};
+
+const fmtDate = (d: string | null) => {
+  if (!d) return null;
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 };
 
 const emailSchema = z.string().trim().email().max(255);
