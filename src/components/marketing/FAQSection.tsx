@@ -26,6 +26,31 @@ const faqs = [
     answer:
       "Absolutely. All photos and project data are stored securely with role-based access controls. Only you and team members you invite can access your projects. Your content is never shared or used outside your account.",
   },
+  {
+    question: "Can multiple people work on the same event at once?",
+    answer:
+      "Yes. Invite your team to any event and everyone works in the same project in real time. A site photographer uploads from the ground, a site manager adds notes from the office, and the producer generates the report — all without stepping on each other.",
+  },
+  {
+    question: "Do I need to organise photos before uploading?",
+    answer:
+      "No. Upload in any order from any device. Reportair sorts everything by time and date automatically. You spend time on-site, not on filing.",
+  },
+  {
+    question: "What's the difference between a team owner and an invited member?",
+    answer:
+      "Owners create events, manage team members, and control billing. Invited members can upload photos, add notes, and view reports for the events they're added to — nothing outside their access. You control exactly who sees what.",
+  },
+  {
+    question: "Can I share a report with a client who doesn't have an account?",
+    answer:
+      "Yes. Generate a shareable link for any daily report which your client can open in any browser. The link shows them a clean, read-only view of that day and the overall project's progress.",
+  },
+  {
+    question: "What happens to reports after the event wraps?",
+    answer:
+      "Everything stays in your account and is archived, not deleted. You can pull up photos, notes, and reports from any past event at any time — useful for client disputes, handover documentation, or reference on the next build.",
+  },
 ];
 
 const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
