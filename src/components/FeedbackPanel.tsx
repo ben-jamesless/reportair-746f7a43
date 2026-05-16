@@ -161,7 +161,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
       id: `c-${c.id}`,
       kind: "internal",
       photo_id: c.photo_id,
-      author: c.author_name ?? "Teammate",
+      author: c.author_name ?? "Unknown",
       body: c.body,
       created_at: c.created_at,
     }));
@@ -243,7 +243,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
               id: `c-${c.id}`,
               kind: "internal",
               photo_id: c.photo_id,
-              author: c.author_name ?? "Teammate",
+              author: c.author_name ?? "Unknown",
               body: c.body,
               created_at: c.created_at,
             }))}
