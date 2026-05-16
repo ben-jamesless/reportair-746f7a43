@@ -78,12 +78,17 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     if (authorIds.length > 0) {
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, full_name")
+        .select("id, full_name, email")
         .in("id", authorIds);
-      nameById = new Map((profs ?? []).map((p: { id: string; full_name: string | null }) => [p.id, p.full_name ?? "Teammate"]));
+      nameById = new Map(
+        (profs ?? []).map((p: { id: string; full_name: string | null; email: string | null }) => [
+          p.id,
+          (p.full_name?.trim() || p.email || "Unknown"),
+        ]),
+      );
     }
     setInternalComments(
-      baseComments.map((c) => ({ ...c, author_name: nameById.get(c.author_id) ?? "Teammate" })),
+      baseComments.map((c) => ({ ...c, author_name: nameById.get(c.author_id) ?? "Unknown" })),
     );
     setLoading(false);
   };
