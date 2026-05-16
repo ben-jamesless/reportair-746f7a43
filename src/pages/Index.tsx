@@ -432,7 +432,7 @@ const Index = () => {
               type="email"
               required
               placeholder="you@yourevents.co"
-              className="h-12 flex-1 rounded-full border px-5 text-sm text-white placeholder:text-white/50 outline-none focus:border-white/60 my-0"
+              className="h-12 w-full flex-1 rounded-full border px-5 text-sm text-white placeholder:text-white/50 outline-none focus:border-white/60 my-0"
               style={{ background: "rgba(255,255,255,.06)", borderColor: "rgba(255,255,255,.18)" }}
             />
             <button
