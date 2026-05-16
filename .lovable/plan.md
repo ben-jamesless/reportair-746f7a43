@@ -1,67 +1,42 @@
-## Findings
+# ReportAir Brand Book — PDF
 
-**1. `project_role` enum values:** `owner`, `editor`, `commenter`, `viewer`. There is **no `invited` role** — invitations live in a separate `project_invites` table, and once accepted they become a row in `project_members` with one of those four roles. So we can't distinguish "invited" purely by role; we have to distinguish by *which team owns the project* vs. which projects the user merely has membership on.
+A polished, multi-page PDF saved to `/mnt/documents/reportair-brand-book.pdf`, built from the actual tokens, fonts, mark, and screenshots already in the repo. Generated with ReportLab (Python) using the SKY palette as the dominant brand color.
 
-**2. `team_role` enum values:** `owner`, `admin`, `member`. Each `teams` row has a single `billing_owner_user_id`.
+## Pages
 
-**3. Current quota source:** `usePlan.ts` calls `my_accessible_projects()` and counts the array length. That RPC unions `project_members` (per-project invites) with `team_members` (team-mates), so a Solo user invited to one foreign project sees `1/1`.
+1. **Cover** — Dark INK background, large ReportAir lockup (mark + wordmark), tagline, version + date.
+2. **Brand at a glance** — One-paragraph brand essence, primary color swatch, wordmark sample.
+3. **Logo & mark** — The two-rectangle mark rendered from `public/favicon.svg`:
+   - Primary lockup (mark + REPORTAIR)
+   - Mark-only
+   - Light, Dark, and OnSky variants
+   - Clear-space + minimum-size rules
+   - Do / Don't grid (no recoloring, no stretching, no shadows, no rotating)
+4. **Color palette** — All tokens from `src/index.css` rendered as swatches with name, hex, HSL, and CSS var:
+   - Brand: SKY `#1A6EFF`, SKY_DARK `#0D47B5`, SKY_MID `#5590FF`, SKY_SOFT `#A8C4FF`
+   - Neutrals: INK `#0F1724`, MIST `#7A8FA8`, CLOUD `#EDF1F7`, FOG `#F5F7FA`, BORDER `#D0D9E8`, White
+   - Semantic: Success `#1DB87A`, Warning `#FF8C00`, Destructive `#FF3B30`
+   - Gradient: `--gradient-primary` (SKY → SKY_MID, 135°)
+5. **Typography** — Plus Jakarta Sans (display/wordmark) + Inter (body):
+   - Type scale samples (H1–H4, body, caption)
+   - Wordmark spec (Plus Jakarta Sans 600, letter-spacing 0.04em, uppercase)
+   - Font-feature-settings note (`ss01`, `cv11`)
+6. **UI tokens** — Radius `0.75rem`, shadows (`--shadow-soft`, `--shadow-elegant`), spacing scale, border color samples.
+7. **Components** — Rendered examples of primary/secondary/ghost buttons, card, input, badge — drawn as vector approximations of the live components.
+8. **Product in use** — Full-bleed screenshots from `src/assets/mockups/` (1–6) with captions.
+9. **Voice & usage** — Short do/don't writing guidance ("efficient, professional, direct"), incorrect-usage examples, contact line.
 
-**4. Canonical "counts toward quota" definition (confirming your intuition):** an event counts against a user's plan if it lives on a team they belong to — i.e. `projects.team_id IN (teams the user is a team_member of)`. This is correct because:
-   - Solo plan = a one-person team where the user is the sole `team_member` and `billing_owner_user_id`. Their owned events are exactly the events on that team.
-   - Pro/Studio = team-mates share the team's quota. A Pro team-mate creating an event consumes one of the team's 5 slots, even though they're not the billing owner. So filtering by `billing_owner_user_id = auth.uid()` would *under*-count for team-mates. Filtering by `team_members.user_id = auth.uid()` is the right pivot.
-   - Invited users on `project_members` for a project on *someone else's* team are excluded, which is what we want.
+## Technical details
 
-**5. Archived events:** `projects.archived_at IS NOT NULL` should be excluded. The pricing page says "active events", and archiving is the user's escape hatch when they hit the limit, so it must drop the count.
+- Script: `/tmp/build_brand_book.py` using `reportlab` (Platypus for flow pages, Canvas for cover/swatch pages).
+- Mark: parse `public/favicon.svg` and redraw the two rounded rects with ReportLab `canvas.roundRect` so it renders crisply at any size and recolors per variant — no external SVG renderer needed.
+- Fonts: Plus Jakarta Sans + Inter downloaded from Google Fonts at build time into `/tmp/fonts/` and registered via `pdfmetrics.registerFont`; fall back to Helvetica if download fails.
+- Screenshots: embedded directly from `src/assets/mockups/*.png`.
+- Page size: US Letter, 0.6" margins, dark cover + section dividers, light content pages.
+- QA: convert PDF to JPGs with `pdftoppm -r 150` and visually inspect every page for overflow, contrast, and missing glyphs before delivering. Iterate until clean.
 
-## Plan
+## Deliverable
 
-### a. New SQL migration
+`<presentation-artifact path="reportair-brand-book.pdf" mime_type="application/pdf">` linking the final PDF (plus a `_v2` if revisions are requested).
 
-`supabase/migrations/<ts>_my_owned_projects_count.sql`:
-
-```sql
-CREATE OR REPLACE FUNCTION public.my_owned_projects_count()
-RETURNS integer
-LANGUAGE sql
-STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT COUNT(*)::int
-  FROM public.projects p
-  WHERE auth.uid() IS NOT NULL
-    AND p.archived_at IS NULL
-    AND EXISTS (
-      SELECT 1 FROM public.team_members tm
-      WHERE tm.team_id = p.team_id AND tm.user_id = auth.uid()
-    );
-$$;
-
-REVOKE EXECUTE ON FUNCTION public.my_owned_projects_count() FROM PUBLIC, anon;
-GRANT  EXECUTE ON FUNCTION public.my_owned_projects_count() TO authenticated;
-```
-
-Returning a scalar `int` keeps the wire payload tiny and avoids re-shaping a row type. `my_accessible_projects()` is left untouched and still feeds the visible list.
-
-### b. `src/hooks/usePlan.ts`
-
-Add a parallel `supabase.rpc("my_owned_projects_count")` call alongside the existing `my_accessible_projects()` call. Use the scalar return value for `projectCount` (and therefore `canCreateProject`). The accessible list keeps being fetched only if other hook consumers need it — a quick check shows it's only used here for `.length`, so we can drop that call entirely from `usePlan` and rely on the scalar. Confirm during impl by grepping for any other reader of the hook's `projectCount`.
-
-### c. `src/pages/Projects.tsx`
-
-- Counter + `canCreateProject` + the `atLimit` flag automatically pick up the corrected `projectCount` from the hook — no display change required.
-- The page already calls `my_accessible_projects()` separately (via the `accessibleProjects` lib) for the list itself, so invited events keep showing up in the list.
-- **No section-header redesign.** Keeping the existing flat list — the counter accurately reflecting "1/1" vs "0/1" already disambiguates ownership for the user, and a redesign is out of scope.
-
-### d. Files NOT touched
-
-- `LIMITS` constant (values are correct).
-- `20260515135500_pm_self_leave_policy.sql` and the leave-event handler (PR #2 territory).
-- `my_accessible_projects()` RPC (still needed for the list).
-
-## Verification after implementation
-
-- `npx tsc --noEmit -p tsconfig.app.json`
-- `npx eslint .`
-- Manual matrix against the four acceptance scenarios (Solo invited-only → 0/1, Solo owner → 1/1, Pro team with 3 events → 3/5, archived event excluded).
-
-Approve and I'll run the migration + apply the code changes.
+No app code is changed — this is a one-off artifact generation.
