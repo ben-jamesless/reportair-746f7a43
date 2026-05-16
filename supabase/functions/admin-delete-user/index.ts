@@ -74,15 +74,49 @@ serve(async (req) => {
       });
     }
 
-    // Delete from profiles first (RLS bypassed via service role)
-    const { error: profileErr } = await service.from("profiles").delete().eq("id", targetUserId);
-    if (profileErr) {
-      return new Response(JSON.stringify({ error: profileErr.message }), {
+    // Clean up RESTRICT foreign keys to auth.users before deletion.
+    // 1. Delete all projects created by this user (cascade related data via delete_project RPC).
+    const { data: ownedProjects, error: projListErr } = await service
+      .from("projects").select("id").eq("created_by", targetUserId);
+    if (projListErr) {
+      return new Response(JSON.stringify({ error: `List projects: ${projListErr.message}` }), {
         status: 500, headers: { ...cors, "Content-Type": "application/json" },
       });
     }
+    for (const p of ownedProjects ?? []) {
+      // delete_project requires owner auth; do raw deletes via service role instead
+      const tables = [
+        "notifications","comments","guest_notes","area_day_status","area_day_notes",
+        "day_notes","photos","areas","albums","share_links","project_invites",
+        "project_exports","activity_events","project_members",
+      ];
+      for (const t of tables) {
+        await service.from(t).delete().eq("project_id", p.id);
+      }
+      await service.from("projects").delete().eq("id", p.id);
+    }
 
-    // Delete auth user
+    // 2. Delete all teams created by this user (and their remaining projects/members).
+    const { data: ownedTeams, error: teamListErr } = await service
+      .from("teams").select("id").eq("created_by", targetUserId);
+    if (teamListErr) {
+      return new Response(JSON.stringify({ error: `List teams: ${teamListErr.message}` }), {
+        status: 500, headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
+    for (const t of ownedTeams ?? []) {
+      const { error: delTeamErr } = await service.rpc("admin_delete_team", { _team_id: t.id });
+      if (delTeamErr) {
+        return new Response(JSON.stringify({ error: `Delete team: ${delTeamErr.message}` }), {
+          status: 500, headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // 3. Profile (cascades user_roles, team_members via auth.users delete, but profile FK is CASCADE too).
+    await service.from("profiles").delete().eq("id", targetUserId);
+
+    // 4. Delete auth user (cascades user_roles, team_members, profiles, sessions, etc.)
     const { error: authErr } = await service.auth.admin.deleteUser(targetUserId);
     if (authErr) {
       return new Response(JSON.stringify({ error: authErr.message }), {
