@@ -54,78 +54,27 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePlan } from "@/hooks/usePlan";
-
-type ProjectView = "report" | "gallery";
-
-type Project = {
-  id: string;
-  name: string;
-  description: string | null;
-  template: string;
-  color: string | null;
-  event_date: string | null;
-  build_start_date: string | null;
-  event_location: string | null;
-  overall_status: ProjectStatus | null;
-  event_type: string | null;
-  client_name: string | null;
-  archived_at: string | null;
-  default_view: ProjectView | null;
-};
-
-type Album = { id: string; name: string; slug: string; position: number };
-type Area = { id: string; name: string; sort_order: number };
-type DayNote = {
-  date: string;
-  notes: string | null;
-  today_objectives: string | null;
-  today_achievements: string | null;
-  tomorrow_objectives: string | null;
-  open_issues: string | null;
-};
-type DailyField = "today_objectives" | "today_achievements" | "tomorrow_objectives" | "open_issues";
-type DailyFields = { [K in DailyField]: string | null };
-
-const NO_AREA = "__no_area__";
-const ALL_DAYS = "__all__";
-const ALBUM_PREFIX = "album:";
-const isAlbumKey = (k: string) => k.startsWith(ALBUM_PREFIX);
-const albumIdFromKey = (k: string) => (isAlbumKey(k) ? k.slice(ALBUM_PREFIX.length) : null);
-const albumKey = (id: string) => `${ALBUM_PREFIX}${id}`;
-// Legacy URL value preserved so old shared links keep working until we can
-// resolve the slug to an album id (handled in an effect below).
-const LEGACY_PRE_EVENT_DAY = "__pre_event__";
-const LEGACY_PRE_EVENT_SLUG = "pre-event";
-
-const DATE_FMT = new Intl.DateTimeFormat(undefined, {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
-
-const SHORT_FMT = new Intl.DateTimeFormat(undefined, {
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-});
-
-/** Hex accent for the 3px left bar on area blocks (matches share view). */
-const areaStatusAccent = (s: AreaStatus | null | undefined): string => {
-  switch (s) {
-    case "on_track": return "#3b82f6";
-    case "requires_discussion": return "#f97316";
-    case "concern": return "#ef4444";
-    case "complete": return "#10b981";
-    default: return "#e5e7eb";
-  }
-};
-
-const dayKey = (p: LightboxPhoto): string => {
-  const raw = p.captured_at || p.created_at;
-  const d = raw ? new Date(raw) : new Date(0);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-};
+import {
+  ALBUM_PREFIX,
+  ALL_DAYS,
+  DATE_FMT,
+  LEGACY_PRE_EVENT_DAY,
+  LEGACY_PRE_EVENT_SLUG,
+  NO_AREA,
+  SHORT_FMT,
+  albumIdFromKey,
+  albumKey,
+  areaStatusAccent,
+  dayKey,
+  isAlbumKey,
+  type Album,
+  type Area,
+  type DailyField,
+  type DailyFields,
+  type DayNote,
+  type Project,
+  type ProjectView,
+} from "@/lib/projectDetailTypes";
 
 function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUseShareLink: boolean }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
