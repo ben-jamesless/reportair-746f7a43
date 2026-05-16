@@ -229,7 +229,7 @@ export default function EventSetup({
                 <button
                   type="button"
                   onClick={() => removeArea(a.id)}
-                  className="w-5 h-5 rounded-full hover:bg-card/20 flex items-center justify-center"
+                  className="w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center"
                   aria-label={`Remove ${a.name}`}
                 >
                   <X className="w-3 h-3" />
