@@ -32,7 +32,6 @@ const Settings = lazy(() => import("./pages/Settings.tsx"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
-const AdminAccounts = lazy(() => import("./pages/admin/AdminAccounts.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
 
 const queryClient = new QueryClient();
