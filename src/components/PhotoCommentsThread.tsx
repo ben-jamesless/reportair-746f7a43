@@ -10,7 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type Member = { user_id: string; full_name: string | null; avatar_url: string | null };
+type Member = { user_id: string; full_name: string | null; email: string | null; avatar_url: string | null };
+
+const displayNameOf = (m: { full_name: string | null; email: string | null } | null | undefined) =>
+  m?.full_name?.trim() || m?.email || "Unknown";
 
 type CommentRow = {
   id: string;
@@ -51,8 +54,11 @@ const renderBody = (body: string) => {
   return parts;
 };
 
-const initialsOf = (name: string | null | undefined) =>
-  (name ?? "?").split(/\s+/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+const initialsOf = (name: string | null | undefined) => {
+  const s = (name ?? "?").trim();
+  if (!s) return "?";
+  return s[0]!.toUpperCase();
+};
 
 export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
   const { user } = useAuth();
@@ -79,12 +85,13 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
       if (ids.length === 0) { if (alive) setMembers([]); return; }
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url")
+        .select("id, full_name, email, avatar_url")
         .in("id", ids);
       const byId = new Map((profs ?? []).map((p) => [p.id, p]));
       const list: Member[] = ids.map((uid) => ({
         user_id: uid,
         full_name: byId.get(uid)?.full_name ?? null,
+        email: byId.get(uid)?.email ?? null,
         avatar_url: byId.get(uid)?.avatar_url ?? null,
       }));
       if (alive) setMembers(list);
@@ -103,7 +110,7 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
       const m = memberById.get(r.author_id);
       return {
         ...r,
-        author_name: m?.full_name ?? "Teammate",
+        author_name: displayNameOf(m),
         author_avatar: m?.avatar_url ?? null,
       };
     }), [memberById]);
@@ -168,7 +175,10 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
     if (!mentionOpen) return [];
     return members
       .filter((m) => m.user_id !== user?.id)
-      .filter((m) => (m.full_name ?? "").toLowerCase().includes(mentionQuery))
+      .filter((m) => {
+        const hay = `${m.full_name ?? ""} ${m.email ?? ""}`.toLowerCase();
+        return hay.includes(mentionQuery);
+      })
       .slice(0, 6);
   }, [members, mentionOpen, mentionQuery, user?.id]);
 
@@ -176,7 +186,7 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
     const before = body.slice(0, mentionAnchor);
     const afterIdx = mentionAnchor + 1 + mentionQuery.length;
     const after = body.slice(afterIdx);
-    const token = `@[${m.full_name ?? "Teammate"}](${m.user_id}) `;
+    const token = `@[${displayNameOf(m)}](${m.user_id}) `;
     const next = `${before}${token}${after}`;
     setBody(next);
     setMentionOpen(false);
@@ -316,9 +326,9 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
                   )}
                 >
                   <Avatar className="h-5 w-5 shrink-0">
-                    <AvatarFallback className="bg-secondary text-[9px]">{initialsOf(m.full_name)}</AvatarFallback>
+                    <AvatarFallback className="bg-secondary text-[9px]">{initialsOf(displayNameOf(m))}</AvatarFallback>
                   </Avatar>
-                  <span className="truncate">{m.full_name ?? "Teammate"}</span>
+                  <span className="truncate">{displayNameOf(m)}</span>
                 </button>
               </li>
             ))}
