@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant } from "@/lib/photoUtils";
 import { Progress } from "@/components/ui/progress";
+import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
 
 type Area = { id: string; name: string; sort_order: number };
 
