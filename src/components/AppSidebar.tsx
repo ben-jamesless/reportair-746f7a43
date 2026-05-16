@@ -575,6 +575,30 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
   );
 };
 
+const ThemeToggle = ({ expanded }: { expanded: boolean }) => {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
+  const Icon = isDark ? Moon : Sun;
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10 text-white/70 hover:text-white",
+        expanded ? "" : "justify-center"
+      )}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <Icon className="h-[18px] w-[18px] shrink-0" />
+      {expanded && (
+        <span className="text-sm">{isDark ? "Dark mode" : "Light mode"}</span>
+      )}
+    </button>
+  );
+};
+
 const FolderEditor = ({
   folder, ownerId, nextSortOrder, onClose, onSaved,
 }: {
