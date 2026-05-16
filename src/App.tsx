@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ChunkLoadBoundary } from "@/components/ChunkLoadBoundary";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 
@@ -48,6 +49,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <ChunkLoadBoundary>
           <Suspense fallback={<RouteFallback />}>
             <ErrorBoundary label="page">
               <Routes>
@@ -79,6 +81,7 @@ const App = () => (
               </Routes>
             </ErrorBoundary>
           </Suspense>
+          </ChunkLoadBoundary>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
