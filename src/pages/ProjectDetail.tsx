@@ -26,7 +26,6 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { PhotoUploader } from "@/components/PhotoUploader";
 import EventSetup from "@/components/EventSetup";
-import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
@@ -61,6 +60,7 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { ProjectHeader } from "@/features/projectDetail/ProjectHeader";
 import { DayTimeline } from "@/features/projectDetail/DayTimeline";
 import { AreaGrid } from "@/features/projectDetail/AreaGrid";
+import { PhotoGallery } from "@/features/projectDetail/PhotoGallery";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -143,8 +143,7 @@ const ProjectDetail = () => {
     return "photos";
   });
 
-  const PHOTO_PAGE_SIZE = 150;
-  const [visibleCount, setVisibleCount] = useState(PHOTO_PAGE_SIZE);
+
   // Session-only view toggle (overrides project default for current session). null = use project default.
   const [viewOverride, setViewOverride] = useState<ProjectView | null>(null);
   // Whether we've already auto-selected the latest day (only do this once per project load).
@@ -226,10 +225,6 @@ const ProjectDetail = () => {
     exitSelectMode();
     setConfirmDeleteOpen(false);
   }, [selectedIds, bulkDelete, exitSelectMode]);
-
-  useEffect(() => {
-    setVisibleCount(PHOTO_PAGE_SIZE);
-  }, [activeDay, activeArea]);
 
   const [settingsDefaultTab, setSettingsDefaultTab] = useState<"details" | "areas" | "albums" | "members" | "share">("details");
   useEffect(() => {
@@ -816,32 +811,15 @@ const ProjectDetail = () => {
                     onSetLightboxIndex={setLightboxIndex}
                   />
                 ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                      {visiblePhotos.slice(0, visibleCount).map((p) => (
-                        <PhotoThumb
-                          key={p.id}
-                          path={p.storage_path}
-                          alt={p.caption || p.file_name}
-                          selectable={selectMode}
-                          selected={selectedIds.has(p.id)}
-                          onClick={() =>
-                            selectMode
-                              ? toggleSelect(p.id)
-                              : setLightboxIndex(photoIndexById.get(p.id) ?? 0)
-                          }
-                        />
-                      ))}
-                    </div>
-                    {visiblePhotos.length > visibleCount && (
-                      <button
-                        className="mt-4 rounded border px-4 py-2 text-sm"
-                        onClick={() => setVisibleCount((c) => c + PHOTO_PAGE_SIZE)}
-                      >
-                        Load more photos ({visiblePhotos.length - visibleCount} remaining)
-                      </button>
-                    )}
-                  </>
+                  <PhotoGallery
+                    photos={visiblePhotos}
+                    selectMode={selectMode}
+                    selectedIds={selectedIds}
+                    photoIndexById={photoIndexById}
+                    resetKey={`${activeDay}|${activeArea ?? "null"}`}
+                    onToggleSelect={toggleSelect}
+                    onSetLightboxIndex={setLightboxIndex}
+                  />
                 )
                 )}
               </section>
