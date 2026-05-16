@@ -11,14 +11,16 @@
   :root {
     /* FOG #F5F7FA */
     --background: 214 33% 97%;
-    /* INK #0F1724 */
-    --foreground: 217 43% 10%;
+    /* SLATE #3D4F66 — body text (Ink reserved for headings + wordmark) */
+    --foreground: 217 26% 32%;
+    /* INK #0F1724 — headings and wordmark only */
+    --heading: 217 43% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 217 43% 10%;
+    --card-foreground: 217 26% 32%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 217 43% 10%;
+    --popover-foreground: 217 26% 32%;
 
     /* SKY #1A6EFF */
     --primary: 217 100% 55%;
@@ -144,6 +146,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    color: hsl(var(--heading, var(--foreground)));
   }
   h1 { letter-spacing: -0.01em; }
   h2 { letter-spacing: 0; }
@@ -157,5 +160,14 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
     letter-spacing: 0.04em;
+    color: hsl(var(--heading, var(--foreground)));
+  }
+  /* UI Label — Plus Jakarta Sans, ~8pt Medium, Slate */
+  .ui-label {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: hsl(var(--foreground));
   }
 }
