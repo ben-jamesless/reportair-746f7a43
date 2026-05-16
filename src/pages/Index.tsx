@@ -279,8 +279,8 @@ const Index = () => {
                     style={{ background: "rgba(26,110,255,0.18)", border: "1px solid rgba(26,110,255,0.4)" }}
                   />
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Name Surname</div>
-                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Role · Company</div>
+                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Javier Campero</div>
+                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Tournament Director · LIV</div>
                   </div>
                 </figcaption>
               </figure>
