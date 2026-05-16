@@ -78,9 +78,9 @@ const AdminUsers = () => {
     else { toast.success(r.user_suspended_at ? "User unsuspended" : "User suspended"); load(); }
   };
 
-  const viewAs = (r: UnifiedRow) => {
-    if (r.team_id) window.open(`/?team=${r.team_id}`, "_blank");
-    else toast.info("User has no team");
+  const openPreview = (r: UnifiedRow) => {
+    if (!r.team_id) { toast.info("User has no team"); return; }
+    setPreviewTarget(r);
   };
 
   const confirmDelete = async () => {
