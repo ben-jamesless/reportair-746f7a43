@@ -32,7 +32,6 @@ const Settings = lazy(() => import("./pages/Settings.tsx"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
-const AdminAccounts = lazy(() => import("./pages/admin/AdminAccounts.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
 
 const queryClient = new QueryClient();
@@ -74,7 +73,7 @@ const App = () => (
                     <Route index element={<AdminSummary />} />
                     <Route path="summary" element={<AdminSummary />} />
                     <Route path="users" element={<AdminUsers />} />
-                    <Route path="accounts" element={<AdminAccounts />} />
+                    <Route path="accounts" element={<AdminUsers />} />
                     <Route path="projects" element={<AdminProjects />} />
                   </Route>
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

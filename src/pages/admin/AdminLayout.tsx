@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { to: "/admin/summary", label: "Summary" },
   { to: "/admin/users", label: "Users" },
-  { to: "/admin/accounts", label: "Accounts" },
   { to: "/admin/projects", label: "Projects" },
 ];
 

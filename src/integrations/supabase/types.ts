@@ -1113,6 +1113,28 @@ export type Database = {
           team_count: number
         }[]
       }
+      admin_list_users_with_accounts: {
+        Args: never
+        Returns: {
+          auth_method: string
+          email: string
+          full_name: string
+          last_active_at: string
+          mrr_hkd: number
+          owned_project_count: number
+          plan: string
+          subscription_status: string
+          team_id: string
+          team_name: string
+          team_project_count: number
+          team_role: string
+          team_suspended_at: string
+          trial_ends_at: string
+          user_created_at: string
+          user_id: string
+          user_suspended_at: string
+        }[]
+      }
       admin_set_project_archived: {
         Args: { _archived: boolean; _project_id: string }
         Returns: undefined

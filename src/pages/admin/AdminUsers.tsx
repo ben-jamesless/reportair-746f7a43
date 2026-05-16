@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -7,31 +7,47 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-type AdminUser = {
-  id: string;
+type UnifiedRow = {
+  user_id: string;
   email: string | null;
   full_name: string | null;
-  created_at: string;
-  suspended_at: string | null;
+  user_created_at: string;
   last_active_at: string | null;
   auth_method: string | null;
-  team_count: number;
-  project_count: number;
-  owner_team_count: number;
-  member_team_count: number;
-  role_summary: string | null;
+  user_suspended_at: string | null;
+  team_id: string | null;
+  team_name: string | null;
+  team_role: string | null;
+  plan: string | null;
+  subscription_status: string | null;
+  mrr_hkd: number | null;
+  trial_ends_at: string | null;
+  team_suspended_at: string | null;
+  owned_project_count: number | null;
+  team_project_count: number | null;
 };
 
+const PLAN_LABELS: Record<string, string> = {
+  solo: "Solo", pro: "Pro", studio: "Studio",
+};
+
+const fmtHKD = (n: number | null | undefined) =>
+  n == null || Number(n) === 0
+    ? "—"
+    : new Intl.NumberFormat("en-HK", { style: "currency", currency: "HKD", maximumFractionDigits: 0 }).format(Number(n));
+
+const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
+
 const AdminUsers = () => {
-  const [rows, setRows] = useState<AdminUser[]>([]);
+  const [rows, setRows] = useState<UnifiedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.rpc("admin_list_users" as never);
+    const { data, error } = await supabase.rpc("admin_list_users_with_accounts" as never);
     if (error) toast.error(error.message);
-    setRows((data as AdminUser[]) ?? []);
+    setRows((data as UnifiedRow[]) ?? []);
     setLoading(false);
   };
 
@@ -46,84 +62,120 @@ const AdminUsers = () => {
     else toast.success(`Password reset sent to ${email}`);
   };
 
-  const toggleSuspend = async (u: AdminUser) => {
+  const toggleSuspend = async (r: UnifiedRow) => {
     const { error } = await supabase.rpc("admin_set_user_suspended" as never, {
-      _user_id: u.id, _suspended: !u.suspended_at,
+      _user_id: r.user_id, _suspended: !r.user_suspended_at,
     } as never);
     if (error) toast.error(error.message);
-    else { toast.success(u.suspended_at ? "User unsuspended" : "User suspended"); load(); }
+    else { toast.success(r.user_suspended_at ? "User unsuspended" : "User suspended"); load(); }
   };
 
-  const resendInvite = (u: AdminUser) => {
-    // Placeholder – no invite flow yet
-    toast.info(`Resend invite to ${u.email ?? "user"} (not yet implemented)`);
-  };
-
-  const viewAs = async (u: AdminUser) => {
-    const { data } = await supabase
-      .from("team_members")
-      .select("team_id")
-      .eq("user_id", u.id)
-      .limit(1)
-      .maybeSingle();
-    const teamId = (data as any)?.team_id;
-    if (teamId) window.open(`/?team=${teamId}`, "_blank");
+  const viewAs = (r: UnifiedRow) => {
+    if (r.team_id) window.open(`/?team=${r.team_id}`, "_blank");
     else toast.info("User has no team");
   };
 
-  const filtered = rows.filter((r) => {
-    if (!q) return true;
+  const filtered = useMemo(() => {
+    if (!q) return rows;
     const s = q.toLowerCase();
-    return (r.email ?? "").toLowerCase().includes(s) || (r.full_name ?? "").toLowerCase().includes(s);
-  });
+    return rows.filter((r) =>
+      (r.email ?? "").toLowerCase().includes(s) ||
+      (r.full_name ?? "").toLowerCase().includes(s) ||
+      (r.team_name ?? "").toLowerCase().includes(s) ||
+      (r.team_role ?? "").toLowerCase().includes(s) ||
+      (r.plan ?? "").toLowerCase().includes(s) ||
+      (r.auth_method ?? "").toLowerCase().includes(s) ||
+      (r.subscription_status ?? "").toLowerCase().includes(s)
+    );
+  }, [rows, q]);
 
   return (
     <div className="space-y-4">
-      <Input placeholder="Search by name or email…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+      <Input
+        placeholder="Search by email, name, team, plan…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="max-w-sm"
+      />
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Signed up</TableHead>
-              <TableHead>Last active</TableHead>
+              <TableHead>Signed Up</TableHead>
+              <TableHead>Last Active</TableHead>
               <TableHead>Auth</TableHead>
-              <TableHead>Roles</TableHead>
-              <TableHead>Projects</TableHead>
+              <TableHead>Team</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead>MRR</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
-            ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No users</TableCell></TableRow>
-            ) : filtered.map((u) => (
-              <TableRow key={u.id}>
-                <TableCell className="font-medium">{u.email ?? "—"}</TableCell>
-                <TableCell>{u.full_name ?? "—"}</TableCell>
-                <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
-                <TableCell>{u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : "—"}</TableCell>
-                <TableCell className="text-xs">{u.auth_method ?? "password"}</TableCell>
-                <TableCell className="text-xs">{u.role_summary ?? `${u.team_count} teams`}</TableCell>
-                <TableCell>{u.project_count}</TableCell>
-                <TableCell>
-                  {u.suspended_at
-                    ? <Badge variant="destructive">Suspended</Badge>
-                    : <Badge variant="secondary">Active</Badge>}
-                </TableCell>
-                <TableCell className="text-right space-x-2 whitespace-nowrap">
-                  <Button size="sm" variant="outline" onClick={() => sendReset(u.email)}>Send reset</Button>
-                  <Button size="sm" variant="outline" onClick={() => resendInvite(u)}>Resend invite</Button>
-                  <Button size="sm" variant="outline" onClick={() => viewAs(u)}>View as</Button>
-                  <Button size="sm" variant={u.suspended_at ? "outline" : "destructive"} onClick={() => toggleSuspend(u)}>
-                    {u.suspended_at ? "Unsuspend" : "Suspend"}
-                  </Button>
+              <TableRow>
+                <TableCell colSpan={10} className="text-center py-8">
+                  <Loader2 className="h-4 w-4 animate-spin inline" />
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  No users
+                </TableCell>
+              </TableRow>
+            ) : filtered.map((r) => {
+              const hasTeam = !!r.team_id;
+              return (
+                <TableRow key={`${r.user_id}-${r.team_id ?? "none"}`}>
+                  <TableCell className="font-medium">{r.email ?? "—"}</TableCell>
+                  <TableCell>{r.full_name ?? "—"}</TableCell>
+                  <TableCell>{fmtDate(r.user_created_at)}</TableCell>
+                  <TableCell>{fmtDate(r.last_active_at)}</TableCell>
+                  <TableCell className="text-xs">{r.auth_method ?? "password"}</TableCell>
+                  <TableCell>
+                    {hasTeam ? (
+                      <div className="flex flex-col">
+                        <span>{r.team_name}</span>
+                        <span className="text-xs text-muted-foreground capitalize">{r.team_role}</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {hasTeam ? (PLAN_LABELS[r.plan ?? ""] ?? r.plan ?? "—") : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    {hasTeam ? fmtHKD(r.mrr_hkd) : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    {r.user_suspended_at ? (
+                      <Badge variant="destructive">Suspended</Badge>
+                    ) : !hasTeam ? (
+                      <Badge className="bg-amber-500 text-white hover:bg-amber-500/90">No account</Badge>
+                    ) : r.team_suspended_at ? (
+                      <Badge variant="destructive">Team suspended</Badge>
+                    ) : (
+                      <Badge variant="secondary">Active</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right space-x-2 whitespace-nowrap">
+                    <Button size="sm" variant="outline" onClick={() => sendReset(r.email)}>Send reset</Button>
+                    <Button size="sm" variant="outline" onClick={() => viewAs(r)}>View as</Button>
+                    <Button
+                      size="sm"
+                      variant={r.user_suspended_at ? "outline" : "destructive"}
+                      onClick={() => toggleSuspend(r)}
+                    >
+                      {r.user_suspended_at ? "Unsuspend" : "Suspend"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
