@@ -31,10 +31,7 @@ async function getBillingOwner(service: ReturnType<typeof createClient>, teamId:
   };
 }
 
-function fmtDate(unix: number | null | undefined): string {
-  if (!unix) return "";
-  return new Date(unix * 1000).toLocaleDateString("en-HK", { day: "numeric", month: "long", year: "numeric" });
-}
+
 
 serve(async (req) => {
   const body      = await req.text();
