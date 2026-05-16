@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshProfile } = useAuth();
   const [fullName, setFullName] = useState("");
   const [teamName, setTeamName] = useState("");
   const [busy, setBusy] = useState(false);
