@@ -18,8 +18,7 @@ import { type LightboxPhoto } from "@/components/PhotoLightbox";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
-import { EditableNote } from "@/components/EditableNote";
-import { AreaStatusPicker, type AreaStatus } from "@/components/AreaStatusPicker";
+import { type AreaStatus } from "@/components/AreaStatusPicker";
 import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { RichNotes } from "@/components/RichNotes";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
@@ -38,7 +37,6 @@ import {
   SHORT_FMT,
   albumIdFromKey,
   albumKey,
-  areaStatusAccent,
   dayKey,
   isAlbumKey,
   type DailyField,
@@ -51,6 +49,7 @@ import { AreaGrid } from "@/features/projectDetail/AreaGrid";
 import { PhotoGallery } from "@/features/projectDetail/PhotoGallery";
 import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
 import { PhotoLightboxController } from "@/features/projectDetail/PhotoLightboxController";
+import { DayReport } from "@/features/projectDetail/DayReport";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -638,110 +637,21 @@ const ProjectDetail = () => {
                 {(() => null)()}
 
                 {/* REPORT VIEW — written briefing per area, no photo grids. */}
-                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report" && (() => {
-                  const day = days.find((d) => d.key === activeDay);
-                  if (!day) return null;
-                  const dayPool = day.photos;
-                  // Show ALL project areas on the Updates page so users can set status/notes
-                  // even before any photos are uploaded for that area on this day.
-                  const areasOnDay = areas;
-                  const dayNoteVal = dayNotes.get(activeDay) ?? null;
-                  const dailyBlocks: { key: DailyField; label: string }[] = [
-                    { key: "today_objectives", label: "Today's Objectives" },
-                    { key: "today_achievements", label: "Today's Achievements" },
-                    { key: "tomorrow_objectives", label: "Tomorrow's Objectives" },
-                    { key: "open_issues", label: "Open Issues / Risks" },
-                  ];
-                  return (
-                    <div className="space-y-6">
-                      {/* Daily updates — 4 separate fields used by the report PDF cover */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                        {dailyBlocks.map((b) => {
-                          const value = getDailyField(activeDay, b.key);
-                          return (
-                            <div key={b.key} className="rounded-xl border border-border bg-card overflow-hidden">
-                              <div className="px-4 pt-3 pb-1">
-                                <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
-                                  {b.label}
-                                </span>
-                              </div>
-                              <div className="px-4 pb-3 min-h-[72px] text-sm text-foreground">
-                                <EditableNote
-                                  value={value}
-                                  placeholder={`Add ${b.label.toLowerCase()}…`}
-                                  onSave={(next) => saveDailyField(activeDay, b.key, next)}
-                                  rich
-                                  rows={3}
-                                  readOnly={!canEdit}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {dayNoteVal && dayNoteVal.trim() && (
-                        <div className="px-4">
-                          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Legacy notes
-                          </p>
-                          <EditableNote
-                            value={dayNoteVal}
-                            placeholder=""
-                            onSave={(next) => saveDayNote(activeDay, next)}
-                            rich
-                            rows={3}
-                            readOnly={!canEdit}
-                          />
-                        </div>
-                      )}
-
-                      {/* Per-area briefing — flush, no card */}
-                      {areasOnDay.length === 0 ? (
-                        <p className="px-1 py-6 text-center text-sm text-muted-foreground">
-                          No areas defined yet. Add areas in project settings.
-                        </p>
-                      ) : (
-                        <div>
-                          {areasOnDay.map((ar, idx) => {
-                            const st = getAreaDayStatus(ar.id, activeDay);
-                            const note = getAreaDayNote(ar.id, activeDay);
-                            const accent = areaStatusAccent(st);
-                            const isLast = idx === areasOnDay.length - 1;
-                            const areaKey = `report|${ar.id}|${activeDay}`;
-                            const open = isAreaOpen(areaKey);
-                            return (
-                              <div key={ar.id}>
-                                <article
-                                  className="mb-3 rounded-xl border border-border bg-card overflow-hidden border-l-4"
-                                  style={{ borderLeftColor: accent }}
-                                >
-                                  <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm font-semibold text-foreground">{ar.name}</span>
-                                    <AreaStatusPicker
-                                      value={st}
-                                      onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
-                                      readOnly={!canEdit}
-                                    />
-                                  </div>
-                                  <div className="px-4 pb-3">
-                                    <EditableNote
-                                      value={note}
-                                      placeholder="No notes for this area yet."
-                                      onSave={(next) => saveAreaDayNote(ar.id, activeDay, next)}
-                                      rich
-                                      rows={3}
-                                      readOnly={!canEdit}
-                                    />
-                                  </div>
-                                </article>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+                {activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report" && (
+                  <DayReport
+                    activeDay={activeDay}
+                    areas={areas}
+                    dayNotes={dayNotes}
+                    canEdit={canEdit}
+                    getDailyField={getDailyField}
+                    getAreaDayNote={getAreaDayNote}
+                    getAreaDayStatus={getAreaDayStatus}
+                    onSaveDailyField={saveDailyField}
+                    onSaveDayNote={saveDayNote}
+                    onSaveAreaDayNote={saveAreaDayNote}
+                    onSaveAreaDayStatus={saveAreaDayStatus}
+                  />
+                )}
 
                 {/* Hide photo grids in Report view for dated days — Report is text-only briefing. */}
                 {!(activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report") && (
