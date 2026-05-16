@@ -294,7 +294,7 @@ const Projects = () => {
     <AppShell crumbs={[{ label: "Events" }]}>
       {/* ── Header row ── */}
       <div className="flex items-center justify-between px-4 sm:px-6 pt-6 pb-4">
-        <h1 className="text-xl font-semibold text-[#0F1724]">Events</h1>
+        <h1 className="text-xl font-semibold text-foreground">Events</h1>
         <NewEventButton
           onOpen={() => setNewEventPanelOpen(true)}
           atLimit={atLimit}
@@ -317,14 +317,14 @@ const Projects = () => {
 
       {/* ── Filter toolbar ── */}
       {!showSkeleton && hasAnyVisibleSource && (
-        <div className="flex flex-col gap-3 px-4 sm:px-6 pb-4 border-b border-[#D4D1CA] sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex flex-col gap-3 px-4 sm:px-6 pb-4 border-b border-border sm:flex-row sm:items-center sm:gap-4">
           {/* Search */}
           <div className="relative w-full sm:w-56">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A7974]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search events…"
-              className="w-full pl-9 pr-3 h-9 rounded-lg border border-[#D4D1CA] bg-[#FBFBF9] text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
+              className="w-full pl-9 pr-3 h-9 rounded-lg border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -332,7 +332,7 @@ const Projects = () => {
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#7A7974] hover:text-[#0F1724]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -349,12 +349,12 @@ const Projects = () => {
                   "px-3 h-9 text-sm font-medium rounded-md transition-colors whitespace-nowrap shrink-0",
                   activeTab === tab
                     ? "text-[#1A6EFF] bg-[#1A6EFF]/8"
-                    : "text-[#7A7974] hover:text-[#0F1724] hover:bg-[#D4D1CA]/30"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
                 {tab}
                 {tab === "Archived" && archivedCount > 0 && (
-                  <span className="ml-1 text-xs text-[#7A7974]">({archivedCount})</span>
+                  <span className="ml-1 text-xs text-muted-foreground">({archivedCount})</span>
                 )}
               </button>
             ))}
@@ -362,7 +362,7 @@ const Projects = () => {
 
           {/* Solo counter */}
           {plan === "solo" && limits.maxProjects > 0 && (
-            <span className="sm:ml-auto text-xs text-[#7A7974]">
+            <span className="sm:ml-auto text-xs text-muted-foreground">
               {projectCount} / {limits.maxProjects} events used
             </span>
           )}
@@ -393,10 +393,10 @@ const Projects = () => {
           <div className="w-16 h-16 rounded-2xl bg-[#1A6EFF]/10 flex items-center justify-center mb-4">
             <CalendarDays className="w-8 h-8 text-[#1A6EFF]" />
           </div>
-          <h2 className="text-base font-semibold text-[#0F1724] mb-1">
+          <h2 className="text-base font-semibold text-foreground mb-1">
             {activeTab === "Archived" ? "No archived events" : "No matching events"}
           </h2>
-          <p className="text-sm text-[#7A7974] max-w-xs mb-6">
+          <p className="text-sm text-muted-foreground max-w-xs mb-6">
             {activeTab === "Archived"
               ? "Events you archive will appear here."
               : "Try changing your search or filters."}
@@ -413,7 +413,7 @@ const Projects = () => {
       ) : (
         <div className="flex flex-col">
           {/* Table header — desktop/tablet only */}
-          <div className="hidden md:grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-4 sm:px-6 py-2 text-xs font-medium text-[#7A7974] uppercase tracking-wide border-b border-[#D4D1CA] bg-[#FBFBF9]">
+          <div className="hidden md:grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-4 sm:px-6 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border bg-muted/40">
             <div />
             <div>Event</div>
             <div>Status</div>
@@ -439,7 +439,7 @@ const Projects = () => {
             return (
               <div
                 key={p.id}
-                className="group grid grid-cols-[48px_1fr_40px] sm:grid-cols-[60px_1fr_140px_140px_48px] items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-[#D4D1CA] hover:bg-[#FBFBF9] cursor-pointer transition-colors"
+                className="group grid grid-cols-[48px_1fr_40px] sm:grid-cols-[60px_1fr_140px_140px_48px] items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-border hover:bg-muted/40 cursor-pointer transition-colors"
                 onClick={() => navigate(`/projects/${p.id}`)}
                 draggable={isOwner}
                 onDragStart={(e) => {
@@ -455,7 +455,7 @@ const Projects = () => {
                     background: `linear-gradient(135deg, ${color}33, ${color}11)`,
                   }}
                 >
-                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[#0F1724]/30">
+                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-foreground/30">
                     {p.name.slice(0, 2).toUpperCase()}
                   </div>
                 </div>
@@ -463,14 +463,14 @@ const Projects = () => {
                 {/* Event name + meta */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="truncate text-sm font-semibold text-[#0F1724]">{p.name}</h3>
+                    <h3 className="truncate text-sm font-semibold text-foreground">{p.name}</h3>
                     {!isOwner && (
-                      <span className="shrink-0 inline-flex items-center rounded-full border border-[#D4D1CA] bg-[#FBFBF9] px-2 py-0.5 text-[10px] font-medium text-[#7A7974] leading-none">
+                      <span className="shrink-0 inline-flex items-center rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground leading-none">
                         Invited
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-[#7A7974]">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
                     {p.event_location && <span className="truncate">{p.event_location}</span>}
                     {p.event_date && (
                       <>
@@ -505,12 +505,12 @@ const Projects = () => {
                       {statusMeta.label}
                     </span>
                   ) : (
-                    <span className="text-xs text-[#7A7974]">—</span>
+                    <span className="text-xs text-muted-foreground">—</span>
                   )}
                 </div>
 
                 {/* Last Updated — desktop only */}
-                <div className="hidden md:block text-xs text-[#7A7974]">
+                <div className="hidden md:block text-xs text-muted-foreground">
                   {lastUpload
                     ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true })
                     : "—"}
@@ -522,10 +522,10 @@ const Projects = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          className="h-8 w-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9] md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                          className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                         >
-                          <MoreVertical className="h-4 w-4 text-[#7A7974]" />
+                          <MoreVertical className="h-4 w-4 text-muted-foreground" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>

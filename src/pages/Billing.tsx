@@ -309,11 +309,11 @@ const Billing = () => {
 
           <div className="flex items-center gap-3 flex-wrap">
             {/* Pill toggle */}
-            <div className="inline-flex w-full sm:w-auto items-center rounded-full border-2 border-[#D4D1CA] bg-[#F5F4F0] p-1">
+            <div className="inline-flex w-full sm:w-auto items-center rounded-full border-2 border-border bg-muted p-1">
               <button
                 onClick={() => setAnnual(true)}
                 className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
-                  annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-[#7A7974] hover:text-[#0F1724]"
+                  annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Yearly
@@ -321,7 +321,7 @@ const Billing = () => {
               <button
                 onClick={() => setAnnual(false)}
                 className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
-                  !annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-[#7A7974] hover:text-[#0F1724]"
+                  !annual ? "bg-[#1A6EFF] text-white shadow-md" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Monthly

@@ -169,33 +169,33 @@ export default function EventSetup({
         <div className="w-12 h-12 rounded-2xl bg-[#1A6EFF]/10 flex items-center justify-center mb-5 mx-auto">
           <ImagePlus className="w-6 h-6 text-[#1A6EFF]" />
         </div>
-        <h3 className="text-base font-semibold text-[#0F1724] mb-1">Set up your event</h3>
-        <p className="text-sm text-[#7A7974]">Two quick steps to get organised before uploading.</p>
+        <h3 className="text-base font-semibold text-foreground mb-1">Set up your event</h3>
+        <p className="text-sm text-muted-foreground">Two quick steps to get organised before uploading.</p>
       </div>
 
       {/* Step 1: Areas */}
       <section
         className={cn(
-          "rounded-xl border bg-white p-5 mb-4 transition-colors",
-          showStep2 ? "border-[#1A6EFF]/30 bg-[#1A6EFF]/5" : "border-[#D4D1CA]",
+          "rounded-xl border bg-card p-5 mb-4 transition-colors",
+          showStep2 ? "border-[#1A6EFF]/30 bg-[#1A6EFF]/5" : "border-border",
         )}
       >
         <div className="flex items-center gap-3 mb-4">
           <div
             className={cn(
               "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0",
-              areas.length > 0 ? "border-[#1A6EFF] bg-[#1A6EFF]" : "border-[#D4D1CA]",
+              areas.length > 0 ? "border-[#1A6EFF] bg-[#1A6EFF]" : "border-border",
             )}
           >
             {areas.length > 0 && <Check className="w-3.5 h-3.5 text-white" />}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#0F1724]">
+            <p className="text-sm font-semibold text-foreground">
               {areas.length > 0
                 ? `${areas.length} area${areas.length > 1 ? "s" : ""} added`
                 : "Add your event areas"}
             </p>
-            <p className="text-xs text-[#7A7974]">Photos will be organised by area.</p>
+            <p className="text-xs text-muted-foreground">Photos will be organised by area.</p>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export default function EventSetup({
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Main Stage"
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addArea(name); } }}
-            className="flex-1 h-11 px-3 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/40 focus:border-[#1A6EFF]"
+            className="flex-1 h-11 px-3 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/40 focus:border-[#1A6EFF]"
           />
           <button
             type="button"
@@ -229,7 +229,7 @@ export default function EventSetup({
                 <button
                   type="button"
                   onClick={() => removeArea(a.id)}
-                  className="w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center"
+                  className="w-5 h-5 rounded-full hover:bg-card/20 flex items-center justify-center"
                   aria-label={`Remove ${a.name}`}
                 >
                   <X className="w-3 h-3" />
@@ -240,7 +240,7 @@ export default function EventSetup({
         )}
 
         <div>
-          <p className="text-xs text-[#7A7974] mb-2">Common suggestions:</p>
+          <p className="text-xs text-muted-foreground mb-2">Common suggestions:</p>
           <div className="flex flex-wrap gap-2">
             {SUGGESTIONS.filter((s) => !existingNames.has(s.toLowerCase())).map((s) => (
               <button
@@ -248,7 +248,7 @@ export default function EventSetup({
                 type="button"
                 onClick={() => addArea(s)}
                 disabled={adding}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-[#D4D1CA] bg-white text-xs font-medium text-[#0F1724] hover:border-[#1A6EFF] hover:text-[#1A6EFF] transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-border bg-card text-xs font-medium text-foreground hover:border-[#1A6EFF] hover:text-[#1A6EFF] transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 {s}
@@ -274,15 +274,15 @@ export default function EventSetup({
       {/* Step 2: Upload */}
       <section
         className={cn(
-          "rounded-xl border bg-white p-5 transition-opacity",
+          "rounded-xl border bg-card p-5 transition-opacity",
           showStep2 ? "opacity-100" : "opacity-50",
         )}
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-6 h-6 rounded-full border-2 border-[#D4D1CA] flex items-center justify-center shrink-0" />
+          <div className="w-6 h-6 rounded-full border-2 border-border flex items-center justify-center shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#0F1724]">Upload your first photos</p>
-            <p className="text-xs text-[#7A7974]">Photos are grouped by date automatically.</p>
+            <p className="text-sm font-semibold text-foreground">Upload your first photos</p>
+            <p className="text-xs text-muted-foreground">Photos are grouped by date automatically.</p>
           </div>
         </div>
 
@@ -312,27 +312,27 @@ export default function EventSetup({
                 "rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-colors px-6 py-12",
                 dragOver
                   ? "border-solid border-[#1A6EFF] bg-[#EBF2FF]"
-                  : "border-[#D4D1CA] bg-[#EDF1F7] hover:border-[#1A6EFF]/50",
+                  : "border-border bg-secondary hover:border-[#1A6EFF]/50",
               )}
             >
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-sm">
+              <div className="w-12 h-12 rounded-2xl bg-card flex items-center justify-center mb-4 shadow-sm">
                 <Upload className="w-5 h-5 text-[#1A6EFF]" />
               </div>
-              <p className="text-sm font-medium text-[#0F1724]">
+              <p className="text-sm font-medium text-foreground">
                 Drag photos here, or click to browse
               </p>
-              <p className="text-xs text-[#7A7974] mt-1">JPG, PNG, HEIC up to 100MB each</p>
+              <p className="text-xs text-muted-foreground mt-1">JPG, PNG, HEIC up to 100MB each</p>
             </div>
 
             {pendingFiles.length > 0 && (
               <div className="mt-5">
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
                   {pendingFiles.map((f, i) => (
-                    <div key={`${f.name}-${i}`} className="relative aspect-square rounded-lg overflow-hidden bg-[#EDF1F7] border border-[#D4D1CA]">
+                    <div key={`${f.name}-${i}`} className="relative aspect-square rounded-lg overflow-hidden bg-secondary border border-border">
                       {previews[i] ? (
                         <img src={previews[i]} alt={f.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[10px] text-[#7A7974] px-1 text-center">
+                        <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground px-1 text-center">
                           {f.name}
                         </div>
                       )}
@@ -344,7 +344,7 @@ export default function EventSetup({
                     type="button"
                     onClick={clearPending}
                     disabled={busy}
-                    className="h-10 px-4 rounded-lg border border-[#D4D1CA] text-sm font-medium text-[#0F1724] hover:bg-[#FBFBF9] transition-colors"
+                    className="h-10 px-4 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted/40 transition-colors"
                   >
                     Clear
                   </button>

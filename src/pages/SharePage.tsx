@@ -353,7 +353,7 @@ const SharePage = () => {
 
   if (needPassword) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+      <div className="flex min-h-screen items-center justify-center bg-card p-4">
         <Card className="w-full max-w-md">
           <CardContent className="space-y-4 pt-6">
             <div className="text-center">
@@ -386,7 +386,7 @@ const SharePage = () => {
       : data.error === "revoked" ? "This link has been revoked."
       : "Link not found.";
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white p-4">
+      <div className="flex min-h-screen items-center justify-center bg-card p-4">
         <Card className="max-w-md"><CardContent className="pt-6 text-center"><p className="text-sm" style={{ color: MUTED }}>{msg}</p></CardContent></Card>
       </div>
     );
@@ -920,7 +920,7 @@ const pickDominantStatus = (keys: string[]): string | null => {
 const GuestIdentityPrompt = ({ onSubmit }: { onSubmit: (g: { name: string; email: string }) => void }) => {
   const [name, setName] = useState(""); const [email, setEmail] = useState("");
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white p-4">
+    <div className="flex min-h-screen items-center justify-center bg-card p-4">
       <Card className="w-full max-w-md">
         <CardContent className="space-y-4 pt-6">
           <div>

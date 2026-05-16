@@ -25,7 +25,7 @@ export function TrialBanner() {
         <div className="hidden w-40 md:block" />
 
         {/* Centre */}
-        <div className="flex flex-1 items-center justify-center gap-2 text-sm text-[#0F1724]">
+        <div className="flex flex-1 items-center justify-center gap-2 text-sm text-foreground">
           <Zap className="h-4 w-4 shrink-0 text-[#1A6EFF]" />
           <span className="hidden sm:inline">
             <span className="font-medium">{daysLeft} days remaining</span>{" "}

@@ -127,7 +127,7 @@ const Auth = () => {
     <div className="relative my-6">
       <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
       <div className="relative flex justify-center text-xs uppercase">
-        <span className="bg-white px-2 text-muted-foreground">or</span>
+        <span className="bg-card px-2 text-muted-foreground">or</span>
       </div>
     </div>
   );
@@ -141,22 +141,22 @@ const Auth = () => {
 
   const content = signupSent ? (
     <div>
-      <h2 className="text-2xl font-bold text-[#0F1724] mb-1">Check your email</h2>
-      <p className="text-sm text-[#7A7974] mb-6">
-        We sent a confirmation link to <span className="font-medium text-[#0F1724]">{email}</span>. Click it to activate your account, then sign in.
+      <h2 className="text-2xl font-bold text-foreground mb-1">Check your email</h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Click it to activate your account, then sign in.
       </p>
       <button
         type="button"
         onClick={() => { setSignupSent(false); setMode("signin"); }}
-        className="block w-full text-center text-sm text-[#7A7974] hover:text-[#0F1724]"
+        className="block w-full text-center text-sm text-muted-foreground hover:text-foreground"
       >
         Back to sign in
       </button>
     </div>
   ) : mode === "signin" ? (
     <div>
-      <h2 className="text-2xl font-bold text-[#0F1724] mb-1">Welcome back</h2>
-      <p className="text-sm text-[#7A7974] mb-6">Sign in to continue.</p>
+      <h2 className="text-2xl font-bold text-foreground mb-1">Welcome back</h2>
+      <p className="text-sm text-muted-foreground mb-6">Sign in to continue.</p>
       {suspendedError && (
         <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           Your account has been suspended. Please contact support.
@@ -181,7 +181,7 @@ const Auth = () => {
       </form>
       {orDivider}
       {googleButton}
-      <p className="mt-6 text-center text-sm text-[#7A7974]">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         No account yet?{" "}
         <button
           type="button"
@@ -194,8 +194,8 @@ const Auth = () => {
     </div>
   ) : (
     <div>
-      <h2 className="text-2xl font-bold text-[#0F1724] mb-1">Create your account</h2>
-      <p className="text-sm text-[#7A7974] mb-6">Start your free 14-day trial. No credit card required.</p>
+      <h2 className="text-2xl font-bold text-foreground mb-1">Create your account</h2>
+      <p className="text-sm text-muted-foreground mb-6">Start your free 14-day trial. No credit card required.</p>
       <form onSubmit={handleSignUp} className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor="name-up">Name</Label>
@@ -216,7 +216,7 @@ const Auth = () => {
       </form>
       {orDivider}
       {googleButton}
-      <p className="mt-6 text-center text-sm text-[#7A7974]">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <button
           type="button"
