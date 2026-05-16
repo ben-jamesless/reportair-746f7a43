@@ -218,6 +218,10 @@ Deno.serve(async (req) => {
         to: [invite.email],
         subject,
         html,
+        // Disable click tracking so the "Accept invite" button href stays as
+        // the raw /invite/<token> URL instead of being rewritten to a Resend
+        // redirect (which can drop the path and skip invite processing).
+        tracking: { click_tracking: false, open_tracking: false },
       }),
     });
 
