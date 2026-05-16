@@ -81,6 +81,22 @@ const AdminUsers = () => {
     else toast.info("User has no team");
   };
 
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+      body: { user_id: deleteTarget.user_id },
+    });
+    setDeleting(false);
+    if (error || (data as { error?: string })?.error) {
+      toast.error(error?.message || (data as { error?: string })?.error || "Failed to delete user");
+      return;
+    }
+    toast.success(`Deleted ${deleteTarget.email ?? "user"}`);
+    setDeleteTarget(null);
+    load();
+  };
+
   const filtered = useMemo(() => {
     if (!q) return rows;
     const s = q.toLowerCase();
