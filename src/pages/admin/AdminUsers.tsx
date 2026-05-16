@@ -188,7 +188,7 @@ const AdminUsers = () => {
                   </TableCell>
                   <TableCell className="text-right space-x-2 whitespace-nowrap">
                     <Button size="sm" variant="outline" onClick={() => sendReset(r.email)}>Send reset</Button>
-                    <Button size="sm" variant="outline" onClick={() => viewAs(r)}>View as</Button>
+                    <Button size="sm" variant="outline" onClick={() => openPreview(r)} disabled={!r.team_id}>Account preview</Button>
                     {!hasTeam ? (
                       <Button
                         size="sm"
