@@ -160,7 +160,6 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: hsl(var(--heading, var(--foreground)));
   }
   /* UI Label — Plus Jakarta Sans, ~8pt Medium, Slate */
   .ui-label {
