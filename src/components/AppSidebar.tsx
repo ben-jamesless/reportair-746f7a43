@@ -243,7 +243,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             type="button"
             onClick={onToggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-[#0F1724] text-white/70 transition-colors hover:bg-card/10"
+            className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-[#0F1724] text-white/70 transition-colors hover:bg-white/10"
           >
             <ChevronLeft className={cn("h-3 w-3 transition-transform", collapsed && "rotate-180")} />
           </button>
@@ -272,7 +272,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                         expanded ? "justify-start" : "justify-center",
                         active
                           ? "bg-[#1A6EFF] font-medium text-white"
-                          : "text-white/70 hover:bg-card/10 hover:text-white"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -306,7 +306,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                         expanded ? "justify-start" : "justify-center",
                         active
                           ? "bg-[#1A6EFF] font-medium text-white"
-                          : "text-white/70 hover:bg-card/10 hover:text-white"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -332,7 +332,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                       expanded ? "justify-start" : "justify-center",
                       pathname.startsWith("/admin")
                         ? "bg-[#1A6EFF] font-medium text-white"
-                        : "text-white/70 hover:bg-card/10 hover:text-white"
+                        : "text-white/70 hover:bg-white/10 hover:text-white"
                     )}
                   >
                     <Users className="h-4 w-4 shrink-0" />
@@ -384,8 +384,8 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   className={cn(
                     "group flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                     isFolderActive
-                      ? "bg-card/10 text-white"
-                      : "text-white/60 hover:bg-card/10 hover:text-white",
+                      ? "bg-white/10 text-white"
+                      : "text-white/60 hover:bg-white/10 hover:text-white",
                     dragOver === f.id && "ring-2 ring-[#1A6EFF]"
                   )}
                 >
@@ -405,7 +405,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="rounded p-0.5 opacity-0 hover:bg-card/10 group-hover:opacity-100"
+                        className="rounded p-0.5 opacity-0 hover:bg-white/10 group-hover:opacity-100"
                         aria-label={`Folder options for ${f.name}`}
                       >
                         <MoreHorizontal className="h-3.5 w-3.5 text-white/60" />
@@ -434,8 +434,8 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                 className={cn(
                   "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
                   onProjects && activeFolder === "__unfoldered__"
-                    ? "bg-card/10 text-white"
-                    : "text-white/60 hover:bg-card/10 hover:text-white"
+                    ? "bg-white/10 text-white"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <Folder className="h-3.5 w-3.5 shrink-0 text-white/60" />
@@ -447,7 +447,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/50 hover:bg-card/10 hover:text-white"
+              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/50 hover:bg-white/10 hover:text-white"
             >
               <Plus className="h-3.5 w-3.5" /> New folder
             </button>
@@ -489,7 +489,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-card/10",
+                  "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10",
                   expanded ? "" : "justify-center"
                 )}
               >
@@ -585,7 +585,7 @@ const ThemeToggle = ({ expanded }: { expanded: boolean }) => {
       type="button"
       onClick={toggleTheme}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-card/10 text-white/70 hover:text-white",
+        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10 text-white/70 hover:text-white",
         expanded ? "" : "justify-center"
       )}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
