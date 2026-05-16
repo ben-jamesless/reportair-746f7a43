@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, refreshProfile } = useAuth();
   const [fullName, setFullName] = useState("");
   const [teamName, setTeamName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,6 +56,7 @@ const Onboarding = () => {
           .from("profiles")
           .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
           .eq("id", user.id);
+        await refreshProfile();
         navigate("/projects", { replace: true });
         return;
       }
@@ -80,6 +81,7 @@ const Onboarding = () => {
             .from("profiles")
             .update({ full_name: metaFullName, onboarded_at: new Date().toISOString() })
             .eq("id", user.id);
+          await refreshProfile();
           // Clear metadata so we don't retry
           await supabase.auth.updateUser({
             data: { ...meta, pending_team_name: null },
@@ -111,6 +113,7 @@ const Onboarding = () => {
       setBusy(false);
       return toast.error(profileErr.message);
     }
+    await refreshProfile();
 
     // Create team — trigger auto-adds creator as owner
     const slug = teamName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).slice(2, 6);
