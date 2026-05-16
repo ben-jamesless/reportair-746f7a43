@@ -2,6 +2,7 @@ import { ReportAirMark } from "@/components/brand/ReportAirMark";
 import { Link, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,8 @@ import {
   Folder,
   ChevronLeft,
   ChevronRight,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMyBillingTeam } from "@/hooks/useBillingOwner";
@@ -478,6 +481,9 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             </Tooltip>
           )}
 
+          {/* Theme toggle */}
+          <ThemeToggle expanded={expanded} />
+
           {/* User row */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -566,6 +572,30 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         </AlertDialogContent>
       </AlertDialog>
     </TooltipProvider>
+  );
+};
+
+const ThemeToggle = ({ expanded }: { expanded: boolean }) => {
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
+  const Icon = isDark ? Moon : Sun;
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10 text-white/70 hover:text-white",
+        expanded ? "" : "justify-center"
+      )}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <Icon className="h-[18px] w-[18px] shrink-0" />
+      {expanded && (
+        <span className="text-sm">{isDark ? "Dark mode" : "Light mode"}</span>
+      )}
+    </button>
   );
 };
 
