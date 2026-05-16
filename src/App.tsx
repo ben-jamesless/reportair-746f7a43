@@ -33,7 +33,7 @@ const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
 
-const queryClient = new QueryClient();
+
 
 const RouteFallback = () => (
   <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
