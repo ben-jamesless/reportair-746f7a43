@@ -248,6 +248,7 @@ const ProjectDetail = () => {
   const isMobileViewport = useIsMobile();
   const [galleryListOpen, setGalleryListOpen] = useState(false);
   const [datesOpenTablet, setDatesOpenTablet] = useState(false);
+  const [areasOpenMobile, setAreasOpenMobile] = useState(false);
   const [tabletCollapsedDays, setTabletCollapsedDays] = useState<Set<string>>(new Set());
   const [closedAreaKeys, setClosedAreaKeys] = useState<Set<string>>(new Set());
   const isAreaOpen = (key: string) => !closedAreaKeys.has(key);
@@ -1246,7 +1247,21 @@ const ProjectDetail = () => {
                 {/* Areas section */}
                 <div className="mt-4 border-t border-[#D4D1CA] pt-3">
                   <div className="flex items-center justify-between px-3 mb-1 py-[5px]">
-                    <p className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Areas</p>
+                    {areas.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => setAreasOpenMobile((o) => !o)}
+                        className="flex xl:hidden items-center gap-1 text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]"
+                        aria-expanded={areasOpenMobile}
+                      >
+                        Areas
+                        <ChevronDown className={cn("h-3 w-3 transition-transform", areasOpenMobile && "rotate-180")} />
+                      </button>
+                    ) : null}
+                    <p className={cn(
+                      "text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]",
+                      areas.length > 1 ? "hidden xl:block" : "block"
+                    )}>Areas</p>
                     {canEdit && (
                       addingArea ? (
                         <input
@@ -1281,7 +1296,10 @@ const ProjectDetail = () => {
                   {areas.length === 0 ? (
                     <p className="px-3 text-xs text-[#7A7974]">No areas yet.</p>
                   ) : (
-                    <div className="space-y-0.5">
+                    <div className={cn(
+                      "space-y-0.5",
+                      areas.length > 1 && !areasOpenMobile && "hidden xl:block"
+                    )}>
                       {areas.map((ar) => {
                         const isActive = activeArea === ar.id;
                         return (
