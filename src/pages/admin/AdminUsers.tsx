@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import AccountPreviewDialog from "@/components/admin/AccountPreviewDialog";
 
 type UnifiedRow = {
   user_id: string;
