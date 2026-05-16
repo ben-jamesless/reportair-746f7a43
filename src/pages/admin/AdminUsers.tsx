@@ -234,6 +234,15 @@ const AdminUsers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AccountPreviewDialog
+        open={!!previewTarget}
+        onOpenChange={(o) => !o && setPreviewTarget(null)}
+        teamId={previewTarget?.team_id ?? null}
+        teamName={previewTarget?.team_name ?? null}
+        plan={previewTarget?.plan ?? null}
+        userEmail={previewTarget?.email ?? null}
+      />
     </div>
   );
 };
