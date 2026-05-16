@@ -310,7 +310,7 @@ const HeroSection = () => {
         @media (max-width: 767px) {
           .ra-hero .hero-inner {
             flex-direction: column; align-items: stretch;
-            padding: 40px 20px 56px; gap: 36px; text-align: center;
+            padding: 20px 20px 28px; gap: 36px; text-align: center;
           }
           .ra-hero .hero-inner::before { display: none; }
           .ra-hero .hero-copy { flex: none; width: 100%; }
