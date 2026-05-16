@@ -1,7 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -9,8 +8,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const signedOutRef = useRef(false);
 
-  // If the user is suspended, force sign-out. We do this in an effect because
-  // signOut is a side-effect; the render below handles the redirect synchronously.
+  // Suspended users get force-signed-out; the render below handles the redirect.
   useEffect(() => {
     if (profile?.suspended_at && !signedOutRef.current) {
       signedOutRef.current = true;
@@ -44,8 +42,3 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   return <>{children}</>;
 };
-
-// Kept for backward compatibility with any direct imports.
-export default ProtectedRoute;
-// Re-export supabase to avoid unused-import lint if this file ever shrinks.
-void supabase;
