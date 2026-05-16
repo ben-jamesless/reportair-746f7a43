@@ -21,19 +21,7 @@ interface Props {
 
 const SUGGESTIONS = ["Main Stage", "Entrance", "Hospitality", "Back of House", "Car Park", "Media Zone"];
 
-const isHeic = (file: File) => {
-  const name = file.name.toLowerCase();
-  const type = (file.type || "").toLowerCase();
-  return type === "image/heic" || type === "image/heif" || name.endsWith(".heic") || name.endsWith(".heif");
-};
 
-const convertHeicToJpeg = async (file: File): Promise<File> => {
-  const { default: heic2any } = await import("heic2any");
-  const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.9 });
-  const out = Array.isArray(blob) ? blob[0] : blob;
-  const newName = file.name.replace(/\.(heic|heif)$/i, "") + ".jpg";
-  return new File([out], newName, { type: "image/jpeg", lastModified: file.lastModified });
-};
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"];
 const MAX_SIZE_MB = 100;
