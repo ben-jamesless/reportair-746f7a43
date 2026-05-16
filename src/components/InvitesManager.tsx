@@ -60,8 +60,10 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   // Confirmation state
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [removeAcceptedTarget, setRemoveAcceptedTarget] = useState<Invite | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [projectName, setProjectName] = useState<string>("");
+  const [activeProfileIds, setActiveProfileIds] = useState<Set<string>>(new Set());
 
   const currentUserRole: ProjectRole | null =
     members.find((m) => m.user_id === user?.id)?.role ?? null;
