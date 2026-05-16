@@ -37,6 +37,15 @@ type Member = {
   role: ProjectRole;
   full_name: string | null;
   email: string | null;
+  last_active_at: string | null;
+  created_at: string | null;
+};
+
+const fmtDate = (d: string | null) => {
+  if (!d) return null;
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 };
 
 const emailSchema = z.string().trim().email().max(255);
@@ -85,12 +94,12 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
       .map((i) => i.accepted_by as string);
     const allIds = Array.from(new Set([...pmRows.map((m) => m.user_id), ...acceptedUserIds]));
 
-    let profMap = new Map<string, { full_name: string | null; email: string | null }>();
+    let profMap = new Map<string, { full_name: string | null; email: string | null; last_active_at: string | null; created_at: string | null }>();
     let existingIds = new Set<string>();
     if (allIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", allIds);
-      const profRows = (profs ?? []) as { id: string; full_name: string | null; email: string | null }[];
-      profMap = new Map(profRows.map((p) => [p.id, { full_name: p.full_name, email: p.email }]));
+      const { data: profs } = await supabase.from("profiles").select("id,full_name,email,last_active_at,created_at").in("id", allIds);
+      const profRows = (profs ?? []) as { id: string; full_name: string | null; email: string | null; last_active_at: string | null; created_at: string | null }[];
+      profMap = new Map(profRows.map((p) => [p.id, { full_name: p.full_name, email: p.email, last_active_at: p.last_active_at, created_at: p.created_at }]));
       existingIds = new Set(profRows.map((p) => p.id));
     }
     setInvites(invRows.filter((i) => !i.accepted_at || (i.accepted_by && existingIds.has(i.accepted_by))));
@@ -99,6 +108,8 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         ...m,
         full_name: profMap.get(m.user_id)?.full_name ?? null,
         email: profMap.get(m.user_id)?.email ?? null,
+        last_active_at: profMap.get(m.user_id)?.last_active_at ?? null,
+        created_at: profMap.get(m.user_id)?.created_at ?? null,
       })),
     );
   }, [projectId]);
@@ -303,8 +314,15 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                     {m.full_name || m.email || m.user_id.slice(0, 8)}
                     {isSelf && <span className="ml-1 text-xs font-normal text-muted-foreground">(you)</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {m.full_name && m.email ? m.email : "Active"}
+                  <div className="text-xs text-muted-foreground truncate">
+                    {[
+                      m.full_name && m.email ? m.email : null,
+                      m.last_active_at
+                        ? `Last active: ${fmtDate(m.last_active_at)}`
+                        : m.created_at
+                        ? `Signed up: ${fmtDate(m.created_at)}`
+                        : null,
+                    ].filter(Boolean).join(" · ") || "Active"}
                   </div>
                 </div>
                 {showRoleSelect ? (
