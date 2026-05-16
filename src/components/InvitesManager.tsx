@@ -378,38 +378,13 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         )}
       </section>
 
-      {acceptedInvites.length > 0 && (
-        <section>
-          <h4 className="mb-2 text-sm font-medium text-muted-foreground">Accepted invites</h4>
-          <div className="space-y-1">
-            {acceptedInvites.map((inv) => (
-              <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
-                <span className="truncate flex-1">{inv.email}</span>
-                <span className="shrink-0">Accepted {new Date(inv.accepted_at!).toLocaleDateString()} · {inv.role}</span>
-                {canManage && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-destructive hover:text-destructive"
-                    onClick={() => setRemoveAcceptedTarget(inv)}
-                    title="Remove from project"
-                  >
-                    ✕ Remove
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Remove member confirmation */}
       <AlertDialog open={!!removeTarget} onOpenChange={(o) => !o && setRemoveTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove member?</AlertDialogTitle>
             <AlertDialogDescription>
-              Remove {removeTarget?.full_name || "this member"} from this project? They will lose access immediately.
+              Remove {removeTarget?.full_name || removeTarget?.email || "this member"} from this project? They will lose access immediately.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -419,23 +394,6 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Remove accepted-invite confirmation */}
-      <AlertDialog open={!!removeAcceptedTarget} onOpenChange={(o) => !o && setRemoveAcceptedTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove from project?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Remove {removeAcceptedTarget?.email} from this project? They will lose access immediately.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemoveAccepted}>Remove</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Leave project confirmation */}
       <AlertDialog open={leaveOpen} onOpenChange={setLeaveOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
