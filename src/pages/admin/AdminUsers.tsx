@@ -4,6 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -42,6 +46,8 @@ const AdminUsers = () => {
   const [rows, setRows] = useState<UnifiedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<UnifiedRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -73,6 +79,22 @@ const AdminUsers = () => {
   const viewAs = (r: UnifiedRow) => {
     if (r.team_id) window.open(`/?team=${r.team_id}`, "_blank");
     else toast.info("User has no team");
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const { data, error } = await supabase.functions.invoke("admin-delete-user", {
+      body: { user_id: deleteTarget.user_id },
+    });
+    setDeleting(false);
+    if (error || (data as { error?: string })?.error) {
+      toast.error(error?.message || (data as { error?: string })?.error || "Failed to delete user");
+      return;
+    }
+    toast.success(`Deleted ${deleteTarget.email ?? "user"}`);
+    setDeleteTarget(null);
+    load();
   };
 
   const filtered = useMemo(() => {
@@ -165,13 +187,23 @@ const AdminUsers = () => {
                   <TableCell className="text-right space-x-2 whitespace-nowrap">
                     <Button size="sm" variant="outline" onClick={() => sendReset(r.email)}>Send reset</Button>
                     <Button size="sm" variant="outline" onClick={() => viewAs(r)}>View as</Button>
-                    <Button
-                      size="sm"
-                      variant={r.user_suspended_at ? "outline" : "destructive"}
-                      onClick={() => toggleSuspend(r)}
-                    >
-                      {r.user_suspended_at ? "Unsuspend" : "Suspend"}
-                    </Button>
+                    {!hasTeam ? (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => setDeleteTarget(r)}
+                      >
+                        Delete
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant={r.user_suspended_at ? "outline" : "destructive"}
+                        onClick={() => toggleSuspend(r)}
+                      >
+                        {r.user_suspended_at ? "Unsuspend" : "Suspend"}
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               );
@@ -179,6 +211,27 @@ const AdminUsers = () => {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && !deleting && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleteTarget?.email ?? "user"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove their account. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); confirmDelete(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
