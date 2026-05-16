@@ -75,7 +75,7 @@ const COPY = {
     eyebrow: "Early users",
     title: "Built for teams who need the client to see the work, not the chaos.",
     items: [
-      "ReportAir helped us turn a full day of site photos and notes into a client update before we left the venue.",
+      "It was all sorted and managed so easily during the build. We now have full daily records sorted and filed ready to reference for next year's build.",
       "The client could see progress every day without calling for another status check.",
       "The report was already structured because the photos had been sorted properly during the build.",
     ],
@@ -279,8 +279,8 @@ const Index = () => {
                     style={{ background: "rgba(26,110,255,0.18)", border: "1px solid rgba(26,110,255,0.4)" }}
                   />
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Name Surname</div>
-                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Role · Company</div>
+                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Javier Campero</div>
+                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Tournament Director · LIV</div>
                   </div>
                 </figcaption>
               </figure>
