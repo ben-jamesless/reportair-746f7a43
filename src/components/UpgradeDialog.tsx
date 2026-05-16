@@ -118,7 +118,7 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
             onClick={() => setAnnual(a => !a)}
             className={`relative w-10 h-6 rounded-full transition-colors ${annual ? "bg-[#01696F]" : "bg-muted"}`}
           >
-            <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${annual ? "translate-x-4" : ""}`} />
+            <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-card transition-transform ${annual ? "translate-x-4" : ""}`} />
           </button>
           <span className={`text-sm font-medium ${annual ? "text-foreground" : "text-muted-foreground"}`}>
             Annual <span className="ml-1 text-xs font-semibold text-[#01696F] bg-[#01696F]/10 px-1.5 py-0.5 rounded-full">Save 20%</span>

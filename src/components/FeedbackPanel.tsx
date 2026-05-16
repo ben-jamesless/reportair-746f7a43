@@ -191,7 +191,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
       <header className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
-          <span className="text-sm font-semibold text-[#0F1724]">Feedback</span>
+          <span className="text-sm font-semibold text-foreground">Feedback</span>
           {total > 0 && (
             <span className="text-xs text-white bg-[#1A6EFF] rounded-full px-1.5 py-0.5 leading-none">{total}</span>
           )}

@@ -114,8 +114,8 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-[480px] p-0 flex flex-col">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b border-[#D4D1CA]">
-          <SheetTitle className="text-[#0F1724]">New Event</SheetTitle>
+        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
+          <SheetTitle className="text-foreground">New Event</SheetTitle>
           <div className="flex items-center gap-2 mt-3">
             {[1, 2, 3].map((i) => (
               <div
@@ -126,7 +126,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
                 )}
               />
             ))}
-            <span className="ml-2 text-xs text-[#7A7974]">Step {step} of 3</span>
+            <span className="ml-2 text-xs text-muted-foreground">Step {step} of 3</span>
           </div>
         </SheetHeader>
 
@@ -170,8 +170,8 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
               {plan === "solo" ? (
                 <div className="rounded-xl border border-[#1A6EFF]/30 bg-[#1A6EFF]/5 p-5 text-center">
                   <Crown className="h-8 w-8 mx-auto mb-3 text-[#1A6EFF]" />
-                  <h3 className="text-base font-semibold text-[#0F1724] mb-1">Invite your team</h3>
-                  <p className="text-sm text-[#7A7974] mb-4">
+                  <h3 className="text-base font-semibold text-foreground mb-1">Invite your team</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
                     Team collaboration is available on Pro and Studio plans.
                   </p>
                   <Button
@@ -199,16 +199,16 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
                     </div>
                   </div>
                   {invites.length > 0 && (
-                    <ul className="divide-y rounded-md border border-[#D4D1CA]">
+                    <ul className="divide-y rounded-md border border-border">
                       {invites.map((i) => (
                         <li key={i.email} className="flex items-center justify-between px-3 py-2 text-sm">
                           <span className="truncate">{i.email}</span>
                           <button
                             onClick={() => setInvites((s) => s.filter((x) => x.email !== i.email))}
-                            className="rounded p-1 hover:bg-[#FBFBF9]"
+                            className="rounded p-1 hover:bg-muted/40"
                             aria-label={`Remove ${i.email}`}
                           >
-                            <X className="h-3.5 w-3.5 text-[#7A7974]" />
+                            <X className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                         </li>
                       ))}
@@ -220,7 +220,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-2 px-6 py-4 border-t border-[#D4D1CA]">
+        <div className="flex items-center justify-between gap-2 px-6 py-4 border-t border-border">
           <Button
             variant="ghost"
             onClick={() => (step === 1 ? handleOpenChange(false) : setStep((s) => s - 1))}

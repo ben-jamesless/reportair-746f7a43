@@ -134,7 +134,7 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
     return (
       <button
         onClick={() => window.dispatchEvent(new CustomEvent("open-share-settings"))}
-        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors"
       >
         <Share2 className="w-3.5 h-3.5" />
         Share link
@@ -147,19 +147,19 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
       <button
         onClick={() => setShowUpgrade((v) => !v)}
         title="Upgrade to Pro to share live event links"
-        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#7A7974] font-medium hover:bg-[#FBFBF9] transition-colors"
+        className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-muted-foreground font-medium hover:bg-muted/40 transition-colors"
       >
         <Share2 className="w-3.5 h-3.5" />
         Share link
         <Crown className="w-3.5 h-3.5 text-[#1A6EFF]" />
       </button>
       {showUpgrade && (
-        <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-[#D4D1CA] bg-white shadow-lg p-4">
+        <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-border bg-card shadow-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <Crown className="w-4 h-4 text-[#1A6EFF]" />
-            <span className="text-sm font-semibold text-[#0F1724]">Pro feature</span>
+            <span className="text-sm font-semibold text-foreground">Pro feature</span>
           </div>
-          <p className="text-xs text-[#7A7974] mb-3">
+          <p className="text-xs text-muted-foreground mb-3">
             Share live event links with clients. Available on Pro and Studio plans.
           </p>
           <Link
@@ -170,7 +170,7 @@ function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUse
           </Link>
           <button
             onClick={() => setShowUpgrade(false)}
-            className="block w-full text-center text-xs text-[#7A7974] mt-2 hover:text-[#0F1724]"
+            className="block w-full text-center text-xs text-muted-foreground mt-2 hover:text-foreground"
           >
             Not now
           </button>
@@ -199,7 +199,7 @@ function TabBar({
             "px-4 pb-3 pt-2 text-sm transition-colors",
             activeTab === tab
               ? "border-b-2 border-[#1A6EFF] text-[#1A6EFF] font-semibold"
-              : "border-b-2 border-transparent text-[#7A7974] hover:text-[#0F1724]"
+              : "border-b-2 border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
           {tab}
@@ -935,19 +935,19 @@ const ProjectDetail = () => {
       />
 
       {/* ── Sticky page header ── */}
-      <div className="sticky top-10 z-30 bg-white border-b border-[#D4D1CA] -mx-4 sm:-mx-6 lg:-mx-8 px-6 pt-5 pb-0">
+      <div className="sticky top-10 z-30 bg-card border-b border-border -mx-4 sm:-mx-6 lg:-mx-8 px-6 pt-5 pb-0">
         {/* Breadcrumb moved into AppShell for consistency across pages */}
 
         {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="min-w-0">
             {project.event_type && (
-              <p className="text-xs font-semibold tracking-widest uppercase text-[#7A7974] mb-1 my-[5px]">
+              <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1 my-[5px]">
                 {project.event_type}
               </p>
             )}
             <div className="flex items-center gap-3 flex-wrap my-[5px]">
-              <h1 className="text-2xl font-bold text-[#0F1724] leading-tight my-[5px]">{project.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground leading-tight my-[5px]">{project.name}</h1>
               {canEdit ? (
                 <Select
                   value={project.overall_status ?? "no_status"}
@@ -973,7 +973,7 @@ const ProjectDetail = () => {
                 </span>
               )}
             </div>
-            <div className="mt-1 text-sm text-[#7A7974] gap-[10px] hidden sm:flex items-center justify-start my-[5px] w-full">
+            <div className="mt-1 text-sm text-muted-foreground gap-[10px] hidden sm:flex items-center justify-start my-[5px] w-full">
               {project.event_location && (
                 <>
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -1000,7 +1000,7 @@ const ProjectDetail = () => {
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={() => setFeedbackSheetOpen(true)}
-              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Feedback</span>
@@ -1011,7 +1011,7 @@ const ProjectDetail = () => {
             <button
               onClick={openTopExport}
               disabled={photos.length === 0}
-              className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-[#D4D1CA] bg-white text-sm text-[#0F1724] font-medium hover:bg-[#FBFBF9] transition-colors disabled:opacity-40"
+              className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors disabled:opacity-40"
             >
               <Download className="w-3.5 h-3.5" />
               Export PDF
@@ -1036,8 +1036,8 @@ const ProjectDetail = () => {
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-8 h-8 rounded-lg border border-[#D4D1CA] bg-white flex items-center justify-center hover:bg-[#FBFBF9]">
-                  <MoreVertical className="w-4 h-4 text-[#7A7974]" />
+                <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
+                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -1156,7 +1156,7 @@ const ProjectDetail = () => {
 
                 <div className={cn(!datesOpenTablet && "hidden xl:block")}>
 
-                <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">Daily Log</p>
+                <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Daily Log</p>
 
                 {days.map((day) => {
                   const isOpen = openDays.has(day.key);
@@ -1168,19 +1168,19 @@ const ProjectDetail = () => {
                         <button
                           onClick={() => { setActiveDay(day.key); setActiveArea(null); setOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
                           className={cn(
-                            "flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-[#FBFBF9]",
+                            "flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted/40",
                           )}
                         >
                           <span className={cn(
                             "flex flex-col items-center justify-center shrink-0 w-9 h-9 rounded-md text-[9px] font-bold uppercase leading-none",
-                            dayActive ? "bg-[#1A6EFF] text-white" : "bg-[#F0EFEA] text-[#7A7974]"
+                            dayActive ? "bg-[#1A6EFF] text-white" : "bg-[#F0EFEA] text-muted-foreground"
                           )}>
                             <span className="text-[12px] leading-none">{day.date.getDate()}</span>
                             <span className="mt-0.5">{day.date.toLocaleString(undefined, { month: "short" }).toUpperCase()}</span>
                           </span>
-                          <span className={cn("flex-1 min-w-0", dayActive ? "text-[#0F1724] font-semibold" : "text-[#0F1724]")}>{SHORT_FMT.format(day.date)}</span>
+                          <span className={cn("flex-1 min-w-0", dayActive ? "text-foreground font-semibold" : "text-foreground")}>{SHORT_FMT.format(day.date)}</span>
                           <span className={cn(
-                            "ml-auto inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold bg-[#F0EFEA] text-[#7A7974]"
+                            "ml-auto inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold bg-[#F0EFEA] text-muted-foreground"
                           )}>
                             {day.photos.length}
                           </span>
@@ -1196,7 +1196,7 @@ const ProjectDetail = () => {
                       </div>
 
                       {isOpen && (
-                        <div className="ml-4 mt-0.5 space-y-0.5 border-l border-[#D4D1CA] pl-2">
+                        <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2">
                           {areas.map((ar) => {
                             const c = counts.get(ar.id) ?? 0;
                             if (c === 0) return null;
@@ -1210,12 +1210,12 @@ const ProjectDetail = () => {
                                   "flex w-full items-center gap-1.5 rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                                   sel
                                     ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
-                                    : "text-[#0F1724] hover:bg-[#FBFBF9]",
+                                    : "text-foreground hover:bg-muted/40",
                                 )}
                               >
                                 <AreaStatusDot status={st} className="shrink-0" />
                                 <span className="flex-1 truncate">{ar.name}</span>
-                                <span className={cn("ml-1 text-[10px]", sel ? "text-[#1A6EFF]" : "text-[#7A7974]")}>{c}</span>
+                                <span className={cn("ml-1 text-[10px]", sel ? "text-[#1A6EFF]" : "text-muted-foreground")}>{c}</span>
                               </button>
                             );
                           })}
@@ -1226,13 +1226,13 @@ const ProjectDetail = () => {
                                 "flex w-full items-center justify-between rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                                 activeDay === day.key && activeArea === NO_AREA
                                   ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
-                                  : "text-[#0F1724] hover:bg-[#FBFBF9]",
+                                  : "text-foreground hover:bg-muted/40",
                               )}
                             >
                               <span>Unassigned</span>
                               <span className={cn(
                                 "ml-2 text-[10px]",
-                                activeDay === day.key && activeArea === NO_AREA ? "text-[#1A6EFF]" : "text-[#7A7974]"
+                                activeDay === day.key && activeArea === NO_AREA ? "text-[#1A6EFF]" : "text-muted-foreground"
                               )}>{unassigned}</span>
                             </button>
                           )}
@@ -1245,13 +1245,13 @@ const ProjectDetail = () => {
                 </div>
 
                 {/* Areas section */}
-                <div className="mt-4 border-t border-[#D4D1CA] pt-3">
+                <div className="mt-4 border-t border-border pt-3">
                   <div className="flex items-center justify-between px-3 mb-1 py-[5px]">
                     {areas.length > 1 ? (
                       <button
                         type="button"
                         onClick={() => setAreasOpenMobile((o) => !o)}
-                        className="flex xl:hidden items-center gap-1 text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]"
+                        className="flex xl:hidden items-center gap-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground"
                         aria-expanded={areasOpenMobile}
                       >
                         Areas
@@ -1259,7 +1259,7 @@ const ProjectDetail = () => {
                       </button>
                     ) : null}
                     <p className={cn(
-                      "text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]",
+                      "text-[10px] font-semibold tracking-widest uppercase text-muted-foreground",
                       areas.length > 1 ? "hidden xl:block" : "block"
                     )}>Areas</p>
                     {canEdit && (
@@ -1281,7 +1281,7 @@ const ProjectDetail = () => {
                             }
                           }}
                           placeholder="Area name..."
-                          className="w-full px-2 h-7 text-xs rounded-lg border border-[#1A6EFF] bg-white text-[#0F1724] placeholder:text-[#7A7974] focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
+                          className="w-full px-2 h-7 text-xs rounded-lg border border-[#1A6EFF] bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
                         />
                       ) : (
                         <button
@@ -1294,7 +1294,7 @@ const ProjectDetail = () => {
                     )}
                   </div>
                   {areas.length === 0 ? (
-                    <p className="px-3 text-xs text-[#7A7974]">No areas yet.</p>
+                    <p className="px-3 text-xs text-muted-foreground">No areas yet.</p>
                   ) : (
                     <div className={cn(
                       "space-y-0.5",
@@ -1308,7 +1308,7 @@ const ProjectDetail = () => {
                             onClick={() => setActiveArea(isActive ? null : ar.id)}
                             className={cn(
                               "flex w-full items-center justify-between rounded-lg px-3 text-sm transition-colors py-[8px]",
-                              isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-[#0F1724] hover:bg-[#FBFBF9]"
+                              isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-foreground hover:bg-muted/40"
                             )}
                           >
                             <span className="flex items-center gap-2">
@@ -1473,13 +1473,13 @@ const ProjectDetail = () => {
                         {dailyBlocks.map((b) => {
                           const value = getDailyField(activeDay, b.key);
                           return (
-                            <div key={b.key} className="rounded-xl border border-[#D4D1CA] bg-white overflow-hidden">
+                            <div key={b.key} className="rounded-xl border border-border bg-card overflow-hidden">
                               <div className="px-4 pt-3 pb-1">
-                                <span className="text-[10px] font-semibold tracking-widest uppercase text-[#7A7974]">
+                                <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
                                   {b.label}
                                 </span>
                               </div>
-                              <div className="px-4 pb-3 min-h-[72px] text-sm text-[#0F1724]">
+                              <div className="px-4 pb-3 min-h-[72px] text-sm text-foreground">
                                 <EditableNote
                                   value={value}
                                   placeholder={`Add ${b.label.toLowerCase()}…`}
@@ -1526,11 +1526,11 @@ const ProjectDetail = () => {
                             return (
                               <div key={ar.id}>
                                 <article
-                                  className="mb-3 rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4"
+                                  className="mb-3 rounded-xl border border-border bg-card overflow-hidden border-l-4"
                                   style={{ borderLeftColor: accent }}
                                 >
                                   <div className="flex items-center justify-between px-4 py-3">
-                                    <span className="text-sm font-semibold text-[#0F1724]">{ar.name}</span>
+                                    <span className="text-sm font-semibold text-foreground">{ar.name}</span>
                                     <AreaStatusPicker
                                       value={st}
                                       onChange={(s) => saveAreaDayStatus(ar.id, activeDay, s)}
@@ -1621,7 +1621,7 @@ const ProjectDetail = () => {
                             <div key={ar.id}>
                               <article
                                 className={cn(
-                                  "rounded-xl border border-[#D4D1CA] bg-white overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
+                                  "rounded-xl border border-border bg-card overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
                                   st === "complete" && "border-l-[#10b981]",
                                   st === "on_track" && "border-l-[#1A6EFF]",
                                   st === "requires_discussion" && "border-l-[#f97316]",
@@ -1638,8 +1638,8 @@ const ProjectDetail = () => {
                                   >
                                     <ChevronDown className={cn("h-4 w-4 transition-transform", !open && "-rotate-90")} />
                                   </button>
-                                  <h3 className="text-sm font-semibold text-[#0F1724]">{ar.name}</h3>
-                                  <span className="text-xs text-[#7A7974]">
+                                  <h3 className="text-sm font-semibold text-foreground">{ar.name}</h3>
+                                  <span className="text-xs text-muted-foreground">
                                     {list.length} photo{list.length === 1 ? "" : "s"}
                                   </span>
                                   <AreaStatusPicker
@@ -1751,14 +1751,14 @@ const ProjectDetail = () => {
             <Sheet open={feedbackSheetOpen} onOpenChange={setFeedbackSheetOpen}>
               <SheetContent side="right" className="flex w-full sm:w-[400px] flex-col p-0 [&>button]:hidden">
                 {/* Panel header */}
-                <header className="flex items-center justify-between px-4 py-3 border-b border-[#D4D1CA]">
+                <header className="flex items-center justify-between px-4 py-3 border-b border-border">
                   <div className="flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
-                    <span className="text-sm font-semibold text-[#0F1724]">Feedback</span>
+                    <span className="text-sm font-semibold text-foreground">Feedback</span>
                   </div>
                   <button
                     onClick={() => setFeedbackSheetOpen(false)}
-                    className="w-6 h-6 rounded flex items-center justify-center text-[#7A7974] hover:text-[#0F1724] hover:bg-[#FBFBF9] transition-colors"
+                    className="w-6 h-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1863,7 +1863,7 @@ const ProjectDetail = () => {
               {canEdit && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button size="sm" variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-0">
+                    <Button size="sm" variant="secondary" className="bg-card/15 text-white hover:bg-card/25 border-0">
                       <MapPin className="mr-1.5 h-4 w-4" />
                       Reassign area
                     </Button>
@@ -1893,7 +1893,7 @@ const ProjectDetail = () => {
               {canEdit && days.length > 0 && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button size="sm" variant="secondary" className="bg-white/15 text-white hover:bg-white/25 border-0">
+                    <Button size="sm" variant="secondary" className="bg-card/15 text-white hover:bg-card/25 border-0">
                       <CalendarDays className="mr-1.5 h-4 w-4" />
                       Move to day
                     </Button>
@@ -1916,7 +1916,7 @@ const ProjectDetail = () => {
               <Button
                 size="sm"
                 variant="secondary"
-                className="bg-white/15 text-white hover:bg-white/25 border-0"
+                className="bg-card/15 text-white hover:bg-card/25 border-0"
                 onClick={bulkDownload}
                 disabled={downloading}
               >
@@ -1927,7 +1927,7 @@ const ProjectDetail = () => {
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="bg-white/15 text-white hover:bg-white/25 border-0"
+                  className="bg-card/15 text-white hover:bg-card/25 border-0"
                   onClick={() => setConfirmDeleteOpen(true)}
                 >
                   <Trash2 className="mr-1.5 h-4 w-4" />
@@ -1937,7 +1937,7 @@ const ProjectDetail = () => {
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-white hover:bg-white/15 hover:text-white"
+                className="text-white hover:bg-card/15 hover:text-white"
                 onClick={exitSelectMode}
                 aria-label="Exit selection"
               >

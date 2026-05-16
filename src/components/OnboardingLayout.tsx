@@ -11,7 +11,7 @@ interface OnboardingLayoutProps {
 
 export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingLayoutProps) {
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-card">
       {/* Left panel — dark brand */}
       <div
         className="hidden lg:flex lg:w-[45%] flex-col justify-between p-10 relative overflow-hidden"
@@ -51,7 +51,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
       </div>
 
       {/* Right panel — white form */}
-      <div className="flex-1 flex flex-col justify-center items-center px-6 py-10 bg-white">
+      <div className="flex-1 flex flex-col justify-center items-center px-6 py-10 bg-card">
         <div className="w-full max-w-md">
           {step && (
             <div className="flex items-center gap-2 mb-8">
@@ -64,7 +64,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
                   )}
                 />
               ))}
-              <span className="text-xs text-[#7A7974] ml-2">
+              <span className="text-xs text-muted-foreground ml-2">
                 Step {step} of {totalSteps}
               </span>
             </div>

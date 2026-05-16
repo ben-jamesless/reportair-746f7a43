@@ -152,12 +152,12 @@ export default function Plan() {
   return (
     <OnboardingLayout step={3}>
       <div>
-        <h2 className="text-2xl font-bold text-[#0F1724] mb-1">Choose your plan</h2>
-        <p className="text-sm text-[#7A7974] mb-6">Start free for 14 days. Cancel anytime.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">Choose your plan</h2>
+        <p className="text-sm text-muted-foreground mb-6">Start free for 14 days. Cancel anytime.</p>
 
         {/* Billing toggle */}
         <div className="flex items-center justify-center gap-3 mb-6">
-          <span className={cn("text-sm font-medium", !annual ? "text-[#0F1724]" : "text-[#7A7974]")}>Monthly</span>
+          <span className={cn("text-sm font-medium", !annual ? "text-foreground" : "text-muted-foreground")}>Monthly</span>
           <button
             onClick={() => setAnnual((a) => !a)}
             className={cn(
@@ -168,12 +168,12 @@ export default function Plan() {
           >
             <span
               className={cn(
-                "absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform",
+                "absolute top-1 left-1 w-4 h-4 rounded-full bg-card transition-transform",
                 annual && "translate-x-4"
               )}
             />
           </button>
-          <span className={cn("text-sm font-medium", annual ? "text-[#0F1724]" : "text-[#7A7974]")}>
+          <span className={cn("text-sm font-medium", annual ? "text-foreground" : "text-muted-foreground")}>
             Annual <span className="text-[#1A6EFF] text-xs">(save ~20%)</span>
           </span>
         </div>
@@ -184,31 +184,31 @@ export default function Plan() {
               key={p.key}
               className={cn(
                 "rounded-xl border p-4 transition-colors",
-                p.recommended ? "border-[#1A6EFF] bg-[#1A6EFF]/5" : "border-[#D4D1CA] bg-white"
+                p.recommended ? "border-[#1A6EFF] bg-[#1A6EFF]/5" : "border-border bg-card"
               )}
             >
               <div className="flex items-start justify-between gap-4 mb-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-[#0F1724]">{p.name}</h3>
+                    <h3 className="text-base font-semibold text-foreground">{p.name}</h3>
                     {p.recommended && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1A6EFF] text-white font-medium uppercase tracking-wide">
                         Popular
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#7A7974] mt-0.5">{p.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-base font-bold text-[#0F1724]">
+                  <div className="text-base font-bold text-foreground">
                     {annual ? p.annualMonthly : p.monthly}
                   </div>
-                  <div className="text-[10px] text-[#7A7974]">/month</div>
+                  <div className="text-[10px] text-muted-foreground">/month</div>
                 </div>
               </div>
               <ul className="space-y-1 mb-3">
                 {p.features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-xs text-[#0F1724]/80">
+                  <li key={f} className="flex items-center gap-2 text-xs text-foreground/80">
                     <Check className="h-3.5 w-3.5 text-[#1A6EFF] shrink-0" />
                     {f}
                   </li>
@@ -221,7 +221,7 @@ export default function Plan() {
                   "w-full",
                   p.recommended
                     ? "bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white"
-                    : "bg-white border border-[#D4D1CA] text-[#0F1724] hover:bg-[#FBFBF9]"
+                    : "bg-card border border-border text-foreground hover:bg-muted/40"
                 )}
               >
                 {loading === p.key && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -234,11 +234,11 @@ export default function Plan() {
         <button
           onClick={handleSkip}
           disabled={skipping || loading !== null}
-          className="mt-6 w-full text-sm text-[#7A7974] hover:text-[#0F1724] transition-colors disabled:opacity-60"
+          className="mt-6 w-full text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-60"
         >
           {skipping ? "Starting trial…" : "Skip for now"}
         </button>
-        <p className="mt-2 text-center text-xs text-[#7A7974]">
+        <p className="mt-2 text-center text-xs text-muted-foreground">
           You'll start a 14-day Solo trial. Upgrade any time.
         </p>
       </div>

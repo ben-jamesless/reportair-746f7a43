@@ -160,8 +160,8 @@ const Onboarding = () => {
   return (
     <OnboardingLayout step={2}>
       <div>
-        <h2 className="text-2xl font-bold text-[#0F1724] mb-1">Set up your workspace</h2>
-        <p className="text-sm text-[#7A7974] mb-6">A couple of quick details and you're in.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">Set up your workspace</h2>
+        <p className="text-sm text-muted-foreground mb-6">A couple of quick details and you're in.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Your name</Label>
@@ -170,7 +170,7 @@ const Onboarding = () => {
           <div className="space-y-2">
             <Label htmlFor="team">Team / company name</Label>
             <Input id="team" required value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Northwind Events" />
-            <p className="text-xs text-[#7A7974]">You can invite teammates later.</p>
+            <p className="text-xs text-muted-foreground">You can invite teammates later.</p>
           </div>
           <Button
             type="submit"
