@@ -9,7 +9,7 @@ const faqs = [
   {
     question: "Who is ReportAir built for?",
     answer:
-      "Event build professionals — site managers, production coordinators, and freelancers working across golf tournaments, music festivals, marathons, and corporate builds. It works for solo operators and larger teams managing multiple concurrent builds.",
+      "Event build professionals — site managers, production coordinators, and freelancers working on builds from multi-month tournaments to 2-day brand activations. Works for solo operators and larger teams running multiple concurrent builds.",
   },
   {
     question: "How does the PDF report get generated?",
