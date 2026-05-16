@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,7 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import JSZip from "jszip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,14 +65,10 @@ import {
   areaStatusAccent,
   dayKey,
   isAlbumKey,
-  type Album,
-  type Area,
   type DailyField,
-  type DailyFields,
-  type DayNote,
-  type Project,
   type ProjectView,
 } from "@/lib/projectDetailTypes";
+import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 
 function ShareButton({ projectId, canUseShareLink }: { projectId: string; canUseShareLink: boolean }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -163,21 +157,41 @@ const ProjectDetail = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { canUseShareLink, canExportPdf } = usePlan();
-  const [project, setProject] = useState<Project | null>(null);
-  const [isOwner, setIsOwner] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [areas, setAreas] = useState<Area[]>([]);
-  const [photos, setPhotos] = useState<LightboxPhoto[]>([]);
-  const [dayNotes, setDayNotes] = useState<Map<string, string | null>>(new Map());
-  // 4 daily update fields keyed by dateKey
-  const [dailyFields, setDailyFields] = useState<Map<string, DailyFields>>(new Map());
-  // per-area, per-day update notes keyed by `${areaId}|${dateKey}` -> string
-  const [areaDayNotes, setAreaDayNotes] = useState<Map<string, string | null>>(new Map());
-  // status keyed by `${areaId}|${dateKey}` -> AreaStatus
-  const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+
+  // All data-layer state (project / albums / areas / photos / notes / status)
+  // lives in useProjectDetail. UI-only state (filters, selection, lightbox,
+  // dialogs, tab/view, URL sync) stays in this component.
+  const {
+    project,
+    isOwner,
+    canEdit,
+    albums,
+    areas,
+    photos,
+    dayNotes,
+    dailyFields,
+    areaDayNotes,
+    areaDayStatus,
+    loading,
+    loadError,
+    refetch: loadAll,
+    setDayNote: saveDayNote,
+    setDailyField: saveDailyField,
+    setAreaDayNote: saveAreaDayNote,
+    setAreaDayStatus: saveAreaDayStatus,
+    saveProjectStatus,
+    archiveProject,
+    restoreProject,
+    addArea,
+    bulkAssignArea: bulkAssignAreaIds,
+    bulkMoveToDay: bulkMoveToDayIds,
+    bulkDelete,
+    bulkDownloadZip,
+    downloading,
+    deleting,
+    applyPhotoAreaChange,
+    applyPhotoAlbumChange,
+  } = useProjectDetail(id);
   // Initialise filter state from URL so refreshing / sharing a link preserves the view.
   const [activeDay, setActiveDay] = useState<string>(() => {
     const d = searchParams.get("day");
@@ -236,21 +250,10 @@ const ProjectDetail = () => {
 
   const createArea = async () => {
     const name = newAreaName.trim();
-    if (!name || !id) return;
-    const nextOrder = areas.length
-      ? Math.max(...areas.map((a) => a.sort_order)) + 1
-      : 0;
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("areas").insert({
-      project_id: id,
-      name,
-      sort_order: nextOrder,
-      created_by: user?.id,
-    });
-    if (error) { toast.error(error.message); return; }
+    if (!name) return;
+    await addArea(name);
     setNewAreaName("");
     setAddingArea(false);
-    loadAll();
   };
 
   const exitSelectMode = useCallback(() => {
@@ -293,192 +296,43 @@ const ProjectDetail = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [selectMode, exitSelectMode]);
 
-  const bulkAssignArea = useCallback(async (areaId: string | null) => {
-    if (selectedIds.size === 0) return;
-    const ids = Array.from(selectedIds);
-    const { error } = await supabase.from("photos").update({ area_id: areaId }).in("id", ids);
-    if (error) { toast.error(error.message); return; }
-    const label = areaId === null ? "Unassigned" : (areas.find((a) => a.id === areaId)?.name ?? "area");
-    toast.success(`Assigned ${ids.length} photo${ids.length === 1 ? "" : "s"} to ${label}`);
-    // Optimistically update local photos
-    setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, area_id: areaId } : p)));
-    exitSelectMode();
-  }, [selectedIds, areas, exitSelectMode]);
+  // Bulk operations delegate to the hook with the currently-selected ids,
+  // then reset the selection UI here so behaviour matches the old inline impl.
+  const bulkAssignArea = useCallback(
+    async (areaId: string | null) => {
+      if (selectedIds.size === 0) return;
+      await bulkAssignAreaIds(Array.from(selectedIds), areaId);
+      exitSelectMode();
+    },
+    [selectedIds, bulkAssignAreaIds, exitSelectMode]
+  );
 
-  const bulkMoveToDay = useCallback(async (targetDayKey: string) => {
-    if (selectedIds.size === 0) return;
-    const ids = Array.from(selectedIds);
-    // Set captured_at to noon UTC of the target day so it groups under that day.
-    const newCaptured = `${targetDayKey}T12:00:00.000Z`;
-    const { error } = await supabase.from("photos").update({ captured_at: newCaptured }).in("id", ids);
-    if (error) { toast.error(error.message); return; }
-    toast.success(`Moved ${ids.length} photo${ids.length === 1 ? "" : "s"} to ${targetDayKey}`);
-    setPhotos((cur) => cur.map((p) => (selectedIds.has(p.id) ? { ...p, captured_at: newCaptured } : p)));
-    exitSelectMode();
-  }, [selectedIds, exitSelectMode]);
+  const bulkMoveToDay = useCallback(
+    async (targetDayKey: string) => {
+      if (selectedIds.size === 0) return;
+      await bulkMoveToDayIds(Array.from(selectedIds), targetDayKey);
+      exitSelectMode();
+    },
+    [selectedIds, bulkMoveToDayIds, exitSelectMode]
+  );
 
-  const [downloading, setDownloading] = useState(false);
   const bulkDownload = useCallback(async () => {
-    if (selectedIds.size === 0 || !project) return;
-    setDownloading(true);
-    try {
-      const selected = photos.filter((p) => selectedIds.has(p.id));
-      const zip = new JSZip();
-      const seen = new Map<string, number>();
-      await Promise.all(selected.map(async (p) => {
-        try {
-          const { data, error } = await supabase.storage.from("photos").createSignedUrl(p.storage_path, 600);
-          if (error || !data?.signedUrl) return;
-          const res = await fetch(data.signedUrl);
-          if (!res.ok) return;
-          const blob = await res.blob();
-          let name = p.file_name || `${p.id}.jpg`;
-          const count = seen.get(name) ?? 0;
-          seen.set(name, count + 1);
-          if (count > 0) {
-            const dot = name.lastIndexOf(".");
-            name = dot > 0 ? `${name.slice(0, dot)}-${count}${name.slice(dot)}` : `${name}-${count}`;
-          }
-          zip.file(name, blob);
-        } catch (e) {
-          console.error("Failed to add photo to zip", p.id, e);
-        }
-      }));
-      const blob = await zip.generateAsync({ type: "blob" });
-      const slug = (project.name || "project").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project";
-      const today = new Date().toISOString().slice(0, 10);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `reportair-${slug}-${today}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success(`Downloaded ${selected.length} photo${selected.length === 1 ? "" : "s"}`);
-    } catch (e) {
-      toast.error("Download failed");
-      console.error(e);
-    } finally {
-      setDownloading(false);
-    }
-  }, [selectedIds, photos, project]);
+    if (selectedIds.size === 0) return;
+    await bulkDownloadZip(Array.from(selectedIds));
+  }, [selectedIds, bulkDownloadZip]);
 
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const bulkDeletePhotos = useCallback(async () => {
     if (selectedIds.size === 0) return;
-    setDeleting(true);
-    const ids = Array.from(selectedIds);
-    const paths = photos.filter((p) => selectedIds.has(p.id)).map((p) => p.storage_path).filter(Boolean);
-    const { error: dbError } = await supabase.from("photos").delete().in("id", ids);
-    if (dbError) {
-      setDeleting(false);
-      toast.error(dbError.message);
-      return;
-    }
-    if (paths.length > 0) {
-      const { error: storageError } = await supabase.storage.from("photos").remove(paths);
-      // Storage failures are non-fatal — DB rows are the source of truth.
-      if (storageError) console.error("Storage delete partial failure:", storageError);
-    }
-    setPhotos((cur) => cur.filter((p) => !selectedIds.has(p.id)));
-    toast.success(`${ids.length} photo${ids.length === 1 ? "" : "s"} deleted.`);
+    await bulkDelete(Array.from(selectedIds));
     exitSelectMode();
     setConfirmDeleteOpen(false);
-    setDeleting(false);
-  }, [selectedIds, photos, exitSelectMode]);
-
-  const loadAll = useCallback(async () => {
-    if (!id) return;
-    try {
-      const [{ data: p }, { data: a }, { data: ar }, { data: ph }, { data: dn }, { data: ads }, { data: adn }] = await Promise.all([
-        supabase.from("projects").select("id, name, description, template, color, event_date, build_start_date, event_location, overall_status, event_type, client_name, archived_at, default_view").eq("id", id).maybeSingle(),
-        supabase.from("albums").select("id, name, slug, position").eq("project_id", id).order("position"),
-        supabase.from("areas").select("id, name, sort_order").eq("project_id", id).order("sort_order"),
-        supabase
-          .from("photos")
-          .select(
-            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
-          )
-          .eq("project_id", id)
-          .order("captured_at", { ascending: false, nullsFirst: false })
-          .order("created_at", { ascending: false }),
-        supabase.from("day_notes").select("date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues").eq("project_id", id),
-        supabase.from("area_day_status").select("area_id, date, status").eq("project_id", id),
-        supabase.from("area_day_notes").select("area_id, date, notes").eq("project_id", id),
-      ]);
-      setProject(p ?? null);
-      setAlbums(a ?? []);
-      setAreas((ar ?? []) as Area[]);
-      setPhotos((ph ?? []) as LightboxPhoto[]);
-      const map = new Map<string, string | null>();
-      const fieldMap = new Map<string, DailyFields>();
-      for (const row of (dn ?? []) as DayNote[]) {
-        map.set(row.date, row.notes ?? null);
-        fieldMap.set(row.date, {
-          today_objectives: row.today_objectives ?? null,
-          today_achievements: row.today_achievements ?? null,
-          tomorrow_objectives: row.tomorrow_objectives ?? null,
-          open_issues: row.open_issues ?? null,
-        });
-      }
-      setDayNotes(map);
-      setDailyFields(fieldMap);
-      const sm = new Map<string, AreaStatus>();
-      for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) sm.set(`${row.area_id}|${row.date}`, row.status);
-      setAreaDayStatus(sm);
-      const nm = new Map<string, string | null>();
-      for (const row of (adn ?? []) as { area_id: string; date: string; notes: string | null }[]) nm.set(`${row.area_id}|${row.date}`, row.notes ?? null);
-      setAreaDayNotes(nm);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load project data. Please refresh.");
-      setLoadError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => { loadAll(); }, [loadAll]);
-
-  useEffect(() => {
-    (async () => {
-      if (!user || !id) return;
-      const { data } = await supabase
-        .from("project_members")
-        .select("role")
-        .eq("project_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      setIsOwner(data?.role === "owner");
-      setCanEdit(data?.role === "owner" || data?.role === "editor");
-    })();
-  }, [user, id]);
+  }, [selectedIds, bulkDelete, exitSelectMode]);
 
   useEffect(() => {
     setVisibleCount(PHOTO_PAGE_SIZE);
   }, [activeDay, activeArea]);
-
-  const restoreProject = async () => {
-    if (!id) return;
-    const { error } = await supabase.from("projects").update({ archived_at: null }).eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Project restored");
-    loadAll();
-  };
-
-  const archiveProject = async () => {
-    if (!id) return;
-    const { error } = await supabase
-      .from("projects")
-      .update({ archived_at: new Date().toISOString() })
-      .eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Event archived");
-    loadAll();
-  };
 
   const [settingsDefaultTab, setSettingsDefaultTab] = useState<"details" | "areas" | "albums" | "members" | "share">("details");
   useEffect(() => {
@@ -491,69 +345,13 @@ const ProjectDetail = () => {
     return () => window.removeEventListener("open-share-settings", handler);
   }, []);
 
-  // ---- Mutations: per-day area notes, day notes, per-day area status, project status ----
+  // Trivial read-side helpers over the maps owned by the hook.
   const getAreaDayNote = (areaId: string, dateKey: string): string | null =>
     areaDayNotes.get(`${areaId}|${dateKey}`) ?? null;
-  const saveAreaDayNote = async (areaId: string, dateKey: string, next: string | null) => {
-    if (!id) return;
-    const key = `${areaId}|${dateKey}`;
-    const prev = new Map(areaDayNotes);
-    setAreaDayNotes((cur) => { const n = new Map(cur); n.set(key, next); return n; });
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("area_day_notes").upsert(
-      { project_id: id, area_id: areaId, date: dateKey, notes: next, updated_by: user?.id },
-      { onConflict: "project_id,area_id,date" },
-    );
-    if (error) { toast.error(error.message); setAreaDayNotes(prev); }
-  };
-  const saveProjectStatus = async (next: ProjectStatus) => {
-    if (!id) return;
-    const prev = project;
-    setProject((cur) => (cur ? { ...cur, overall_status: next } : cur));
-    const { error } = await supabase.from("projects").update({ overall_status: next }).eq("id", id);
-    if (error) { toast.error(error.message); setProject(prev); }
-  };
   const getAreaDayStatus = (areaId: string, dateKey: string): AreaStatus =>
     areaDayStatus.get(`${areaId}|${dateKey}`) ?? "no_status";
-  const saveAreaDayStatus = async (areaId: string, dateKey: string, next: AreaStatus) => {
-    if (!id) return;
-    const key = `${areaId}|${dateKey}`;
-    const prev = new Map(areaDayStatus);
-    setAreaDayStatus((cur) => { const n = new Map(cur); n.set(key, next); return n; });
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("area_day_status").upsert(
-      { project_id: id, area_id: areaId, date: dateKey, status: next, updated_by: user?.id },
-      { onConflict: "project_id,area_id,date" },
-    );
-    if (error) { toast.error(error.message); setAreaDayStatus(prev); }
-  };
-  const saveDayNote = async (dateKey: string, next: string | null) => {
-    if (!id) return;
-    const prev = new Map(dayNotes);
-    setDayNotes((cur) => { const n = new Map(cur); n.set(dateKey, next); return n; });
-    const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("day_notes").upsert(
-      { project_id: id, date: dateKey, notes: next, updated_by: user?.id },
-      { onConflict: "project_id,date" },
-    );
-    if (error) { toast.error(error.message); setDayNotes(prev); }
-  };
   const getDailyField = (dateKey: string, field: DailyField): string | null =>
     dailyFields.get(dateKey)?.[field] ?? null;
-  const saveDailyField = async (dateKey: string, field: DailyField, next: string | null) => {
-    if (!id) return;
-    const prev = new Map(dailyFields);
-    setDailyFields((cur) => {
-      const n = new Map(cur);
-      const existing = n.get(dateKey) ?? { today_objectives: null, today_achievements: null, tomorrow_objectives: null, open_issues: null };
-      n.set(dateKey, { ...existing, [field]: next });
-      return n;
-    });
-    const { data: { user } } = await supabase.auth.getUser();
-    const payload = { project_id: id, date: dateKey, [field]: next, updated_by: user?.id } as never;
-    const { error } = await supabase.from("day_notes").upsert(payload, { onConflict: "project_id,date" });
-    if (error) { toast.error(error.message); setDailyFields(prev); }
-  };
   // only when their album is selected from the sidebar.
   const albumPhotos = (() => {
     const m = new Map<string, LightboxPhoto[]>();
@@ -707,12 +505,8 @@ const ProjectDetail = () => {
     setOpenDays((prev) => new Set(prev).add(dayKey));
   };
 
-  const handleAreaChanged = (photoId: string, areaId: string | null) => {
-    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, area_id: areaId } : p)));
-  };
-  const handleAlbumChanged = (photoId: string, albumId: string | null) => {
-    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, album_id: albumId } : p)));
-  };
+  const handleAreaChanged = applyPhotoAreaChange;
+  const handleAlbumChanged = applyPhotoAlbumChange;
 
   // Upload context: when an album is the active day, uploads land in that album.
   const activeAlbumId = albumIdFromKey(activeDay);
