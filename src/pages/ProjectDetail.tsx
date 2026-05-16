@@ -973,7 +973,7 @@ const ProjectDetail = () => {
                 </span>
               )}
             </div>
-            <div className="mt-1 text-sm text-[#7A7974] gap-[10px] flex items-center justify-start my-[5px] w-full">
+            <div className="mt-1 text-sm text-[#7A7974] gap-[10px] hidden sm:flex items-center justify-start my-[5px] w-full">
               {project.event_location && (
                 <>
                   <MapPin className="w-3.5 h-3.5 shrink-0" />
