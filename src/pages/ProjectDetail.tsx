@@ -1542,97 +1542,14 @@ const ProjectDetail = () => {
                 {/* Hide photo grids in Report view for dated days — Report is text-only briefing. */}
                 {!(activeDay !== ALL_DAYS && !isAlbumKey(activeDay) && effectiveView === "report") && (
                 photos.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 px-6 text-center max-w-sm mx-auto">
-                    <div className="w-12 h-12 rounded-2xl bg-[#1A6EFF]/10 flex items-center justify-center mb-5">
-                      <CalendarDays className="w-6 h-6 text-[#1A6EFF]" />
-                    </div>
-                    <h3 className="text-base font-semibold text-[#0F1724] mb-1">Set up your event</h3>
-                    <p className="text-sm text-[#7A7974] mb-8">
-                      Two quick steps to get organised before uploading.
-                    </p>
-
-                    <div className="w-full flex flex-col gap-3 mb-8">
-                      <div
-                        className={cn(
-                          "flex items-center gap-3 rounded-xl border p-4 text-left transition-colors",
-                          areas.length > 0
-                            ? "border-[#1A6EFF]/30 bg-[#1A6EFF]/5"
-                            : "border-[#D4D1CA] bg-white hover:border-[#1A6EFF]/40 cursor-pointer"
-                        )}
-                        onClick={() => areas.length === 0 && setAddingArea(true)}
-                      >
-                        <div
-                          className={cn(
-                            "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-                            areas.length > 0 ? "border-[#1A6EFF] bg-[#1A6EFF]" : "border-[#D4D1CA]"
-                          )}
-                        >
-                          {areas.length > 0 && <Check className="w-3.5 h-3.5 text-white" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className={cn("text-sm font-medium", areas.length > 0 ? "text-[#1A6EFF]" : "text-[#0F1724]")}>
-                            {areas.length > 0 ? `${areas.length} area${areas.length > 1 ? "s" : ""} added` : "Add your event areas"}
-                          </p>
-                          <p className="text-xs text-[#7A7974]">
-                            {areas.length > 0 ? "Photos will be organised by area" : "e.g. Main Stage, Hospitality, Entrance"}
-                          </p>
-                        </div>
-                        {areas.length === 0 && (
-                          <span className="ml-auto text-xs font-medium text-[#1A6EFF] shrink-0">+ Add &rarr;</span>
-                        )}
-                      </div>
-
-                      <div
-                        className={cn(
-                          "flex items-center gap-3 rounded-xl border p-4 text-left transition-colors",
-                          areas.length === 0
-                            ? "border-[#D4D1CA] bg-[#FBFBF9] opacity-50 cursor-not-allowed"
-                            : "border-[#D4D1CA] bg-white hover:border-[#1A6EFF]/40"
-                        )}
-                      >
-                        <div className="w-6 h-6 rounded-full border-2 border-[#D4D1CA] flex items-center justify-center shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-[#0F1724]">Upload your first photos</p>
-                          <p className="text-xs text-[#7A7974]">Photos are grouped by date automatically</p>
-                        </div>
-                        {areas.length > 0 && (
-                          <span className="ml-auto text-xs font-medium text-[#1A6EFF] shrink-0">Upload &rarr;</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {areas.length > 0 ? (
-                      <ErrorBoundary label="uploader-empty-state">
-                        <PhotoUploader
-                          projectId={project.id}
-                          albumId={uploadAlbumId}
-                          areaId={uploadAreaId}
-                          areas={areas}
-                          onUploaded={loadAll}
-                          trigger={
-                            <button className="flex items-center gap-2 px-5 h-10 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors">
-                              <ImagePlus className="w-4 h-4" />
-                              Upload photos
-                            </button>
-                          }
-                        />
-                      </ErrorBoundary>
-                    ) : (
-                      <button
-                        onClick={() => setAddingArea(true)}
-                        className="flex items-center gap-2 px-5 h-10 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add first area
-                      </button>
-                    )}
-
-                    {areas.length > 0 && (
-                      <p className="mt-3 text-xs text-[#7A7974]">
-                        Areas help organise photos but aren't required.
-                      </p>
-                    )}
-                  </div>
+                  <EventSetup
+                    projectId={project.id}
+                    areas={areas}
+                    albumId={uploadAlbumId}
+                    uploadAreaId={uploadAreaId}
+                    onAreasChanged={loadAll}
+                    onUploaded={loadAll}
+                  />
                 ) : visiblePhotos.length === 0 ? (
                   <EmptyState
                     icon={<ImagePlus className="h-6 w-6" />}
