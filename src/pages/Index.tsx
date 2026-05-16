@@ -75,7 +75,7 @@ const COPY = {
     eyebrow: "Early users",
     title: "Built for teams who need the client to see the work, not the chaos.",
     items: [
-      "ReportAir helped us turn a full day of site photos and notes into a client update before we left the venue.",
+      "It was all sorted and managed so easily during the build. We now have full daily records sorted and filed ready to reference for next year's build.",
       "The client could see progress every day without calling for another status check.",
       "The report was already structured because the photos had been sorted properly during the build.",
     ],
