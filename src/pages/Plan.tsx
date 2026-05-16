@@ -82,6 +82,56 @@ export default function Plan() {
     }
   };
 
+  const [skipping, setSkipping] = useState(false);
+
+  const handleSkip = async () => {
+    if (skipping || loading) return;
+    setSkipping(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/projects", { replace: true });
+        return;
+      }
+      // Find the team this user owns (created during onboarding)
+      const { data: team } = await supabase
+        .from("teams")
+        .select("id, trial_ends_at, subscription_status")
+        .eq("billing_owner_user_id", user.id)
+        .maybeSingle();
+
+      if (team) {
+        const trialEnds = team.trial_ends_at
+          ? team.trial_ends_at
+          : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+        const { error: updErr } = await supabase
+          .from("teams")
+          .update({
+            plan: "solo",
+            subscription_status: "trialing",
+            trial_ends_at: trialEnds,
+          })
+          .eq("id", team.id);
+        if (updErr) {
+          toast.error("Could not start trial", { description: updErr.message });
+          setSkipping(false);
+          return;
+        }
+      }
+
+      // Clear any pending plan metadata
+      await supabase.auth.updateUser({
+        data: { pending_plan_choice: null, pending_plan_interval: null },
+      }).catch(() => {});
+
+      navigate("/projects", { replace: true });
+    } catch (err) {
+      setSkipping(false);
+      const msg = err instanceof Error ? err.message : "Could not start trial";
+      toast.error(msg);
+    }
+  };
+
   // Auto-launch checkout if signup metadata included a plan choice
   useEffect(() => {
     if (autoLaunched.current) return;
