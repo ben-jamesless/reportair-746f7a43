@@ -1,30 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14?target=deno";
+import { buildPriceToPlan, resolvePlan, fmtDate } from "./helpers.ts";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-04-10" });
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
 
-// ── Price → Plan mapping ────────────────────────────────────────────────────
-// All 6 price IDs (monthly + annual per tier) resolve to the plan name.
-// Add your real Stripe price IDs to Supabase Edge Function secrets and they'll
-// be picked up automatically here.
-function buildPriceToPlan(): Record<string, string> {
-  const map: Record<string, string> = {};
-  const pairs: Array<[string, string]> = [
-    ["STRIPE_PRICE_SOLO_MONTHLY",   "solo"],
-    ["STRIPE_PRICE_SOLO_ANNUAL",    "solo"],
-    ["STRIPE_PRICE_PRO_MONTHLY",    "pro"],
-    ["STRIPE_PRICE_PRO_ANNUAL",     "pro"],
-    ["STRIPE_PRICE_STUDIO_MONTHLY", "studio"],
-    ["STRIPE_PRICE_STUDIO_ANNUAL",  "studio"],
-  ];
-  for (const [envKey, plan] of pairs) {
-    const id = Deno.env.get(envKey);
-    if (id) map[id] = plan;
-  }
-  return map;
-}
 const PRICE_TO_PLAN = buildPriceToPlan();
 
 async function sendTransactionalEmail(payload: { to: string; template: string; data: Record<string, string> }) {
@@ -50,10 +31,7 @@ async function getBillingOwner(service: ReturnType<typeof createClient>, teamId:
   };
 }
 
-function fmtDate(unix: number | null | undefined): string {
-  if (!unix) return "";
-  return new Date(unix * 1000).toLocaleDateString("en-HK", { day: "numeric", month: "long", year: "numeric" });
-}
+
 
 serve(async (req) => {
   const body      = await req.text();
