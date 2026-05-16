@@ -113,6 +113,7 @@ const Onboarding = () => {
       setBusy(false);
       return toast.error(profileErr.message);
     }
+    await refreshProfile();
 
     // Create team — trigger auto-adds creator as owner
     const slug = teamName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Math.random().toString(36).slice(2, 6);
