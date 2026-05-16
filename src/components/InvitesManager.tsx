@@ -225,7 +225,28 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     navigate("/projects");
   };
 
-  const acceptedInvites = invites.filter((i) => i.accepted_at);
+  const confirmRemoveAccepted = async () => {
+    if (!removeAcceptedTarget) return;
+    const target = removeAcceptedTarget;
+    setRemoveAcceptedTarget(null);
+    const { error: invErr } = await supabase.from("project_invites").delete().eq("id", target.id);
+    if (invErr) { toast.error(invErr.message); return; }
+    if (target.accepted_by) {
+      const { error: pmErr } = await supabase
+        .from("project_members")
+        .delete()
+        .eq("project_id", projectId)
+        .eq("user_id", target.accepted_by);
+      if (pmErr) { toast.error(pmErr.message); return; }
+    }
+    toast.success(`${target.email} removed from this project`);
+    load();
+  };
+
+  // Hide ghost invites (accepted by users whose profiles no longer exist).
+  const acceptedInvites = invites.filter(
+    (i) => i.accepted_at && (!i.accepted_by || activeProfileIds.has(i.accepted_by)),
+  );
   const pendingInvites = invites.filter((i) => !i.accepted_at);
 
   return (
