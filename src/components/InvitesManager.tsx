@@ -28,6 +28,7 @@ type Invite = {
   role: ProjectRole;
   token: string;
   accepted_at: string | null;
+  accepted_by: string | null;
   created_at: string;
 };
 
@@ -59,8 +60,10 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   // Confirmation state
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
+  const [removeAcceptedTarget, setRemoveAcceptedTarget] = useState<Invite | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [projectName, setProjectName] = useState<string>("");
+  const [activeProfileIds, setActiveProfileIds] = useState<Set<string>>(new Set());
 
   const currentUserRole: ProjectRole | null =
     members.find((m) => m.user_id === user?.id)?.role ?? null;
@@ -69,21 +72,31 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   const load = useCallback(async () => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
-      supabase.from("project_invites").select("id,email,role,token,accepted_at,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
+      supabase.from("project_invites").select("id,email,role,token,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
       supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
     ]);
-    setInvites((inv ?? []) as Invite[]);
+    const invRows = (inv ?? []) as Invite[];
+    setInvites(invRows);
     setProjectName((proj as { name?: string } | null)?.name ?? "");
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
-    if (pmRows.length) {
-      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", pmRows.map((m) => m.user_id));
+
+    // Collect all user IDs we need profile info for: members + accepted invitees
+    const acceptedUserIds = invRows
+      .filter((i) => i.accepted_at && i.accepted_by)
+      .map((i) => i.accepted_by as string);
+    const allIds = Array.from(new Set([...pmRows.map((m) => m.user_id), ...acceptedUserIds]));
+
+    let profMap = new Map<string, string | null>();
+    let existingIds = new Set<string>();
+    if (allIds.length) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", allIds);
       const profRows = (profs ?? []) as { id: string; full_name: string | null }[];
-      const map = new Map(profRows.map((p) => [p.id, p.full_name]));
-      setMembers(pmRows.map((m) => ({ ...m, full_name: map.get(m.user_id) ?? null })));
-    } else {
-      setMembers([]);
+      profMap = new Map(profRows.map((p) => [p.id, p.full_name]));
+      existingIds = new Set(profRows.map((p) => p.id));
     }
+    setActiveProfileIds(existingIds);
+    setMembers(pmRows.map((m) => ({ ...m, full_name: profMap.get(m.user_id) ?? null })));
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
@@ -212,7 +225,28 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     navigate("/projects");
   };
 
-  const acceptedInvites = invites.filter((i) => i.accepted_at);
+  const confirmRemoveAccepted = async () => {
+    if (!removeAcceptedTarget) return;
+    const target = removeAcceptedTarget;
+    setRemoveAcceptedTarget(null);
+    const { error: invErr } = await supabase.from("project_invites").delete().eq("id", target.id);
+    if (invErr) { toast.error(invErr.message); return; }
+    if (target.accepted_by) {
+      const { error: pmErr } = await supabase
+        .from("project_members")
+        .delete()
+        .eq("project_id", projectId)
+        .eq("user_id", target.accepted_by);
+      if (pmErr) { toast.error(pmErr.message); return; }
+    }
+    toast.success(`${target.email} removed from this project`);
+    load();
+  };
+
+  // Hide ghost invites (accepted by users whose profiles no longer exist).
+  const acceptedInvites = invites.filter(
+    (i) => i.accepted_at && (!i.accepted_by || activeProfileIds.has(i.accepted_by)),
+  );
   const pendingInvites = invites.filter((i) => !i.accepted_at);
 
   return (
@@ -362,8 +396,19 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
           <div className="space-y-1">
             {acceptedInvites.map((inv) => (
               <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs text-muted-foreground">
-                <span className="truncate">{inv.email}</span>
-                <span>Accepted {new Date(inv.accepted_at!).toLocaleDateString()} · {inv.role}</span>
+                <span className="truncate flex-1">{inv.email}</span>
+                <span className="shrink-0">Accepted {new Date(inv.accepted_at!).toLocaleDateString()} · {inv.role}</span>
+                {canManage && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-destructive hover:text-destructive"
+                    onClick={() => setRemoveAcceptedTarget(inv)}
+                    title="Remove from project"
+                  >
+                    ✕ Remove
+                  </Button>
+                )}
               </div>
             ))}
           </div>
@@ -382,6 +427,22 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmRemove}>Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Remove accepted-invite confirmation */}
+      <AlertDialog open={!!removeAcceptedTarget} onOpenChange={(o) => !o && setRemoveAcceptedTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Remove {removeAcceptedTarget?.email} from this project? They will lose access immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveAccepted}>Remove</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
