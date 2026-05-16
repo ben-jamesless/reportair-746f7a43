@@ -175,7 +175,10 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
     if (!mentionOpen) return [];
     return members
       .filter((m) => m.user_id !== user?.id)
-      .filter((m) => (m.full_name ?? "").toLowerCase().includes(mentionQuery))
+      .filter((m) => {
+        const hay = `${m.full_name ?? ""} ${m.email ?? ""}`.toLowerCase();
+        return hay.includes(mentionQuery);
+      })
       .slice(0, 6);
   }, [members, mentionOpen, mentionQuery, user?.id]);
 
@@ -183,7 +186,7 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
     const before = body.slice(0, mentionAnchor);
     const afterIdx = mentionAnchor + 1 + mentionQuery.length;
     const after = body.slice(afterIdx);
-    const token = `@[${m.full_name ?? "Teammate"}](${m.user_id}) `;
+    const token = `@[${displayNameOf(m)}](${m.user_id}) `;
     const next = `${before}${token}${after}`;
     setBody(next);
     setMentionOpen(false);
