@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import AccountPreviewDialog from "@/components/admin/AccountPreviewDialog";
 
 type UnifiedRow = {
   user_id: string;
@@ -48,6 +49,7 @@ const AdminUsers = () => {
   const [q, setQ] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<UnifiedRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [previewTarget, setPreviewTarget] = useState<UnifiedRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -76,9 +78,9 @@ const AdminUsers = () => {
     else { toast.success(r.user_suspended_at ? "User unsuspended" : "User suspended"); load(); }
   };
 
-  const viewAs = (r: UnifiedRow) => {
-    if (r.team_id) window.open(`/?team=${r.team_id}`, "_blank");
-    else toast.info("User has no team");
+  const openPreview = (r: UnifiedRow) => {
+    if (!r.team_id) { toast.info("User has no team"); return; }
+    setPreviewTarget(r);
   };
 
   const confirmDelete = async () => {
@@ -186,7 +188,7 @@ const AdminUsers = () => {
                   </TableCell>
                   <TableCell className="text-right space-x-2 whitespace-nowrap">
                     <Button size="sm" variant="outline" onClick={() => sendReset(r.email)}>Send reset</Button>
-                    <Button size="sm" variant="outline" onClick={() => viewAs(r)}>View as</Button>
+                    <Button size="sm" variant="outline" onClick={() => openPreview(r)} disabled={!r.team_id}>Account preview</Button>
                     {!hasTeam ? (
                       <Button
                         size="sm"
@@ -232,6 +234,15 @@ const AdminUsers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AccountPreviewDialog
+        open={!!previewTarget}
+        onOpenChange={(o) => !o && setPreviewTarget(null)}
+        teamId={previewTarget?.team_id ?? null}
+        teamName={previewTarget?.team_name ?? null}
+        plan={previewTarget?.plan ?? null}
+        userEmail={previewTarget?.email ?? null}
+      />
     </div>
   );
 };

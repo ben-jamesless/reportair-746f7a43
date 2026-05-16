@@ -1072,6 +1072,16 @@ export type Database = {
           team_name: string
         }[]
       }
+      admin_list_team_members: {
+        Args: { _team_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       admin_list_teams: {
         Args: never
         Returns: {
