@@ -314,8 +314,15 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                     {m.full_name || m.email || m.user_id.slice(0, 8)}
                     {isSelf && <span className="ml-1 text-xs font-normal text-muted-foreground">(you)</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {m.full_name && m.email ? m.email : "Active"}
+                  <div className="text-xs text-muted-foreground truncate">
+                    {[
+                      m.full_name && m.email ? m.email : null,
+                      m.last_active_at
+                        ? `Last active: ${fmtDate(m.last_active_at)}`
+                        : m.created_at
+                        ? `Signed up: ${fmtDate(m.created_at)}`
+                        : null,
+                    ].filter(Boolean).join(" · ") || "Active"}
                   </div>
                 </div>
                 {showRoleSelect ? (
