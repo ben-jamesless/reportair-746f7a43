@@ -667,11 +667,9 @@ const Projects = () => {
                 e.preventDefault();
                 if (!leavingProject) return;
                 setLeaving(true);
-                const { error } = await supabase
-                  .from("project_members")
-                  .delete()
-                  .eq("project_id", leavingProject.id)
-                  .eq("user_id", user!.id);
+                const { error } = await supabase.rpc("leave_project", {
+                  _project_id: leavingProject.id,
+                });
                 setLeaving(false);
                 if (error) { toast.error(error.message); return; }
                 toast.success("Left event");
