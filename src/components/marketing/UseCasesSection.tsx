@@ -1,7 +1,5 @@
 import { useState } from "react";
-
-const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
-const body = { fontFamily: "'Inter', sans-serif" };
+import { display, body } from "./brand-tokens";
 
 type Status = "complete" | "progress" | "pending";
 

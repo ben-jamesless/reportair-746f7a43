@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { display, body } from "./brand-tokens";
 
 const faqs = [
   {
@@ -52,9 +53,6 @@ const faqs = [
       "Everything stays in your account and is archived, not deleted. You can pull up photos, notes, and reports from any past event at any time — useful for client disputes, handover documentation, or reference on the next build.",
   },
 ];
-
-const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
-const body = { fontFamily: "'Inter', sans-serif" };
 
 export default function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number>(0);

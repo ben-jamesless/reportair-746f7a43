@@ -1,5 +1,4 @@
-const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
-const body = { fontFamily: "'Inter', sans-serif" };
+import { display, body } from "./brand-tokens";
 
 const oldItems = [
   "Sorting WhatsApp photos for 45 mins",
