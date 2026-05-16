@@ -56,6 +56,7 @@ const Onboarding = () => {
           .from("profiles")
           .update({ onboarded_at: new Date().toISOString(), full_name: profile?.full_name ?? user.email })
           .eq("id", user.id);
+        await refreshProfile();
         navigate("/projects", { replace: true });
         return;
       }
