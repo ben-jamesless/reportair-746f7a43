@@ -54,8 +54,11 @@ const renderBody = (body: string) => {
   return parts;
 };
 
-const initialsOf = (name: string | null | undefined) =>
-  (name ?? "?").split(/\s+/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+const initialsOf = (name: string | null | undefined) => {
+  const s = (name ?? "?").trim();
+  if (!s) return "?";
+  return s[0]!.toUpperCase();
+};
 
 export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
   const { user } = useAuth();
