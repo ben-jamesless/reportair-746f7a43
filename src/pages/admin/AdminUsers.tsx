@@ -189,23 +189,22 @@ const AdminUsers = () => {
                   <TableCell className="text-right space-x-2 whitespace-nowrap">
                     <Button size="sm" variant="outline" onClick={() => sendReset(r.email)}>Send reset</Button>
                     <Button size="sm" variant="outline" onClick={() => openPreview(r)} disabled={!r.team_id}>Account preview</Button>
-                    {!hasTeam ? (
+                    {hasTeam && (
                       <Button
                         size="sm"
-                        variant="destructive"
-                        onClick={() => setDeleteTarget(r)}
-                      >
-                        Delete
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant={r.user_suspended_at ? "outline" : "destructive"}
+                        variant={r.user_suspended_at ? "outline" : "secondary"}
                         onClick={() => toggleSuspend(r)}
                       >
                         {r.user_suspended_at ? "Unsuspend" : "Suspend"}
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setDeleteTarget(r)}
+                    >
+                      Delete
+                    </Button>
                   </TableCell>
                 </TableRow>
               );
