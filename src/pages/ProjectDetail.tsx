@@ -4,8 +4,7 @@ import { AppShell } from "@/components/AppShell";
 
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ImagePlus, ChevronDown, X, MessageSquare } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ArrowLeft, ImagePlus, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DayNavSkeleton, PhotoGridSkeleton } from "@/components/Skeletons";
@@ -19,7 +18,6 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { type AreaStatus } from "@/components/AreaStatusPicker";
-import { FeedbackPanel } from "@/components/FeedbackPanel";
 import { RichNotes } from "@/components/RichNotes";
 import { ProjectDetailsTab } from "@/components/ProjectDetailsTab";
 import { MobileProjectToolbar } from "@/components/MobileProjectToolbar";
@@ -50,6 +48,7 @@ import { PhotoGallery } from "@/features/projectDetail/PhotoGallery";
 import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
 import { PhotoLightboxController } from "@/features/projectDetail/PhotoLightboxController";
 import { DayReport } from "@/features/projectDetail/DayReport";
+import { FeedbackSheet } from "@/features/projectDetail/FeedbackSheet";
 
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -721,47 +720,27 @@ const ProjectDetail = () => {
             </div>
 
             {/* Feedback right-side panel — all breakpoints */}
-            <Sheet open={feedbackSheetOpen} onOpenChange={setFeedbackSheetOpen}>
-              <SheetContent side="right" className="flex w-full sm:w-[400px] flex-col p-0 [&>button]:hidden">
-                {/* Panel header */}
-                <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
-                    <span className="text-sm font-semibold text-foreground">Feedback</span>
-                  </div>
-                  <button
-                    onClick={() => setFeedbackSheetOpen(false)}
-                    className="w-6 h-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </header>
-
-                {/* Panel body */}
-                <div className="min-h-0 flex-1 overflow-hidden p-3">
-                  <FeedbackPanel
-                    projectId={project.id}
-                    visiblePhotos={visiblePhotos}
-                    allPhotos={photos}
-                    onOpenPhoto={(photoId) => {
-                      setFeedbackSheetOpen(false);
-                      const idx = photoIndexById.get(photoId);
-                      if (idx !== undefined) {
-                        setLightboxIndex(idx);
-                      } else {
-                        setActiveDay(ALL_DAYS);
-                        setActiveArea(null);
-                        setTimeout(() => {
-                          const all = photos.findIndex((p) => p.id === photoId);
-                          if (all >= 0) setLightboxIndex(all);
-                        }, 0);
-                      }
-                    }}
-                    className="h-full"
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+            <FeedbackSheet
+              open={feedbackSheetOpen}
+              onOpenChange={setFeedbackSheetOpen}
+              projectId={project.id}
+              visiblePhotos={visiblePhotos}
+              allPhotos={photos}
+              onOpenPhoto={(photoId) => {
+                setFeedbackSheetOpen(false);
+                const idx = photoIndexById.get(photoId);
+                if (idx !== undefined) {
+                  setLightboxIndex(idx);
+                } else {
+                  setActiveDay(ALL_DAYS);
+                  setActiveArea(null);
+                  setTimeout(() => {
+                    const all = photos.findIndex((p) => p.id === photoId);
+                    if (all >= 0) setLightboxIndex(all);
+                  }, 0);
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6">
