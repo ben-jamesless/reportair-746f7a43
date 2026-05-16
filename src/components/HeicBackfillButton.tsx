@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { convertHeicToJpeg } from "@/lib/heicToJpeg";
 
 interface Props { projectId: string }
 
@@ -13,20 +14,11 @@ type HeicPhoto = {
 };
 
 const convertHeicBlobToJpeg = async (blob: Blob, fileName: string) => {
-  const newName = fileName.replace(/\.(heic|heif)$/i, "") + ".jpg";
-  // Try heic-to first (uses libheif-js, supports HEVC from iPhones reliably)
-  try {
-    const { heicTo } = await import("heic-to");
-    const file = blob instanceof File ? blob : new File([blob], fileName, { type: blob.type || "image/heic" });
-    const jpegBlob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.88 });
-    return { jpegBlob: jpegBlob as Blob, newName };
-  } catch (primaryErr) {
-    console.warn("heic-to failed, falling back to heic2any:", primaryErr);
-    const { default: heic2any } = await import("heic2any");
-    const converted = await heic2any({ blob, toType: "image/jpeg", quality: 0.88 });
-    const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
-    return { jpegBlob, newName };
-  }
+  const { jpegBlob, newName } = await convertHeicToJpeg(blob, {
+    quality: 0.88,
+    fileName,
+  });
+  return { jpegBlob, newName };
 };
 
 export const HeicBackfillButton = ({ projectId }: Props) => {
