@@ -380,8 +380,8 @@ const Index = () => {
                       </li>
                     ))}
                   </ul>
-                  <a
-                    href="#cta"
+                  <Link
+                    to="/auth?tab=signup"
                     className="block w-full rounded-full px-5 py-3 text-center text-[0.95rem] font-semibold transition-colors"
                     style={
                       isFeatured
@@ -396,7 +396,7 @@ const Index = () => {
                     }}
                   >
                     {p.cta}
-                  </a>
+                  </Link>
                 </article>
               );
             })}
