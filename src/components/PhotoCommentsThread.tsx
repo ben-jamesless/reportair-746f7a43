@@ -85,12 +85,13 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
       if (ids.length === 0) { if (alive) setMembers([]); return; }
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url")
+        .select("id, full_name, email, avatar_url")
         .in("id", ids);
       const byId = new Map((profs ?? []).map((p) => [p.id, p]));
       const list: Member[] = ids.map((uid) => ({
         user_id: uid,
         full_name: byId.get(uid)?.full_name ?? null,
+        email: byId.get(uid)?.email ?? null,
         avatar_url: byId.get(uid)?.avatar_url ?? null,
       }));
       if (alive) setMembers(list);
@@ -109,7 +110,7 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
       const m = memberById.get(r.author_id);
       return {
         ...r,
-        author_name: m?.full_name ?? "Teammate",
+        author_name: displayNameOf(m),
         author_avatar: m?.avatar_url ?? null,
       };
     }), [memberById]);
