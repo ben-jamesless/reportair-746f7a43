@@ -36,6 +36,7 @@ type Member = {
   user_id: string;
   role: ProjectRole;
   full_name: string | null;
+  email: string | null;
 };
 
 const emailSchema = z.string().trim().email().max(255);
