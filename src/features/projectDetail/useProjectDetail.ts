@@ -78,6 +78,7 @@ export interface ProjectDetailState {
  */
 export function useProjectDetail(projectId: string | undefined): ProjectDetailState {
   const { user } = useAuth();
+  const { limits, projectCount, refetch: refetchPlan } = usePlan();
 
   // ---- Data state ----
   const [project, setProject] = useState<Project | null>(null);
