@@ -85,8 +85,8 @@ const Index = () => {
                     style={{ background: "rgba(217,79,42,0.18)", border: "1px solid rgba(217,79,42,0.4)" }}
                   />
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Javier Campero</div>
-                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Tournament Director · LIV</div>
+                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Ben Lee</div>
+                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Operations Director · 54</div>
                   </div>
                 </figcaption>
               </figure>
