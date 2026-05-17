@@ -722,9 +722,9 @@ const SharePage = () => {
                     >
                       {/* Day header strip — full width, flush; acts as collapsible summary on mobile */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur list-none [&::-webkit-details-marker]:hidden xl:cursor-default"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none [&::-webkit-details-marker]:hidden xl:cursor-default"
                         style={{
-                          backgroundColor: SURFACE,
+                          backgroundColor: "#ffffff",
                           borderBottom: `1px solid ${DIVIDER}`,
                         }}
                       >
