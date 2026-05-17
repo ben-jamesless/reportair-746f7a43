@@ -429,6 +429,11 @@ const SharePage = () => {
             <div className="mt-2">
               <StatusPill statusKey={overallStatus} />
             </div>
+            {weather[latestDayKey] && (
+              <p className="mt-3 text-xs" style={{ color: MUTED }}>
+                {weather[latestDayKey].tmin}°C – {weather[latestDayKey].tmax}°C · {weather[latestDayKey].condition} · {weather[latestDayKey].wind} km/h wind
+              </p>
+            )}
             {hasAny ? (
               <ul className="mt-5 space-y-5">
                 {sections.map((s) => {
