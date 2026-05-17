@@ -8,29 +8,37 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Check, Crown, FileText, Flag, Loader2, Mail, MapPinned, Music, Plus, PartyPopper, Presentation, Trash2, Trophy, X } from "lucide-react";
+import { Check, Crown, FileText, Loader2, Mail, MapPinned, Plus, Sparkles, Store, Tent, Trash2, X } from "lucide-react";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { z } from "zod";
 import { usePlan } from "@/hooks/usePlan";
+import {
+  EVENT_TEMPLATE_DEFS,
+  RECOMMENDED_LAYOUT_KEY,
+  TEMPLATE_ID_KEY,
+  type EventTemplateId,
+} from "@/lib/eventTemplates";
 
-type Template = "blank" | "golf_day" | "corporate_event" | "music_festival" | "conference" | "wedding";
+type Template = EventTemplateId;
 
-const TEMPLATE_DEFS: { id: Template; title: string; description: string; icon: React.ReactNode; areas: string[] }[] = [
-  { id: "blank", title: "Blank", description: "Start from scratch.", icon: <FileText className="h-5 w-5" />, areas: [] },
-  { id: "golf_day", title: "Golf Day", description: "Hospitality, tees, greens & more.", icon: <Flag className="h-5 w-5" />,
-    areas: ["Hospitality Suite", "Driving Range", "1st Tee", "18th Green", "Clubhouse", "Media Zone", "Sponsor Activation"] },
-  { id: "corporate_event", title: "Corporate Event", description: "Stage, registration, breakouts.", icon: <Presentation className="h-5 w-5" />,
-    areas: ["Main Stage", "Registration", "Catering", "Breakout Rooms", "Networking Area", "Sponsor Wall", "Green Room"] },
-  { id: "music_festival", title: "Music Festival", description: "Multi-stage festival areas.", icon: <Music className="h-5 w-5" />,
-    areas: ["Main Stage", "Second Stage", "Artist Village", "Food & Beverage", "Entry & Security", "Sponsor Zone", "Merchandise"] },
-  { id: "conference", title: "Conference", description: "Halls, breakouts, exhibitors.", icon: <Trophy className="h-5 w-5" />,
-    areas: ["Main Hall", "Registration Desk", "Breakout Room A", "Breakout Room B", "Exhibitor Floor", "Media Room", "Catering"] },
-  { id: "wedding", title: "Wedding", description: "Ceremony to reception.", icon: <PartyPopper className="h-5 w-5" />,
-    areas: ["Ceremony", "Reception", "Cocktail Hour", "Bridal Suite", "Catering", "Photography Zone", "Guest Entrance"] },
-];
+// UI-only catalog. Pairs the event template defs from @/lib/eventTemplates with
+// a lucide icon for the dialog's TemplateCard tiles. The Blank option keeps
+// today's experience open — no zones seeded, no phase labels, generic chips.
+const TEMPLATE_DEFS: { id: Template; title: string; description: string; icon: React.ReactNode; areas: string[] }[] =
+  EVENT_TEMPLATE_DEFS.map((t) => ({
+    id: t.id,
+    title: t.title,
+    description: t.description,
+    icon:
+      t.id === "blank" ? <FileText className="h-5 w-5" /> :
+      t.id === "pop_up" ? <Tent className="h-5 w-5" /> :
+      t.id === "exhibition" ? <Store className="h-5 w-5" /> :
+      <Sparkles className="h-5 w-5" />,
+    areas: t.areas,
+  }));
 type InviteRow = { email: string; role: "editor" | "viewer" };
 
 interface Props {
@@ -182,6 +190,20 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setCreatedProjectId(projectId);
     await persistAreas(projectId, areas);
     if (!skipInvites) await persistInvites(projectId, invites);
+    // Persist template choice + recommended layout to localStorage so the export
+    // dialog can pre-select the right layout. Server-side persistence is a
+    // follow-up (extends the project_template enum + projects.template column).
+    try {
+      if (typeof window !== "undefined") {
+        const tpl = EVENT_TEMPLATE_DEFS.find((t) => t.id === template);
+        if (tpl) {
+          window.localStorage.setItem(TEMPLATE_ID_KEY(projectId), tpl.id);
+          window.localStorage.setItem(RECOMMENDED_LAYOUT_KEY(projectId), tpl.recommendedLayout);
+        }
+      }
+    } catch {
+      // localStorage may be unavailable (private mode); non-fatal.
+    }
     setBusy(false);
     onCreated?.();
     toast.success("Project ready");
