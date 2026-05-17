@@ -80,12 +80,14 @@ const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, ex
 type LayoutVariant = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
 
 // `comingSoon` gates layouts that don't yet have a renderer in the generate-pdf
-// edge function. Until that lands, the tiles are visible (so users see the
-// roadmap) but disabled — selecting one would produce a Portrait PDF anyway.
+// edge function. With horizontal_deck_v1 and horizontal_log_v1 now wired up
+// in generate-pdf/horizontal-layouts.ts, all three tiles are selectable.
+// Keep the flag on the type so future templates can ship in the UI first
+// while the renderer is still in progress.
 const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean; comingSoon: boolean }[] = [
   { value: "portrait_v1",       label: "Portrait",        hint: "Original · photo-led report",         orientation: "portrait",  pro: false, comingSoon: false },
-  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true,  comingSoon: true  },
-  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true,  comingSoon: true  },
+  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true,  comingSoon: false },
+  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true,  comingSoon: false },
 ];
 
 const LAYOUT_STORAGE_KEY = (projectId: string) => `bs:export:layout:${projectId}`;
@@ -569,7 +571,13 @@ export const ExportPdfDialog = ({
             <div className="grid grid-cols-3 gap-2">
               {LAYOUTS.map((opt) => {
                 const selected = layout === opt.value;
-                const locked = opt.comingSoon || (opt.pro && !isPro);
+                // A tile is locked when it has no renderer yet (comingSoon) or
+                // the user's plan doesn't include the Pro tier it belongs to.
+                // We keep these two states visually distinct so a Pro upsell
+                // never reads as "this isn't built yet".
+                const planLocked = opt.pro && !isPro;
+                const locked = opt.comingSoon || planLocked;
+                const isRecommended = templateForProject && recommendedLayout === opt.value && !opt.comingSoon;
                 return (
                   <button
                     key={opt.value}
@@ -577,36 +585,74 @@ export const ExportPdfDialog = ({
                     onClick={() => { if (!locked) setLayout(opt.value); }}
                     aria-pressed={selected}
                     aria-disabled={locked}
+                    title={
+                      opt.comingSoon
+                        ? `${opt.label} — coming soon`
+                        : planLocked
+                          ? `${opt.label} — Pro feature. Upgrade to unlock.`
+                          : opt.label
+                    }
                     className={cn(
-                      "rounded-lg border-2 px-3 py-3 text-left transition-colors",
+                      // Slightly taller padding so the hint never crowds the
+                      // badge; relative so the badge can float top-right.
+                      "group relative flex h-full flex-col rounded-lg border px-3 pb-3 pt-3 text-left transition",
                       selected
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-muted-foreground",
-                      locked && "cursor-not-allowed opacity-60 hover:border-border",
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                        : "border-border bg-card hover:border-muted-foreground/60 hover:bg-accent/40",
+                      locked && "cursor-not-allowed opacity-70 hover:border-border hover:bg-card",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium">{opt.label}</p>
+                    {/* Top-right badge.
+                        - comingSoon  → muted "Coming soon" pill (gated layouts)
+                        - planLocked  → amber "PRO" pill with crown (upsell)
+                        - unlocked Pro→ crown-only chip in primary (earns the feature) */}
+                    <span className="absolute right-2 top-2 inline-flex items-center">
                       {opt.comingSoon ? (
                         <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Coming soon
+                          Soon
                         </span>
-                      ) : opt.pro && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                      ) : planLocked ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
                           <Crown className="h-3 w-3" />Pro
                         </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{opt.hint}</p>
-                    {selected && templateForProject && recommendedLayout === opt.value && !opt.comingSoon && (
-                      <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                        Recommended for {templateForProject.title}
-                      </p>
+                      ) : opt.pro ? (
+                        <span
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary"
+                          aria-label="Pro feature"
+                        >
+                          <Crown className="h-3 w-3" />
+                        </span>
+                      ) : null}
+                    </span>
+
+                    {/* Title gets full width — badge sits on top of it but is
+                        small enough that there's no real collision risk. */}
+                    <p className="pr-8 text-sm font-medium leading-tight">{opt.label}</p>
+                    <p className="mt-1 pr-8 text-xs leading-snug text-muted-foreground">{opt.hint}</p>
+
+                    {/* Recommended pill pinned to the bottom so it doesn't
+                        make the selected tile taller than its siblings. */}
+                    {isRecommended && (
+                      <span className="mt-2 inline-flex w-fit items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        Recommended
+                      </span>
                     )}
                   </button>
                 );
               })}
             </div>
+            {/* Helper line under the grid — explains the Pro crown without
+                forcing every tile to carry the word "Pro". Only shown when
+                at least one Pro tile is visible. */}
+            {LAYOUTS.some(l => l.pro) && (
+              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Crown className="h-3 w-3 text-primary" />
+                {isPro
+                  ? "Client deck and Production log are Pro layouts — included on your plan."
+                  : <>Client deck and Production log are Pro layouts. <a href="/billing" className="underline underline-offset-2 hover:text-foreground">Upgrade to unlock.</a></>
+                }
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

@@ -3,6 +3,7 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
+import { renderHorizontalDeckV1, renderHorizontalLogV1 } from "./horizontal-layouts.ts";
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
@@ -91,6 +92,20 @@ const COLOR = {
   BORDER: HEX("#E5E5E5"),
   WHITE: rgb(1, 1, 1),
   CAPTION_BAR: HEX("#F5F5F5"),
+  // ============ Horizontal-template tokens (landscape decks/logs) ============
+  // These mirror the BuildSlides V1 horizontal mock — see
+  // BuildSlides_Report_Templates_Horizontal_v1.pdf.
+  PAPER: HEX("#F3EFE6"),       // Client deck page surface (warm cream)
+  RULE: HEX("#E5E1D6"),        // Hairline rules on PAPER
+  INK_DARK: HEX("#0E1316"),    // Production log page surface (deep ink)
+  PAPER_ON_INK: HEX("#F3EFE6"),// Text on INK_DARK
+  MUTED_ON_INK: HEX("#7A7A7E"),// Muted text on INK_DARK
+  ONTRACK: HEX("#2EB872"),     // Status chip — green
+  ONTRACK_SOFT: HEX("#D7F1E2"),
+  SNAG: HEX("#C0392B"),        // Status chip — red
+  SNAG_SOFT: HEX("#F5D9D4"),
+  BUILD_YELLOW: HEX("#E0A82E"),
+  BUILD_YELLOW_SOFT: HEX("#F6E6BF"),
 };
 
 type StatusKey = "on_track" | "complete" | "requires_discussion" | "delayed" | "no_status";
@@ -488,6 +503,22 @@ Deno.serve(async (req) => {
       (a) => a.photoCount > 0 || (a.status && a.status !== "no_status") || (a.notes && a.notes.trim() !== "")
     );
 
+    // ============ Template branch ============
+    // The export dialog writes `template` into options. Three layouts are
+    // wired up so far:
+    //   portrait_v1        — original 1 cover + 1 page per area (A4 portrait)
+    //   horizontal_deck_v1 — "Client deck" landscape, light cream PAPER surface
+    //   horizontal_log_v1  — "Production log" landscape, dark INK surface
+    // Any unknown / missing value falls back to portrait_v1 so the function is
+    // backwards compatible with existing queued exports.
+    type TemplateKey = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
+    const rawTemplate = (exp.options?.template ?? "portrait_v1") as string;
+    const templateKey: TemplateKey =
+      rawTemplate === "horizontal_deck_v1" || rawTemplate === "horizontal_log_v1"
+        ? rawTemplate
+        : "portrait_v1";
+
+    if (templateKey === "portrait_v1") {
     // ============ Page constants ============
     const W = 595.28, H = 841.89;
     const totalPages = 1 + areaData.length;
@@ -778,6 +809,19 @@ Deno.serve(async (req) => {
       p.drawText(center, { x: (W - cw) / 2, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
       const rw = irFont.widthOfTextAtSize((right ?? ""), fSize);
       p.drawText((right ?? ""), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
+    }
+    } else if (templateKey === "horizontal_deck_v1") {
+      await renderHorizontalDeckV1({
+        pdfDoc, pjsFont, irFont, proj, areaData, dayPhotos,
+        dayNote: dayNote ?? null,
+        reportDateLabel, buildDayLabel, reportNumber,
+      });
+    } else if (templateKey === "horizontal_log_v1") {
+      await renderHorizontalLogV1({
+        pdfDoc, pjsFont, irFont, proj, areaData, dayPhotos,
+        dayNote: dayNote ?? null,
+        reportDateLabel, buildDayLabel, reportNumber,
+      });
     }
 
     // ===== Save and upload =====
