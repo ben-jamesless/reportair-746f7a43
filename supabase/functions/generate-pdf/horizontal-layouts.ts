@@ -488,17 +488,26 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
     const hasBullets = bullets.length > 0;
     let leftY = TOP_Y;
     if (hasBullets) {
+      // Eyebrow with a short accent rule above it for a stronger anchor.
+      // We draw the rule, then leave generous space before the display
+      // headline so the cap heights don't crowd the eyebrow.
+      page.drawLine({
+        start: { x: LEFT_X, y: leftY + 10 },
+        end:   { x: LEFT_X + 20, y: leftY + 10 },
+        thickness: 1.25, color: COLOR.ACCENT,
+      });
       page.drawText("TODAY IN 6 LINES", {
         x: LEFT_X, y: leftY, size: 7, font: irFont, color: COLOR.ACCENT,
       });
-      leftY -= 16;
+      // Bigger gap so the 22pt headline's ascenders don't touch the eyebrow.
+      leftY -= 28;
       // Headline: bigger display weight
       const headlineLines = wrapLines(headline, pjsFont, 22, LEFT_W);
       for (const ln of headlineLines.slice(0, 2)) {
         page.drawText(ln, { x: LEFT_X, y: leftY, size: 22, font: pjsFont, color: COLOR.INK });
         leftY -= 26;
       }
-      leftY -= 4;
+      leftY -= 8;
       // Up to 5 remaining bullets
       for (const b of restBullets) {
         const lines = wrapLines(b, irFont, 9.5, LEFT_W - 14);
