@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  EVENT_TEMPLATE_DEFS,
+  RECOMMENDED_LAYOUT_KEY,
+  TEMPLATE_ID_KEY,
+} from "@/lib/eventTemplates";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -69,6 +74,19 @@ type Sections = {
 
 const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false };
 
+// Layout variant — drives orientation + template in the PDF generator.
+// portrait_v1 ships at launch on every plan. The two horizontal variants are
+// Pro+ at launch; backend branches on options.template.
+type LayoutVariant = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
+
+const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean }[] = [
+  { value: "portrait_v1",       label: "Portrait",        hint: "Original · photo-led report",         orientation: "portrait",  pro: false },
+  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true  },
+  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true  },
+];
+
+const LAYOUT_STORAGE_KEY = (projectId: string) => `bs:export:layout:${projectId}`;
+
 export type AvailableDay = { key: string; label: string; date: Date; photoCount: number };
 
 type AlbumOption = { id: string; name: string; photoCount: number };
@@ -127,7 +145,7 @@ export const ExportPdfDialog = ({
   open: controlledOpen,
   onOpenChange,
 }: Props) => {
-  const { canExportPdf, exportsThisMonth, limits } = usePlan();
+  const { canExportPdf, exportsThisMonth, limits, plan } = usePlan();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
@@ -136,7 +154,43 @@ export const ExportPdfDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");
-  const orientation = "portrait" as const;
+
+  // Pro+ unlocks the two horizontal layouts at launch. Solo gets portrait only.
+  const isPro = plan !== "solo";
+
+  // Default order: last-used layout for THIS project (LAYOUT_STORAGE_KEY) →
+  // template's recommended layout (set by NewProjectDialog at create time) →
+  // portrait. This means a freshly-created Exhibition project opens the
+  // export dialog with Production Log already selected, while users who
+  // override it once keep their override.
+  const isValidLayout = (v: unknown): v is LayoutVariant =>
+    v === "portrait_v1" || v === "horizontal_deck_v1" || v === "horizontal_log_v1";
+  const recommendedLayout = useMemo<LayoutVariant | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
+    return isValidLayout(v) ? (v as LayoutVariant) : null;
+  }, [projectId]);
+  const templateForProject = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const id = window.localStorage.getItem(TEMPLATE_ID_KEY(projectId));
+    return EVENT_TEMPLATE_DEFS.find((t) => t.id === id) ?? null;
+  }, [projectId]);
+  const [layout, setLayout] = useState<LayoutVariant>(() => {
+    if (typeof window === "undefined") return "portrait_v1";
+    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY(projectId)) as LayoutVariant | null;
+    if (isValidLayout(saved)) return saved;
+    const rec = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
+    if (isValidLayout(rec)) return rec as LayoutVariant;
+    return "portrait_v1";
+  });
+  // Guard: if a Pro layout is remembered but the user is no longer Pro, fall back to portrait.
+  useEffect(() => {
+    if (!isPro) {
+      const def = LAYOUTS.find(l => l.value === layout);
+      if (def?.pro) setLayout("portrait_v1");
+    }
+  }, [isPro, layout]);
+  const orientation = LAYOUTS.find(l => l.value === layout)?.orientation ?? "portrait";
 
   const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -278,7 +332,10 @@ export const ExportPdfDialog = ({
     const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
     const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
 
-    const options: Record<string, unknown> = { sections, orientation, quality };
+    const options: Record<string, unknown> = { sections, orientation, quality, template: layout };
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LAYOUT_STORAGE_KEY(projectId), layout);
+    }
     if (mode === "single") {
       options.day_key = dayKey ?? null;
       options.day_label = dayLabel ?? null;
@@ -495,6 +552,53 @@ export const ExportPdfDialog = ({
               </CardContent>
             </Card>
           )}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Layout</label>
+            <div className="grid grid-cols-3 gap-2">
+              {LAYOUTS.map((opt) => {
+                const selected = layout === opt.value;
+                const locked = opt.pro && !isPro;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { if (!locked) setLayout(opt.value); }}
+                    aria-pressed={selected}
+                    aria-disabled={locked}
+                    className={cn(
+                      "rounded-lg border-2 px-3 py-3 text-left transition-colors",
+                      selected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-muted-foreground",
+                      locked && "cursor-not-allowed opacity-60 hover:border-border",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium">{opt.label}</p>
+                      {opt.pro && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                          <Crown className="h-3 w-3" />Pro
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{opt.hint}</p>
+                    {selected && templateForProject && recommendedLayout === opt.value && (
+                      <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        Recommended for {templateForProject.title}
+                      </p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {!isPro && (
+              <p className="text-xs text-muted-foreground">
+                Horizontal layouts are a Pro feature.{" "}
+                <a href="/billing" className="underline">Upgrade</a>
+              </p>
+            )}
+          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Export quality</label>
