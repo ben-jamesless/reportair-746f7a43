@@ -448,7 +448,7 @@ const HeroSection = () => {
                   <rect x="7" y="9.5" width="14" height="9" rx="1.6" fill="#FFFFFF" opacity="0.55" />
                   <rect x="11" y="13.5" width="14" height="9" rx="1.6" fill="#FFFFFF" />
                 </svg>
-                <span className="node-label">BuildSlides</span>
+                
               </div>
             </div>
 
