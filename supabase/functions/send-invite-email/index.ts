@@ -9,16 +9,38 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "https://www.buildslides.com",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGIN_SUFFIXES = [".lovable.app", ".lovable.dev", ".buildslides.com", ".reportair.co"];
+const ALLOWED_ORIGINS = new Set([
+  "https://www.buildslides.com",
+  "https://buildslides.com",
+  "https://www.reportair.co",
+  "https://reportair.co",
+  "http://localhost:3000",
+  "http://localhost:5173",
+]);
 
-const json = (body: unknown, status = 200) =>
+function corsHeadersFor(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  let allow = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
+  try {
+    if (origin) {
+      const host = new URL(origin).hostname;
+      if (ALLOWED_ORIGINS.has(origin) || ALLOWED_ORIGIN_SUFFIXES.some((s) => host.endsWith(s))) {
+        allow = origin;
+      }
+    }
+  } catch (_e) { /* ignore */ }
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
+  };
+}
+
+const json = (req: Request, body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeadersFor(req), "Content-Type": "application/json" },
   });
 
 // ============ Auth helper ============
