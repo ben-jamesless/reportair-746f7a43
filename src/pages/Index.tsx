@@ -21,9 +21,21 @@ const COPY = {
     eyebrow: "Early users",
     title: "Built for teams who need the client to see the work, not the chaos.",
     items: [
-      "​I saved hours not having to chase my team for photo updates and then sort them into a presentation to send. ",
-      "Done at the click of a button. Not only that but with the share link the client saw updates in realtime. ",
-      "Not only was the report professional looking, we now have records on-hand to look back on each year moving forward.",
+      {
+        quote: "​I saved hours not having to chase my team for photo updates and then sort them into a presentation to send. ",
+        name: "Javier Campero",
+        role: "Tournament Director · LIV",
+      },
+      {
+        quote: "Done at the click of a button. Not only that but with the share link the client saw updates in realtime. ",
+        name: "Ben Lee",
+        role: "Operations Director · 54",
+      },
+      {
+        quote: "Not only was the report professional looking, we now have records on-hand to look back on each year moving forward.",
+        name: "Sarah Mitchell",
+        role: "Event Producer · Independent",
+      },
     ],
   },
   finalCta: {
