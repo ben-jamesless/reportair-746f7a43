@@ -1,0 +1,25 @@
+<!--
+  BuildSlides horizontal lockup — mark + wordmark.
+  Use in: sidebar header, sign-in page top-left, PDF cover header.
+  Wordmark uses DM Sans 700 at -0.02em tracking.
+  viewBox 200×40. Recommended display height: 22-32px in nav, 40-56px on auth page.
+
+  Two themes:
+    - Default (dark mode): wordmark fill="#F4F1EA" — use on dark sidebar / auth left panel
+    - Light theme: change wordmark fill to "#0F1417" — use on paper background
+
+  The mark colour does NOT change between themes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40" role="img" aria-label="BuildSlides">
+  <!-- Mark -->
+  <rect x="0" y="4" width="32" height="32" rx="7" fill="#D94F2A"/>
+  <rect x="7"  y="13.5" width="14" height="9" rx="1.6" fill="#FFFFFF" opacity="0.55"/>
+  <rect x="11" y="17.5" width="14" height="9" rx="1.6" fill="#FFFFFF"/>
+  <!-- Wordmark -->
+  <text x="44" y="27"
+        font-family="'DM Sans', Inter, system-ui, sans-serif"
+        font-weight="700"
+        font-size="20"
+        letter-spacing="-0.4"
+        fill="#0F1417">BuildSlides</text>
+</svg>
