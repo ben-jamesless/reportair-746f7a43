@@ -111,8 +111,27 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
     }
   }, [items, unreadCount]);
 
-  const handleClick = (n: Enriched) => {
+  const handleClick = async (n: Enriched) => {
     onNavigate?.();
+    if (n.type === "project_invite") {
+      // Look up the latest unaccepted invite for this project + current user's email.
+      const { data: { user: cur } } = await supabase.auth.getUser();
+      const email = cur?.email;
+      if (email) {
+        const { data: inv } = await supabase
+          .from("project_invites")
+          .select("token")
+          .eq("project_id", n.project_id)
+          .ilike("email", email)
+          .is("accepted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (inv?.token) { navigate(`/invite/${inv.token}`); return; }
+      }
+      navigate(`/projects/${n.project_id}`);
+      return;
+    }
     const params = new URLSearchParams();
     if (n.photo_id) {
       params.set("photo", n.photo_id);
