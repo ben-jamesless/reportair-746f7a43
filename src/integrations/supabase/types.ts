@@ -1384,7 +1384,7 @@ export type Database = {
         | "concern"
         | "behind_schedule"
         | "complete"
-      project_template: "event_production" | "blank"
+      project_template: "event_production" | "blank" | "pop_up" | "exhibition" | "brand_activation"
       team_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -1533,7 +1533,7 @@ export const Constants = {
         "behind_schedule",
         "complete",
       ],
-      project_template: ["event_production", "blank"],
+      project_template: ["event_production", "blank", "pop_up", "exhibition", "brand_activation"],
       team_role: ["owner", "admin", "member"],
     },
   },
