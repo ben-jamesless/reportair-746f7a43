@@ -749,7 +749,7 @@ const SharePage = () => {
                         <div className="flex items-center gap-2">
                           {dominantDayStatus && <StatusPill statusKey={dominantDayStatus} />}
                           <ChevronDown
-                            className="h-4 w-4 transition-transform group-open/day:rotate-180 xl:hidden"
+                            className="h-4 w-4 transition-transform group-open/day:rotate-180"
                             style={{ color: MUTED }}
                           />
                         </div>
