@@ -9,9 +9,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
 import { toast } from "sonner";
-import { Loader2, Crown, Mail, X, Plus } from "lucide-react";
+import { Loader2, Crown, Mail, X, Check, FileText, Tent, Store, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import {
+  EVENT_TEMPLATE_DEFS,
+  RECOMMENDED_LAYOUT_KEY,
+  TEMPLATE_ID_KEY,
+  type EventTemplateId,
+} from "@/lib/eventTemplates";
+
+// UI catalog pairing each event template with a lucide icon for the picker tiles.
+const TEMPLATE_TILES: { id: EventTemplateId; title: string; description: string; icon: React.ReactNode; areas: string[] }[] =
+  EVENT_TEMPLATE_DEFS.map((t) => ({
+    id: t.id,
+    title: t.title,
+    description: t.description,
+    icon:
+      t.id === "blank" ? <FileText className="h-5 w-5" /> :
+      t.id === "pop_up" ? <Tent className="h-5 w-5" /> :
+      t.id === "exhibition" ? <Store className="h-5 w-5" /> :
+      <Sparkles className="h-5 w-5" />,
+    areas: t.areas,
+  }));
 
 interface Props {
   open: boolean;
@@ -29,6 +49,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
   const { plan } = usePlan();
   const [step, setStep] = useState(1);
 
+  const [template, setTemplate] = useState<EventTemplateId>("blank");
   const [name, setName] = useState("");
   const [clientName, setClientName] = useState("");
   const [eventType, setEventType] = useState("");
@@ -43,6 +64,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
 
   const reset = () => {
     setStep(1);
+    setTemplate("blank");
     setName("");
     setClientName("");
     setEventType("");
@@ -82,6 +104,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
         event_date: eventDate || null,
         event_location: location || null,
         created_by: user.id,
+        template,
       })
       .select("id")
       .single();
@@ -89,6 +112,32 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
       setBusy(false);
       return toast.error(error?.message ?? "Failed to create");
     }
+
+    // Seed template areas (skipped for Blank). Falls back gracefully if the insert
+    // partially fails — the user can always add areas from the project page.
+    const tpl = EVENT_TEMPLATE_DEFS.find((t) => t.id === template);
+    if (tpl && tpl.areas.length > 0) {
+      const rows = tpl.areas.map((a, idx) => ({
+        project_id: data.id,
+        name: a,
+        sort_order: idx,
+        created_by: user.id,
+      }));
+      const { error: aErr } = await supabase.from("areas").insert(rows);
+      if (aErr) console.warn("Area seeding failed (non-fatal):", aErr.message);
+    }
+
+    // Persist template id + recommended layout to localStorage so the export
+    // dialog and timeline phase grouping can read them without an extra DB round trip.
+    try {
+      if (typeof window !== "undefined" && tpl) {
+        window.localStorage.setItem(TEMPLATE_ID_KEY(data.id), tpl.id);
+        window.localStorage.setItem(RECOMMENDED_LAYOUT_KEY(data.id), tpl.recommendedLayout);
+      }
+    } catch {
+      // localStorage may be unavailable (private mode); non-fatal.
+    }
+
     // invites
     if (plan !== "solo" && invites.length > 0) {
       for (const i of invites) {
@@ -109,7 +158,8 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
     navigate(`/projects/${data.id}`);
   };
 
-  const canNext1 = !!name.trim();
+  const canNext2 = !!name.trim();
+  const TOTAL_STEPS = 4;
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -117,7 +167,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
           <SheetTitle className="text-foreground">New Event</SheetTitle>
           <div className="flex items-center gap-2 mt-3">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
                 className={cn(
@@ -126,12 +176,56 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
                 )}
               />
             ))}
-            <span className="ml-2 text-xs text-muted-foreground">Step {step} of 3</span>
+            <span className="ml-2 text-xs text-muted-foreground">Step {step} of {TOTAL_STEPS}</span>
           </div>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {step === 1 && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Pick a starting template. Areas can be edited any time.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {TEMPLATE_TILES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTemplate(t.id)}
+                    className={cn(
+                      "relative rounded-lg border p-3 text-left transition-all hover:border-[#D94F2A]/60 hover:bg-secondary/40",
+                      template === t.id
+                        ? "border-[#D94F2A] bg-[#D94F2A]/5 ring-2 ring-[#D94F2A]/20"
+                        : "border-border",
+                    )}
+                  >
+                    {template === t.id && (
+                      <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#D94F2A] text-white">
+                        <Check className="h-3 w-3" />
+                      </div>
+                    )}
+                    <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-md bg-[#D94F2A]/10 text-[#D94F2A]">
+                      {t.icon}
+                    </div>
+                    <p className="text-sm font-medium text-foreground">{t.title}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{t.description}</p>
+                    {t.areas.length > 0 && (
+                      <ul className="mt-2 space-y-0.5 text-[11px] text-muted-foreground">
+                        {t.areas.slice(0, 3).map((a) => (
+                          <li key={a} className="truncate">· {a}</li>
+                        ))}
+                        {t.areas.length > 3 && (
+                          <li className="text-muted-foreground/70">+{t.areas.length - 3} more</li>
+                        )}
+                      </ul>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="ev-name">Event name</Label>
@@ -152,7 +246,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="ev-date">Event date</Label>
@@ -165,7 +259,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-4">
               {plan === "solo" ? (
                 <div className="rounded-xl border border-[#D94F2A]/30 bg-[#D94F2A]/5 p-5 text-center">
@@ -228,10 +322,10 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
           >
             {step === 1 ? "Cancel" : "Back"}
           </Button>
-          {step < 3 ? (
+          {step < TOTAL_STEPS ? (
             <Button
               onClick={() => setStep((s) => s + 1)}
-              disabled={busy || (step === 1 && !canNext1)}
+              disabled={busy || (step === 2 && !canNext2)}
               className="bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
             >
               Next
@@ -239,7 +333,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
           ) : (
             <Button
               onClick={create}
-              disabled={busy || !canNext1}
+              disabled={busy || !canNext2}
               className="bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
             >
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
