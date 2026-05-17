@@ -22,7 +22,7 @@ const COPY = {
     title: "Built for teams who need the client to see the work, not the chaos.",
     items: [
       "​I saved hours not having to chase my team for photo updates and then sort them into a presentation to send. ",
-      "The client could see progress every day without calling for another status check.",
+      "Done at the click of a button. Not only that but with the share link the client saw updates in realtime. ",
       "The report was already structured because the photos had been sorted properly during the build.",
     ],
   },
