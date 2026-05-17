@@ -68,6 +68,7 @@ const Projects = () => {
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [deleteOwnerCount, setDeleteOwnerCount] = useState<number>(1);
 
   // Toolbar state
   const [search, setSearch] = useState("");
@@ -560,7 +561,17 @@ const Projects = () => {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
-                              onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
+                              onSelect={async () => {
+                                setDeletingProject(p);
+                                setDeleteConfirm("");
+                                setDeleteOwnerCount(1);
+                                const { count } = await supabase
+                                  .from("project_members")
+                                  .select("user_id", { count: "exact", head: true })
+                                  .eq("project_id", p.id)
+                                  .eq("role", "owner");
+                                setDeleteOwnerCount(count ?? 1);
+                              }}
                             >
                               <Trash2 className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
@@ -612,15 +623,28 @@ const Projects = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteOwnerCount > 1 ? "Delete or leave this event?" : "Delete this event?"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              All albums, areas, photos, comments, share links, and history for{" "}
-              <span className="font-semibold text-foreground">{deletingProject?.name}</span> will be permanently deleted.
+              {deleteOwnerCount > 1 ? (
+                <>
+                  <span className="font-semibold text-foreground">{deletingProject?.name}</span> has{" "}
+                  {deleteOwnerCount} owners. Deleting it removes it for everyone —
+                  including the other {deleteOwnerCount - 1} owner{deleteOwnerCount > 2 ? "s" : ""}.
+                  You can also just remove it from your own account and leave it intact for the others.
+                </>
+              ) : (
+                <>
+                  All albums, areas, photos, comments, share links, and history for{" "}
+                  <span className="font-semibold text-foreground">{deletingProject?.name}</span> will be permanently deleted.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-2">
             <Label htmlFor="confirm-project-name">
-              Type <span className="font-mono font-semibold">{deletingProject?.name}</span> to confirm
+              Type <span className="font-mono font-semibold">{deletingProject?.name}</span> to confirm deletion for everyone
             </Label>
             <Input
               id="confirm-project-name"
@@ -630,8 +654,30 @@ const Projects = () => {
               autoFocus
             />
           </div>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            {deleteOwnerCount > 1 && (
+              <Button
+                variant="outline"
+                disabled={deleting || !deletingProject}
+                onClick={async () => {
+                  if (!deletingProject) return;
+                  setDeleting(true);
+                  const { error } = await supabase.rpc("owner_leave_project", {
+                    _project_id: deletingProject.id,
+                  });
+                  setDeleting(false);
+                  if (error) { toast.error(error.message); return; }
+                  toast.success("Removed from your account");
+                  setDeletingProject(null);
+                  setDeleteConfirm("");
+                  refetchPlan?.();
+                  load();
+                }}
+              >
+                Just remove me
+              </Button>
+            )}
             <AlertDialogAction
               disabled={deleting || !deletingProject || deleteConfirm.trim() !== deletingProject.name.trim()}
               onClick={async (e) => {
@@ -649,7 +695,7 @@ const Projects = () => {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleting ? "Deleting…" : "Delete event"}
+              {deleting ? "Deleting…" : deleteOwnerCount > 1 ? "Delete for everyone" : "Delete event"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
