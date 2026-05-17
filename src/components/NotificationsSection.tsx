@@ -9,29 +9,30 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-type NotificationType = "mention" | "reply" | "guest_comment";
+type NotificationType = "mention" | "reply" | "guest_comment" | "project_invite";
 
 type Notification = {
   id: string;
   user_id: string;
-  actor_id: string | null;
-  actor_name: string | null;
   project_id: string;
   photo_id: string | null;
   comment_id: string | null;
   type: NotificationType;
   body: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
   read_at: string | null;
   created_at: string;
 };
 
-type Enriched = Notification & { project_name?: string };
+type Enriched = Notification & { project_name?: string; invite_token?: string | null };
 
 const verbFor = (n: Notification) => {
   switch (n.type) {
     case "mention": return "mentioned you";
     case "reply": return "replied to your thread";
     case "guest_comment": return "left a comment";
+    case "project_invite": return n.body ?? "invited you to a project";
   }
 };
 
@@ -110,8 +111,27 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
     }
   }, [items, unreadCount]);
 
-  const handleClick = (n: Enriched) => {
+  const handleClick = async (n: Enriched) => {
     onNavigate?.();
+    if (n.type === "project_invite") {
+      // Look up the latest unaccepted invite for this project + current user's email.
+      const { data: { user: cur } } = await supabase.auth.getUser();
+      const email = cur?.email;
+      if (email) {
+        const { data: inv } = await supabase
+          .from("project_invites")
+          .select("token")
+          .eq("project_id", n.project_id)
+          .ilike("email", email)
+          .is("accepted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (inv?.token) { navigate(`/invite/${inv.token}`); return; }
+      }
+      navigate(`/projects/${n.project_id}`);
+      return;
+    }
     const params = new URLSearchParams();
     if (n.photo_id) {
       params.set("photo", n.photo_id);

@@ -1374,6 +1374,10 @@ export type Database = {
       my_latest_invited_project: { Args: never; Returns: string }
       my_owned_projects_count: { Args: never; Returns: number }
       my_pending_invites_count: { Args: never; Returns: number }
+      notify_user_of_invite: {
+        Args: { _invite_id: string }
+        Returns: undefined
+      }
       owner_leave_project: { Args: { _project_id: string }; Returns: undefined }
       plan_monthly_hkd: { Args: { _plan: string }; Returns: number }
       project_team_id: { Args: { _project_id: string }; Returns: string }
@@ -1400,7 +1404,11 @@ export type Database = {
         | "concern"
         | "complete"
       export_status: "queued" | "processing" | "ready" | "failed"
-      notification_type: "mention" | "reply" | "guest_comment"
+      notification_type:
+        | "mention"
+        | "reply"
+        | "guest_comment"
+        | "project_invite"
       project_default_view: "report" | "gallery"
       project_role: "owner" | "editor" | "commenter" | "viewer"
       project_status:
@@ -1553,7 +1561,12 @@ export const Constants = {
         "complete",
       ],
       export_status: ["queued", "processing", "ready", "failed"],
-      notification_type: ["mention", "reply", "guest_comment"],
+      notification_type: [
+        "mention",
+        "reply",
+        "guest_comment",
+        "project_invite",
+      ],
       project_default_view: ["report", "gallery"],
       project_role: ["owner", "editor", "commenter", "viewer"],
       project_status: [
