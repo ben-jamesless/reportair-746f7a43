@@ -242,7 +242,7 @@ export function DayTimeline({
   };
 
   return (
-    <aside className="space-y-1 rounded-lg xl:border-r xl:border-[#E8E6DF] dark:bg-card dark:p-2 px-[8px] py-[10px] pr-[3px] pb-[10px] pl-[3px] my-0 mx-0">
+    <aside className="space-y-1 xl:border-r xl:border-border px-[8px] py-[10px] pr-[3px] pb-[10px] pl-[3px] my-0 mx-0">
       {days.length === 0 && albumPhotos.size === 0 && (
         <p className="px-3 py-4 text-xs text-muted-foreground">No photos yet.</p>
       )}
