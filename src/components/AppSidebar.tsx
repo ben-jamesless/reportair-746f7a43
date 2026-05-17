@@ -1,4 +1,4 @@
-import { ReportAirMark } from "@/components/brand/ReportAirMark";
+import { BuildSlidesMark } from "@/components/brand/BuildSlidesMark";
 import { Link, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -230,9 +230,9 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         {/* ── Logo area ── */}
         <div className={cn("flex h-14 items-center", expanded ? "px-3" : "justify-center px-2")}>
           <Link to="/projects" onClick={onNavigate} className="flex items-center gap-2 min-w-0">
-            <ReportAirMark variant="light" className="h-7 w-7 shrink-0" />
+            <BuildSlidesMark variant="light" className="h-7 w-7 shrink-0" />
             <span className={cn("text-sm font-semibold text-white truncate", labelCls)}>
-              ReportAir
+              BuildSlides
             </span>
           </Link>
         </div>

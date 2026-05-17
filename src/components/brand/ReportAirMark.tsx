@@ -53,5 +53,5 @@ export const BuildSlidesLockup = ({ className, markClassName, textClassName, var
 };
 
 // Backward-compat aliases — existing imports keep working.
-export const ReportAirMark = BuildSlidesMark;
-export const ReportAirLockup = BuildSlidesLockup;
+export const BuildSlidesMark = BuildSlidesMark;
+export const BuildSlidesLockup = BuildSlidesLockup;

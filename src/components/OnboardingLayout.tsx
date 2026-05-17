@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ReportAirLockup } from "@/components/brand/ReportAirMark";
+import { BuildSlidesLockup } from "@/components/brand/BuildSlidesMark";
 import { cn } from "@/lib/utils";
 
 interface OnboardingLayoutProps {
@@ -19,7 +19,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
       >
         <div className="relative z-10">
           <Link to="/" aria-label="Go to home">
-            <ReportAirLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
+            <BuildSlidesLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
           </Link>
         </div>
 
@@ -36,7 +36,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
 
         <div className="relative z-10 bg-[#1A6EFF]/10 border border-[#1A6EFF]/25 rounded-2xl p-5 backdrop-blur-sm">
           <p className="text-white/80 text-sm italic leading-relaxed mb-3">
-            "ReportAir cut our post-event reporting time by 60%. Our clients love the live progress links."
+            "BuildSlides cut our post-event reporting time by 60%. Our clients love the live progress links."
           </p>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[#1A6EFF]/30 flex items-center justify-center text-white text-xs font-bold">

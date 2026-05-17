@@ -1,4 +1,4 @@
-import { ReportAirLockup } from "@/components/brand/ReportAirMark";
+import { BuildSlidesLockup } from "@/components/brand/BuildSlidesMark";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppSidebar } from "./AppSidebar";
@@ -51,7 +51,7 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
             </SheetContent>
           </Sheet>
           <Link to="/projects" className="flex items-center">
-            <ReportAirLockup variant="light" />
+            <BuildSlidesLockup variant="light" />
           </Link>
           <div className="w-9" />
         </div>

@@ -15,19 +15,19 @@ const LegalH2 = ({ children }: { children: React.ReactNode }) => (
 const TermsContent = () => (
   <div className="space-y-3">
     <p className="text-xs" style={{ color: BRAND.mist }}>Last updated: {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</p>
-    <p>Welcome to ReportAir. By accessing or using our service you agree to be bound by these Terms & Conditions. Please read them carefully.</p>
+    <p>Welcome to BuildSlides. By accessing or using our service you agree to be bound by these Terms & Conditions. Please read them carefully.</p>
     <LegalH2>1. Use of the service</LegalH2>
-    <p>ReportAir provides photo capture, organisation, and reporting tools for event production teams. You agree to use the service only for lawful purposes and in accordance with these terms.</p>
+    <p>BuildSlides provides photo capture, organisation, and reporting tools for event production teams. You agree to use the service only for lawful purposes and in accordance with these terms.</p>
     <LegalH2>2. Accounts</LegalH2>
     <p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account.</p>
     <LegalH2>3. Content & ownership</LegalH2>
-    <p>You retain ownership of all photos, notes, and content you upload. You grant ReportAir a limited licence to host and process this content solely to deliver the service to you.</p>
+    <p>You retain ownership of all photos, notes, and content you upload. You grant BuildSlides a limited licence to host and process this content solely to deliver the service to you.</p>
     <LegalH2>4. Subscriptions & billing</LegalH2>
     <p>Paid plans are billed in advance on a monthly or annual basis. Trials convert automatically unless cancelled before the trial ends.</p>
     <LegalH2>5. Termination</LegalH2>
     <p>You may cancel at any time from your billing settings. We may suspend or terminate accounts that violate these terms.</p>
     <LegalH2>6. Disclaimer</LegalH2>
-    <p>The service is provided "as is" without warranties of any kind. ReportAir is not liable for indirect or consequential damages arising from use of the service.</p>
+    <p>The service is provided "as is" without warranties of any kind. BuildSlides is not liable for indirect or consequential damages arising from use of the service.</p>
     <LegalH2>7. Contact</LegalH2>
     <p>Questions about these terms? Contact us at hello@reportair.co.</p>
   </div>
@@ -36,11 +36,11 @@ const TermsContent = () => (
 const PrivacyContent = () => (
   <div className="space-y-3">
     <p className="text-xs" style={{ color: BRAND.mist }}>Last updated: {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</p>
-    <p>This Privacy Policy explains how ReportAir collects, uses, and protects your information when you use our service.</p>
+    <p>This Privacy Policy explains how BuildSlides collects, uses, and protects your information when you use our service.</p>
     <LegalH2>1. Information we collect</LegalH2>
     <p>Account details (name, email), uploaded photos and notes, project metadata, and basic usage analytics needed to operate and improve the service.</p>
     <LegalH2>2. How we use it</LegalH2>
-    <p>To provide, maintain, and improve ReportAir, to process payments, to communicate service updates, and to keep the platform secure.</p>
+    <p>To provide, maintain, and improve BuildSlides, to process payments, to communicate service updates, and to keep the platform secure.</p>
     <LegalH2>3. Sharing</LegalH2>
     <p>We never sell your data. We share information only with trusted processors (hosting, payments, email delivery) under appropriate safeguards, or when required by law.</p>
     <LegalH2>4. Storage & security</LegalH2>

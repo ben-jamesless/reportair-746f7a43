@@ -31,7 +31,7 @@ const LOGO_SVG = `<table cellpadding="0" cellspacing="0"><tr>
     </svg>
   </td>
   <td style="vertical-align:middle;">
-    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:0.08em;">REPORTAIR</span>
+    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:0.08em;">BUILDSLIDES</span>
   </td>
 </tr></table>`;
 
@@ -57,7 +57,7 @@ function baseWrapper(subheader: string, body: string): string {
         ${subheader}
         <tr><td style="padding:36px 32px 28px;">${body}</td></tr>
         <tr><td style="padding:0 32px;"><div style="border-top:1px solid #EDF1F7;"></div></td></tr>
-        <tr><td style="padding:20px 32px;"><p style="margin:0;font-size:12px;color:#94a3b8;font-family:'Inter',sans-serif;">ReportAir &middot; <a href="https://reportair.co" style="color:#94a3b8;text-decoration:none;">reportair.co</a></p></td></tr>
+        <tr><td style="padding:20px 32px;"><p style="margin:0;font-size:12px;color:#94a3b8;font-family:'Inter',sans-serif;">BuildSlides &middot; <a href="https://reportair.co" style="color:#94a3b8;text-decoration:none;">reportair.co</a></p></td></tr>
       </table>
     </td></tr>
   </table>
@@ -101,10 +101,10 @@ type TemplateData = Record<string, string>;
 const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: string }> = {
 
   welcome: (d) => ({
-    subject: "Welcome to ReportAir",
+    subject: "Welcome to BuildSlides",
     html: baseWrapper("", `
       <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Welcome, ${escapeHtml(d.name || "there")}!</h1>
-      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your ReportAir account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your BuildSlides account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
       <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;re on the <strong style="color:#0F1724;">Solo plan</strong>. Upgrade anytime to unlock share links, more events, team members, and custom branding.</p>
       ${ctaBtn("https://reportair.co/projects", "Go to your projects")}
     `),
@@ -120,10 +120,10 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       subject: `You're now on the ${planLabel} plan`,
       html: baseWrapper(strip, `
         <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">You&rsquo;re all set, ${escapeHtml(d.name || "there")}.</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your ReportAir <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1724;">${escapeHtml(price)}/month</strong>` : ""}.</p>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your BuildSlides <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1724;">${escapeHtml(price)}/month</strong>` : ""}.</p>
         ${d.renewalDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Your next billing date is <strong style="color:#0F1724;">${escapeHtml(d.renewalDate)}</strong>.</p>` : "<p style='margin:0 0 28px;'></p>"}
         ${featureGrid(d.plan)}
-        ${ctaBtn("https://reportair.co/projects", "Go to ReportAir")}
+        ${ctaBtn("https://reportair.co/projects", "Go to BuildSlides")}
         <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Manage or cancel anytime from your <a href="https://reportair.co/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Billing page</a>.</p>
       `),
     };
@@ -132,7 +132,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
   cancelled: (d) => {
     const planLabel = d.plan ? d.plan.charAt(0).toUpperCase() + d.plan.slice(1) : "your";
     return {
-      subject: "Your ReportAir subscription has been cancelled",
+      subject: "Your BuildSlides subscription has been cancelled",
       html: baseWrapper("", `
         <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Subscription cancelled</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription has been cancelled.</p>
@@ -151,7 +151,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#DC2626;letter-spacing:0.04em;">&#9888;&nbsp; Action required &mdash; payment failed</span>
     </td></tr>`;
     return {
-      subject: "Action required: payment failed for your ReportAir subscription",
+      subject: "Action required: payment failed for your BuildSlides subscription",
       html: baseWrapper(alertStrip, `
         <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">We couldn&rsquo;t process your payment</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your payment${price ? ` of <strong style="color:#0F1724;">${escapeHtml(price)}</strong>` : ""} for the ${escapeHtml(planLabel)} plan was declined.</p>
@@ -171,9 +171,9 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;">Your free trial ends in ${escapeHtml(daysLeft)} day${daysLeft === "1" ? "" : "s"}</span>
     </td></tr>`;
     return {
-      subject: `Your ReportAir trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
+      subject: `Your BuildSlides trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
       html: baseWrapper(strip, `
-        <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Make the most of ReportAir</h1>
+        <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Make the most of BuildSlides</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your 14-day free trial of the <strong style="color:#0F1724;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1724;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
         <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#334155;">After that, you&rsquo;ll move to the Solo plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
         <table cellpadding="0" cellspacing="0" style="width:100%;background:#EDF1F7;border-radius:10px;margin-bottom:28px;">
@@ -227,7 +227,7 @@ async function sendEmail(to: string, template: string, data: TemplateData) {
   const { subject, html } = tpl(data);
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) throw new Error("RESEND_API_KEY not set");
-  const from = Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
+  const from = Deno.env.get("RESEND_FROM_EMAIL") || "BuildSlides <onboarding@resend.dev>";
   const resp = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },

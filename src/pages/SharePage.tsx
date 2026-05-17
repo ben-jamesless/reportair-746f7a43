@@ -59,7 +59,7 @@ type Resolved = {
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
-// ReportAir design tokens
+// BuildSlides design tokens
 const TEAL = "#1A6EFF"; // SKY — kept variable name for compat
 const NEAR_BLACK = "#0F1724"; // INK
 const BODY = "#3D4F66"; // SLATE
@@ -181,7 +181,7 @@ const SharePage = () => {
     setLockedUntil(null);
     setData(r);
     if (r.project?.name) {
-      document.title = `${r.project.name} — ReportAir`;
+      document.title = `${r.project.name} — BuildSlides`;
     }
   };
 

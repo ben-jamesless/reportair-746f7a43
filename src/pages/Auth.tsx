@@ -41,7 +41,7 @@ const Auth = () => {
   const suspendedError = params.get("error") === "suspended";
 
   useEffect(() => {
-    document.title = mode === "signup" ? "Create account — ReportAir" : "Sign in — ReportAir";
+    document.title = mode === "signup" ? "Create account — BuildSlides" : "Sign in — BuildSlides";
   }, [mode]);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
-// Layout: ReportAir V3 daily report — 1 cover page + 1 page per area.
+// Layout: BuildSlides V3 daily report — 1 cover page + 1 page per area.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
@@ -196,7 +196,7 @@ function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjs
   const iconSize = fontSize * 1.6;
   drawLogomark(page, x, y - iconSize * 0.15, iconSize);
   const gap = iconSize * 0.3;
-  const text = "REPORTAIR";
+  const text = "BUILDSLIDES";
   let cx = x + iconSize + gap;
   const tracking = fontSize * 0.04;
   for (const ch of text) {
@@ -390,8 +390,8 @@ Deno.serve(async (req) => {
     // ============ Build PDF ============
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
-    pdfDoc.setTitle("ReportAir Daily Report");
-    pdfDoc.setAuthor("ReportAir");
+    pdfDoc.setTitle("BuildSlides Daily Report");
+    pdfDoc.setAuthor("BuildSlides");
 
     const fontBytes = await loadFontBytes();
     let pjsFont: PDFFont, irFont: PDFFont;

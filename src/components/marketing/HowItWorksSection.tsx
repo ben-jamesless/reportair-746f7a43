@@ -619,7 +619,7 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
               <rect x="27" y="35" width="60" height="50" rx="6" stroke="#1A6EFF" strokeWidth="6.8" />
             </svg>
             <span className="display" style={{ fontSize: 9, fontWeight: 800, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              ReportAir
+              BuildSlides
             </span>
           </div>
           <div

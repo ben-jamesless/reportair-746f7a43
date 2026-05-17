@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * ReportAir hero section — responsive (desktop / tablet / mobile).
+ * BuildSlides hero section — responsive (desktop / tablet / mobile).
  * Self-contained: scoped styles + animations + horizontal/vertical SVG swap.
  */
 const HeroSection = () => {
@@ -439,7 +439,7 @@ const HeroSection = () => {
                   <rect x="11" y="19" width="60" height="50" rx="6" stroke="rgba(168,196,255,0.7)" strokeWidth="5" />
                   <rect x="27" y="35" width="60" height="50" rx="6" stroke="#fff" strokeWidth="7.5" />
                 </svg>
-                <span className="node-label">ReportAir</span>
+                <span className="node-label">BuildSlides</span>
               </div>
             </div>
 
@@ -463,7 +463,7 @@ const HeroSection = () => {
                     <rect x="11" y="19" width="60" height="50" rx="6" stroke="#A8C4FF" strokeWidth="4.4" />
                     <rect x="27" y="35" width="60" height="50" rx="6" stroke="#1A6EFF" strokeWidth="6.8" />
                   </svg>
-                  <span className="rc-logo-text">ReportAir</span>
+                  <span className="rc-logo-text">BuildSlides</span>
                 </div>
                 <span className="rc-dr">No. DR-002</span>
               </div>
