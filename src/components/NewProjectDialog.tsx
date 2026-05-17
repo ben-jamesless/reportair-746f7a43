@@ -196,7 +196,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
       <>
         <Button
           onClick={() => setUpgradeOpen(true)}
-          style={{ backgroundColor: "#1A6EFF", color: "#fff", border: "none" }}
+          style={{ backgroundColor: "#D94F2A", color: "#fff", border: "none" }}
           className="font-semibold"
         >
           <Crown className="mr-2 h-4 w-4" />

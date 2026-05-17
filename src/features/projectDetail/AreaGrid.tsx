@@ -84,7 +84,7 @@ export function AreaGrid({
               className={cn(
                 "rounded-xl border border-border bg-card overflow-hidden border-l-4 py-4 pl-4 pr-4 mb-3",
                 st === "complete" && "border-l-[#10b981]",
-                st === "on_track" && "border-l-[#1A6EFF]",
+                st === "on_track" && "border-l-[#D94F2A]",
                 st === "requires_discussion" && "border-l-[#f97316]",
                 st === "concern" && "border-l-[#ef4444]",
                 !st && "border-l-[#D4D1CA]",

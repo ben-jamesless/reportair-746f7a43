@@ -98,7 +98,7 @@ const Projects = () => {
     const nextSortOrder = folders.length;
     const { data, error } = await supabase
       .from("folders")
-      .insert({ name: n, color: "#1A6EFF", owner_id: user.id, sort_order: nextSortOrder })
+      .insert({ name: n, color: "#D94F2A", owner_id: user.id, sort_order: nextSortOrder })
       .select("id, name, color")
       .single();
     if (error || !data) {
@@ -324,7 +324,7 @@ const Projects = () => {
             <input
               type="text"
               placeholder="Search events…"
-              className="w-full pl-9 pr-3 h-9 rounded-lg border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
+              className="w-full pl-9 pr-3 h-9 rounded-lg border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#D94F2A]/30"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -348,7 +348,7 @@ const Projects = () => {
                 className={cn(
                   "px-3 h-9 text-sm font-medium rounded-md transition-colors whitespace-nowrap shrink-0",
                   activeTab === tab
-                    ? "text-[#1A6EFF] bg-[#1A6EFF]/8"
+                    ? "text-[#D94F2A] bg-[#D94F2A]/8"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
@@ -390,8 +390,8 @@ const Projects = () => {
         />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#1A6EFF]/10 flex items-center justify-center mb-4">
-            <CalendarDays className="w-8 h-8 text-[#1A6EFF]" />
+          <div className="w-16 h-16 rounded-2xl bg-[#D94F2A]/10 flex items-center justify-center mb-4">
+            <CalendarDays className="w-8 h-8 text-[#D94F2A]" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1">
             {activeTab === "Archived" ? "No archived events" : "No matching events"}
@@ -404,7 +404,7 @@ const Projects = () => {
           {activeTab !== "Archived" && (
             <button
               onClick={() => { setSearch(""); setActiveTab("All Events"); }}
-              className="px-4 h-9 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90"
+              className="px-4 h-9 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90"
             >
               Clear filters
             </button>
@@ -745,7 +745,7 @@ const Projects = () => {
                 ) : (
                   <button
                     onClick={() => setCreatingNewFolder(true)}
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#1A6EFF] hover:bg-muted"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#D94F2A] hover:bg-muted"
                   >
                     <Plus className="h-4 w-4" />
                     Add a new folder
@@ -787,7 +787,7 @@ function NewEventButton({
         <TooltipTrigger asChild>
           <button
             disabled
-            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-[#1A6EFF]/30 text-white/50 text-sm font-medium cursor-not-allowed"
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-[#D94F2A]/30 text-white/50 text-sm font-medium cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             New Event
@@ -796,7 +796,7 @@ function NewEventButton({
         </TooltipTrigger>
         <TooltipContent>
           <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your Solo plan.</p>
-          <Link to="/billing" className="text-[#1A6EFF] underline text-xs">Upgrade to Pro →</Link>
+          <Link to="/billing" className="text-[#D94F2A] underline text-xs">Upgrade to Pro →</Link>
         </TooltipContent>
       </Tooltip>
     );
@@ -808,8 +808,8 @@ function NewEventButton({
       className={cn(
         "flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium transition-colors",
         primary
-          ? "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
-          : "bg-[#1A6EFF] text-white hover:bg-[#1A6EFF]/90"
+          ? "bg-[#D94F2A] text-white hover:bg-[#D94F2A]/90"
+          : "bg-[#D94F2A] text-white hover:bg-[#D94F2A]/90"
       )}
     >
       <Plus className="w-4 h-4" />

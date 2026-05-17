@@ -166,8 +166,8 @@ export default function EventSetup({
   return (
     <div className="w-full max-w-3xl mx-auto py-10 px-4">
       <div className="text-center mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-[#1A6EFF]/10 flex items-center justify-center mb-5 mx-auto">
-          <ImagePlus className="w-6 h-6 text-[#1A6EFF]" />
+        <div className="w-12 h-12 rounded-2xl bg-[#D94F2A]/10 flex items-center justify-center mb-5 mx-auto">
+          <ImagePlus className="w-6 h-6 text-[#D94F2A]" />
         </div>
         <h3 className="text-base font-semibold text-foreground mb-1">Set up your event</h3>
         <p className="text-sm text-muted-foreground">Two quick steps to get organised before uploading.</p>
@@ -177,14 +177,14 @@ export default function EventSetup({
       <section
         className={cn(
           "rounded-xl border bg-card p-5 mb-4 transition-colors",
-          showStep2 ? "border-[#1A6EFF]/30 bg-[#1A6EFF]/5" : "border-border",
+          showStep2 ? "border-[#D94F2A]/30 bg-[#D94F2A]/5" : "border-border",
         )}
       >
         <div className="flex items-center gap-3 mb-4">
           <div
             className={cn(
               "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0",
-              areas.length > 0 ? "border-[#1A6EFF] bg-[#1A6EFF]" : "border-border",
+              areas.length > 0 ? "border-[#D94F2A] bg-[#D94F2A]" : "border-border",
             )}
           >
             {areas.length > 0 && <Check className="w-3.5 h-3.5 text-white" />}
@@ -206,13 +206,13 @@ export default function EventSetup({
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Main Stage"
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addArea(name); } }}
-            className="flex-1 h-11 px-3 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/40 focus:border-[#1A6EFF]"
+            className="flex-1 h-11 px-3 rounded-lg border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#D94F2A]/40 focus:border-[#D94F2A]"
           />
           <button
             type="button"
             onClick={() => addArea(name)}
             disabled={adding || !name.trim()}
-            className="h-11 px-5 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors disabled:opacity-50"
+            className="h-11 px-5 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors disabled:opacity-50"
           >
             {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add"}
           </button>
@@ -223,7 +223,7 @@ export default function EventSetup({
             {areas.map((a) => (
               <span
                 key={a.id}
-                className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full bg-[#1A6EFF] text-white text-xs font-medium"
+                className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full bg-[#D94F2A] text-white text-xs font-medium"
               >
                 {a.name}
                 <button
@@ -248,7 +248,7 @@ export default function EventSetup({
                 type="button"
                 onClick={() => addArea(s)}
                 disabled={adding}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-border bg-card text-xs font-medium text-foreground hover:border-[#1A6EFF] hover:text-[#1A6EFF] transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-border bg-card text-xs font-medium text-foreground hover:border-[#D94F2A] hover:text-[#D94F2A] transition-colors"
               >
                 <Plus className="w-3 h-3" />
                 {s}
@@ -262,7 +262,7 @@ export default function EventSetup({
             <button
               type="button"
               onClick={() => setAdvanced(true)}
-              className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors"
+              className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors"
             >
               Done — add photos
               <ArrowRight className="w-4 h-4" />
@@ -311,12 +311,12 @@ export default function EventSetup({
               className={cn(
                 "rounded-xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-colors px-6 py-12",
                 dragOver
-                  ? "border-solid border-[#1A6EFF] bg-[#EBF2FF]"
-                  : "border-border bg-secondary hover:border-[#1A6EFF]/50",
+                  ? "border-solid border-[#D94F2A] bg-[#EBF2FF]"
+                  : "border-border bg-secondary hover:border-[#D94F2A]/50",
               )}
             >
               <div className="w-12 h-12 rounded-2xl bg-card flex items-center justify-center mb-4 shadow-sm">
-                <Upload className="w-5 h-5 text-[#1A6EFF]" />
+                <Upload className="w-5 h-5 text-[#D94F2A]" />
               </div>
               <p className="text-sm font-medium text-foreground">
                 Drag photos here, or click to browse
@@ -352,7 +352,7 @@ export default function EventSetup({
                     type="button"
                     onClick={runUpload}
                     disabled={busy}
-                    className="h-10 px-5 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors disabled:opacity-60 inline-flex items-center gap-2"
+                    className="h-10 px-5 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors disabled:opacity-60 inline-flex items-center gap-2"
                   >
                     {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     {busy

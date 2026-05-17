@@ -18,7 +18,7 @@ type UseCase = {
 const useCases: UseCase[] = [
   {
     id: "festivals",
-    accent: "#1A6EFF",
+    accent: "#D94F2A",
     title: "Music Festivals",
     description:
       "Build phase reporting across stages, infrastructure, and vendor setups. Track 20+ areas simultaneously.",

@@ -174,7 +174,7 @@ const Onboarding = () => {
           </div>
           <Button
             type="submit"
-            className="w-full bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white"
+            className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
             disabled={busy}
           >
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

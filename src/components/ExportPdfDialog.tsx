@@ -132,7 +132,7 @@ export const ExportPdfDialog = ({
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
   const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
-  const [accent, setAccent] = useState("#1A6EFF");
+  const [accent, setAccent] = useState("#D94F2A");
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");

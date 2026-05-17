@@ -67,7 +67,7 @@ export default function FAQSection() {
             fontWeight: 700,
             letterSpacing: "0.14em",
             textTransform: "uppercase",
-            color: "#1A6EFF",
+            color: "#D94F2A",
             marginBottom: 16,
           }}
         >
@@ -134,8 +134,8 @@ export default function FAQSection() {
                     width: 26,
                     height: 26,
                     borderRadius: "50%",
-                    border: `1.5px solid ${isOpen ? "#1A6EFF" : "rgba(255,255,255,0.15)"}`,
-                    color: isOpen ? "#1A6EFF" : "rgba(255,255,255,0.4)",
+                    border: `1.5px solid ${isOpen ? "#D94F2A" : "rgba(255,255,255,0.15)"}`,
+                    color: isOpen ? "#D94F2A" : "rgba(255,255,255,0.4)",
                     background: isOpen ? "rgba(26,110,255,0.1)" : "transparent",
                     display: "flex",
                     alignItems: "center",

@@ -60,7 +60,7 @@ type Resolved = {
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
 // BuildSlides design tokens
-const TEAL = "#1A6EFF"; // SKY — kept variable name for compat
+const TEAL = "#D94F2A"; // SKY — kept variable name for compat
 const NEAR_BLACK = "#0F1724"; // INK
 const BODY = "#3D4F66"; // SLATE
 const MUTED = "#7A8FA8"; // MIST
@@ -69,7 +69,7 @@ const SURFACE = "#F5F7FA"; // FOG
 
 // Status meta — pill backgrounds & dot colors
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On Track", bg: "#1A6EFF" },
+  on_track: { label: "On Track", bg: "#D94F2A" },
   at_risk: { label: "At Risk", bg: "#FF8C00" },
   requires_discussion: { label: "Requires Discussion", bg: "#FF8C00" },
   delayed: { label: "Delayed", bg: "#FF3B30" },

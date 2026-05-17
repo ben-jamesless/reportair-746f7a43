@@ -73,7 +73,7 @@ const HowItWorksSection = () => {
           >
             Site to report.
             <br />
-            <span style={{ color: "#1A6EFF" }}>Three steps.</span>
+            <span style={{ color: "#D94F2A" }}>Three steps.</span>
           </h2>
           <p style={{ fontSize: 16, lineHeight: 1.65, color: "rgba(255,255,255,0.4)", maxWidth: 420, margin: "0 auto" }}>
             No rebuilds. No chasing photos. Just a clean report, ready to share.
@@ -108,7 +108,7 @@ const HowItWorksSection = () => {
             <div
               style={{
                 height: "100%",
-                background: "linear-gradient(to right, #1A6EFF, #5A9EFF)",
+                background: "linear-gradient(to right, #D94F2A, #5A9EFF)",
                 boxShadow: "0 0 10px rgba(26,110,255,0.7)",
                 width: FILL[active],
                 borderRadius: 2,
@@ -150,11 +150,11 @@ const HowItWorksSection = () => {
                     height: 40,
                     borderRadius: "50%",
                     background: isActive
-                      ? "#1A6EFF"
+                      ? "#D94F2A"
                       : isDone
                         ? "linear-gradient(rgba(26,110,255,0.15), rgba(26,110,255,0.15)), #060D18"
                         : "rgba(11,24,48,0.9)",
-                    border: `2px solid ${isActive ? "#1A6EFF" : isDone ? "rgba(26,110,255,0.5)" : "rgba(26,110,255,0.2)"}`,
+                    border: `2px solid ${isActive ? "#D94F2A" : isDone ? "rgba(26,110,255,0.5)" : "rgba(26,110,255,0.2)"}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -253,7 +253,7 @@ const Eyebrow = ({ children }: { children: React.ReactNode }) => (
       fontWeight: 700,
       letterSpacing: "0.18em",
       textTransform: "uppercase",
-      color: "#1A6EFF",
+      color: "#D94F2A",
       marginBottom: 16,
     }}
   >
@@ -262,7 +262,7 @@ const Eyebrow = ({ children }: { children: React.ReactNode }) => (
         display: "inline-block",
         width: 22,
         height: 2,
-        background: "#1A6EFF",
+        background: "#D94F2A",
         borderRadius: 2,
         boxShadow: "0 0 6px rgba(26,110,255,0.6)",
       }}
@@ -336,7 +336,7 @@ const NextBtn = ({
       display: "inline-flex",
       alignItems: "center",
       gap: 8,
-      background: ghost ? "rgba(255,255,255,0.06)" : "#1A6EFF",
+      background: ghost ? "rgba(255,255,255,0.06)" : "#D94F2A",
       color: ghost ? "rgba(255,255,255,0.5)" : "#fff",
       fontSize: 13,
       fontWeight: 700,
@@ -385,7 +385,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
       </Body>
       <Pills>
         <Pill color="#1DB87A">Capture from any device</Pill>
-        <Pill color="#1A6EFF">Upload from anywhere</Pill>
+        <Pill color="#D94F2A">Upload from anywhere</Pill>
         <Pill color="#FF8C00">Flag issues instantly</Pill>
       </Pills>
       <NextBtn onClick={onNext}>Next: Upload & Sort &nbsp;→</NextBtn>
@@ -414,13 +414,13 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
               justifyContent: "center",
             }}
           >
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#1A6EFF" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#D94F2A" }} />
           </div>
         </div>
-        <span style={{ position: "absolute", top: 8, left: 8, width: 14, height: 14, borderTop: "2px solid #1A6EFF", borderLeft: "2px solid #1A6EFF" }} />
-        <span style={{ position: "absolute", top: 8, right: 8, width: 14, height: 14, borderTop: "2px solid #1A6EFF", borderRight: "2px solid #1A6EFF" }} />
-        <span style={{ position: "absolute", bottom: 8, left: 8, width: 14, height: 14, borderBottom: "2px solid #1A6EFF", borderLeft: "2px solid #1A6EFF" }} />
-        <span style={{ position: "absolute", bottom: 8, right: 8, width: 14, height: 14, borderBottom: "2px solid #1A6EFF", borderRight: "2px solid #1A6EFF" }} />
+        <span style={{ position: "absolute", top: 8, left: 8, width: 14, height: 14, borderTop: "2px solid #D94F2A", borderLeft: "2px solid #D94F2A" }} />
+        <span style={{ position: "absolute", top: 8, right: 8, width: 14, height: 14, borderTop: "2px solid #D94F2A", borderRight: "2px solid #D94F2A" }} />
+        <span style={{ position: "absolute", bottom: 8, left: 8, width: 14, height: 14, borderBottom: "2px solid #D94F2A", borderLeft: "2px solid #D94F2A" }} />
+        <span style={{ position: "absolute", bottom: 8, right: 8, width: 14, height: 14, borderBottom: "2px solid #D94F2A", borderRight: "2px solid #D94F2A" }} />
         <div
           className="display"
           style={{
@@ -504,7 +504,7 @@ const SortPanel = ({ onNext }: { onNext: () => void }) => {
         padding: "4px 11px",
         borderRadius: 100,
         ...(active
-          ? { background: "#1A6EFF", color: "#fff" }
+          ? { background: "#D94F2A", color: "#fff" }
           : {
               background: "rgba(255,255,255,0.06)",
               color: "rgba(255,255,255,0.4)",
@@ -519,7 +519,7 @@ const SortPanel = ({ onNext }: { onNext: () => void }) => {
   const areas: { color: string; name: string; count: string; pill: string; pillColor: "green" | "amber" }[] = [
     { color: "#1DB87A", name: "Main Stage", count: "12 photos", pill: "On track", pillColor: "green" },
     { color: "#FF8C00", name: "VIP Tent", count: "5 photos", pill: "1 issue", pillColor: "amber" },
-    { color: "#1A6EFF", name: "Power & AV", count: "8 photos", pill: "Complete", pillColor: "green" },
+    { color: "#D94F2A", name: "Power & AV", count: "8 photos", pill: "Complete", pillColor: "green" },
     { color: "#7A5CFA", name: "Signage", count: "13 photos", pill: "On track", pillColor: "green" },
   ];
 
@@ -536,7 +536,7 @@ const SortPanel = ({ onNext }: { onNext: () => void }) => {
           Sort uploads by area, add notes, and flag issues. Let your project report structure builds automatically.
         </Body>
         <Pills>
-          <Pill color="#1A6EFF">Sort by area or workstream</Pill>
+          <Pill color="#D94F2A">Sort by area or workstream</Pill>
           <Pill color="#FF8C00">One-tap issue flagging</Pill>
           <Pill color="#1DB87A">Auto-structured report</Pill>
         </Pills>
@@ -604,7 +604,7 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
         Generate a branded PDF or live shareable link in seconds. Your client opens it straight from WhatsApp. No login, no fuss.
       </Body>
       <Pills>
-        <Pill color="#1A6EFF">PDF or shareable link</Pill>
+        <Pill color="#D94F2A">PDF or shareable link</Pill>
         <Pill color="#25D366">Send via WhatsApp</Pill>
         <Pill color="#1DB87A">No login to view</Pill>
       </Pills>
@@ -615,8 +615,8 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
         <div style={{ background: "#0F1724", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <svg width={16} height={16} viewBox="0 0 100 100" fill="none">
-              <rect x="11" y="19" width="60" height="50" rx="6" stroke="#A8C4FF" strokeWidth="4.4" />
-              <rect x="27" y="35" width="60" height="50" rx="6" stroke="#1A6EFF" strokeWidth="6.8" />
+              <rect x="11" y="19" width="60" height="50" rx="6" stroke="#FBE6DE" strokeWidth="4.4" />
+              <rect x="27" y="35" width="60" height="50" rx="6" stroke="#D94F2A" strokeWidth="6.8" />
             </svg>
             <span className="display" style={{ fontSize: 9, fontWeight: 800, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>
               BuildSlides
@@ -643,12 +643,12 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
           </div>
         </div>
         <div style={{ padding: "10px 14px", background: "#F5F7FA", display: "flex", gap: 7 }}>
-          <div className="display" style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, textAlign: "center", background: "#1A6EFF", color: "#fff" }}>
+          <div className="display" style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, textAlign: "center", background: "#D94F2A", color: "#fff" }}>
             Download PDF
           </div>
           <div
             className="display"
-            style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, textAlign: "center", background: "transparent", color: "#1A6EFF", border: "1px solid rgba(26,110,255,0.3)" }}
+            style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, textAlign: "center", background: "transparent", color: "#D94F2A", border: "1px solid rgba(26,110,255,0.3)" }}
           >
             Copy link
           </div>
@@ -684,7 +684,7 @@ const ChannelChip = ({
       ? { borderColor: "rgba(37,211,102,0.3)", color: "#25D366", background: "rgba(37,211,102,0.08)" }
       : variant === "pdf"
         ? { borderColor: "rgba(255,59,48,0.3)", color: "#FF3B30", background: "rgba(255,59,48,0.08)" }
-        : { borderColor: "rgba(26,110,255,0.3)", color: "#A8C4FF", background: "rgba(26,110,255,0.08)" };
+        : { borderColor: "rgba(26,110,255,0.3)", color: "#FBE6DE", background: "rgba(26,110,255,0.08)" };
   return (
     <div
       className="display"

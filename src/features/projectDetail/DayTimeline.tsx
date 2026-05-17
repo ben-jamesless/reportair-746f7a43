@@ -128,7 +128,7 @@ export function DayTimeline({
               >
                 <span className={cn(
                   "flex flex-col items-center justify-center shrink-0 w-9 h-9 rounded-md text-[9px] font-bold uppercase leading-none",
-                  dayActive ? "bg-[#1A6EFF] text-white" : "bg-[#F0EFEA] text-muted-foreground"
+                  dayActive ? "bg-[#D94F2A] text-white" : "bg-[#F0EFEA] text-muted-foreground"
                 )}>
                   <span className="text-[12px] leading-none">{day.date.getDate()}</span>
                   <span className="mt-0.5">{day.date.toLocaleString(undefined, { month: "short" }).toUpperCase()}</span>
@@ -164,13 +164,13 @@ export function DayTimeline({
                       className={cn(
                         "flex w-full items-center gap-1.5 rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                         sel
-                          ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
+                          ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium"
                           : "text-foreground hover:bg-muted/40",
                       )}
                     >
                       <AreaStatusDot status={st} className="shrink-0" />
                       <span className="flex-1 truncate">{ar.name}</span>
-                      <span className={cn("ml-1 text-[10px]", sel ? "text-[#1A6EFF]" : "text-muted-foreground")}>{c}</span>
+                      <span className={cn("ml-1 text-[10px]", sel ? "text-[#D94F2A]" : "text-muted-foreground")}>{c}</span>
                     </button>
                   );
                 })}
@@ -180,14 +180,14 @@ export function DayTimeline({
                     className={cn(
                       "flex w-full items-center justify-between rounded-md px-2 text-left text-xs transition-colors py-[8px]",
                       activeDay === day.key && activeArea === NO_AREA
-                        ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium"
+                        ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium"
                         : "text-foreground hover:bg-muted/40",
                     )}
                   >
                     <span>Unassigned</span>
                     <span className={cn(
                       "ml-2 text-[10px]",
-                      activeDay === day.key && activeArea === NO_AREA ? "text-[#1A6EFF]" : "text-muted-foreground"
+                      activeDay === day.key && activeArea === NO_AREA ? "text-[#D94F2A]" : "text-muted-foreground"
                     )}>{unassigned}</span>
                   </button>
                 )}
@@ -236,12 +236,12 @@ export function DayTimeline({
                   }
                 }}
                 placeholder="Area name..."
-                className="w-full px-2 h-7 text-xs rounded-lg border border-[#1A6EFF] bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#1A6EFF]/30"
+                className="w-full px-2 h-7 text-xs rounded-lg border border-[#D94F2A] bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#D94F2A]/30"
               />
             ) : (
               <button
                 onClick={() => setAddingArea(true)}
-                className="flex items-center gap-0.5 text-[10px] text-[#1A6EFF] hover:text-[#1A6EFF]/80 font-medium"
+                className="flex items-center gap-0.5 text-[10px] text-[#D94F2A] hover:text-[#D94F2A]/80 font-medium"
               >
                 <span className="text-base leading-none">+</span> New area
               </button>
@@ -263,7 +263,7 @@ export function DayTimeline({
                   onClick={() => onSetActiveArea(isActive ? null : ar.id)}
                   className={cn(
                     "flex w-full items-center justify-between rounded-lg px-3 text-sm transition-colors py-[8px]",
-                    isActive ? "bg-[#1A6EFF]/10 text-[#1A6EFF] font-medium" : "text-foreground hover:bg-muted/40"
+                    isActive ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium" : "text-foreground hover:bg-muted/40"
                   )}
                 >
                   <span className="flex items-center gap-2">
