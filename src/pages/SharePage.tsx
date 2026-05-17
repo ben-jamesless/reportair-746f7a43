@@ -429,6 +429,11 @@ const SharePage = () => {
             <div className="mt-2">
               <StatusPill statusKey={overallStatus} />
             </div>
+            {weather[latestDayKey] && (
+              <p className="mt-3 text-xs" style={{ color: MUTED }}>
+                {weather[latestDayKey].tmin}°C – {weather[latestDayKey].tmax}°C · {weather[latestDayKey].condition} · {weather[latestDayKey].wind} km/h wind
+              </p>
+            )}
             {hasAny ? (
               <ul className="mt-5 space-y-5">
                 {sections.map((s) => {
@@ -498,7 +503,7 @@ const SharePage = () => {
 
       {/* THREE-COLUMN LAYOUT */}
       <div className="mx-auto w-full px-6 py-6 2xl:px-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,4fr)_minmax(0,3fr)]">
           {/* LEFT: Date navigation */}
           <aside className="hidden lg:block space-y-1">
             <button
@@ -722,9 +727,9 @@ const SharePage = () => {
                     >
                       {/* Day header strip — full width, flush; acts as collapsible summary on mobile */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 backdrop-blur list-none [&::-webkit-details-marker]:hidden xl:cursor-default"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none [&::-webkit-details-marker]:hidden xl:cursor-default"
                         style={{
-                          backgroundColor: SURFACE,
+                          backgroundColor: "#ffffff",
                           borderBottom: `1px solid ${DIVIDER}`,
                         }}
                       >
