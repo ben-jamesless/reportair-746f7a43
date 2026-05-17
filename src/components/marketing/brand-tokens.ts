@@ -1,20 +1,44 @@
-// Brand tokens scoped to the marketing layer. Mirrors the brand book.
+// Brand tokens scoped to the marketing layer. BuildSlides palette.
 export const BRAND = {
-  sky: "#1A6EFF",
-  deepSky: "#0D47B5",
-  skySoft: "#E8F0FF",
-  ink: "#0F1724",
-  slate: "#3D4F66",
-  mist: "#7A8FA8",
-  cloud: "#EDF1F7",
-  fog: "#F5F7FA",
-  border: "#D0D9E8",
-  border2: "#B9C7DA",
+  // Brand orange (replaces sky)
+  accent: "#D94F2A",
+  accentHover: "#B53D1F",
+  accentSoft: "#FBE6DE",
+  accentTint: "#FFF4EF",
+
+  // Aliases kept for back-compat with existing inline-styled sections
+  sky: "#D94F2A",
+  deepSky: "#B53D1F",
+  skySoft: "#FBE6DE",
+
+  // Ink / dark surfaces
+  ink: "#0F1417",
+  ink2: "#1A2025",
+  ink3: "#2A3035",
+
+  // Paper / light surfaces
+  paper: "#FAF7F0",
+  paper2: "#F4F1EA",
+  paper3: "#ECE7DA",
   surface: "#FFFFFF",
-  emerald: "#1DB87A",
-  amber: "#FF8C00",
-  alert: "#E8351A",
+
+  // Text
+  slate: "#0F1417",
+  mist: "#6B6B66",
+  muted2: "#9A9690",
+
+  // Surfaces & rules
+  cloud: "#F4F1EA",
+  fog: "#FAF7F0",
+  border: "#E5E1D6",
+  border2: "#D9D4C5",
+
+  // Status
+  emerald: "#2EB872",
+  amber: "#F2C14E",
+  alert: "#C7382A",
+  yellow: "#F2C14E",
 };
 
-export const display = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" };
+export const display = { fontFamily: "'DM Sans', 'Inter', sans-serif" };
 export const body = { fontFamily: "'Inter', sans-serif" };

@@ -122,7 +122,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
                 key={i}
                 className={cn(
                   "h-1.5 rounded-full transition-all",
-                  i === step ? "bg-[#1A6EFF] w-8" : i < step ? "bg-[#1A6EFF]/40 w-4" : "bg-[#D4D1CA] w-4"
+                  i === step ? "bg-[#D94F2A] w-8" : i < step ? "bg-[#D94F2A]/40 w-4" : "bg-[#D4D1CA] w-4"
                 )}
               />
             ))}
@@ -168,15 +168,15 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
           {step === 3 && (
             <div className="space-y-4">
               {plan === "solo" ? (
-                <div className="rounded-xl border border-[#1A6EFF]/30 bg-[#1A6EFF]/5 p-5 text-center">
-                  <Crown className="h-8 w-8 mx-auto mb-3 text-[#1A6EFF]" />
+                <div className="rounded-xl border border-[#D94F2A]/30 bg-[#D94F2A]/5 p-5 text-center">
+                  <Crown className="h-8 w-8 mx-auto mb-3 text-[#D94F2A]" />
                   <h3 className="text-base font-semibold text-foreground mb-1">Invite your team</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     Team collaboration is available on Pro and Studio plans.
                   </p>
                   <Button
                     onClick={() => { handleOpenChange(false); navigate("/billing"); }}
-                    className="bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white"
+                    className="bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
                   >
                     Upgrade to Pro
                   </Button>
@@ -232,7 +232,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
             <Button
               onClick={() => setStep((s) => s + 1)}
               disabled={busy || (step === 1 && !canNext1)}
-              className="bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white"
+              className="bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
             >
               Next
             </Button>
@@ -240,7 +240,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
             <Button
               onClick={create}
               disabled={busy || !canNext1}
-              className="bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white"
+              className="bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
             >
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create event

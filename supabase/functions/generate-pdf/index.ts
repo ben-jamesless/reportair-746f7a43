@@ -1,5 +1,5 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
-// Layout: ReportAir V3 daily report — 1 cover page + 1 page per area.
+// Layout: BuildSlides V3 daily report — 1 cover page + 1 page per area.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
@@ -66,25 +66,28 @@ const HEX = (h: string) => {
   return rgb(parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255);
 };
 const COLOR = {
-  SKY: HEX("#1A6EFF"),
-  SKY_SOFT: HEX("#A8C4FF"),
-  INK: HEX("#0F1724"),
-  SLATE: HEX("#3D4F66"),
-  MIST: HEX("#7A8FA8"),
-  CLOUD: HEX("#EDF1F7"),
-  FOG: HEX("#F5F7FA"),
-  BORDER: HEX("#D0D9E8"),
+  // Brand orange (kept SKY key name for internal compat — value is BuildSlides accent)
+  SKY: HEX("#D94F2A"),
+  SKY_SOFT: HEX("#FBE6DE"),
+  INK: HEX("#0F1417"),
+  SLATE: HEX("#0F1417"),
+  // PDF muted is cooler than the app's warm muted (per §0b spec)
+  MIST: HEX("#6B6B70"),
+  CLOUD: HEX("#F5F5F5"),
+  // PDF page background is PURE WHITE (per §0b spec)
+  FOG: HEX("#FFFFFF"),
+  BORDER: HEX("#E5E5E5"),
   WHITE: rgb(1, 1, 1),
-  CAPTION_BAR: HEX("#D8E5F0"),
+  CAPTION_BAR: HEX("#F5F5F5"),
 };
 
 type StatusKey = "on_track" | "complete" | "requires_discussion" | "delayed" | "no_status";
 const STATUS: Record<StatusKey, { label: string; text: ReturnType<typeof rgb>; bg: ReturnType<typeof rgb> }> = {
-  on_track: { label: "On Track", text: HEX("#1A6EFF"), bg: HEX("#EBF0FF") },
-  complete: { label: "Complete", text: HEX("#1DB87A"), bg: HEX("#E8F8F1") },
-  requires_discussion: { label: "Requires Discussion", text: HEX("#FF8C00"), bg: HEX("#FFF4E5") },
-  delayed: { label: "Delayed", text: HEX("#C0392B"), bg: HEX("#FDECEA") },
-  no_status: { label: "No Status", text: HEX("#7A8FA8"), bg: HEX("#EDF1F7") },
+  on_track: { label: "On Track", text: HEX("#1E8A5A"), bg: HEX("#E4F5EC") },
+  complete: { label: "Complete", text: HEX("#1E8A5A"), bg: HEX("#E4F5EC") },
+  requires_discussion: { label: "Requires Discussion", text: HEX("#B53D1F"), bg: HEX("#FBE6DE") },
+  delayed: { label: "Delayed", text: HEX("#A52A1C"), bg: HEX("#F8D7D1") },
+  no_status: { label: "No Status", text: HEX("#6B6B70"), bg: HEX("#ECE7DA") },
 };
 const normaliseStatus = (s: string | null | undefined): StatusKey => {
   if (!s) return "no_status";
@@ -196,7 +199,7 @@ function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjs
   const iconSize = fontSize * 1.6;
   drawLogomark(page, x, y - iconSize * 0.15, iconSize);
   const gap = iconSize * 0.3;
-  const text = "REPORTAIR";
+  const text = "BUILDSLIDES";
   let cx = x + iconSize + gap;
   const tracking = fontSize * 0.04;
   for (const ch of text) {
@@ -390,8 +393,8 @@ Deno.serve(async (req) => {
     // ============ Build PDF ============
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
-    pdfDoc.setTitle("ReportAir Daily Report");
-    pdfDoc.setAuthor("ReportAir");
+    pdfDoc.setTitle("BuildSlides Daily Report");
+    pdfDoc.setAuthor("BuildSlides");
 
     const fontBytes = await loadFontBytes();
     let pjsFont: PDFFont, irFont: PDFFont;

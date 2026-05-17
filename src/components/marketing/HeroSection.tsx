@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * ReportAir hero section — responsive (desktop / tablet / mobile).
+ * BuildSlides hero section — responsive (desktop / tablet / mobile).
  * Self-contained: scoped styles + animations + horizontal/vertical SVG swap.
  */
 const HeroSection = () => {
@@ -28,8 +28,8 @@ const HeroSection = () => {
     <section className="ra-hero">
       <style>{`
         .ra-hero {
-          --sky: #1A6EFF;
-          --sky-soft: #A8C4FF;
+          --sky: #D94F2A;
+          --sky-soft: #FBE6DE;
           --ink: #0F1724;
           --slate: #3D4F66;
           --mist: #7A8FA8;
@@ -100,7 +100,7 @@ const HeroSection = () => {
           border: none; cursor: pointer;
           text-decoration: none; display: inline-block;
         }
-        .ra-hero .btn-primary:hover { background: #0D47B5; }
+        .ra-hero .btn-primary:hover { background: #B53D1F; }
         .ra-hero .btn-secondary {
           color: rgba(255,255,255,0.65);
           font-family: var(--font-display);
@@ -404,8 +404,8 @@ const HeroSection = () => {
                 <div className="chip-icon em">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <rect width="24" height="24" rx="5" fill="rgba(26,110,255,0.15)" />
-                    <rect x="3" y="6" width="18" height="13" rx="2" stroke="#1A6EFF" strokeWidth="1.5" />
-                    <path d="M3 9l9 6 9-6" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="3" y="6" width="18" height="13" rx="2" stroke="#D94F2A" strokeWidth="1.5" />
+                    <path d="M3 9l9 6 9-6" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
                 <span className="chip-label">Email</span>
@@ -414,22 +414,22 @@ const HeroSection = () => {
 
             {/* Funnel — horizontal (desktop) */}
             <svg className="lines-svg lines-h" viewBox="0 0 88 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path className="flow-line" d="M0 26  C44 26  44 150 88 150" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path className="flow-line" d="M0 88  C44 88  44 150 88 150" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M0 150 L88 150" stroke="#1A6EFF" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
-              <path className="flow-line" d="M0 212 C44 212 44 150 88 150" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M0 274 C44 274 44 150 88 150" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path d="M80 146 L88 150 L80 154" stroke="#1A6EFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
+              <path className="flow-line" d="M0 26  C44 26  44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+              <path className="flow-line" d="M0 88  C44 88  44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+              <path className="flow-line" d="M0 150 L88 150" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
+              <path className="flow-line" d="M0 212 C44 212 44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+              <path className="flow-line" d="M0 274 C44 274 44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+              <path d="M80 146 L88 150 L80 154" stroke="#D94F2A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
             </svg>
 
             {/* Funnel — vertical (tablet/mobile) */}
             <svg className="lines-svg lines-v" viewBox="0 0 276 72" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "none" }}>
-              <path className="flow-line" d="M26 0  C26 36 138 36 138 72" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path className="flow-line" d="M82 0  C82 36 138 36 138 72" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M138 0 L138 72" stroke="#1A6EFF" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
-              <path className="flow-line" d="M194 0 C194 36 138 36 138 72" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M250 0 C250 36 138 36 138 72" stroke="#1A6EFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path d="M134 64 L138 72 L142 64" stroke="#1A6EFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
+              <path className="flow-line" d="M26 0  C26 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+              <path className="flow-line" d="M82 0  C82 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+              <path className="flow-line" d="M138 0 L138 72" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
+              <path className="flow-line" d="M194 0 C194 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+              <path className="flow-line" d="M250 0 C250 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+              <path d="M134 64 L138 72 L142 64" stroke="#D94F2A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
             </svg>
 
             {/* Centre node */}
@@ -439,20 +439,20 @@ const HeroSection = () => {
                   <rect x="11" y="19" width="60" height="50" rx="6" stroke="rgba(168,196,255,0.7)" strokeWidth="5" />
                   <rect x="27" y="35" width="60" height="50" rx="6" stroke="#fff" strokeWidth="7.5" />
                 </svg>
-                <span className="node-label">ReportAir</span>
+                <span className="node-label">BuildSlides</span>
               </div>
             </div>
 
             {/* Output line — horizontal */}
             <svg className="out-line-svg out-h" viewBox="0 0 60 32" fill="none">
-              <line className="out-line" x1="2" y1="16" x2="52" y2="16" stroke="#1A6EFF" strokeWidth="2" strokeLinecap="round" />
-              <path d="M44 10 L54 16 L44 22" fill="none" stroke="#1A6EFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <line className="out-line" x1="2" y1="16" x2="52" y2="16" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" />
+              <path d="M44 10 L54 16 L44 22" fill="none" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
 
             {/* Output line — vertical */}
             <svg className="out-line-svg out-v" viewBox="0 0 32 52" fill="none" style={{ display: "none" }}>
-              <line className="out-line" x1="16" y1="2" x2="16" y2="44" stroke="#1A6EFF" strokeWidth="2" strokeLinecap="round" />
-              <path d="M10 36 L16 46 L22 36" fill="none" stroke="#1A6EFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <line className="out-line" x1="16" y1="2" x2="16" y2="44" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" />
+              <path d="M10 36 L16 46 L22 36" fill="none" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
 
             {/* Report card */}
@@ -460,10 +460,10 @@ const HeroSection = () => {
               <div className="rc-header">
                 <div className="rc-logo">
                   <svg viewBox="0 0 100 100" fill="none">
-                    <rect x="11" y="19" width="60" height="50" rx="6" stroke="#A8C4FF" strokeWidth="4.4" />
-                    <rect x="27" y="35" width="60" height="50" rx="6" stroke="#1A6EFF" strokeWidth="6.8" />
+                    <rect x="11" y="19" width="60" height="50" rx="6" stroke="#FBE6DE" strokeWidth="4.4" />
+                    <rect x="27" y="35" width="60" height="50" rx="6" stroke="#D94F2A" strokeWidth="6.8" />
                   </svg>
-                  <span className="rc-logo-text">ReportAir</span>
+                  <span className="rc-logo-text">BuildSlides</span>
                 </div>
                 <span className="rc-dr">No. DR-002</span>
               </div>

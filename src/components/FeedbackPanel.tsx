@@ -190,10 +190,10 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
     <aside className={cn("flex flex-col", className)}>
       <header className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
+          <MessageSquare className="w-4 h-4 text-[#D94F2A]" />
           <span className="text-sm font-semibold text-foreground">Feedback</span>
           {total > 0 && (
-            <span className="text-xs text-white bg-[#1A6EFF] rounded-full px-1.5 py-0.5 leading-none">{total}</span>
+            <span className="text-xs text-white bg-[#D94F2A] rounded-full px-1.5 py-0.5 leading-none">{total}</span>
           )}
         </div>
         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={load} aria-label="Refresh feedback">

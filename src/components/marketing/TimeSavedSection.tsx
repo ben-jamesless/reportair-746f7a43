@@ -80,7 +80,7 @@ export default function TimeSavedSection() {
             side="left"
           />
           <Panel
-            heading="WITH REPORTAIR"
+            heading="WITH BUILDSLIDES"
             color="#1DB87A"
             iconBg="rgba(29,184,122,0.12)"
             symbol="✓"

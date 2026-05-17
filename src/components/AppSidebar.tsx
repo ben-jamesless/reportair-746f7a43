@@ -1,4 +1,4 @@
-import { ReportAirMark } from "@/components/brand/ReportAirMark";
+import { BuildSlidesMark } from "@/components/brand/BuildSlidesMark";
 import { Link, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -58,7 +58,7 @@ import { fetchAccessibleProjects } from "@/lib/accessibleProjects";
 type FolderRow = { id: string; name: string; color: string | null; sort_order: number };
 
 const FOLDER_COLOR_PRESETS = [
-  "#01696F", "#1A6EFF", "#F59E0B", "#EF4444", "#10B981", "#64748B",
+  "#01696F", "#D94F2A", "#F59E0B", "#EF4444", "#10B981", "#64748B",
 ];
 
 interface Props {
@@ -230,9 +230,9 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         {/* ── Logo area ── */}
         <div className={cn("flex h-14 items-center", expanded ? "px-3" : "justify-center px-2")}>
           <Link to="/projects" onClick={onNavigate} className="flex items-center gap-2 min-w-0">
-            <ReportAirMark variant="light" className="h-7 w-7 shrink-0" />
+            <BuildSlidesMark variant="light" className="h-7 w-7 shrink-0" />
             <span className={cn("text-sm font-semibold text-white truncate", labelCls)}>
-              ReportAir
+              BuildSlides
             </span>
           </Link>
         </div>
@@ -271,7 +271,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                         "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
                         expanded ? "justify-start" : "justify-center",
                         active
-                          ? "bg-[#1A6EFF] font-medium text-white"
+                          ? "bg-[#D94F2A] font-medium text-white"
                           : "text-white/70 hover:bg-white/10 hover:text-white"
                       )}
                     >
@@ -305,7 +305,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                         "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
                         expanded ? "justify-start" : "justify-center",
                         active
-                          ? "bg-[#1A6EFF] font-medium text-white"
+                          ? "bg-[#D94F2A] font-medium text-white"
                           : "text-white/70 hover:bg-white/10 hover:text-white"
                       )}
                     >
@@ -331,7 +331,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                       "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
                       expanded ? "justify-start" : "justify-center",
                       pathname.startsWith("/admin")
-                        ? "bg-[#1A6EFF] font-medium text-white"
+                        ? "bg-[#D94F2A] font-medium text-white"
                         : "text-white/70 hover:bg-white/10 hover:text-white"
                     )}
                   >
@@ -386,7 +386,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                     isFolderActive
                       ? "bg-white/10 text-white"
                       : "text-white/60 hover:bg-white/10 hover:text-white",
-                    dragOver === f.id && "ring-2 ring-[#1A6EFF]"
+                    dragOver === f.id && "ring-2 ring-[#D94F2A]"
                   )}
                 >
                   <button
@@ -464,7 +464,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                   to="/billing"
                   onClick={onNavigate}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-full border border-[#1A6EFF] bg-[#1A6EFF]/10 px-2.5 py-1 text-xs text-[#1A6EFF]",
+                    "flex items-center gap-1.5 rounded-full border border-[#D94F2A] bg-[#D94F2A]/10 px-2.5 py-1 text-xs text-[#D94F2A]",
                     expanded ? "w-fit" : "mx-auto w-fit justify-center"
                   )}
                 >
@@ -495,7 +495,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
-                  <AvatarFallback className="bg-[#1A6EFF]/20 text-xs text-white">{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-[#D94F2A]/20 text-xs text-white">{initials}</AvatarFallback>
                 </Avatar>
                 {expanded && (
                   <div className="min-w-0 flex-1 overflow-hidden">

@@ -1,4 +1,4 @@
-import { ReportAirLockup } from "@/components/brand/ReportAirMark";
+import { BuildSlidesLockup } from "@/components/brand/BuildSlidesMark";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +41,7 @@ const ResetPassword = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex items-center justify-center">
-          <ReportAirLockup variant="light" markClassName="h-9 w-9" textClassName="text-xl" />
+          <BuildSlidesLockup variant="light" markClassName="h-9 w-9" textClassName="text-xl" />
         </div>
         <Card>
           <CardHeader>

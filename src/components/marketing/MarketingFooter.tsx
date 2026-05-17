@@ -15,7 +15,7 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
       <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
         <Logo onDark />
         <p className="text-xs" style={{ color: "rgba(237,241,247,.55)" }}>
-          © {new Date().getFullYear()} ReportAir. Photo-first event build reporting.
+          © {new Date().getFullYear()} BuildSlides. Photo-first event build reporting.
         </p>
         <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm" style={{ color: "rgba(237,241,247,.7)" }}>
           <a href="#how-it-works" className="transition-colors hover:text-white">How it works</a>

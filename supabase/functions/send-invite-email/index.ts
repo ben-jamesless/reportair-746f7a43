@@ -73,7 +73,7 @@ function renderEmail(args: {
                 </h1>
                 <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;color:#334155;">
                   <strong>${safeInviter}</strong> invited you to collaborate on
-                  <strong>${safeProject}</strong> in ReportAir as a
+                  <strong>${safeProject}</strong> in BuildSlides as a
                   <strong>${safeRole}</strong>.
                 </p>
                 <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#334155;">
@@ -95,7 +95,7 @@ function renderEmail(args: {
             </tr>
           </table>
           <p style="margin:24px 0 0 0;font-size:11px;color:#94a3b8;">
-            Sent by ReportAir
+            Sent by BuildSlides
           </p>
         </td>
       </tr>
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
       }, 200);
     }
 
-    const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "ReportAir <onboarding@resend.dev>";
+    const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "BuildSlides <onboarding@resend.dev>";
     let fromAddress = rawFrom.trim().replace(/^['"]|['"]$/g, "").trim();
     if (!/<[^>]+>/.test(fromAddress)) {
       const m = fromAddress.match(/^(.*?)([^\s<>"]+@[^\s<>"]+)\s*$/);
@@ -199,7 +199,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const subject = `You've been invited to ${projectName} on ReportAir`;
+    const subject = `You've been invited to ${projectName} on BuildSlides`;
     const html = renderEmail({
       inviterName,
       projectName,

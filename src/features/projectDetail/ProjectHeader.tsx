@@ -71,12 +71,12 @@ function ShareButton({
       >
         <Share2 className="w-3.5 h-3.5" />
         Share link
-        <Crown className="w-3.5 h-3.5 text-[#1A6EFF]" />
+        <Crown className="w-3.5 h-3.5 text-[#D94F2A]" />
       </button>
       {showUpgrade && (
         <div className="absolute right-0 top-10 z-50 w-64 rounded-xl border border-border bg-card shadow-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Crown className="w-4 h-4 text-[#1A6EFF]" />
+            <Crown className="w-4 h-4 text-[#D94F2A]" />
             <span className="text-sm font-semibold text-foreground">Pro feature</span>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
@@ -84,7 +84,7 @@ function ShareButton({
           </p>
           <Link
             to="/billing"
-            className="block w-full text-center px-3 py-1.5 rounded-lg bg-[#1A6EFF] text-white text-xs font-medium hover:bg-[#1A6EFF]/90"
+            className="block w-full text-center px-3 py-1.5 rounded-lg bg-[#D94F2A] text-white text-xs font-medium hover:bg-[#D94F2A]/90"
           >
             Upgrade to Pro →
           </Link>
@@ -120,7 +120,7 @@ function TabBar({
           className={cn(
             "px-4 pb-3 pt-2 text-sm transition-colors",
             activeTab === tab
-              ? "border-b-2 border-[#1A6EFF] text-[#1A6EFF] font-semibold"
+              ? "border-b-2 border-[#D94F2A] text-[#D94F2A] font-semibold"
               : "border-b-2 border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
@@ -280,7 +280,7 @@ export function ProjectHeader({
                   areas={areas}
                   onUploaded={onUploaded}
                   trigger={
-                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#1A6EFF] text-white text-sm font-medium hover:bg-[#1A6EFF]/90 transition-colors">
+                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
                       <ImagePlus className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Upload photos</span>
                       <span className="sm:hidden">Upload</span>

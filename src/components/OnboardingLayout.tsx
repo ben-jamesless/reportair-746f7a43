@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ReportAirLockup } from "@/components/brand/ReportAirMark";
+import { BuildSlidesLockup } from "@/components/brand/BuildSlidesMark";
 import { cn } from "@/lib/utils";
 
 interface OnboardingLayoutProps {
@@ -19,7 +19,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
       >
         <div className="relative z-10">
           <Link to="/" aria-label="Go to home">
-            <ReportAirLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
+            <BuildSlidesLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
           </Link>
         </div>
 
@@ -27,19 +27,19 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
           <h1 className="text-3xl font-bold text-white leading-snug mb-4">
             Professional event reports,
             <br />
-            made in <span className="text-[#1A6EFF]">10 minutes.</span>
+            made in <span className="text-[#D94F2A]">10 minutes.</span>
           </h1>
           <p className="text-white/60 leading-relaxed max-w-sm text-base">
             Capture progress, keep clients informed, and deliver polished reports — all in one place.
           </p>
         </div>
 
-        <div className="relative z-10 bg-[#1A6EFF]/10 border border-[#1A6EFF]/25 rounded-2xl p-5 backdrop-blur-sm">
+        <div className="relative z-10 bg-[#D94F2A]/10 border border-[#D94F2A]/25 rounded-2xl p-5 backdrop-blur-sm">
           <p className="text-white/80 text-sm italic leading-relaxed mb-3">
-            "ReportAir cut our post-event reporting time by 60%. Our clients love the live progress links."
+            "BuildSlides cut our post-event reporting time by 60%. Our clients love the live progress links."
           </p>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#1A6EFF]/30 flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-[#D94F2A]/30 flex items-center justify-center text-white text-xs font-bold">
               SL
             </div>
             <div>
@@ -60,7 +60,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
                   key={i}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
-                    i + 1 === step ? "bg-[#1A6EFF] w-8" : i + 1 < step ? "bg-[#1A6EFF]/40 w-4" : "bg-[#D4D1CA] w-4"
+                    i + 1 === step ? "bg-[#D94F2A] w-8" : i + 1 < step ? "bg-[#D94F2A]/40 w-4" : "bg-[#D4D1CA] w-4"
                   )}
                 />
               ))}

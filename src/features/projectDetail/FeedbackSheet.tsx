@@ -29,7 +29,7 @@ export function FeedbackSheet({
         {/* Panel header */}
         <header className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-[#1A6EFF]" />
+            <MessageSquare className="w-4 h-4 text-[#D94F2A]" />
             <span className="text-sm font-semibold text-foreground">Feedback</span>
           </div>
           <button

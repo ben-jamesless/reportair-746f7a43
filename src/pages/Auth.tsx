@@ -41,7 +41,7 @@ const Auth = () => {
   const suspendedError = params.get("error") === "suspended";
 
   useEffect(() => {
-    document.title = mode === "signup" ? "Create account — ReportAir" : "Sign in — ReportAir";
+    document.title = mode === "signup" ? "Create account — BuildSlides" : "Sign in — BuildSlides";
   }, [mode]);
 
   useEffect(() => {
@@ -171,7 +171,7 @@ const Auth = () => {
           <Label htmlFor="pw-in">Password</Label>
           <Input id="pw-in" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        <Button type="submit" className="w-full bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white" disabled={busy}>
+        <Button type="submit" className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Sign in
         </Button>
@@ -186,7 +186,7 @@ const Auth = () => {
         <button
           type="button"
           onClick={() => setMode("signup")}
-          className="text-[#1A6EFF] hover:underline font-medium"
+          className="text-[#D94F2A] hover:underline font-medium"
         >
           Sign up →
         </button>
@@ -209,7 +209,7 @@ const Auth = () => {
           <Label htmlFor="pw-up">Password</Label>
           <Input id="pw-up" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        <Button type="submit" className="w-full bg-[#1A6EFF] hover:bg-[#1A6EFF]/90 text-white" disabled={busy}>
+        <Button type="submit" className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create account
         </Button>
@@ -221,7 +221,7 @@ const Auth = () => {
         <button
           type="button"
           onClick={() => setMode("signin")}
-          className="text-[#1A6EFF] hover:underline font-medium"
+          className="text-[#D94F2A] hover:underline font-medium"
         >
           Sign in →
         </button>

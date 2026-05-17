@@ -3,22 +3,22 @@ import { display, body } from "./brand-tokens";
 
 const faqs = [
   {
-    question: "What exactly does ReportAir do?",
+    question: "What exactly does BuildSlides do?",
     answer:
-      "ReportAir turns your on-site photos and notes into a professional, client-ready PDF report — automatically. Upload photos from the day, tag them by area, add notes, and ReportAir organises everything into a polished daily progress report. No formatting, no copy-pasting, no time wasted back at the desk.",
+      "BuildSlides turns your on-site photos and notes into a professional, client-ready PDF report — automatically. Upload photos from the day, tag them by area, add notes, and BuildSlides organises everything into a polished daily progress report. No formatting, no copy-pasting, no time wasted back at the desk.",
   },
   {
-    question: "Who is ReportAir built for?",
+    question: "Who is BuildSlides built for?",
     answer:
       "Event build professionals — site managers, production coordinators, and freelancers working on builds from multi-month tournaments to 2-day brand activations. Works for solo operators and larger teams running multiple concurrent builds.",
   },
   {
     question: "How does the PDF report get generated?",
     answer:
-      "Once you've uploaded your photos and notes, ReportAir compiles everything into a clean, structured PDF organised by date and area. Generate a report for any day with one click — end-of-day reporting becomes a 2-minute task, not a 2-hour one.",
+      "Once you've uploaded your photos and notes, BuildSlides compiles everything into a clean, structured PDF organised by date and area. Generate a report for any day with one click — end-of-day reporting becomes a 2-minute task, not a 2-hour one.",
   },
   {
-    question: "Can I use ReportAir on-site from my phone?",
+    question: "Can I use BuildSlides on-site from my phone?",
     answer:
       "Yes — fully mobile-responsive and designed for the field. Upload photos, add notes, and tag locations directly from your phone as you walk the site. Everything syncs instantly.",
   },
@@ -67,7 +67,7 @@ export default function FAQSection() {
             fontWeight: 700,
             letterSpacing: "0.14em",
             textTransform: "uppercase",
-            color: "#1A6EFF",
+            color: "#D94F2A",
             marginBottom: 16,
           }}
         >
@@ -134,8 +134,8 @@ export default function FAQSection() {
                     width: 26,
                     height: 26,
                     borderRadius: "50%",
-                    border: `1.5px solid ${isOpen ? "#1A6EFF" : "rgba(255,255,255,0.15)"}`,
-                    color: isOpen ? "#1A6EFF" : "rgba(255,255,255,0.4)",
+                    border: `1.5px solid ${isOpen ? "#D94F2A" : "rgba(255,255,255,0.15)"}`,
+                    color: isOpen ? "#D94F2A" : "rgba(255,255,255,0.4)",
                     background: isOpen ? "rgba(26,110,255,0.1)" : "transparent",
                     display: "flex",
                     alignItems: "center",
