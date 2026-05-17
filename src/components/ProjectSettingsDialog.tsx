@@ -115,11 +115,13 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               default_view={project.default_view ?? "report"}
               onSaved={onChanged}
               onClose={() => setOpen(false)}
+              extraSections={
+                <>
+                  <HeicBackfillButton projectId={projectId} />
+                  <PhotoDateBackfillButton projectId={projectId} />
+                </>
+              }
             />
-            <div className="mt-6 space-y-3">
-              <HeicBackfillButton projectId={projectId} />
-              <PhotoDateBackfillButton projectId={projectId} />
-            </div>
           </TabsContent>
           <TabsContent value="areas" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
             <AreasManager projectId={projectId} onChanged={onChanged} />
