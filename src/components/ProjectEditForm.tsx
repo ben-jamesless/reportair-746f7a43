@@ -49,6 +49,8 @@ interface Props extends ProjectEditValues {
   onClose?: () => void;
   /** When true, hides the danger zone (used in places where deletion isn't appropriate). */
   hideDangerZone?: boolean;
+  /** Optional extra content rendered just above the Save/Cancel button row. */
+  extraSections?: React.ReactNode;
 }
 
 const toIsoDate = (d: Date | undefined): string | null => {
