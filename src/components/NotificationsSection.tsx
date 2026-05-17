@@ -144,83 +144,107 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
 
   const labelCls = compactLabel ? "hidden" : "inline";
 
+  const listContent = (
+    items.length === 0 ? (
+      <div className="px-3 py-3 text-xs text-muted-foreground">You're all caught up.</div>
+    ) : (
+      <ScrollArea className="max-h-80">
+        <ul className="mt-1 space-y-0.5">
+          {items.map((n) => (
+            <li key={n.id}>
+              <button
+                type="button"
+                onClick={() => { handleClick(n); setOpen(false); }}
+                className={cn(
+                  "flex w-full flex-col gap-0.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-secondary/60 lg:px-3",
+                  !n.read_at && "bg-primary/5",
+                )}
+              >
+                <div className="flex items-start gap-1.5">
+                  {!n.read_at && (
+                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate">
+                      <span className="font-medium text-foreground">{n.actor_name ?? "Someone"}</span>{" "}
+                      <span className="text-muted-foreground">{verbFor(n)}</span>
+                    </p>
+                    {n.project_name && (
+                      <p className="truncate text-[11px] text-muted-foreground">{n.project_name}</p>
+                    )}
+                    <p className="text-[10px] text-muted-foreground/80">
+                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </ScrollArea>
+    )
+  );
+
+  const triggerInner = (
+    <>
+      <span className="relative inline-flex">
+        <Bell className="h-4 w-4 shrink-0" />
+        {unreadCount > 0 && (
+          <span
+            className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
+            aria-hidden
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </span>
+      <span className={cn("flex-1 text-left", labelCls)}>Notifications</span>
+      <ChevronDown
+        className={cn(
+          "h-3.5 w-3.5 shrink-0 transition-transform",
+          open && "rotate-180",
+          labelCls,
+        )}
+      />
+    </>
+  );
+
+  const triggerCls = cn(
+    "group flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
+    "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+    compactLabel && "justify-center",
+  );
+
+  if (compactLabel) {
+    return (
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger
+              className={triggerCls}
+              aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
+            >
+              {triggerInner}
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="right">Notifications</TooltipContent>
+        </Tooltip>
+        <PopoverContent side="right" align="start" className="w-80 p-1">
+          {listContent}
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
     <Collapsible open={open} onOpenChange={handleOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <CollapsibleTrigger
-            className={cn(
-              "group flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
-              "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-              compactLabel && "justify-center",
-            )}
-            aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
-          >
-            <span className="relative inline-flex">
-              <Bell className="h-4 w-4 shrink-0" />
-              {unreadCount > 0 && (
-                <span
-                  className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
-                  aria-hidden
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </span>
-            <span className={cn("flex-1 text-left", labelCls)}>Notifications</span>
-            <ChevronDown
-              className={cn(
-                "h-3.5 w-3.5 shrink-0 transition-transform",
-                open && "rotate-180",
-                labelCls,
-              )}
-            />
-          </CollapsibleTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="right" className={compactLabel ? "" : "hidden"}>
-          Notifications
-        </TooltipContent>
-      </Tooltip>
-      <CollapsibleContent>
-        {items.length === 0 ? (
-          <div className={cn("px-3 py-3 text-xs text-muted-foreground", compactLabel && "hidden")}>You're all caught up.</div>
-        ) : (
-          <ScrollArea className="max-h-80">
-            <ul className="mt-1 space-y-0.5">
-              {items.map((n) => (
-                <li key={n.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleClick(n)}
-                    className={cn(
-                      "flex w-full flex-col gap-0.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-secondary/60 lg:px-3",
-                      !n.read_at && "bg-primary/5",
-                    )}
-                  >
-                    <div className="flex items-start gap-1.5">
-                      {!n.read_at && (
-                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate">
-                          <span className="font-medium text-foreground">{n.actor_name ?? "Someone"}</span>{" "}
-                          <span className="text-muted-foreground">{verbFor(n)}</span>
-                        </p>
-                        {n.project_name && (
-                          <p className="truncate text-[11px] text-muted-foreground">{n.project_name}</p>
-                        )}
-                        <p className="text-[10px] text-muted-foreground/80">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </ScrollArea>
-        )}
-      </CollapsibleContent>
+      <CollapsibleTrigger
+        className={triggerCls}
+        aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
+      >
+        {triggerInner}
+      </CollapsibleTrigger>
+      <CollapsibleContent>{listContent}</CollapsibleContent>
     </Collapsible>
   );
 };
