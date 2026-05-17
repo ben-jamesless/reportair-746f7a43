@@ -47,20 +47,21 @@ export function DayReport({
         {DAILY_BLOCKS.map((b) => {
           const value = getDailyField(activeDay, b.key);
           return (
-            <div key={b.key} className="rounded-xl border border-border bg-card overflow-hidden">
+            <div key={b.key} className="rounded-xl border border-border bg-card overflow-hidden flex flex-col min-h-[160px]">
               <div className="px-4 pt-3 pb-1">
-                <span className="text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">
+                <span className="text-[11px] font-bold tracking-widest uppercase text-foreground dark:text-white">
                   {b.label}
                 </span>
               </div>
-              <div className="px-4 pb-3 min-h-[72px] text-sm text-foreground">
+              <div className="px-4 pb-3 flex-1 text-sm text-foreground">
                 <EditableNote
                   value={value}
                   placeholder={`Add ${b.label.toLowerCase()}…`}
                   onSave={(next) => onSaveDailyField(activeDay, b.key, next)}
                   rich
-                  rows={3}
+                  rows={5}
                   readOnly={!canEdit}
+                  className="h-full"
                 />
               </div>
             </div>
