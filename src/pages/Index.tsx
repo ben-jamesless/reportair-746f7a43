@@ -23,7 +23,7 @@ const COPY = {
     items: [
       "​I saved hours not having to chase my team for photo updates and then sort them into a presentation to send. ",
       "Done at the click of a button. Not only that but with the share link the client saw updates in realtime. ",
-      "The report was already structured because the photos had been sorted properly during the build.",
+      "Not only was the report professional looking, we now have records on-hand to look back on each year moving forward.",
     ],
   },
   finalCta: {
