@@ -623,13 +623,6 @@ const Projects = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
-      <AlertDialog
-        open={!!deletingProject}
-        onOpenChange={(o) => { if (!o) { setDeletingProject(null); setDeleteConfirm(""); } }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
             <AlertDialogTitle>
               {deleteOwnerCount > 1 ? "Delete or leave this event?" : "Delete this event?"}
             </AlertDialogTitle>
