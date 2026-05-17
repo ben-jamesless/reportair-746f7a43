@@ -83,6 +83,7 @@ export const ProjectEditForm = ({
   onSaved,
   onClose,
   hideDangerZone,
+  extraSections,
 }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
