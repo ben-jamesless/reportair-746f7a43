@@ -111,8 +111,6 @@ const Index = () => {
 
       <div id="faq"><FAQSection /></div>
 
-      <UseCasesSection />
-
       <PricingSection />
 
       {/* ============ FINAL CTA ============ */}
