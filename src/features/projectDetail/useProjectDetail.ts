@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
 import type { LightboxPhoto } from "@/components/PhotoLightbox";
 import type { AreaStatus } from "@/components/AreaStatusPicker";
 import type { ProjectStatus } from "@/lib/projectStatus";
@@ -77,6 +78,7 @@ export interface ProjectDetailState {
  */
 export function useProjectDetail(projectId: string | undefined): ProjectDetailState {
   const { user } = useAuth();
+  const { limits, projectCount, refetch: refetchPlan } = usePlan();
 
   // ---- Data state ----
   const [project, setProject] = useState<Project | null>(null);
@@ -359,6 +361,12 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
 
   const restoreProject = useCallback(async () => {
     if (!projectId) return;
+    if (limits.maxProjects !== -1 && projectCount >= limits.maxProjects) {
+      toast.error(
+        `You've reached your ${limits.maxProjects}-project limit. Archive or delete a project before restoring this one.`
+      );
+      return;
+    }
     const { error } = await supabase
       .from("projects")
       .update({ archived_at: null })
@@ -368,8 +376,9 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
       return;
     }
     toast.success("Project restored");
+    refetchPlan?.();
     refetch();
-  }, [projectId, refetch]);
+  }, [projectId, refetch, limits.maxProjects, projectCount, refetchPlan]);
 
   // ---- Area mutations ----
   const addArea = useCallback(

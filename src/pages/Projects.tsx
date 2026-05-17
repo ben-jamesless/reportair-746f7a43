@@ -275,6 +275,12 @@ const Projects = () => {
   };
 
   const setProjectArchived = async (p: Project, archived: boolean) => {
+    if (!archived && limits.maxProjects !== -1 && projectCount >= limits.maxProjects) {
+      toast.error(
+        `You've reached your ${limits.maxProjects}-project limit. Archive or delete a project before restoring this one.`
+      );
+      return;
+    }
     const { error } = await supabase
       .from("projects")
       .update({ archived_at: archived ? new Date().toISOString() : null })
