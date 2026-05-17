@@ -260,7 +260,7 @@ export const ProjectEditForm = ({
   };
 
   const confirmDelete = async () => {
-    if (confirmText.trim() !== initialName.trim()) {
+    if (ownerCount <= 1 && confirmText.trim() !== initialName.trim()) {
       toast.error("Project name doesn't match");
       return;
     }
