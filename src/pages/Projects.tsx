@@ -113,7 +113,7 @@ const Projects = () => {
     setMoveProject(null);
   };
 
-  const { plan, projectCount, limits, canCreateProject } = usePlan();
+  const { plan, projectCount, limits, refetch: refetchPlan } = usePlan();
 
   const load = async () => {
     if (!user) return;
@@ -281,6 +281,7 @@ const Projects = () => {
       .eq("id", p.id);
     if (error) { toast.error(error.message); return; }
     toast.success(archived ? "Project archived" : "Project restored");
+    refetchPlan?.();
     load();
   };
 
@@ -637,6 +638,7 @@ const Projects = () => {
                 toast.success("Event deleted");
                 setDeletingProject(null);
                 setDeleteConfirm("");
+                refetchPlan?.();
                 load();
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -761,7 +763,7 @@ const Projects = () => {
         open={newEventPanelOpen}
         onOpenChange={setNewEventPanelOpen}
         teamId={teamId}
-        onCreated={load}
+        onCreated={() => { refetchPlan?.(); load(); }}
       />
     </AppShell>
   );
