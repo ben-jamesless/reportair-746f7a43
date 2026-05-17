@@ -21,7 +21,7 @@ const COPY = {
     eyebrow: "Early users",
     title: "Built for teams who need the client to see the work, not the chaos.",
     items: [
-      "It was all sorted and managed so easily during the build. We now have full daily records sorted and filed ready to reference for next year's build.",
+      "​I saved hours not having to chase my team for photo updates and then sort them into a presentation to send. ",
       "The client could see progress every day without calling for another status check.",
       "The report was already structured because the photos had been sorted properly during the build.",
     ],
