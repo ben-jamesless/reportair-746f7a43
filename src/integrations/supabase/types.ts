@@ -440,6 +440,33 @@ export type Database = {
           },
         ]
       }
+      newsletter_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          resend_contact_id: string | null
+          source: string | null
+          synced_to_resend: boolean
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          resend_contact_id?: string | null
+          source?: string | null
+          synced_to_resend?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          resend_contact_id?: string | null
+          source?: string | null
+          synced_to_resend?: boolean
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           actor_id: string | null
