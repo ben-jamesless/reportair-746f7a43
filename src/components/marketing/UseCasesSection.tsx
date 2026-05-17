@@ -253,10 +253,10 @@ export default function UseCasesSection() {
           style={{
             ...body,
             fontSize: 11,
-            fontWeight: 700,
+            fontWeight: 800,
             letterSpacing: "0.2em",
             textTransform: "uppercase",
-            color: "rgba(244,241,234,0.6)",
+            color: "#D94F2A",
             margin: "0 0 14px 0",
           }}
         >

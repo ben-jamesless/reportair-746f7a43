@@ -54,7 +54,7 @@ export default function FAQSection() {
           style={{
             ...display,
             fontSize: 11,
-            fontWeight: 700,
+            fontWeight: 800,
             letterSpacing: "0.14em",
             textTransform: "uppercase",
             color: "#D94F2A",

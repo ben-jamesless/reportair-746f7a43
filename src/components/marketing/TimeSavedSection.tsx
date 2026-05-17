@@ -45,10 +45,10 @@ export default function TimeSavedSection() {
             style={{
               ...display,
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 800,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "rgba(244,241,234,0.6)",
+              color: "#D94F2A",
               marginBottom: 16,
             }}
           >

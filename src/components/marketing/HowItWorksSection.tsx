@@ -58,10 +58,10 @@ const HowItWorksSection = () => {
             className="display"
             style={{
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 800,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "rgba(244,241,234,0.6)",
+              color: "#D94F2A",
               marginBottom: 14,
             }}
           >
