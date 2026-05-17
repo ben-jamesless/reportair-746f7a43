@@ -510,7 +510,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `reportair-${slug}-${today}.zip`;
+        a.download = `buildslides-${slug}-${today}.zip`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
