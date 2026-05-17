@@ -131,7 +131,7 @@ export const ExportPdfDialog = ({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
-  const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
+  const sections: Sections = { ...DEFAULT_SECTIONS, cover: true, grid: true, captions: true, activity: false };
   const [accent, setAccent] = useState("#D94F2A");
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
