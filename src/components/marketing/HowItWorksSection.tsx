@@ -71,7 +71,7 @@ const HowItWorksSection = () => {
             className="display hiw-section-title"
             style={{ fontSize: 44, fontWeight: 800, lineHeight: 1.1, color: "#fff", marginBottom: 14 }}
           >
-            Site to report.
+            Build to report.
             <br />
             <span style={{ color: "#D94F2A" }}>Three steps.</span>
           </h2>
