@@ -74,10 +74,16 @@ export default function FAQSection() {
             marginBottom: 12,
           }}
         >
-          Everything you need to know.
+          The honest answers.
         </h2>
         <p style={{ ...body, fontSize: 15, fontWeight: 400, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-          Can't find an answer? Drop us a message.
+          Can't find what you're looking for?{" "}
+          <a
+            href="mailto:ben@buildslides.com"
+            style={{ color: "#D94F2A", textDecoration: "underline", textUnderlineOffset: 3 }}
+          >
+            Drop us a message →
+          </a>
         </p>
       </div>
 
