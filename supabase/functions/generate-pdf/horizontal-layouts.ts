@@ -10,7 +10,7 @@
 // page-for-page using only data we actually have in the schema today
 // (projects, areas, day_notes, area_day_status, area_day_notes, photos).
 // Sections with no source data are hidden entirely — no placeholder strings.
-import { PDFDocument, PDFFont, PDFImage, PDFPage, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, pushGraphicsState, popGraphicsState, rectangle, clip, endPath, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 
 // ============ Brand tokens (mirrored from index.ts) ============
 const MM = 2.83465;
@@ -204,8 +204,10 @@ function drawWordmark(
   });
 }
 
-// Place an image inside the given tile (centred, contain-fit). When `img`
-// is null, draws only the surface + brackets so the tile still reads.
+// Place an image inside the given tile (cover-fit, cropped — no letterbox).
+// When `img` is present we paint *only* the image (no background block) and
+// add a 0.5pt hairline border so the edge reads cleanly. When `img` is null
+// we render a soft empty surface + brackets so the placement is still legible.
 function drawPhotoTile(
   page: PDFPage,
   img: PDFImage | null,
@@ -213,16 +215,65 @@ function drawPhotoTile(
   y: number,
   w: number,
   h: number,
-  bg: ReturnType<typeof rgb>,
+  emptyBg: ReturnType<typeof rgb>,
   bracket: ReturnType<typeof rgb>,
+  opts: { borderColor?: ReturnType<typeof rgb>; cornerBrackets?: boolean } = {},
 ) {
-  page.drawRectangle({ x, y, width: w, height: h, color: bg });
   if (img) {
-    const scale = Math.min(w / img.width, h / img.height);
+    // Cover-fit (crop): scale to fully cover the tile and centre. Use a PDF
+    // graphics-state clip path so any image bleed past tile bounds is hidden
+    // cleanly — no letterbox bars and no overflow.
+    const scale = Math.max(w / img.width, h / img.height);
     const fw = img.width * scale, fh = img.height * scale;
-    page.drawImage(img, { x: x + (w - fw) / 2, y: y + (h - fh) / 2, width: fw, height: fh });
+    page.pushOperators(
+      pushGraphicsState(),
+      rectangle(x, y, w, h),
+      clip(),
+      endPath(),
+    );
+    page.drawImage(img, {
+      x: x + (w - fw) / 2,
+      y: y + (h - fh) / 2,
+      width: fw, height: fh,
+    });
+    page.pushOperators(popGraphicsState());
+    // Hairline outline so the photo edge reads cleanly on either surface.
+    const maskColor = opts.borderColor ?? bracket;
+    page.drawRectangle({
+      x, y, width: w, height: h,
+      borderColor: maskColor, borderWidth: 0.5,
+    });
+  } else {
+    // No image — soft empty surface so the layout still reads. Brackets only
+    // appear on empty tiles (they're a placeholder cue, not a frame).
+    page.drawRectangle({ x, y, width: w, height: h, color: emptyBg });
+    if (opts.cornerBrackets !== false) {
+      drawCornerBrackets(page, x, y, w, h, bracket);
+    }
   }
-  drawCornerBrackets(page, x, y, w, h, bracket);
+}
+
+// Draw a small "+N more" pill at the bottom-right corner of a photo tile.
+function drawMorePill(
+  page: PDFPage,
+  x: number, y: number, w: number, h: number,
+  more: number,
+  font: PDFFont,
+  textColor: ReturnType<typeof rgb>,
+  bgColor: ReturnType<typeof rgb>,
+) {
+  if (more <= 0) return;
+  const label = `+${more} MORE`;
+  const fs = 7;
+  const tw = font.widthOfTextAtSize(label, fs);
+  const padX = 6, padY = 3;
+  const pw = tw + padX * 2;
+  const ph = fs + padY * 2;
+  const px = x + w - pw - 6;
+  const py = y + 6;
+  void h;
+  page.drawRectangle({ x: px, y: py, width: pw, height: ph, color: bgColor });
+  page.drawText(label, { x: px + padX, y: py + padY + 1, size: fs, font, color: textColor });
 }
 
 // ============ Shared page chrome ============
@@ -437,17 +488,26 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
     const hasBullets = bullets.length > 0;
     let leftY = TOP_Y;
     if (hasBullets) {
+      // Eyebrow with a short accent rule above it for a stronger anchor.
+      // We draw the rule, then leave generous space before the display
+      // headline so the cap heights don't crowd the eyebrow.
+      page.drawLine({
+        start: { x: LEFT_X, y: leftY + 10 },
+        end:   { x: LEFT_X + 20, y: leftY + 10 },
+        thickness: 1.25, color: COLOR.ACCENT,
+      });
       page.drawText("TODAY IN 6 LINES", {
         x: LEFT_X, y: leftY, size: 7, font: irFont, color: COLOR.ACCENT,
       });
-      leftY -= 16;
+      // Bigger gap so the 22pt headline's ascenders don't touch the eyebrow.
+      leftY -= 28;
       // Headline: bigger display weight
       const headlineLines = wrapLines(headline, pjsFont, 22, LEFT_W);
       for (const ln of headlineLines.slice(0, 2)) {
         page.drawText(ln, { x: LEFT_X, y: leftY, size: 22, font: pjsFont, color: COLOR.INK });
         leftY -= 26;
       }
-      leftY -= 4;
+      leftY -= 8;
       // Up to 5 remaining bullets
       for (const b of restBullets) {
         const lines = wrapLines(b, irFont, 9.5, LEFT_W - 14);
@@ -474,33 +534,98 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
     const TILE_W = (GRID_W - TILE_GAP) / 2;
     const TILE_H = (GRID_H - TILE_GAP) / 2 - CAPTION_BAND;
 
-    const topAreas = areaData.slice(0, 4);
-    for (let i = 0; i < topAreas.length; i++) {
-      const a = topAreas[i];
+    // Build the tile list. When we have only 1–2 zones with multiple photos
+    // each, fill the 2×2 grid with photos (still grouped, captioned by zone).
+    // When we have ≥3 zones, show one hero per zone (up to 4). This way the
+    // grid never wastes tiles when the user has more photos to show.
+    type Tile = { img: PDFImage | null; zoneName: string; caption: string; more: number };
+    const tiles: Tile[] = [];
+    const zonesWithPhotos = areaData.filter(a => a.photoImages.some(Boolean));
+    if (zonesWithPhotos.length <= 2 && zonesWithPhotos.length > 0) {
+      // Distribute the 4 grid slots fairly across the 1–2 zones with photos.
+      // Then if we still have empty slots and one zone has more photos to
+      // show, top up from that zone so the grid never has a hanging blank.
+      const zoneAllocations = zonesWithPhotos.map(a => {
+        const imgs = a.photoImages.filter((p): p is PDFImage => !!p);
+        return { area: a, imgs, take: Math.min(imgs.length, Math.max(1, Math.ceil(4 / zonesWithPhotos.length))) };
+      });
+      // Top up to fill 4 slots if any zone still has extras
+      let used = zoneAllocations.reduce((n, z) => n + z.take, 0);
+      while (used < 4) {
+        const z = zoneAllocations.find(z => z.take < z.imgs.length);
+        if (!z) break;
+        z.take += 1;
+        used += 1;
+      }
+      for (const z of zoneAllocations) {
+        const take = z.imgs.slice(0, z.take);
+        for (let k = 0; k < take.length; k++) {
+          const capParts: string[] = [];
+          if (k === 0 && z.area.notes && z.area.notes.trim()) {
+            capParts.push(z.area.notes.split(/\r?\n/)[0] ?? "");
+          }
+          tiles.push({
+            img: take[k],
+            zoneName: z.area.name.toUpperCase(),
+            caption: capParts.join(" \u00b7 "),
+            more: k === take.length - 1 ? Math.max(0, z.imgs.length - take.length) : 0,
+          });
+        }
+      }
+      // If we still have zones without photos, append placeholder tiles for them.
+      const noPhotoZones = areaData.filter(a => !a.photoImages.some(Boolean));
+      for (const a of noPhotoZones) {
+        if (tiles.length >= 4) break;
+        tiles.push({
+          img: null,
+          zoneName: a.name.toUpperCase(),
+          caption: (a.notes ?? "").split(/\r?\n/)[0] ?? "",
+          more: 0,
+        });
+      }
+    } else {
+      // ≥3 zones — 1 hero per zone, up to 4.
+      const topAreas = areaData.slice(0, 4);
+      for (const a of topAreas) {
+        const imgs = a.photoImages.filter((p): p is PDFImage => !!p);
+        const hero = imgs[0] ?? null;
+        const cap = (a.notes ?? "").split(/\r?\n/)[0] ?? "";
+        tiles.push({
+          img: hero,
+          zoneName: a.name.toUpperCase(),
+          caption: cap,
+          more: Math.max(0, imgs.length - 1),
+        });
+      }
+    }
+
+    const visibleTiles = tiles.slice(0, 4);
+    for (let i = 0; i < visibleTiles.length; i++) {
+      const t = visibleTiles[i];
       const col = i % 2;
       const row = Math.floor(i / 2);
       const tx = GRID_X + col * (TILE_W + TILE_GAP);
       const tyTop = GRID_TOP - row * (TILE_H + CAPTION_BAND + TILE_GAP);
       const ty = tyTop - TILE_H;
-      const heroImg = a.photoImages.find(Boolean) ?? null;
-      drawPhotoTile(page, heroImg, tx, ty, TILE_W, TILE_H, COLOR.RULE, COLOR.MUTED_ON_PAPER);
-      if (!heroImg) {
-        const label = `${a.name.toUpperCase()}`;
-        const lw = irFont.widthOfTextAtSize(label, 8);
-        page.drawText(label, {
+      drawPhotoTile(page, t.img, tx, ty, TILE_W, TILE_H, COLOR.RULE, COLOR.MUTED_ON_PAPER);
+      if (!t.img) {
+        const lw = irFont.widthOfTextAtSize(t.zoneName, 8);
+        page.drawText(t.zoneName, {
           x: tx + (TILE_W - lw) / 2,
           y: ty + TILE_H / 2 - 3,
           size: 8, font: irFont, color: COLOR.MUTED_ON_PAPER,
         });
       }
+      if (t.img && t.more > 0) {
+        drawMorePill(page, tx, ty, TILE_W, TILE_H, t.more, irFont, COLOR.INK, COLOR.PAPER);
+      }
       // Caption band
       const capY = ty - 14;
-      page.drawText(a.name.toUpperCase(), {
+      page.drawText(t.zoneName, {
         x: tx, y: capY, size: 8, font: pjsFont, color: COLOR.INK,
       });
-      if (a.notes && a.notes.trim()) {
-        const firstLine = a.notes.split(/\r?\n/)[0] ?? "";
-        const oneLine = wrapLines(firstLine, irFont, 8.5, TILE_W)[0] ?? "";
+      if (t.caption && t.caption.trim()) {
+        const oneLine = wrapLines(t.caption, irFont, 8.5, TILE_W)[0] ?? "";
         page.drawText(oneLine, { x: tx, y: capY - 12, size: 8.5, font: irFont, color: COLOR.MUTED_ON_PAPER });
       }
     }
@@ -581,7 +706,13 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   const KPI_BOTTOM = KPI_TOP - KPI_H;
   const KPI_GAP = 12;
   const KPI_AREA_W = W - 24 * MM;
-  const KPI_W = (KPI_AREA_W - KPI_GAP * (kpis.length - 1)) / kpis.length;
+  // Cap card width — if we only have 2 KPIs they shouldn't sprawl across the
+  // whole width and look unbalanced. Max each card at ~82mm.
+  const KPI_MAX_W = 82 * MM;
+  const KPI_W = Math.min(
+    KPI_MAX_W,
+    (KPI_AREA_W - KPI_GAP * (kpis.length - 1)) / kpis.length,
+  );
   for (let i = 0; i < kpis.length; i++) {
     const kx = 12 * MM + i * (KPI_W + KPI_GAP);
     // Card surface — subtle lift on ink with a 0.5pt outline.
@@ -653,8 +784,11 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
       const zx = 12 * MM + i * (ZONE_W + ZONE_GAP);
       const photoTop = zoneRowTop;
       const photoBottom = photoTop - PHOTO_H;
-      const heroImg = a.photoImages.find(Boolean) ?? null;
-      drawPhotoTile(page, heroImg, zx, photoBottom, ZONE_W, PHOTO_H, COLOR.MUTED_ON_INK, COLOR.MUTED_ON_INK);
+      const imgs = a.photoImages.filter((p): p is PDFImage => !!p);
+      const heroImg = imgs[0] ?? null;
+      drawPhotoTile(page, heroImg, zx, photoBottom, ZONE_W, PHOTO_H, COLOR.MUTED_ON_INK, COLOR.MUTED_ON_INK, {
+        borderColor: COLOR.MUTED_ON_INK,
+      });
       if (!heroImg) {
         const lbl = a.name.toUpperCase();
         const lw = irFont.widthOfTextAtSize(lbl, 8);
@@ -663,6 +797,9 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
           y: photoBottom + PHOTO_H / 2 - 3,
           size: 8, font: irFont, color: COLOR.MUTED_ON_INK,
         });
+      }
+      if (heroImg && imgs.length > 1) {
+        drawMorePill(page, zx, photoBottom, ZONE_W, PHOTO_H, imgs.length - 1, irFont, COLOR.TEXT_ON_INK, COLOR.INK);
       }
       // Status chip below the photo
       let chipBottom = photoBottom - 18;
