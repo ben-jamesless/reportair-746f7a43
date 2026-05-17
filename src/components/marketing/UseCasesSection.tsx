@@ -101,7 +101,7 @@ const useCases: UseCase[] = [
   },
   {
     id: "activations",
-    accent: "#FF8C00",
+    accent: "#F2C14E",
     title: "Brand Activations",
     description: "Pop-ups, roadshows, and retail installations. Proof of build quality and brand compliance in real time.",
     bullets: [
@@ -128,7 +128,7 @@ const useCases: UseCase[] = [
   },
   {
     id: "venues",
-    accent: "#FF8C00",
+    accent: "#5BA3D0",
     title: "Venues",
     description:
       "Fit-outs, installs, and turnarounds across permanent and temporary venues. Photo evidence for sign-off and handover.",
@@ -319,21 +319,7 @@ export default function UseCasesSection() {
         >
           {/* Left column */}
           <div>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                background: hexToRgba(accent, 0.15),
-                color: accent,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 20,
-              }}
-            >
-              {current.icon}
-            </div>
+
             <h3
               style={{
                 ...display,
