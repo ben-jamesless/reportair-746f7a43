@@ -128,21 +128,21 @@ function renderEmail(args: {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeadersFor(req) });
   }
 
   // ============ AUTH GATE ============
   // Step 1: Validate the caller has a live session.
   const callerId = await getCallerUserId(req);
   if (!callerId) {
-    return json({ ok: false, error: "Unauthorized" }, 401);
+    return json(req, { ok: false, error: "Unauthorized" }, 401);
   }
 
   try {
     const body = await req.json().catch(() => ({}));
     const inviteId: unknown = body?.inviteId;
     if (typeof inviteId !== "string" || inviteId.length < 8) {
-      return json({ ok: false, error: "inviteId is required" }, 400);
+      return json(req, { ok: false, error: "inviteId is required" }, 400);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -157,10 +157,10 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (invErr) {
       console.error("Invite lookup failed", invErr);
-      return json({ ok: false, error: "Invite lookup failed" }, 200);
+      return json(req, { ok: false, error: "Invite lookup failed" }, 200);
     }
     if (!invite) {
-      return json({ ok: false, error: "Invite not found" }, 404);
+      return json(req, { ok: false, error: "Invite not found" }, 404);
     }
 
     // Step 2: Verify the caller is an owner or admin of the project this invite belongs to.
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (memberErr || !membership || !["owner", "admin"].includes(membership.role)) {
-      return json({ ok: false, error: "Forbidden" }, 403);
+      return json(req, { ok: false, error: "Forbidden" }, 403);
     }
     // ============ END AUTH GATE ============
 
@@ -205,7 +205,7 @@ Deno.serve(async (req) => {
         to: invite.email,
         inviteUrl,
       });
-      return json({
+      return json(req, {
         ok: false,
         error: "RESEND_API_KEY not configured",
         inviteUrl,
@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
 
     if (!resp.ok) {
       console.error("Resend send failed", resp.status, responseBody);
-      return json({ ok: false, error: `Resend ${resp.status}: ${responseBody}` }, 200);
+      return json(req, { ok: false, error: `Resend ${resp.status}: ${responseBody}` }, 200);
     }
 
     let result: Record<string, unknown> = {};
@@ -267,9 +267,9 @@ Deno.serve(async (req) => {
       result = { raw: responseBody };
     }
     console.log("Invite email sent", { inviteId, to: invite.email, id: result?.id });
-    return json({ ok: true, status: resp.status, body: result, id: result?.id });
+    return json(req, { ok: true, status: resp.status, body: result, id: result?.id });
   } catch (e) {
     console.error("send-invite-email crashed", e);
-    return json({ ok: false, error: (e as Error).message }, 200);
+    return json(req, { ok: false, error: (e as Error).message }, 200);
   }
 });
