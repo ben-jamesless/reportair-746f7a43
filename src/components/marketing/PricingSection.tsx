@@ -88,7 +88,7 @@ export function PricingSection() {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="py-[34px] sm:py-[48px] md:py-[95px]" style={{ background: "#060D18" }}>
+    <section id="pricing" className="py-[34px] sm:py-[48px] md:py-[95px]" style={{ background: "#0F1417" }}>
       <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
         <header className="mx-auto mb-8 max-w-2xl text-center">
           <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
@@ -130,10 +130,10 @@ export function PricingSection() {
                 key={p.name}
                 className={`relative flex flex-col rounded-2xl p-7 transition-transform ${isFeatured ? "md:scale-[1.04] md:py-8" : ""}`}
                 style={{
-                  background: "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))",
-                  border: `1px solid ${isFeatured ? "rgba(26,110,255,0.55)" : "rgba(26,110,255,0.14)"}`,
+                  background: "linear-gradient(135deg, rgba(26,32,37,0.95), rgba(15,20,23,0.85))",
+                  border: `1px solid ${isFeatured ? "rgba(217,79,42,0.55)" : "rgba(217,79,42,0.14)"}`,
                   boxShadow: isFeatured
-                    ? "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.4), 0 0 60px -20px rgba(26,110,255,0.45)"
+                    ? "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.4), 0 0 60px -20px rgba(217,79,42,0.45)"
                     : "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.35)",
                 }}
               >
@@ -147,7 +147,7 @@ export function PricingSection() {
                       fontSize: "13px",
                       fontWeight: 700,
                       background: BRAND.sky,
-                      boxShadow: "0 6px 18px -6px rgba(26,110,255,.55)",
+                      boxShadow: "0 6px 18px -6px rgba(217,79,42,.55)",
                     }}
                   >
                     {p.flag}

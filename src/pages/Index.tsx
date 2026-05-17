@@ -53,10 +53,10 @@ const Index = () => {
       <TimeSavedSection />
 
       {/* ============ REVIEWS ============ */}
-      <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#060D18" }}>
+      <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#0F1417" }}>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
           <header className="mx-auto mb-12 max-w-3xl text-center">
-            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "rgba(168,196,255,0.6)" }}>
+            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "rgba(244,241,234,0.6)" }}>
               {COPY.reviews.eyebrow}
             </span>
             <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
@@ -69,8 +69,8 @@ const Index = () => {
                 key={i}
                 className="flex flex-col rounded-2xl p-6"
                 style={{
-                  background: "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))",
-                  border: "1px solid rgba(26,110,255,0.14)",
+                  background: "linear-gradient(135deg, rgba(26,32,37,0.95), rgba(15,20,23,0.85))",
+                  border: "1px solid rgba(217,79,42,0.14)",
                   boxShadow: "0 0 0 1px rgba(255,255,255,0.03), 0 24px 60px rgba(0,0,0,0.35)",
                 }}
               >
@@ -81,7 +81,7 @@ const Index = () => {
                 <figcaption className="mt-5 flex items-center gap-3">
                   <div
                     className="h-10 w-10 rounded-full"
-                    style={{ background: "rgba(26,110,255,0.18)", border: "1px solid rgba(26,110,255,0.4)" }}
+                    style={{ background: "rgba(217,79,42,0.18)", border: "1px solid rgba(217,79,42,0.4)" }}
                   />
                   <div>
                     <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Javier Campero</div>
@@ -106,7 +106,7 @@ const Index = () => {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(50% 60% at 80% 20%, rgba(26,110,255,.25), transparent 60%), radial-gradient(40% 50% at 10% 90%, rgba(26,110,255,.18), transparent 60%)",
+              "radial-gradient(50% 60% at 80% 20%, rgba(217,79,42,.25), transparent 60%), radial-gradient(40% 50% at 10% 90%, rgba(217,79,42,.18), transparent 60%)",
           }}
         />
         <div className="relative mx-auto max-w-[1000px] px-5 text-center sm:px-8">

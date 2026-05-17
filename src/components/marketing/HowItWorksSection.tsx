@@ -24,13 +24,13 @@ const HowItWorksSection = () => {
   };
 
   return (
-    <section id="how-it-works" style={{ background: "#060D18", color: "#fff" }}>
+    <section id="how-it-works" style={{ background: "#0F1417", color: "#fff" }}>
       <style>{`
         .hiw-scope { font-family: 'Inter', sans-serif; }
         .hiw-scope .display { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
         @keyframes hiwCameraPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(26,110,255,0.5); }
-          50% { box-shadow: 0 0 0 12px rgba(26,110,255,0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(217,79,42,0.5); }
+          50% { box-shadow: 0 0 0 12px rgba(217,79,42,0); }
         }
         .hiw-camera-crosshair { animation: hiwCameraPulse 2.2s ease-in-out infinite; }
         .hiw-panel { transition: opacity .38s ease, transform .38s ease; }
@@ -61,7 +61,7 @@ const HowItWorksSection = () => {
               fontWeight: 700,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "rgba(168,196,255,0.6)",
+              color: "rgba(244,241,234,0.6)",
               marginBottom: 14,
             }}
           >
@@ -100,7 +100,7 @@ const HowItWorksSection = () => {
               transform: "translateX(-50%)",
               width: 520,
               height: 2,
-              background: "rgba(26,110,255,0.12)",
+              background: "rgba(217,79,42,0.12)",
               zIndex: 0,
               borderRadius: 2,
             }}
@@ -109,7 +109,7 @@ const HowItWorksSection = () => {
               style={{
                 height: "100%",
                 background: "linear-gradient(to right, #D94F2A, #5A9EFF)",
-                boxShadow: "0 0 10px rgba(26,110,255,0.7)",
+                boxShadow: "0 0 10px rgba(217,79,42,0.7)",
                 width: FILL[active],
                 borderRadius: 2,
                 transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
@@ -152,9 +152,9 @@ const HowItWorksSection = () => {
                     background: isActive
                       ? "#D94F2A"
                       : isDone
-                        ? "linear-gradient(rgba(26,110,255,0.15), rgba(26,110,255,0.15)), #060D18"
-                        : "rgba(11,24,48,0.9)",
-                    border: `2px solid ${isActive ? "#D94F2A" : isDone ? "rgba(26,110,255,0.5)" : "rgba(26,110,255,0.2)"}`,
+                        ? "linear-gradient(rgba(217,79,42,0.15), rgba(217,79,42,0.15)), #0F1417"
+                        : "rgba(26,32,37,0.9)",
+                    border: `2px solid ${isActive ? "#D94F2A" : isDone ? "rgba(217,79,42,0.5)" : "rgba(217,79,42,0.2)"}`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -162,7 +162,7 @@ const HowItWorksSection = () => {
                     fontWeight: 800,
                     color: isActive ? "#fff" : isDone ? "transparent" : "rgba(255,255,255,0.25)",
                     boxShadow: isActive
-                      ? "0 0 0 4px rgba(26,110,255,0.18), 0 0 24px rgba(26,110,255,0.45)"
+                      ? "0 0 0 4px rgba(217,79,42,0.18), 0 0 24px rgba(217,79,42,0.45)"
                       : "none",
                     transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
                     backgroundImage: isDone
@@ -207,7 +207,7 @@ const HowItWorksSection = () => {
   );
 };
 
-const PANEL_BG = "linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))";
+const PANEL_BG = "linear-gradient(135deg, rgba(26,32,37,0.95), rgba(15,20,23,0.85))";
 
 const Panel = ({
   visible,
@@ -227,7 +227,7 @@ const Panel = ({
         gap: 72,
         alignItems: "center",
         background: PANEL_BG,
-        border: "1px solid rgba(26,110,255,0.14)",
+        border: "1px solid rgba(217,79,42,0.14)",
         borderRadius: 28,
         padding: "60px 52px",
         opacity: visible ? 1 : 0,
@@ -264,7 +264,7 @@ const Eyebrow = ({ children }: { children: React.ReactNode }) => (
         height: 2,
         background: "#D94F2A",
         borderRadius: 2,
-        boxShadow: "0 0 6px rgba(26,110,255,0.6)",
+        boxShadow: "0 0 6px rgba(217,79,42,0.6)",
       }}
     />
     {children}
@@ -345,7 +345,7 @@ const NextBtn = ({
       cursor: "pointer",
       border: ghost ? "1px solid rgba(255,255,255,0.1)" : "none",
       letterSpacing: "0.01em",
-      boxShadow: ghost ? "none" : "0 4px 20px rgba(26,110,255,0.35)",
+      boxShadow: ghost ? "none" : "0 4px 20px rgba(217,79,42,0.35)",
       transition: "background .2s, box-shadow .2s",
     }}
   >
@@ -396,7 +396,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
           aspectRatio: "16 / 10",
           background: "linear-gradient(135deg,#0A1828,#0D1F40)",
           borderRadius: 12,
-          border: "1.5px solid rgba(26,110,255,0.3)",
+          border: "1.5px solid rgba(217,79,42,0.3)",
           position: "relative",
           overflow: "hidden",
         }}
@@ -408,7 +408,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
               width: 52,
               height: 52,
               borderRadius: "50%",
-              border: "2px solid rgba(26,110,255,0.7)",
+              border: "2px solid rgba(217,79,42,0.7)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -428,7 +428,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
             top: 8,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "rgba(26,110,255,0.9)",
+            background: "rgba(217,79,42,0.9)",
             borderRadius: 5,
             padding: "2px 9px",
             fontSize: 9,
@@ -648,7 +648,7 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
           </div>
           <div
             className="display"
-            style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, textAlign: "center", background: "transparent", color: "#D94F2A", border: "1px solid rgba(26,110,255,0.3)" }}
+            style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, textAlign: "center", background: "transparent", color: "#D94F2A", border: "1px solid rgba(217,79,42,0.3)" }}
           >
             Copy link
           </div>
@@ -684,7 +684,7 @@ const ChannelChip = ({
       ? { borderColor: "rgba(37,211,102,0.3)", color: "#25D366", background: "rgba(37,211,102,0.08)" }
       : variant === "pdf"
         ? { borderColor: "rgba(255,59,48,0.3)", color: "#FF3B30", background: "rgba(255,59,48,0.08)" }
-        : { borderColor: "rgba(26,110,255,0.3)", color: "#FBE6DE", background: "rgba(26,110,255,0.08)" };
+        : { borderColor: "rgba(217,79,42,0.3)", color: "#FBE6DE", background: "rgba(217,79,42,0.08)" };
   return (
     <div
       className="display"

@@ -42,7 +42,7 @@ const HeroSection = () => {
           --amber-bg: #FFF4E5;
           --font-display: 'Plus Jakarta Sans', sans-serif;
           --font-body: 'Inter', sans-serif;
-          background: #060D18;
+          background: #0F1417;
           font-family: var(--font-body);
           display: block;
           width: 100%;
@@ -67,7 +67,7 @@ const HeroSection = () => {
           left: 38%;
           transform: translate(-50%, -50%);
           width: 600px; height: 400px;
-          background: radial-gradient(ellipse, rgba(26,110,255,0.08) 0%, transparent 70%);
+          background: radial-gradient(ellipse, rgba(217,79,42,0.08) 0%, transparent 70%);
           pointer-events: none;
         }
 
@@ -76,7 +76,7 @@ const HeroSection = () => {
           font-family: var(--font-display);
           font-size: 11px; font-weight: 600;
           letter-spacing: 0.16em; text-transform: uppercase;
-          color: rgba(168,196,255,0.7);
+          color: rgba(244,241,234,0.7);
           margin-bottom: 20px;
         }
         .ra-hero .headline {
@@ -120,9 +120,9 @@ const HeroSection = () => {
         }
         .ra-hero .stage {
           width: 100%; max-width: 680px;
-          background: linear-gradient(145deg, #0B1830 0%, #0E2040 50%, #0B1830 100%);
+          background: linear-gradient(145deg, #1A2025 0%, #1A2025 50%, #1A2025 100%);
           border-radius: 24px;
-          border: 1px solid rgba(26,110,255,0.18);
+          border: 1px solid rgba(217,79,42,0.18);
           padding: 44px 36px;
           display: flex; align-items: center; justify-content: center;
           position: relative; overflow: hidden;
@@ -132,7 +132,7 @@ const HeroSection = () => {
           position: absolute; top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           width: 280px; height: 280px;
-          background: radial-gradient(circle, rgba(26,110,255,0.13) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(217,79,42,0.13) 0%, transparent 70%);
           pointer-events: none; border-radius: 50%;
         }
 
@@ -162,7 +162,7 @@ const HeroSection = () => {
         .ra-hero .chip-icon.ph  { background: rgba(255,140,0,0.12); }
         .ra-hero .chip-icon.xl  { background: rgba(33,163,80,0.14); }
         .ra-hero .chip-icon.ppt { background: rgba(209,52,52,0.13); }
-        .ra-hero .chip-icon.em  { background: rgba(26,110,255,0.14); }
+        .ra-hero .chip-icon.em  { background: rgba(217,79,42,0.14); }
         .ra-hero .chip-label {
           font-family: var(--font-display);
           font-size: 12px; font-weight: 600;
@@ -184,14 +184,14 @@ const HeroSection = () => {
           background: var(--sky);
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           gap: 5px; opacity: 0; transform: scale(0.7);
-          box-shadow: 0 0 0 0 rgba(26,110,255,0.5), 0 8px 40px rgba(26,110,255,0.35);
+          box-shadow: 0 0 0 0 rgba(217,79,42,0.5), 0 8px 40px rgba(217,79,42,0.35);
           animation: ra-nodeIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.85s forwards,
                      ra-nodePulse 2.8s ease-in-out 1.6s infinite;
         }
         @keyframes ra-nodeIn { to { opacity: 1; transform: scale(1); } }
         @keyframes ra-nodePulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(26,110,255,0.45), 0 8px 40px rgba(26,110,255,0.35); }
-          50%      { box-shadow: 0 0 0 14px rgba(26,110,255,0), 0 8px 40px rgba(26,110,255,0.35); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(217,79,42,0.45), 0 8px 40px rgba(217,79,42,0.35); }
+          50%      { box-shadow: 0 0 0 14px rgba(217,79,42,0), 0 8px 40px rgba(217,79,42,0.35); }
         }
         .ra-hero .node svg { width: 32px; height: 32px; }
         .ra-hero .node-label {
@@ -403,7 +403,7 @@ const HeroSection = () => {
               <div className="chip">
                 <div className="chip-icon em">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect width="24" height="24" rx="5" fill="rgba(26,110,255,0.15)" />
+                    <rect width="24" height="24" rx="5" fill="rgba(217,79,42,0.15)" />
                     <rect x="3" y="6" width="18" height="13" rx="2" stroke="#D94F2A" strokeWidth="1.5" />
                     <path d="M3 9l9 6 9-6" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -436,7 +436,7 @@ const HeroSection = () => {
             <div className="node-wrap">
               <div className="node">
                 <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="11" y="19" width="60" height="50" rx="6" stroke="rgba(168,196,255,0.7)" strokeWidth="5" />
+                  <rect x="11" y="19" width="60" height="50" rx="6" stroke="rgba(244,241,234,0.7)" strokeWidth="5" />
                   <rect x="27" y="35" width="60" height="50" rx="6" stroke="#fff" strokeWidth="7.5" />
                 </svg>
                 <span className="node-label">BuildSlides</span>
