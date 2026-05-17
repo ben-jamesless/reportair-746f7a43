@@ -502,9 +502,9 @@ export const ExportPdfDialog = ({
               <button
                 type="button"
                 onClick={() => setQuality("compressed")}
-                className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                className={`rounded-lg border-2 px-3 py-3 text-left transition-colors ${
                   quality === "compressed"
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground"
                 }`}
               >
@@ -514,9 +514,9 @@ export const ExportPdfDialog = ({
               <button
                 type="button"
                 onClick={() => setQuality("high_res")}
-                className={`rounded-lg border px-3 py-3 text-left transition-colors ${
+                className={`rounded-lg border-2 px-3 py-3 text-left transition-colors ${
                   quality === "high_res"
-                    ? "border-primary bg-primary/5 ring-1 ring-primary"
+                    ? "border-primary bg-primary/5"
                     : "border-border hover:border-muted-foreground"
                 }`}
               >
