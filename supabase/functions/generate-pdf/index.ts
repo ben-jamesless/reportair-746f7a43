@@ -254,14 +254,14 @@ async function loadFontBytes(): Promise<{ pjs: Uint8Array | null; ir: Uint8Array
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsFor(req) });
 
   // ============ AUTH GATE ============
   // Step 1: Validate the caller has a live session.
   const callerId = await getCallerUserId(req);
   if (!callerId) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 401, headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
   }
 
@@ -272,14 +272,14 @@ Deno.serve(async (req) => {
     const body = await req.json();
     exportId = body.export_id;
     if (!exportId) return new Response(JSON.stringify({ error: "missing export_id" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400, headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
 
     // Step 2: Load the export row to get the project_id.
     const { data: exp, error: expErr } = await supabase.from("project_exports").select("*").eq("id", exportId).single();
     if (expErr || !exp) {
       return new Response(JSON.stringify({ error: "Export not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404, headers: { ...corsFor(req), "Content-Type": "application/json" },
       });
     }
 
@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
     const allowed = await callerCanExport(supabase, callerId, projectId);
     if (!allowed) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403, headers: { ...corsFor(req), "Content-Type": "application/json" },
       });
     }
     // ============ END AUTH GATE ============
@@ -799,7 +799,7 @@ Deno.serve(async (req) => {
     console.log(JSON.stringify({ fn: "generate-pdf", event: "complete", export_id: exportId, output_path: outputPath, ts: new Date().toISOString() }));
 
     return new Response(JSON.stringify({ ok: true, output_path: outputPath }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error(JSON.stringify({
@@ -811,7 +811,7 @@ Deno.serve(async (req) => {
     }));
     if (exportId) await fail(supabase, exportId, String((e as Error)?.message ?? e));
     return new Response(JSON.stringify({ error: String((e as Error)?.message ?? e) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
   }
 });
