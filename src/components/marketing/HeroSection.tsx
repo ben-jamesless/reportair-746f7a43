@@ -348,7 +348,16 @@ const HeroSection = () => {
           </p>
           <div className="cta-row">
             <Link className="btn-primary" to="/auth">Sign in</Link>
-            <a className="btn-secondary" href="#product">See how it works →</a>
+            <a
+              className="btn-secondary"
+              href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              See how it works →
+            </a>
           </div>
         </div>
 
@@ -435,9 +444,9 @@ const HeroSection = () => {
             {/* Centre node */}
             <div className="node-wrap">
               <div className="node">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="11" y="19" width="60" height="50" rx="6" stroke="rgba(244,241,234,0.7)" strokeWidth="5" />
-                  <rect x="27" y="35" width="60" height="50" rx="6" stroke="#fff" strokeWidth="7.5" />
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="7" y="9.5" width="14" height="9" rx="1.6" fill="#FFFFFF" opacity="0.55" />
+                  <rect x="11" y="13.5" width="14" height="9" rx="1.6" fill="#FFFFFF" />
                 </svg>
                 <span className="node-label">BuildSlides</span>
               </div>
@@ -459,9 +468,10 @@ const HeroSection = () => {
             <div className="report-card">
               <div className="rc-header">
                 <div className="rc-logo">
-                  <svg viewBox="0 0 100 100" fill="none">
-                    <rect x="11" y="19" width="60" height="50" rx="6" stroke="#FBE6DE" strokeWidth="4.4" />
-                    <rect x="27" y="35" width="60" height="50" rx="6" stroke="#D94F2A" strokeWidth="6.8" />
+                  <svg viewBox="0 0 32 32" fill="none">
+                    <rect x="0" y="0" width="32" height="32" rx="7" fill="#D94F2A" />
+                    <rect x="7" y="9.5" width="14" height="9" rx="1.6" fill="#FFFFFF" opacity="0.55" />
+                    <rect x="11" y="13.5" width="14" height="9" rx="1.6" fill="#FFFFFF" />
                   </svg>
                   <span className="rc-logo-text">BuildSlides</span>
                 </div>
