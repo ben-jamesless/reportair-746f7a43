@@ -149,6 +149,8 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     setEmail("");
     toast.success(`Invite created for ${parsed.data}`);
     if (inserted?.id) {
+      // Fire-and-forget: in-app notification (works even if email fails).
+      void supabase.rpc("notify_user_of_invite", { _invite_id: inserted.id });
       void sendInviteEmail(inserted.id, { silent: true });
     }
     load();
