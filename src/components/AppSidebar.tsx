@@ -220,7 +220,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex flex-col bg-[#0F1724] text-white transition-[width] duration-200",
+          "flex flex-col bg-[#0F1417] text-white transition-[width] duration-200",
           mobile
             ? "h-full w-full"
             : "hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:border-r md:border-white/10",
@@ -243,7 +243,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             type="button"
             onClick={onToggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-[#0F1724] text-white/70 transition-colors hover:bg-white/10"
+            className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-[#0F1417] text-white/70 transition-colors hover:bg-white/10"
           >
             <ChevronLeft className={cn("h-3 w-3 transition-transform", collapsed && "rotate-180")} />
           </button>
@@ -660,7 +660,7 @@ const FolderEditor = ({
                   aria-label={`Color ${c}`}
                   className={cn(
                     "h-7 w-7 rounded-full border transition-transform hover:scale-110",
-                    color === c && "ring-2 ring-white/40 ring-offset-2 ring-offset-[#0F1724]",
+                    color === c && "ring-2 ring-white/40 ring-offset-2 ring-offset-[#0F1417]",
                   )}
                   style={{ backgroundColor: c }}
                 />
