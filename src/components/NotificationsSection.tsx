@@ -210,7 +210,7 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
   );
 
   const triggerCls = cn(
-    "group flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors lg:px-3",
+    "group flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-slate-50 transition-colors lg:px-3",
     "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
     compactLabel && "justify-center",
   );
