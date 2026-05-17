@@ -30,6 +30,13 @@ type UnifiedRow = {
   team_suspended_at: string | null;
   owned_project_count: number | null;
   team_project_count: number | null;
+  has_payment_method: boolean | null;
+};
+
+const daysUntil = (iso: string | null) => {
+  if (!iso) return null;
+  const ms = new Date(iso).getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / 86_400_000));
 };
 
 const PLAN_LABELS: Record<string, string> = {
