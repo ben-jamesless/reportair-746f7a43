@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
 import type { LightboxPhoto } from "@/components/PhotoLightbox";
 import type { AreaStatus } from "@/components/AreaStatusPicker";
 import type { ProjectStatus } from "@/lib/projectStatus";
