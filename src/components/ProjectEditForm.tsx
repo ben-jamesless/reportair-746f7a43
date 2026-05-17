@@ -274,6 +274,17 @@ export const ProjectEditForm = ({
     navigate("/projects");
   };
 
+  const confirmLeave = async () => {
+    setLeaving(true);
+    const { error } = await supabase.rpc("owner_leave_project", { _project_id: projectId });
+    setLeaving(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Removed from your account");
+    onSaved?.();
+    onClose?.();
+    navigate("/projects");
+  };
+
   const confirmArchive = async () => {
     setArchiving(true);
     const { error } = await supabase
@@ -290,37 +301,50 @@ export const ProjectEditForm = ({
   };
 
   if (confirmingDelete) {
+    const multiOwner = ownerCount > 1;
     return (
       <div className="space-y-4">
         <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
-          <p className="font-medium text-destructive">This action is permanent.</p>
+          <p className="font-medium text-destructive">
+            {multiOwner ? "This project has multiple owners." : "This action is permanent."}
+          </p>
           <p className="mt-1 text-muted-foreground">
-            All albums, areas, photos, comments, share links, and history for this project will be deleted.
+            {multiOwner
+              ? "Deleting it will remove the project for every owner. You can also just remove it from your own account and leave it for the others."
+              : "All albums, areas, photos, comments, share links, and history for this project will be deleted."}
           </p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirm-name">
-            Type <span className="font-mono font-semibold">{initialName}</span> to confirm
-          </Label>
-          <Input
-            id="confirm-name"
-            value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value)}
-            placeholder={initialName}
-            autoFocus
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => { setConfirmingDelete(false); setConfirmText(""); }} disabled={deleting}>
+        {!multiOwner && (
+          <div className="space-y-2">
+            <Label htmlFor="confirm-name">
+              Type <span className="font-mono font-semibold">{initialName}</span> to confirm
+            </Label>
+            <Input
+              id="confirm-name"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={initialName}
+              autoFocus
+            />
+          </div>
+        )}
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={() => { setConfirmingDelete(false); setConfirmText(""); }} disabled={deleting || leaving}>
             Back
           </Button>
+          {multiOwner && (
+            <Button variant="outline" onClick={confirmLeave} disabled={deleting || leaving}>
+              {leaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Just remove me
+            </Button>
+          )}
           <Button
             variant="destructive"
             onClick={confirmDelete}
-            disabled={deleting || confirmText.trim() !== initialName.trim()}
+            disabled={deleting || leaving || (!multiOwner && confirmText.trim() !== initialName.trim())}
           >
             {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Delete project
+            {multiOwner ? "Delete for everyone" : "Delete project"}
           </Button>
         </div>
       </div>
