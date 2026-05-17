@@ -561,7 +561,17 @@ const Projects = () => {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive focus:text-destructive"
-                              onSelect={() => { setDeletingProject(p); setDeleteConfirm(""); }}
+                              onSelect={async () => {
+                                setDeletingProject(p);
+                                setDeleteConfirm("");
+                                setDeleteOwnerCount(1);
+                                const { count } = await supabase
+                                  .from("project_members")
+                                  .select("user_id", { count: "exact", head: true })
+                                  .eq("project_id", p.id)
+                                  .eq("role", "owner");
+                                setDeleteOwnerCount(count ?? 1);
+                              }}
                             >
                               <Trash2 className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
