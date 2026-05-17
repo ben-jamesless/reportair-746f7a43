@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  EVENT_TEMPLATE_DEFS,
+  RECOMMENDED_LAYOUT_KEY,
+  TEMPLATE_ID_KEY,
+} from "@/lib/eventTemplates";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -153,11 +158,29 @@ export const ExportPdfDialog = ({
   // Pro+ unlocks the two horizontal layouts at launch. Solo gets portrait only.
   const isPro = plan !== "solo";
 
-  // Default to the last layout this project used, falling back to portrait.
+  // Default order: last-used layout for THIS project (LAYOUT_STORAGE_KEY) →
+  // template's recommended layout (set by NewProjectDialog at create time) →
+  // portrait. This means a freshly-created Exhibition project opens the
+  // export dialog with Production Log already selected, while users who
+  // override it once keep their override.
+  const isValidLayout = (v: unknown): v is LayoutVariant =>
+    v === "portrait_v1" || v === "horizontal_deck_v1" || v === "horizontal_log_v1";
+  const recommendedLayout = useMemo<LayoutVariant | null>(() => {
+    if (typeof window === "undefined") return null;
+    const v = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
+    return isValidLayout(v) ? (v as LayoutVariant) : null;
+  }, [projectId]);
+  const templateForProject = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const id = window.localStorage.getItem(TEMPLATE_ID_KEY(projectId));
+    return EVENT_TEMPLATE_DEFS.find((t) => t.id === id) ?? null;
+  }, [projectId]);
   const [layout, setLayout] = useState<LayoutVariant>(() => {
     if (typeof window === "undefined") return "portrait_v1";
     const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY(projectId)) as LayoutVariant | null;
-    if (saved === "portrait_v1" || saved === "horizontal_deck_v1" || saved === "horizontal_log_v1") return saved;
+    if (isValidLayout(saved)) return saved;
+    const rec = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
+    if (isValidLayout(rec)) return rec as LayoutVariant;
     return "portrait_v1";
   });
   // Guard: if a Pro layout is remembered but the user is no longer Pro, fall back to portrait.
@@ -560,6 +583,11 @@ export const ExportPdfDialog = ({
                       )}
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">{opt.hint}</p>
+                    {selected && templateForProject && recommendedLayout === opt.value && (
+                      <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        Recommended for {templateForProject.title}
+                      </p>
+                    )}
                   </button>
                 );
               })}
