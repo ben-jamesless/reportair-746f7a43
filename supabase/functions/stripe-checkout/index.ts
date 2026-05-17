@@ -107,6 +107,16 @@ serve(async (req) => {
     await service.from("teams").update({ stripe_customer_id: customerId }).eq("id", team.id);
   }
 
+  const rawAppUrl =
+    Deno.env.get("APP_URL") ||
+    req.headers.get("origin") ||
+    req.headers.get("referer")?.replace(/\/$/, "") ||
+    "https://www.buildslides.com";
+  const appUrl = rawAppUrl.trim().replace(/^['"]|['"]$/g, "").replace(/\/$/, "");
+  const baseOrigin = /^https?:\/\//i.test(appUrl)
+    ? appUrl.split("/").slice(0, 3).join("/")
+    : "https://www.buildslides.com";
+
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
@@ -115,8 +125,8 @@ serve(async (req) => {
       trial_period_days: 14,
       metadata: { supabase_team_id: team.id },
     },
-    success_url: success_url ?? `${Deno.env.get("APP_URL")}/billing?checkout=success`,
-    cancel_url:  cancel_url  ?? `${Deno.env.get("APP_URL")}/billing?checkout=cancelled`,
+    success_url: success_url ?? `${baseOrigin}/billing?checkout=success`,
+    cancel_url:  cancel_url  ?? `${baseOrigin}/billing?checkout=cancelled`,
   });
 
   return new Response(JSON.stringify({ url: session.url }), {
