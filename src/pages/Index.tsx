@@ -71,7 +71,7 @@ const Index = () => {
       <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#0F1417" }}>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
           <header className="mx-auto mb-12 max-w-3xl text-center">
-            <span className="mb-3 inline-block text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: "rgba(244,241,234,0.6)" }}>
+            <span className="mb-3 inline-block text-[11px] font-extrabold uppercase tracking-[0.14em]" style={{ color: "#D94F2A" }}>
               {COPY.reviews.eyebrow}
             </span>
             <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
