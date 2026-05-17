@@ -111,6 +111,8 @@ export const ProjectEditForm = ({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [ownerCount, setOwnerCount] = useState(1);
 
   // Archive state
   const [confirmingArchive, setConfirmingArchive] = useState(false);
