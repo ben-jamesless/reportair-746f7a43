@@ -191,10 +191,10 @@ const AdminUsers = () => {
                       <Badge variant="destructive">Team suspended</Badge>
                     ) : r.subscription_status === "trialing" ? (
                       <div className="flex flex-col gap-1 items-start">
-                        <Badge className="bg-amber-500 text-white hover:bg-amber-500/90">
+                        <Badge className="bg-amber-500 text-white hover:bg-amber-500/90 whitespace-nowrap">
                           Trial · {daysUntil(r.trial_ends_at) ?? "?"}d left
                         </Badge>
-                        <span className={`text-[10px] font-medium ${r.has_payment_method ? "text-emerald-600" : "text-muted-foreground"}`}>
+                        <span className={`text-[10px] font-medium whitespace-nowrap ${r.has_payment_method ? "text-emerald-600" : "text-muted-foreground"}`}>
                           {r.has_payment_method ? "Card on file" : "No card"}
                         </span>
                       </div>
