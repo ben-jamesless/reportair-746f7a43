@@ -3,29 +3,34 @@ import { display, body } from "./brand-tokens";
 
 const faqs = [
   {
-    question: "What exactly does BuildSlides do?",
+    question: "Who is this actually for?",
     answer:
-      "BuildSlides turns your on-site photos and notes into a professional, client-ready PDF report — automatically. Upload photos from the day, tag them by area, add notes, and BuildSlides organises everything into a polished daily progress report. No formatting, no copy-pasting, no time wasted back at the desk.",
+      "Production managers, agency owners, and venue ops teams running live events, exhibitions, and brand activations. If your day ends with you rebuilding a deck on the train home — you're our person.",
   },
   {
-    question: "Who is BuildSlides built for?",
+    question: "Can I brand the PDF with our logo and colours?",
     answer:
-      "Event build professionals — site managers, production coordinators, and freelancers working on builds from multi-month tournaments to 2-day brand activations. Works for solo operators and larger teams running multiple concurrent builds.",
+      "Yes. Drop in your logo and your brand colour and every export comes out with your cover page, header, and footer. White-label PDFs (no BuildSlides watermark) are included on the Studio tier.",
   },
   {
-    question: "How does the PDF report get generated?",
+    question: "What does the PDF look like?",
     answer:
-      "Once you've uploaded your photos and notes, BuildSlides compiles everything into a clean, structured PDF organised by date and area. Generate a report for any day with one click — end-of-day reporting becomes a 2-minute task, not a 2-hour one.",
+      "Cover with your client's name and event title, then photos grouped by zone and time, each zone tagged with a clear status — On track, Needs discussion, Concern, or Complete. Print-clean. Client-safe. A sample lands in the welcome email.",
   },
   {
-    question: "Can I use BuildSlides on-site from my phone?",
+    question: "How is this different from a shared Google Drive?",
     answer:
-      "Yes — fully mobile-responsive and designed for the field. Upload photos, add notes, and tag locations directly from your phone as you walk the site. Everything syncs instantly.",
+      "Drive is a bucket. BuildSlides is a workflow — auto-tagging, structured reports, branded export, audit history. The deck-build step disappears.",
   },
   {
-    question: "Is my data and photos secure?",
+    question: "When can I use it?",
     answer:
-      "Absolutely. All photos and project data are stored securely with role-based access controls. Only you and team members you invite can access your projects. Your content is never shared or used outside your account.",
+      "Closed beta is running with Hong Kong and London crews now. Public beta opens Q2 2026. Drop your email below and you'll get an invite slot.",
+  },
+  {
+    question: "What does it cost?",
+    answer:
+      "Solo HK$128/mo, Pro HK$298/mo, Studio HK$688/mo. Annual billing saves 20%. 14-day free trial on every tier — see the pricing section below.",
   },
   {
     question: "Can multiple people work on the same event at once?",
@@ -33,24 +38,9 @@ const faqs = [
       "Yes. Invite your team to any event and everyone works in the same project in real time. A site photographer uploads from the ground, a site manager adds notes from the office, and the producer generates the report — all without stepping on each other.",
   },
   {
-    question: "Do I need to organise photos before uploading?",
-    answer:
-      "No. Upload in any order from any device. Reportair sorts everything by time and date automatically. You spend time on-site, not on filing.",
-  },
-  {
-    question: "What's the difference between a team owner and an invited member?",
-    answer:
-      "Owners create events, manage team members, and control billing. Invited members can upload photos, add notes, and view reports for the events they're added to — nothing outside their access. You control exactly who sees what.",
-  },
-  {
     question: "Can I share a report with a client who doesn't have an account?",
     answer:
       "Yes. Generate a shareable link for any daily report which your client can open in any browser. The link shows them a clean, read-only view of that day and the overall project's progress.",
-  },
-  {
-    question: "What happens to reports after the event wraps?",
-    answer:
-      "Everything stays in your account and is archived, not deleted. You can pull up photos, notes, and reports from any past event at any time — useful for client disputes, handover documentation, or reference on the next build.",
   },
 ];
 
