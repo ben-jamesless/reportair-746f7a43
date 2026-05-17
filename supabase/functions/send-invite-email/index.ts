@@ -267,6 +267,10 @@ Deno.serve(async (req) => {
       result = { raw: responseBody };
     }
     console.log("Invite email sent", { inviteId, to: invite.email, id: result?.id });
+    // Best-effort: also create an in-app notification if the invitee already has an account.
+    await supabase.rpc("notify_user_of_invite", { _invite_id: inviteId }).catch((err) => {
+      console.error("notify_user_of_invite failed", err);
+    });
     return json(req, { ok: true, status: resp.status, body: result, id: result?.id });
   } catch (e) {
     console.error("send-invite-email crashed", e);
