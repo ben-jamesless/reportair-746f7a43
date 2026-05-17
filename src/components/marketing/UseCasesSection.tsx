@@ -127,24 +127,24 @@ const useCases: UseCase[] = [
     ),
   },
   {
-    id: "marathons",
+    id: "venues",
     accent: "#FF8C00",
-    title: "Marathon & Road Races",
+    title: "Venues",
     description:
-      "Route infrastructure, barriers, signage, and water stations. Photo evidence for safety sign-off.",
+      "Fit-outs, installs, and turnarounds across permanent and temporary venues. Photo evidence for sign-off and handover.",
     bullets: [
-      "Document route setup km by km or zone by zone",
-      "Barrier placement, water stations, medical post positioning",
-      "Photo evidence submitted to local authority for road permits",
-      "Flag missing signage or incomplete setups instantly",
+      "Document setup zone by zone across the venue footprint",
+      "Track staging, rigging, AV, dressing, and front-of-house",
+      "Photo evidence for client walk-throughs and venue handover",
+      "Flag missing items or incomplete zones instantly",
     ],
-    reportTitle: "City Marathon — Route Check",
-    reportDay: "Race Eve",
+    reportTitle: "Riverside Venue — Build Check",
+    reportDay: "Build Day 2",
     rows: [
-      { label: "Zone A (km 1–10)", status: "complete" },
-      { label: "Zone B (km 11–21)", status: "complete" },
-      { label: "Water Stations", status: "progress" },
-      { label: "Finish Line Setup", status: "pending" },
+      { label: "Main Hall", status: "complete" },
+      { label: "Foyer & Entry", status: "complete" },
+      { label: "Back of House", status: "progress" },
+      { label: "Front of House", status: "pending" },
     ],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="24" height="24">
@@ -187,7 +187,7 @@ const useCases: UseCase[] = [
 const tabLabels: Record<string, string> = {
   festivals: "Festivals",
   golf: "Golf",
-  marathons: "Marathons",
+  venues: "Venues",
   corporate: "Corporate",
   filmsets: "Film sets",
   activations: "Activations",
