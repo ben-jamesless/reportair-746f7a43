@@ -1259,6 +1259,29 @@ export type Database = {
         Returns: string
       }
       get_team_export_count: { Args: { _team_id: string }; Returns: number }
+      get_team_pending_invites: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          invite_id: string
+          project_id: string
+          project_name: string
+          role: string
+          token: string
+        }[]
+      }
+      get_team_roster: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          joined_at: string
+          last_active_at: string
+          projects: Json
+          user_id: string
+        }[]
+      }
       has_project_role: {
         Args: {
           _project_id: string
@@ -1361,6 +1384,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      remove_team_member: { Args: { _user_id: string }; Returns: undefined }
       resolve_share_link: {
         Args: { _password?: string; _token: string }
         Returns: Json
