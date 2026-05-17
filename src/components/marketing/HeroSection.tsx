@@ -303,7 +303,7 @@ const HeroSection = () => {
           .ra-hero .node svg { width: 27px; height: 27px; }
           .ra-hero .node-label { font-size: 6.5px; }
           .ra-hero .out-line-svg { flex: none; width: 32px; height: 48px; display: block; }
-          .ra-hero .report-card { width: 100%; max-width: 360px; }
+          .ra-hero .report-card { width: 100%; max-width: none; }
         }
 
         /* Mobile */
