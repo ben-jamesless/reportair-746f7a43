@@ -248,7 +248,7 @@ export default function UseCasesSection() {
         }
       `}</style>
 
-      <div className="container mx-auto px-6">
+      <div className="px-6">
         <p
           style={{
             ...body,
