@@ -6,4 +6,4 @@ Disallow: /billing
 Disallow: /onboarding
 Disallow: /profile
 
-Sitemap: https://reportair.co/sitemap.xml
+Sitemap: https://www.buildslides.com/sitemap.xml

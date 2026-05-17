@@ -29,7 +29,7 @@ const TermsContent = () => (
     <LegalH2>6. Disclaimer</LegalH2>
     <p>The service is provided "as is" without warranties of any kind. BuildSlides is not liable for indirect or consequential damages arising from use of the service.</p>
     <LegalH2>7. Contact</LegalH2>
-    <p>Questions about these terms? Contact us at hello@reportair.co.</p>
+    <p>Questions about these terms? Contact us at hello@buildslides.com.</p>
   </div>
 );
 
@@ -50,7 +50,7 @@ const PrivacyContent = () => (
     <LegalH2>6. Cookies</LegalH2>
     <p>We use essential cookies to keep you signed in and to remember preferences. We do not use third-party advertising cookies.</p>
     <LegalH2>7. Contact</LegalH2>
-    <p>Privacy questions? Email hello@reportair.co.</p>
+    <p>Privacy questions? Email hello@buildslides.com.</p>
   </div>
 );
 
