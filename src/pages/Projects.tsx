@@ -286,7 +286,7 @@ const Projects = () => {
 
   const showSkeleton = authLoading || loading;
   const hasAnyVisibleSource = projects.filter((p) => !p.archived_at).length > 0 || activeTab === "Archived";
-  const atLimit = plan === "solo" && projectCount >= limits.maxProjects && limits.maxProjects !== -1;
+  const atLimit = limits.maxProjects !== -1 && projectCount >= limits.maxProjects;
 
   const tabs: ActiveTab[] = ["All Events", "Active", "Archived"];
 
@@ -795,8 +795,8 @@ function NewEventButton({
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your Solo plan.</p>
-          <Link to="/billing" className="text-[#D94F2A] underline text-xs">Upgrade to Pro →</Link>
+          <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your current plan.</p>
+          <Link to="/billing" className="text-[#D94F2A] underline text-xs">Upgrade →</Link>
         </TooltipContent>
       </Tooltip>
     );
