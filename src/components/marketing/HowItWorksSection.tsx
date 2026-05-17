@@ -24,7 +24,7 @@ const HowItWorksSection = () => {
   };
 
   return (
-    <section id="how-it-works" style={{ background: "#0F1417", color: "#fff" }}>
+    <section id="how-it-works" style={{ background: "#0F1417", color: "#fff", overflowX: "hidden" }}>
       <style>{`
         .hiw-scope { font-family: 'Inter', sans-serif; }
         .hiw-scope .display { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
