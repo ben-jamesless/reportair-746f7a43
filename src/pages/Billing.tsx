@@ -402,12 +402,12 @@ const Billing = () => {
           <div className="rounded-2xl bg-muted/40 border border-border p-6 flex flex-col gap-4 self-start">
             <h3 className="text-lg font-semibold text-foreground">Want a live walkthrough?</h3>
             <p className="text-sm text-muted-foreground">
-              See how Reportair works, ask questions, and start saving your team time and money.
+              See how BuildSlides works, ask questions, and start saving your team time and money.
             </p>
             <Button
               variant="outline"
               className="w-full font-semibold"
-              onClick={() => window.open("mailto:ben@reportair.co?subject=Reportair%20Demo%20Request", "_blank")}
+              onClick={() => window.open("mailto:ben@buildslides.com?subject=BuildSlides%20Demo%20Request", "_blank")}
             >
               Schedule a Demo
             </Button>

@@ -3,9 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
-  const fallback = Deno.env.get("APP_URL") ?? "https://reportair.co";
+  const fallback = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
   const allow =
-    /^https:\/\/([a-z0-9-]+\.)*reportair\.co$/i.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)*buildslides\.com$/i.test(origin) ||
     /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i.test(origin) ||
     /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i.test(origin) ||
     /^http:\/\/localhost(:\d+)?$/i.test(origin)
