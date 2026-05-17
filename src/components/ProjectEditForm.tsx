@@ -49,6 +49,8 @@ interface Props extends ProjectEditValues {
   onClose?: () => void;
   /** When true, hides the danger zone (used in places where deletion isn't appropriate). */
   hideDangerZone?: boolean;
+  /** Optional extra content rendered just above the Save/Cancel button row. */
+  extraSections?: React.ReactNode;
 }
 
 const toIsoDate = (d: Date | undefined): string | null => {
@@ -81,6 +83,7 @@ export const ProjectEditForm = ({
   onSaved,
   onClose,
   hideDangerZone,
+  extraSections,
 }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -637,6 +640,8 @@ export const ProjectEditForm = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {extraSections && <div className="space-y-3">{extraSections}</div>}
 
       <div className="flex justify-end gap-2">
         {onClose && (
