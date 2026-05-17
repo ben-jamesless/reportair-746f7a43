@@ -498,7 +498,7 @@ const SharePage = () => {
 
       {/* THREE-COLUMN LAYOUT */}
       <div className="mx-auto w-full px-6 py-6 2xl:px-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,4fr)_minmax(0,3fr)]">
           {/* LEFT: Date navigation */}
           <aside className="hidden lg:block space-y-1">
             <button
