@@ -496,16 +496,6 @@ export const ExportPdfDialog = ({
             </Card>
           )}
 
-          <section>
-            <h3 className="mb-2 text-sm font-medium">Sections to include</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <SectionToggle label="Cover page" checked={sections.cover} onChange={(v) => setSections((s) => ({ ...s, cover: v }))} />
-              <SectionToggle label="Photo grid" checked={sections.grid} onChange={(v) => setSections((s) => ({ ...s, grid: v }))} />
-              <SectionToggle label="Captions under photos" checked={sections.captions} onChange={(v) => setSections((s) => ({ ...s, captions: v }))} />
-              <SectionToggle label="Activity log" checked={sections.activity} onChange={(v) => setSections((s) => ({ ...s, activity: v }))} />
-            </div>
-          </section>
-
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Export quality</label>
             <div className="grid grid-cols-2 gap-2">
