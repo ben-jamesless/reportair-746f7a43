@@ -641,6 +641,8 @@ export const ProjectEditForm = ({
         </AlertDialogContent>
       </AlertDialog>
 
+      {extraSections && <div className="space-y-3">{extraSections}</div>}
+
       <div className="flex justify-end gap-2">
         {onClose && (
           <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
