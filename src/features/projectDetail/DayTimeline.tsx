@@ -91,7 +91,7 @@ export function DayTimeline({
   const [addingArea, setAddingArea] = useState(false);
   const [newAreaName, setNewAreaName] = useState("");
 
-  // Resolve template id from localStorage (set by NewProjectDialog).
+  // Resolve template id from localStorage (set by NewEventPanel).
   // Once we migrate the project_template enum, swap this for project.template.
   const templateId = useMemo(
     () => (project?.id ? readProjectTemplateId(project.id) : null),

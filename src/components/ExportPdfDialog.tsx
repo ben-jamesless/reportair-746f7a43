@@ -162,7 +162,7 @@ export const ExportPdfDialog = ({
   const isPro = plan !== "solo";
 
   // Default order: last-used layout for THIS project (LAYOUT_STORAGE_KEY) →
-  // template's recommended layout (set by NewProjectDialog at create time) →
+  // template's recommended layout (set by NewEventPanel at create time) →
   // portrait. This means a freshly-created Exhibition project opens the
   // export dialog with Production Log already selected, while users who
   // override it once keep their override.
