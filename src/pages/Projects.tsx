@@ -286,7 +286,7 @@ const Projects = () => {
 
   const showSkeleton = authLoading || loading;
   const hasAnyVisibleSource = projects.filter((p) => !p.archived_at).length > 0 || activeTab === "Archived";
-  const atLimit = plan === "solo" && projectCount >= limits.maxProjects && limits.maxProjects !== -1;
+  const atLimit = limits.maxProjects !== -1 && projectCount >= limits.maxProjects;
 
   const tabs: ActiveTab[] = ["All Events", "Active", "Archived"];
 
