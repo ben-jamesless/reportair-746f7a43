@@ -1,134 +1,188 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ReportAir design system — efficient, professional, direct.
-   All colors MUST be HSL. */
+/* BuildSlides design system — warm paper canvas, dark ink sidebar, brand orange accent.
+   All shadcn semantic colors mapped to BuildSlides palette. All HSL. */
 
 @layer base {
   :root {
-    /* FOG #F5F7FA */
-    --background: 214 33% 97%;
-    /* SLATE #3D4F66 — body text (Ink reserved for headings + wordmark) */
-    --foreground: 217 26% 32%;
-    /* INK #0F1724 — headings and wordmark only */
-    --heading: 217 43% 10%;
+    /* ===== BuildSlides raw tokens (hex/rgb for non-tailwind use) ===== */
+    --bs-accent: #D94F2A;
+    --bs-accent-hover: #B53D1F;
+    --bs-accent-soft: #FBE6DE;
+    --bs-accent-tint: #FFF4EF;
 
-    --card: 0 0% 100%;
-    --card-foreground: 217 26% 32%;
+    --bs-ink:   #0F1417;
+    --bs-ink-2: #1A2025;
+    --bs-ink-3: #2A3035;
+
+    --bs-paper:   #FAF7F0;
+    --bs-paper-2: #F4F1EA;
+    --bs-paper-3: #ECE7DA;
+    --bs-surface: #FFFFFF;
+
+    --bs-text: #0F1417;
+    --bs-text-muted: #6B6B66;
+    --bs-text-muted-2: #9A9690;
+    --bs-text-on-dark: #F4F1EA;
+    --bs-text-on-accent: #FFFFFF;
+
+    --bs-rule: #E5E1D6;
+    --bs-rule-strong: #D9D4C5;
+    --bs-rule-dark: #2A3035;
+
+    --bs-yellow: #F2C14E;
+    --bs-yellow-deep: #E0A82E;
+    --bs-yellow-soft: #FBEFC9;
+
+    --bs-status-ontrack-bg: #E4F5EC;   --bs-status-ontrack-fg: #1E8A5A;   --bs-status-ontrack-rail: #2EB872;
+    --bs-status-active-bg:  #FBEFC9;   --bs-status-active-fg:  #8A6A18;   --bs-status-active-rail:  #E0A82E;
+    --bs-status-review-bg:  #FBE6DE;   --bs-status-review-fg:  #B53D1F;   --bs-status-review-rail:  #D94F2A;
+    --bs-status-concern-bg: #F8D7D1;   --bs-status-concern-fg: #A52A1C;   --bs-status-concern-rail: #C7382A;
+    --bs-status-archived-bg:#ECE7DA;   --bs-status-archived-fg:#6B6B66;   --bs-status-archived-rail:#9A9690;
+
+    --bs-radius-sm: 8px;
+    --bs-radius-md: 12px;
+    --bs-radius-lg: 16px;
+    --bs-radius-pill: 999px;
+
+    --bs-shadow-sm: 0 1px 2px rgba(15, 20, 23, 0.04);
+    --bs-shadow-md: 0 4px 12px rgba(15, 20, 23, 0.06);
+    --bs-shadow-lg: 0 12px 28px rgba(15, 20, 23, 0.10);
+
+    --bs-focus-ring: 0 0 0 3px rgba(217, 79, 42, 0.28);
+
+    /* PDF-only tokens — pure white, cooler greys */
+    --bs-pdf-page-bg:    #FFFFFF;
+    --bs-pdf-rule:       #E5E5E5;
+    --bs-pdf-rule-strong:#D4D4D4;
+    --bs-pdf-muted:      #6B6B70;
+
+    /* ===== shadcn semantic tokens, mapped to BuildSlides (HSL only) ===== */
+    /* paper #FAF7F0 */
+    --background: 42 36% 96%;
+    /* ink #0F1417 (body text) */
+    --foreground: 200 11% 8%;
+    /* ink for headings + wordmark */
+    --heading: 200 11% 8%;
+
+    /* paper-2 cards */
+    --card: 43 32% 93%;
+    --card-foreground: 200 11% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 217 26% 32%;
+    --popover-foreground: 200 11% 8%;
 
-    /* SKY #1A6EFF */
-    --primary: 217 100% 55%;
+    /* accent orange #D94F2A */
+    --primary: 13 70% 51%;
     --primary-foreground: 0 0% 100%;
-    /* SKY_DARK #0D47B5 */
-    --primary-hover: 218 87% 38%;
-    /* SKY_MID #5590FF */
-    --primary-glow: 217 100% 67%;
-    /* SKY_SOFT #A8C4FF */
-    --primary-soft: 220 100% 83%;
+    /* accent hover #B53D1F */
+    --primary-hover: 13 72% 41%;
+    /* accent tint #FFF4EF */
+    --primary-glow: 17 100% 97%;
+    /* accent soft #FBE6DE */
+    --primary-soft: 18 83% 93%;
 
-    /* CLOUD #EDF1F7 */
-    --secondary: 217 33% 95%;
-    --secondary-foreground: 217 43% 10%;
+    /* paper-2 #F4F1EA */
+    --secondary: 43 32% 93%;
+    --secondary-foreground: 200 11% 8%;
 
-    --muted: 217 33% 95%;
-    /* MIST #7A8FA8 */
-    --muted-foreground: 213 21% 57%;
+    /* paper-3 #ECE7DA */
+    --muted: 43 32% 89%;
+    /* text-muted #6B6B66 */
+    --muted-foreground: 60 3% 41%;
 
-    --accent: 217 100% 55%;
+    /* accent for highlights */
+    --accent: 13 70% 51%;
     --accent-foreground: 0 0% 100%;
 
-    /* #FF3B30 */
-    --destructive: 4 100% 59%;
+    /* concern red #C7382A */
+    --destructive: 5 65% 47%;
     --destructive-foreground: 0 0% 100%;
 
-    /* GREEN #1DB87A */
-    --success: 154 73% 42%;
+    /* ontrack green #2EB872 */
+    --success: 150 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* AMBER #FF8C00 */
-    --warning: 33 100% 50%;
-    --warning-foreground: 0 0% 100%;
+    /* construction yellow deep #E0A82E */
+    --warning: 41 75% 53%;
+    --warning-foreground: 200 11% 8%;
 
-    /* BORDER #D0D9E8 */
-    --border: 217 31% 86%;
-    --input: 217 31% 86%;
-    --ring: 217 100% 55%;
+    /* rule #E5E1D6 */
+    --border: 45 26% 87%;
+    --input: 45 26% 87%;
+    --ring: 13 70% 51%;
 
     --radius: 0.75rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(214 33% 97%));
-    --shadow-soft: 0 1px 3px hsl(217 43% 10% / 0.06), 0 4px 12px hsl(217 43% 10% / 0.04);
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(13 72% 41%));
+    --gradient-subtle: linear-gradient(180deg, hsl(43 32% 93%), hsl(42 36% 96%));
+    --shadow-soft: 0 1px 2px rgba(15,20,23,0.04), 0 4px 12px rgba(15,20,23,0.06);
+    --shadow-elegant: 0 12px 28px rgba(15,20,23,0.10);
 
-    /* Sidebar — light surface in light mode (matches aside bg-background) */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 217 43% 10%;
-    --sidebar-primary: 217 100% 55%;
+    /* Sidebar — dark ink */
+    --sidebar-background: 200 11% 8%;
+    --sidebar-foreground: 42 24% 94%;
+    --sidebar-primary: 13 70% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 95%;
-    --sidebar-accent-foreground: 217 43% 10%;
-    --sidebar-border: 217 31% 86%;
-    --sidebar-ring: 217 100% 55%;
+    /* ink-2 hover */
+    --sidebar-accent: 207 14% 13%;
+    --sidebar-accent-foreground: 42 24% 94%;
+    /* ink-3 border */
+    --sidebar-border: 206 11% 19%;
+    --sidebar-ring: 13 70% 51%;
   }
 
   .dark {
-    --background: 217 43% 10%;
-    --foreground: 0 0% 100%;
+    --background: 200 11% 8%;
+    --foreground: 42 24% 94%;
+    --heading: 42 24% 94%;
 
-    /* card #162236 */
-    --card: 217 43% 15%;
-    --card-foreground: 0 0% 100%;
+    --card: 207 14% 13%;
+    --card-foreground: 42 24% 94%;
 
-    --popover: 217 43% 15%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 207 14% 13%;
+    --popover-foreground: 42 24% 94%;
 
-    --primary: 217 100% 55%;
+    --primary: 13 70% 51%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 218 87% 45%;
-    --primary-glow: 217 100% 67%;
-    --primary-soft: 220 100% 83%;
+    --primary-hover: 13 72% 45%;
+    --primary-glow: 13 70% 60%;
+    --primary-soft: 13 60% 30%;
 
-    --secondary: 217 45% 18%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 207 14% 13%;
+    --secondary-foreground: 42 24% 94%;
 
-    --muted: 217 45% 18%;
-    --muted-foreground: 220 100% 83%;
+    --muted: 206 11% 19%;
+    --muted-foreground: 36 6% 60%;
 
-    --accent: 217 100% 55%;
+    --accent: 13 70% 51%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 4 90% 55%;
+    --destructive: 5 65% 47%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 154 65% 48%;
+    --success: 150 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 33 100% 55%;
-    --warning-foreground: 217 43% 10%;
+    --warning: 41 75% 53%;
+    --warning-foreground: 200 11% 8%;
 
-    /* #1E3050 */
-    --border: 217 45% 22%;
-    --input: 217 45% 22%;
-    --ring: 217 100% 55%;
+    --border: 206 11% 19%;
+    --input: 206 11% 19%;
+    --ring: 13 70% 51%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-subtle: linear-gradient(180deg, hsl(217 43% 10%), hsl(217 43% 13%));
-
-    --sidebar-background: 217 43% 10%;
-    --sidebar-foreground: 220 100% 83%;
-    --sidebar-primary: 217 100% 55%;
+    --sidebar-background: 200 11% 8%;
+    --sidebar-foreground: 42 24% 94%;
+    --sidebar-primary: 13 70% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 45% 16%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 217 45% 22%;
-    --sidebar-ring: 217 100% 55%;
+    --sidebar-accent: 207 14% 13%;
+    --sidebar-accent-foreground: 42 24% 94%;
+    --sidebar-border: 206 11% 19%;
+    --sidebar-ring: 13 70% 51%;
   }
 }
 
@@ -145,28 +199,66 @@
     font-feature-settings: "ss01", "cv11";
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
     color: hsl(var(--heading, var(--foreground)));
+    font-weight: 600;
   }
-  h1 { letter-spacing: -0.01em; }
-  h2 { letter-spacing: 0; }
+  h1 { letter-spacing: -0.02em; }
+  h2 { letter-spacing: -0.02em; }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  }
+  .font-mono-meta {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
   .wordmark {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
-  /* UI Label — Plus Jakarta Sans, ~8pt Medium, Slate */
+  /* UI Label — JetBrains Mono caps */
   .ui-label {
-    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.6875rem;
     font-weight: 500;
-    letter-spacing: 0.02em;
-    color: hsl(var(--foreground));
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
   }
+
+  /* BuildSlides icon sizing */
+  .bs-icon { width: 14px; height: 14px; flex-shrink: 0; display: inline-block; vertical-align: -2px; color: currentColor; }
+  .bs-icon-sm { width: 12px; height: 12px; }
+
+  /* Status pills */
+  .bs-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--bs-radius-pill);
+    font: 600 12px/1 'Inter', system-ui, sans-serif;
+    white-space: nowrap;
+  }
+  .bs-pill::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: .9;
+  }
+  .bs-pill.is-ontrack  { background: var(--bs-status-ontrack-bg);  color: var(--bs-status-ontrack-fg); }
+  .bs-pill.is-active   { background: var(--bs-status-active-bg);   color: var(--bs-status-active-fg); }
+  .bs-pill.is-review   { background: var(--bs-status-review-bg);   color: var(--bs-status-review-fg); }
+  .bs-pill.is-concern  { background: var(--bs-status-concern-bg);  color: var(--bs-status-concern-fg); }
+  .bs-pill.is-archived { background: var(--bs-status-archived-bg); color: var(--bs-status-archived-fg); }
+
+  /* Status rails (left 4px border on area cards) */
+  .bs-area-rail { border-left-width: 4px; border-left-style: solid; }
+  .bs-area-rail.is-ontrack  { border-left-color: var(--bs-status-ontrack-rail); }
+  .bs-area-rail.is-active   { border-left-color: var(--bs-status-active-rail); }
+  .bs-area-rail.is-review   { border-left-color: var(--bs-status-review-rail); }
+  .bs-area-rail.is-concern  { border-left-color: var(--bs-status-concern-rail); }
+  .bs-area-rail.is-archived { border-left-color: var(--bs-status-archived-rail); }
 }
