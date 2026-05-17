@@ -79,10 +79,13 @@ const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, ex
 // Pro+ at launch; backend branches on options.template.
 type LayoutVariant = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
 
-const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean }[] = [
-  { value: "portrait_v1",       label: "Portrait",        hint: "Original · photo-led report",         orientation: "portrait",  pro: false },
-  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true  },
-  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true  },
+// `comingSoon` gates layouts that don't yet have a renderer in the generate-pdf
+// edge function. Until that lands, the tiles are visible (so users see the
+// roadmap) but disabled — selecting one would produce a Portrait PDF anyway.
+const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean; comingSoon: boolean }[] = [
+  { value: "portrait_v1",       label: "Portrait",        hint: "Original · photo-led report",         orientation: "portrait",  pro: false, comingSoon: false },
+  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true,  comingSoon: true  },
+  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true,  comingSoon: true  },
 ];
 
 const LAYOUT_STORAGE_KEY = (projectId: string) => `bs:export:layout:${projectId}`;
@@ -175,20 +178,28 @@ export const ExportPdfDialog = ({
     const id = window.localStorage.getItem(TEMPLATE_ID_KEY(projectId));
     return EVENT_TEMPLATE_DEFS.find((t) => t.id === id) ?? null;
   }, [projectId]);
+  // A layout is selectable only if it isn't coming-soon and the user has Pro
+  // (when required). Used to keep the default selection on a working tile.
+  const isSelectableLayout = (v: LayoutVariant): boolean => {
+    const def = LAYOUTS.find(l => l.value === v);
+    if (!def) return false;
+    if (def.comingSoon) return false;
+    if (def.pro && !isPro) return false;
+    return true;
+  };
   const [layout, setLayout] = useState<LayoutVariant>(() => {
     if (typeof window === "undefined") return "portrait_v1";
     const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY(projectId)) as LayoutVariant | null;
-    if (isValidLayout(saved)) return saved;
+    if (isValidLayout(saved) && isSelectableLayout(saved)) return saved;
     const rec = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
-    if (isValidLayout(rec)) return rec as LayoutVariant;
+    if (isValidLayout(rec) && isSelectableLayout(rec as LayoutVariant)) return rec as LayoutVariant;
     return "portrait_v1";
   });
-  // Guard: if a Pro layout is remembered but the user is no longer Pro, fall back to portrait.
+  // Guard: if a remembered layout becomes unavailable (Pro downgrade, or layout
+  // newly flagged coming-soon), fall back to portrait.
   useEffect(() => {
-    if (!isPro) {
-      const def = LAYOUTS.find(l => l.value === layout);
-      if (def?.pro) setLayout("portrait_v1");
-    }
+    if (!isSelectableLayout(layout)) setLayout("portrait_v1");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPro, layout]);
   const orientation = LAYOUTS.find(l => l.value === layout)?.orientation ?? "portrait";
 
@@ -558,7 +569,7 @@ export const ExportPdfDialog = ({
             <div className="grid grid-cols-3 gap-2">
               {LAYOUTS.map((opt) => {
                 const selected = layout === opt.value;
-                const locked = opt.pro && !isPro;
+                const locked = opt.comingSoon || (opt.pro && !isPro);
                 return (
                   <button
                     key={opt.value}
@@ -576,14 +587,18 @@ export const ExportPdfDialog = ({
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-medium">{opt.label}</p>
-                      {opt.pro && (
+                      {opt.comingSoon ? (
+                        <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Coming soon
+                        </span>
+                      ) : opt.pro && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                           <Crown className="h-3 w-3" />Pro
                         </span>
                       )}
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">{opt.hint}</p>
-                    {selected && templateForProject && recommendedLayout === opt.value && (
+                    {selected && templateForProject && recommendedLayout === opt.value && !opt.comingSoon && (
                       <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                         Recommended for {templateForProject.title}
                       </p>
@@ -592,12 +607,6 @@ export const ExportPdfDialog = ({
                 );
               })}
             </div>
-            {!isPro && (
-              <p className="text-xs text-muted-foreground">
-                Horizontal layouts are a Pro feature.{" "}
-                <a href="/billing" className="underline">Upgrade</a>
-              </p>
-            )}
           </div>
 
           <div className="space-y-2">
