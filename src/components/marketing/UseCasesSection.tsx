@@ -274,7 +274,7 @@ export default function UseCasesSection() {
             margin: "0 0 48px 0",
           }}
         >
-          One tool.<br />Every site.
+          One tool.<br />Every build.
         </h2>
 
         {/* Tabs */}
