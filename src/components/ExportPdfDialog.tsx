@@ -80,12 +80,14 @@ const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, ex
 type LayoutVariant = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
 
 // `comingSoon` gates layouts that don't yet have a renderer in the generate-pdf
-// edge function. Until that lands, the tiles are visible (so users see the
-// roadmap) but disabled — selecting one would produce a Portrait PDF anyway.
+// edge function. With horizontal_deck_v1 and horizontal_log_v1 now wired up
+// in generate-pdf/horizontal-layouts.ts, all three tiles are selectable.
+// Keep the flag on the type so future templates can ship in the UI first
+// while the renderer is still in progress.
 const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean; comingSoon: boolean }[] = [
   { value: "portrait_v1",       label: "Portrait",        hint: "Original · photo-led report",         orientation: "portrait",  pro: false, comingSoon: false },
-  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true,  comingSoon: true  },
-  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true,  comingSoon: true  },
+  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true,  comingSoon: false },
+  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true,  comingSoon: false },
 ];
 
 const LAYOUT_STORAGE_KEY = (projectId: string) => `bs:export:layout:${projectId}`;
