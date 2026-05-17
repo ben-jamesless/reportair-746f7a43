@@ -15,7 +15,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
       {/* Left panel — dark brand */}
       <div
         className="hidden lg:flex lg:w-[45%] flex-col justify-between p-10 relative overflow-hidden"
-        style={{ background: "radial-gradient(ellipse at 60% 80%, #0D2A6E 0%, #0A0F1E 65%)" }}
+        style={{ background: "radial-gradient(ellipse at 60% 80%, #2A3035 0%, #0F1417 65%)" }}
       >
         <div className="relative z-10">
           <Link to="/" aria-label="Go to home">
