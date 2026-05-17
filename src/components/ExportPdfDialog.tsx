@@ -634,13 +634,6 @@ export const ExportPdfDialog = ({
   );
 };
 
-const SectionToggle = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (
-  <label className="flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm hover:bg-secondary/40">
-    <Checkbox checked={checked} onCheckedChange={(v) => onChange(!!v)} />
-    {label}
-  </label>
-);
-
 /**
  * A date picker that only enables dates which actually have photos in the project.
  * `boundKey` + `boundary` constrains the range so From <= To.
