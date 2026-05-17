@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import HeroSection from "@/components/marketing/HeroSection";
 import HowItWorksSection from "@/components/marketing/HowItWorksSection";
 import FAQSection from "@/components/marketing/FAQSection";
@@ -118,10 +119,29 @@ const Index = () => {
           </p>
           <form
             className="mx-auto mt-8 flex max-w-[780px] flex-col gap-3 sm:flex-row"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              const btn = e.currentTarget.querySelector("button");
-              if (btn) btn.textContent = "Thanks — you're on the list";
+              const form = e.currentTarget;
+              const input = form.querySelector("input[type=email]") as HTMLInputElement | null;
+              const btn = form.querySelector("button") as HTMLButtonElement | null;
+              const email = input?.value?.trim();
+              if (!email || !btn) return;
+              btn.disabled = true;
+              const originalText = btn.textContent;
+              btn.textContent = "Adding…";
+              try {
+                const { error } = await supabase.functions.invoke("newsletter-signup", {
+                  body: { email, source: "marketing_final_cta" },
+                });
+                if (error) throw error;
+                btn.textContent = "Thanks — you're on the list";
+                if (input) input.value = "";
+              } catch (err) {
+                console.error(err);
+                btn.textContent = "Something went wrong — try again";
+                btn.disabled = false;
+                setTimeout(() => { if (btn) btn.textContent = originalText ?? "Join"; }, 3000);
+              }
             }}
           >
             <input
