@@ -65,6 +65,8 @@ const Index = () => {
 
       <TimeSavedSection />
 
+      <UseCasesSection />
+
       {/* ============ REVIEWS ============ */}
       <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#0F1417" }}>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-6">
@@ -108,8 +110,6 @@ const Index = () => {
       </section>
 
       <div id="faq"><FAQSection /></div>
-
-      <UseCasesSection />
 
       <PricingSection />
 
