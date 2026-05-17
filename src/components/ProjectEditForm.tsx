@@ -135,7 +135,7 @@ export const ProjectEditForm = ({
   useEffect(() => {
     (async () => {
       if (!user) return;
-      const [{ data: pm }, { data: ar }] = await Promise.all([
+      const [{ data: pm }, { data: ar }, { data: owners }] = await Promise.all([
         supabase
           .from("project_members")
           .select("role")
@@ -148,9 +148,15 @@ export const ProjectEditForm = ({
           .eq("user_id", user.id)
           .eq("role", "admin")
           .maybeSingle(),
+        supabase
+          .from("project_members")
+          .select("user_id")
+          .eq("project_id", projectId)
+          .eq("role", "owner"),
       ]);
       setIsOwner(pm?.role === "owner");
       setIsAdmin(!!ar);
+      setOwnerCount((owners ?? []).length || 1);
     })();
   }, [user, projectId]);
 
