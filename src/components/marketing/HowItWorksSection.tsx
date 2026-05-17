@@ -458,7 +458,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
         {[
-          { bg: "linear-gradient(135deg,#2A4060,#1A3050)", check: true },
+          { bg: "linear-gradient(135deg,#3A2A22,#2A1F18)", check: true },
           { bg: "linear-gradient(135deg,#3A4A30,#2A3A20)", check: true },
           { bg: "linear-gradient(135deg,#4A3020,#3A2010)", check: true },
           { bg: "linear-gradient(135deg,#302A40,#201A30)", check: false },

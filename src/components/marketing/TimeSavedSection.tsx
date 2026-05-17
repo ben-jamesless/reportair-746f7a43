@@ -22,15 +22,15 @@ export default function TimeSavedSection() {
         .ts-card {
           border-radius: 24px;
           border: 1px solid rgba(255,255,255,0.14);
-          background: #0B1525;
+          background: #1A2025;
           box-shadow: 0 24px 80px rgba(0,0,0,0.45);
           overflow: hidden;
           display: grid;
           grid-template-columns: 1fr 1fr;
         }
         .ts-panel { padding: 48px; display: flex; flex-direction: column; }
-        .ts-left { background: #111E33; border-left: 3px solid #FF8C00; border-right: 1px solid rgba(255,255,255,0.10); }
-        .ts-right { background: #0E1A2D; border-left: 3px solid #1DB87A; }
+        .ts-left { background: #1A2025; border-left: 3px solid #FF8C00; border-right: 1px solid rgba(255,255,255,0.10); }
+        .ts-right { background: #15191D; border-left: 3px solid #1DB87A; }
         .ts-num { font-size: 58px; }
         @media (max-width: 767px) {
           .ts-card { grid-template-columns: 1fr; }
