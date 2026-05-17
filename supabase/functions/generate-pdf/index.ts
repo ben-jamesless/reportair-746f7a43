@@ -4,10 +4,22 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "https://www.buildslides.com",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function corsFor(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const fallback = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
+  const allow =
+    /^https:\/\/([a-z0-9-]+\.)*buildslides\.com$/i.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i.test(origin) ||
+    /^http:\/\/localhost(:\d+)?$/i.test(origin)
+      ? origin
+      : fallback;
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
+  };
+}
 
 async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
   const ctrl = new AbortController();
