@@ -228,6 +228,16 @@ Deno.serve(async (req) => {
       role: invite.role,
       inviteUrl,
     });
+    const text = [
+      `You've been invited to ${projectName}`,
+      ``,
+      `${inviterName} invited you to collaborate on ${projectName} in BuildSlides as a ${invite.role}.`,
+      ``,
+      `Accept the invite here:`,
+      inviteUrl,
+      ``,
+      `— BuildSlides`,
+    ].join("\n");
 
     const resp = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -240,10 +250,7 @@ Deno.serve(async (req) => {
         to: [invite.email],
         subject,
         html,
-        // Disable click tracking so the "Accept invite" button href stays as
-        // the raw /invite/<token> URL instead of being rewritten to a Resend
-        // redirect (which can drop the path and skip invite processing).
-        tracking: { click_tracking: false, open_tracking: false },
+        text,
       }),
     });
 
