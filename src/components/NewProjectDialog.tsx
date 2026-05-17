@@ -178,7 +178,7 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setBusy(true);
     const { data, error } = await supabase
       .from("projects")
-      .insert({ team_id: teamId, name, description: description || null, color, created_by: user.id })
+      .insert({ team_id: teamId, name, description: description || null, color, created_by: user.id, template })
       .select("id")
       .single();
     if (error || !data) {
@@ -190,9 +190,12 @@ export const NewProjectDialog = ({ teamId, trigger, onCreated }: Props) => {
     setCreatedProjectId(projectId);
     await persistAreas(projectId, areas);
     if (!skipInvites) await persistInvites(projectId, invites);
-    // Persist template choice + recommended layout to localStorage so the export
-    // dialog can pre-select the right layout. Server-side persistence is a
-    // follow-up (extends the project_template enum + projects.template column).
+    // Persist recommended layout + template id to localStorage so the export
+    // dialog and timeline phase grouping can read them without an extra DB round
+    // trip. The project's `template` column is now the canonical source — these
+    // entries are a fast-path / fallback for in-flight projects.
+    // TODO(cleanup): once DayTimeline and ExportPdfDialog read from project.template
+    // directly, drop the TEMPLATE_ID_KEY localStorage write.
     try {
       if (typeof window !== "undefined") {
         const tpl = EVENT_TEMPLATE_DEFS.find((t) => t.id === template);
