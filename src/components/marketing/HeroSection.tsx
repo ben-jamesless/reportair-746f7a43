@@ -193,7 +193,7 @@ const HeroSection = () => {
           0%, 100% { box-shadow: 0 0 0 0 rgba(217,79,42,0.45), 0 8px 40px rgba(217,79,42,0.35); }
           50%      { box-shadow: 0 0 0 14px rgba(217,79,42,0), 0 8px 40px rgba(217,79,42,0.35); }
         }
-        .ra-hero .node svg { width: 32px; height: 32px; }
+        .ra-hero .node svg { width: 56px; height: 56px; }
         .ra-hero .node-label {
           font-family: var(--font-display);
           font-size: 7.5px; font-weight: 800;
@@ -445,8 +445,8 @@ const HeroSection = () => {
             <div className="node-wrap">
               <div className="node">
                 <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="7" y="9.5" width="14" height="9" rx="1.6" fill="#FFFFFF" opacity="0.55" />
-                  <rect x="11" y="13.5" width="14" height="9" rx="1.6" fill="#FFFFFF" />
+                  <rect x="5" y="7" width="18" height="12" rx="1.6" fill="#FFFFFF" opacity="0.55" />
+                  <rect x="9" y="11" width="18" height="12" rx="1.6" fill="#FFFFFF" />
                 </svg>
                 
               </div>
