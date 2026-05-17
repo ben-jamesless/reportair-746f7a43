@@ -58,7 +58,7 @@ export default function FAQSection() {
   const [openIdx, setOpenIdx] = useState<number>(0);
 
   return (
-    <section className="py-[86px] px-6 max-md:py-[43px]" style={{ background: "#060D18" }}>
+    <section className="py-[86px] px-6 max-md:py-[43px]" style={{ background: "#0F1417" }}>
       <div style={{ textAlign: "center", marginBottom: 56 }}>
         <p
           style={{
@@ -136,7 +136,7 @@ export default function FAQSection() {
                     borderRadius: "50%",
                     border: `1.5px solid ${isOpen ? "#D94F2A" : "rgba(255,255,255,0.15)"}`,
                     color: isOpen ? "#D94F2A" : "rgba(255,255,255,0.4)",
-                    background: isOpen ? "rgba(26,110,255,0.1)" : "transparent",
+                    background: isOpen ? "rgba(217,79,42,0.1)" : "transparent",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
