@@ -394,7 +394,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
       <div
         style={{
           aspectRatio: "16 / 10",
-          background: "linear-gradient(135deg,#0A1828,#0D1F40)",
+          background: "linear-gradient(135deg,#15191D,#0F1417)",
           borderRadius: 12,
           border: "1.5px solid rgba(217,79,42,0.3)",
           position: "relative",
@@ -637,9 +637,9 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
             38 photos · 4 areas · 1 issue flagged
           </div>
           <div style={{ display: "flex", gap: 5, marginBottom: 4 }}>
-            <div style={{ flex: 1, aspectRatio: "4 / 3", borderRadius: 6, background: "linear-gradient(135deg,#c8d8e8,#a8b8cc)" }} />
+            <div style={{ flex: 1, aspectRatio: "4 / 3", borderRadius: 6, background: "linear-gradient(135deg,#d8d2c4,#b8b0a0)" }} />
             <div style={{ flex: 1, aspectRatio: "4 / 3", borderRadius: 6, background: "linear-gradient(135deg,#d4c4a0,#b8a880)" }} />
-            <div style={{ flex: 1, aspectRatio: "4 / 3", borderRadius: 6, background: "linear-gradient(135deg,#b8c4d0,#9aa8b8)" }} />
+            <div style={{ flex: 1, aspectRatio: "4 / 3", borderRadius: 6, background: "linear-gradient(135deg,#c8c0b0,#a8a090)" }} />
           </div>
         </div>
         <div style={{ padding: "10px 14px", background: "#F5F7FA", display: "flex", gap: 7 }}>
