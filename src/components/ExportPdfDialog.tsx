@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -131,7 +131,7 @@ export const ExportPdfDialog = ({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
-  const [sections, setSections] = useState<Sections>(DEFAULT_SECTIONS);
+  const sections: Sections = { ...DEFAULT_SECTIONS, cover: true, grid: true, captions: true, activity: false };
   const [accent, setAccent] = useState("#D94F2A");
   const [submitting, setSubmitting] = useState(false);
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
@@ -496,16 +496,6 @@ export const ExportPdfDialog = ({
             </Card>
           )}
 
-          <section>
-            <h3 className="mb-2 text-sm font-medium">Sections to include</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <SectionToggle label="Cover page" checked={sections.cover} onChange={(v) => setSections((s) => ({ ...s, cover: v }))} />
-              <SectionToggle label="Photo grid" checked={sections.grid} onChange={(v) => setSections((s) => ({ ...s, grid: v }))} />
-              <SectionToggle label="Captions under photos" checked={sections.captions} onChange={(v) => setSections((s) => ({ ...s, captions: v }))} />
-              <SectionToggle label="Activity log" checked={sections.activity} onChange={(v) => setSections((s) => ({ ...s, activity: v }))} />
-            </div>
-          </section>
-
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Export quality</label>
             <div className="grid grid-cols-2 gap-2">
@@ -643,13 +633,6 @@ export const ExportPdfDialog = ({
     </Dialog>
   );
 };
-
-const SectionToggle = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (
-  <label className="flex cursor-pointer items-center gap-2 rounded-md border p-2 text-sm hover:bg-secondary/40">
-    <Checkbox checked={checked} onCheckedChange={(v) => onChange(!!v)} />
-    {label}
-  </label>
-);
 
 /**
  * A date picker that only enables dates which actually have photos in the project.
