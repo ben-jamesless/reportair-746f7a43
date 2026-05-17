@@ -795,8 +795,8 @@ function NewEventButton({
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your Solo plan.</p>
-          <Link to="/billing" className="text-[#D94F2A] underline text-xs">Upgrade to Pro →</Link>
+          <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your current plan.</p>
+          <Link to="/billing" className="text-[#D94F2A] underline text-xs">Upgrade →</Link>
         </TooltipContent>
       </Tooltip>
     );
