@@ -137,6 +137,13 @@
   }
 
   .dark {
+    /* Dark-mode overrides for non-tailwind tokens used in components */
+    --gradient-primary: linear-gradient(135deg, hsl(13 70% 51%), hsl(13 72% 41%));
+    --gradient-subtle: linear-gradient(180deg, hsl(207 14% 13%), hsl(200 11% 8%));
+    --shadow-soft: 0 1px 2px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.45);
+    --shadow-elegant: 0 12px 28px rgba(0,0,0,0.55);
+
+
     --background: 200 11% 8%;
     --foreground: 42 24% 94%;
     --heading: 42 24% 94%;
