@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, ChevronDown, FileDown, ImagePlus, Layers, MapPinned } from "lucide-react";
 
 import { AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
@@ -11,7 +11,15 @@ import {
   albumKey,
   type Album,
   type Area,
+  type Project,
 } from "@/lib/projectDetailTypes";
+import {
+  PHASE_LABELS,
+  PHASE_ORDER,
+  phaseKindFor,
+  readProjectTemplateId,
+  type PhaseKind,
+} from "@/lib/eventTemplates";
 
 export type DayBucket = {
   key: string;
@@ -27,6 +35,8 @@ type Props = {
   albumPhotos: Map<string, LightboxPhoto[]>;
   areas: Area[];
   photos: LightboxPhoto[];
+  /** Optional project for phase-aware grouping. Falls back to flat list when omitted or template is Blank. */
+  project?: Project | null;
 
   // Selection state (owned by parent)
   activeDay: string;
@@ -59,6 +69,7 @@ export function DayTimeline({
   albumPhotos,
   areas,
   photos,
+  project,
   activeDay,
   activeArea,
   openDays,
@@ -79,6 +90,148 @@ export function DayTimeline({
   const [galleryListOpen, setGalleryListOpen] = useState(false);
   const [addingArea, setAddingArea] = useState(false);
   const [newAreaName, setNewAreaName] = useState("");
+
+  // Resolve template id from localStorage (set by NewProjectDialog).
+  // Once we migrate the project_template enum, swap this for project.template.
+  const templateId = useMemo(
+    () => (project?.id ? readProjectTemplateId(project.id) : null),
+    [project?.id],
+  );
+
+  // Group days into phases (pre / build / show / strike) when the template +
+  // dates support it. Otherwise leave as null and render the flat list.
+  const phaseGroups = useMemo(() => {
+    if (!project || !templateId || templateId === "blank") return null;
+    if (!project.build_start_date || !project.event_date) return null;
+    const buckets = new Map<PhaseKind, DayBucket[]>();
+    for (const d of days) {
+      const k = phaseKindFor(d.date, project.build_start_date, project.event_date, templateId);
+      if (!k) continue;
+      const list = buckets.get(k) ?? [];
+      list.push(d);
+      buckets.set(k, list);
+    }
+    // Days already arrive newest-first from the parent; preserve that within each phase.
+    const ordered: { phase: PhaseKind; days: DayBucket[] }[] = [];
+    for (const p of PHASE_ORDER) {
+      const list = buckets.get(p);
+      if (list && list.length > 0) ordered.push({ phase: p, days: list });
+    }
+    return ordered.length > 1 ? ordered : null;
+  }, [days, project, templateId]);
+
+  // Track which phase groups are expanded. Default: phase containing the active day,
+  // or the most recent phase that has photos.
+  const initialOpenPhases = useMemo(() => {
+    if (!phaseGroups) return new Set<PhaseKind>();
+    const activeBucket = phaseGroups.find((g) => g.days.some((d) => d.key === activeDay));
+    if (activeBucket) return new Set<PhaseKind>([activeBucket.phase]);
+    // Otherwise the latest phase (last in ordered array, since within phase days are newest-first).
+    return new Set<PhaseKind>([phaseGroups[phaseGroups.length - 1].phase]);
+  }, [phaseGroups, activeDay]);
+  const [openPhases, setOpenPhases] = useState<Set<PhaseKind>>(initialOpenPhases);
+
+  // Keep openPhases in sync when groups first arrive or active day changes phase.
+  useEffect(() => {
+    setOpenPhases((prev) => {
+      if (prev.size > 0) return prev;
+      return initialOpenPhases;
+    });
+  }, [initialOpenPhases]);
+
+  const togglePhase = (p: PhaseKind) => {
+    setOpenPhases((prev) => {
+      const next = new Set(prev);
+      if (next.has(p)) next.delete(p);
+      else next.add(p);
+      return next;
+    });
+  };
+
+  // Single day row (used by both the flat list and phase-grouped list).
+  const renderDayRow = (day: DayBucket) => {
+    const isOpen = openDays.has(day.key);
+    const dayActive = activeDay === day.key && activeArea === null;
+    const { counts, unassigned } = areaCountsForDay(day.photos);
+    return (
+      <div key={day.key} className="rounded-lg">
+        <div className="flex items-stretch gap-1 py-[8px]">
+          <button
+            onClick={() => { onSetActiveDay(day.key); onSetActiveArea(null); onSetOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
+            className={cn(
+              "flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted/40",
+            )}
+          >
+            <span className={cn(
+              "flex flex-col items-center justify-center shrink-0 w-9 h-9 rounded-md text-[9px] font-bold uppercase leading-none",
+              dayActive ? "bg-[#D94F2A] text-white" : "bg-[#F0EFEA] text-muted-foreground"
+            )}>
+              <span className="text-[12px] leading-none">{day.date.getDate()}</span>
+              <span className="mt-0.5">{day.date.toLocaleString(undefined, { month: "short" }).toUpperCase()}</span>
+            </span>
+            <span className={cn("flex-1 min-w-0", dayActive ? "text-foreground font-semibold" : "text-foreground")}>{SHORT_FMT.format(day.date)}</span>
+            <span className={cn(
+              "ml-auto inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold bg-[#F0EFEA] text-muted-foreground"
+            )}>
+              {day.photos.length}
+            </span>
+          </button>
+          <button
+            onClick={(e) => onOpenDayExport(e, day)}
+            className="flex items-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            title={`Export ${day.label} as PDF`}
+            aria-label={`Export ${day.label} as PDF`}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {isOpen && (
+          <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2">
+            {areas.map((ar) => {
+              const c = counts.get(ar.id) ?? 0;
+              if (c === 0) return null;
+              const sel = activeDay === day.key && activeArea === ar.id;
+              const st = getAreaDayStatus(ar.id, day.key);
+              return (
+                <button
+                  key={ar.id}
+                  onClick={() => onSelectDayArea(day.key, ar.id)}
+                  className={cn(
+                    "flex w-full items-center gap-1.5 rounded-md px-2 text-left text-xs transition-colors py-[8px]",
+                    sel
+                      ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium"
+                      : "text-foreground hover:bg-muted/40",
+                  )}
+                >
+                  <AreaStatusDot status={st} className="shrink-0" />
+                  <span className="flex-1 truncate">{ar.name}</span>
+                  <span className={cn("ml-1 text-[10px]", sel ? "text-[#D94F2A]" : "text-muted-foreground")}>{c}</span>
+                </button>
+              );
+            })}
+            {unassigned > 0 && (
+              <button
+                onClick={() => onSelectDayArea(day.key, NO_AREA)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-md px-2 text-left text-xs transition-colors py-[8px]",
+                  activeDay === day.key && activeArea === NO_AREA
+                    ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium"
+                    : "text-foreground hover:bg-muted/40",
+                )}
+              >
+                <span>Unassigned</span>
+                <span className={cn(
+                  "ml-2 text-[10px]",
+                  activeDay === day.key && activeArea === NO_AREA ? "text-[#D94F2A]" : "text-muted-foreground"
+                )}>{unassigned}</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const createArea = async () => {
     const name = newAreaName.trim();
@@ -113,89 +266,45 @@ export function DayTimeline({
 
       <p className="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground">Daily Log</p>
 
-      {days.map((day) => {
-        const isOpen = openDays.has(day.key);
-        const dayActive = activeDay === day.key && activeArea === null;
-        const { counts, unassigned } = areaCountsForDay(day.photos);
-        return (
-          <div key={day.key} className="rounded-lg">
-            <div className="flex items-stretch gap-1 py-[8px]">
+      {phaseGroups ? (
+        phaseGroups.map(({ phase, days: phaseDays }) => {
+          const isPhaseOpen = openPhases.has(phase);
+          const photoCount = phaseDays.reduce((sum, d) => sum + d.photos.length, 0);
+          return (
+            <div key={phase} className="mb-1">
               <button
-                onClick={() => { onSetActiveDay(day.key); onSetActiveArea(null); onSetOpenDays((p) => { const n = new Set(p); n.has(day.key) ? n.delete(day.key) : n.add(day.key); return n; }); }}
-                className={cn(
-                  "flex flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted/40",
-                )}
+                type="button"
+                onClick={() => togglePhase(phase)}
+                aria-expanded={isPhaseOpen}
+                className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left transition-colors hover:bg-muted/40"
               >
-                <span className={cn(
-                  "flex flex-col items-center justify-center shrink-0 w-9 h-9 rounded-md text-[9px] font-bold uppercase leading-none",
-                  dayActive ? "bg-[#D94F2A] text-white" : "bg-[#F0EFEA] text-muted-foreground"
-                )}>
-                  <span className="text-[12px] leading-none">{day.date.getDate()}</span>
-                  <span className="mt-0.5">{day.date.toLocaleString(undefined, { month: "short" }).toUpperCase()}</span>
-                </span>
-                <span className={cn("flex-1 min-w-0", dayActive ? "text-foreground font-semibold" : "text-foreground")}>{SHORT_FMT.format(day.date)}</span>
-                <span className={cn(
-                  "ml-auto inline-flex items-center justify-center min-w-[20px] h-5 rounded-full px-1.5 text-[10px] font-semibold bg-[#F0EFEA] text-muted-foreground"
-                )}>
-                  {day.photos.length}
-                </span>
-              </button>
-              <button
-                onClick={(e) => onOpenDayExport(e, day)}
-                className="flex items-center rounded-md px-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                title={`Export ${day.label} as PDF`}
-                aria-label={`Export ${day.label} as PDF`}
-              >
-                <FileDown className="h-3.5 w-3.5" />
-              </button>
-            </div>
-
-            {isOpen && (
-              <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-2">
-                {areas.map((ar) => {
-                  const c = counts.get(ar.id) ?? 0;
-                  if (c === 0) return null;
-                  const sel = activeDay === day.key && activeArea === ar.id;
-                  const st = getAreaDayStatus(ar.id, day.key);
-                  return (
-                    <button
-                      key={ar.id}
-                      onClick={() => onSelectDayArea(day.key, ar.id)}
-                      className={cn(
-                        "flex w-full items-center gap-1.5 rounded-md px-2 text-left text-xs transition-colors py-[8px]",
-                        sel
-                          ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium"
-                          : "text-foreground hover:bg-muted/40",
-                      )}
-                    >
-                      <AreaStatusDot status={st} className="shrink-0" />
-                      <span className="flex-1 truncate">{ar.name}</span>
-                      <span className={cn("ml-1 text-[10px]", sel ? "text-[#D94F2A]" : "text-muted-foreground")}>{c}</span>
-                    </button>
-                  );
-                })}
-                {unassigned > 0 && (
-                  <button
-                    onClick={() => onSelectDayArea(day.key, NO_AREA)}
+                <span className="flex items-center gap-1.5">
+                  <ChevronDown
                     className={cn(
-                      "flex w-full items-center justify-between rounded-md px-2 text-left text-xs transition-colors py-[8px]",
-                      activeDay === day.key && activeArea === NO_AREA
-                        ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium"
-                        : "text-foreground hover:bg-muted/40",
+                      "h-3 w-3 text-muted-foreground transition-transform",
+                      !isPhaseOpen && "-rotate-90",
                     )}
-                  >
-                    <span>Unassigned</span>
-                    <span className={cn(
-                      "ml-2 text-[10px]",
-                      activeDay === day.key && activeArea === NO_AREA ? "text-[#D94F2A]" : "text-muted-foreground"
-                    )}>{unassigned}</span>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        );
-      })}
+                  />
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-foreground">
+                    {PHASE_LABELS[phase]}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    · {phaseDays.length} day{phaseDays.length === 1 ? "" : "s"}
+                  </span>
+                </span>
+                <span className="text-[10px] text-muted-foreground">{photoCount} photos</span>
+              </button>
+              {isPhaseOpen && (
+                <div className="border-l border-[#E5E1D6] dark:border-border ml-3 pl-1">
+                  {phaseDays.map((day) => renderDayRow(day))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        days.map((day) => renderDayRow(day))
+      )}
 
       </div>
 
