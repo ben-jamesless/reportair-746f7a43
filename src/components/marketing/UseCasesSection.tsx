@@ -187,7 +187,7 @@ const useCases: UseCase[] = [
 const tabLabels: Record<string, string> = {
   festivals: "Festivals",
   golf: "Golf",
-  marathons: "Marathons",
+  venues: "Venues",
   corporate: "Corporate",
   filmsets: "Film sets",
   activations: "Activations",
