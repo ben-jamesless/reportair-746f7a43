@@ -721,13 +721,18 @@ const SharePage = () => {
                   return (
                     <details
                       key={group.key}
-                      open={!isMobile}
-                      ref={(el) => { dayAnchorRefs.current.set(dateKey, el); }}
+                      ref={(el) => {
+                        dayAnchorRefs.current.set(dateKey, el);
+                        if (el && !isMobile && el.dataset.init !== "1") {
+                          el.open = true;
+                          el.dataset.init = "1";
+                        }
+                      }}
                       className="group/day"
                     >
-                      {/* Day header strip — full width, flush; acts as collapsible summary on mobile */}
+                      {/* Day header strip — full width, flush; collapsible at all breakpoints */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none [&::-webkit-details-marker]:hidden xl:cursor-default"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none [&::-webkit-details-marker]:hidden"
                         style={{
                           backgroundColor: "#ffffff",
                           borderBottom: `1px solid ${DIVIDER}`,
