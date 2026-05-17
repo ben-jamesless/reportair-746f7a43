@@ -68,6 +68,7 @@ const Projects = () => {
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [deleteOwnerCount, setDeleteOwnerCount] = useState<number>(1);
 
   // Toolbar state
   const [search, setSearch] = useState("");
