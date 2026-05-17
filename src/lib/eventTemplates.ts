@@ -151,3 +151,55 @@ export const RECOMMENDED_LAYOUT_KEY = (projectId: string) =>
 /** localStorage key for storing the chosen template id per project. */
 export const TEMPLATE_ID_KEY = (projectId: string) =>
   `bs:project:templateId:${projectId}`;
+
+/**
+ * Pure helper. Returns the phase kind for a given date relative to project
+ * dates. Used by DayTimeline to group days into collapsible phases.
+ * Returns null when the template is Blank or dates aren't set yet — in
+ * which case the timeline renders as a flat date list (today's UX).
+ */
+export const phaseKindFor = (
+  date: Date,
+  buildStartISO: string | null | undefined,
+  eventISO: string | null | undefined,
+  templateId: EventTemplateId | string | null | undefined
+): PhaseKind | null => {
+  const tpl = getEventTemplate(templateId);
+  if (tpl.id === "blank") return null;
+  if (!buildStartISO || !eventISO) return null;
+
+  const start = new Date(buildStartISO);
+  const event = new Date(eventISO);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(event.getTime())) return null;
+
+  const truncate = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const target = truncate(date);
+  const startDay = truncate(start);
+  const eventDay = truncate(event);
+
+  if (target < startDay) return "pre";
+  if (target < eventDay) return "build";
+  if (target === eventDay) return "show";
+  return "strike";
+};
+
+export const PHASE_LABELS: Record<PhaseKind, string> = {
+  pre: "Pre-build",
+  build: "Build",
+  dress: "Dress",
+  show: "Show",
+  strike: "Strike",
+};
+
+export const PHASE_ORDER: PhaseKind[] = ["pre", "build", "dress", "show", "strike"];
+
+/** Read the persisted template id (localStorage) for a project. */
+export const readProjectTemplateId = (projectId: string): EventTemplateId | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = window.localStorage.getItem(TEMPLATE_ID_KEY(projectId));
+    return (EVENT_TEMPLATE_DEFS.find((t) => t.id === v)?.id ?? null) as EventTemplateId | null;
+  } catch {
+    return null;
+  }
+};

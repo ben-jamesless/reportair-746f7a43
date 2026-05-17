@@ -584,6 +584,7 @@ const ProjectDetail = () => {
                 albumPhotos={albumPhotos}
                 areas={areas}
                 photos={photos}
+                project={project}
                 activeDay={activeDay}
                 activeArea={activeArea}
                 openDays={openDays}
