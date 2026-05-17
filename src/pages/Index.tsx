@@ -77,7 +77,7 @@ const Index = () => {
             </h2>
           </header>
           <div className="grid gap-5 md:grid-cols-3">
-            {COPY.reviews.items.map((q, i) => (
+            {COPY.reviews.items.map((item, i) => (
               <figure
                 key={i}
                 className="flex flex-col rounded-2xl p-6"
@@ -89,7 +89,7 @@ const Index = () => {
               >
                 <div className="text-5xl leading-none" style={{ ...display, color: BRAND.sky }}>"</div>
                 <blockquote className="mt-2 flex-1 text-[0.98rem]" style={{ color: "#FFFFFF", lineHeight: 1.55 }}>
-                  {q}
+                  {item.quote}
                 </blockquote>
                 <figcaption className="mt-5 flex items-center gap-3">
                   <div
@@ -97,8 +97,8 @@ const Index = () => {
                     style={{ background: "rgba(217,79,42,0.18)", border: "1px solid rgba(217,79,42,0.4)" }}
                   />
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>Javier Campero</div>
-                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Tournament Director · LIV</div>
+                    <div className="text-sm font-semibold" style={{ color: "#FFFFFF" }}>{item.name}</div>
+                    <div className="text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>{item.role}</div>
                   </div>
                 </figcaption>
               </figure>
