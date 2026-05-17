@@ -57,7 +57,7 @@ function baseWrapper(subheader: string, body: string): string {
         ${subheader}
         <tr><td style="padding:36px 32px 28px;">${body}</td></tr>
         <tr><td style="padding:0 32px;"><div style="border-top:1px solid #EDF1F7;"></div></td></tr>
-        <tr><td style="padding:20px 32px;"><p style="margin:0;font-size:12px;color:#94a3b8;font-family:'Inter',sans-serif;">BuildSlides &middot; <a href="https://reportair.co" style="color:#94a3b8;text-decoration:none;">reportair.co</a></p></td></tr>
+        <tr><td style="padding:20px 32px;"><p style="margin:0;font-size:12px;color:#94a3b8;font-family:'Inter',sans-serif;">BuildSlides &middot; <a href="https://www.buildslides.com" style="color:#94a3b8;text-decoration:none;">buildslides.com</a></p></td></tr>
       </table>
     </td></tr>
   </table>
@@ -106,7 +106,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Welcome, ${escapeHtml(d.name || "there")}!</h1>
       <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your BuildSlides account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
       <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;re on the <strong style="color:#0F1724;">Solo plan</strong>. Upgrade anytime to unlock share links, more events, team members, and custom branding.</p>
-      ${ctaBtn("https://reportair.co/projects", "Go to your projects")}
+      ${ctaBtn("https://www.buildslides.com/projects", "Go to your projects")}
     `),
   }),
 
@@ -123,8 +123,8 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your BuildSlides <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1724;">${escapeHtml(price)}/month</strong>` : ""}.</p>
         ${d.renewalDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Your next billing date is <strong style="color:#0F1724;">${escapeHtml(d.renewalDate)}</strong>.</p>` : "<p style='margin:0 0 28px;'></p>"}
         ${featureGrid(d.plan)}
-        ${ctaBtn("https://reportair.co/projects", "Go to BuildSlides")}
-        <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Manage or cancel anytime from your <a href="https://reportair.co/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Billing page</a>.</p>
+        ${ctaBtn("https://www.buildslides.com/projects", "Go to BuildSlides")}
+        <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Manage or cancel anytime from your <a href="https://www.buildslides.com/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Billing page</a>.</p>
       `),
     };
   },
@@ -138,7 +138,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription has been cancelled.</p>
         ${d.endDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;ll have full access until <strong style="color:#0F1724;">${escapeHtml(d.endDate)}</strong>, after which your account reverts to the Solo plan. All your projects and photos are safe &mdash; nothing gets deleted.</p>` : ""}
         ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#0F1724;">Your data is safe.</strong> Projects, photos, and reports remain accessible on the Solo plan. Upgrade again anytime to restore full access.</p>`)}
-        ${ctaBtn("https://reportair.co/billing", "Reactivate subscription")}
+        ${ctaBtn("https://www.buildslides.com/billing", "Reactivate subscription")}
         <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Have feedback on why you left? Just reply to this email &mdash; we read every response.</p>
       `),
     };
@@ -157,7 +157,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your payment${price ? ` of <strong style="color:#0F1724;">${escapeHtml(price)}</strong>` : ""} for the ${escapeHtml(planLabel)} plan was declined.</p>
         <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Please update your payment method to keep your subscription active. If we can&rsquo;t collect payment, your account will revert to the Solo plan.</p>
         ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#DC2626;">Subscription at risk.</strong> Update your card within 3 days to avoid losing access to share links, team members, and unlimited exports.</p>`, "#DC2626", "#FEF2F2")}
-        ${ctaBtn("https://reportair.co/billing", "Update payment method", "#DC2626")}
+        ${ctaBtn("https://www.buildslides.com/billing", "Update payment method", "#DC2626")}
         <p style="margin:20px 0 0;font-size:13px;color:#64748b;">If you need help, reply to this email and we&rsquo;ll sort it out.</p>
       `),
     };
@@ -188,8 +188,8 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
             ${price ? `<p style="margin:14px 0 0;font-size:14px;color:#64748b;border-top:1px solid #D1D9E6;padding-top:12px;"><strong style="color:#0F1724;">${escapeHtml(price)}/month</strong> &mdash; billed monthly, cancel anytime.</p>` : ""}
           </td></tr>
         </table>
-        ${ctaBtn("https://reportair.co/billing", `Keep my ${planLabel} plan`)}
-        ${d.trialEnd ? `<p style="margin:20px 0 0;font-size:13px;color:#64748b;">Not ready? <a href="https://reportair.co/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Cancel before ${escapeHtml(d.trialEnd)}</a> and you won&rsquo;t be charged.</p>` : ""}
+        ${ctaBtn("https://www.buildslides.com/billing", `Keep my ${planLabel} plan`)}
+        ${d.trialEnd ? `<p style="margin:20px 0 0;font-size:13px;color:#64748b;">Not ready? <a href="https://www.buildslides.com/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Cancel before ${escapeHtml(d.trialEnd)}</a> and you won&rsquo;t be charged.</p>` : ""}
       `),
     };
   },
@@ -213,7 +213,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
           </tr></table>
         </td></tr>
       </table>
-      ${ctaBtn(d.shareUrl || "https://reportair.co", "View report")}
+      ${ctaBtn(d.shareUrl || "https://www.buildslides.com", "View report")}
       <p style="margin:20px 0 0;font-size:13px;color:#64748b;">This link was shared with you directly. You don&rsquo;t need an account to view it.</p>
     `),
   }),
