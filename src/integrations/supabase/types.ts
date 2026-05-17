@@ -1205,6 +1205,7 @@ export type Database = {
           auth_method: string
           email: string
           full_name: string
+          has_payment_method: boolean
           last_active_at: string
           mrr_hkd: number
           owned_project_count: number
