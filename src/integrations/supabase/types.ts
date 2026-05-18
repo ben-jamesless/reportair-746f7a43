@@ -1265,6 +1265,14 @@ export type Database = {
         Returns: undefined
       }
       admin_summary: { Args: never; Returns: Json }
+      can_read_export_asset: {
+        Args: { _name: string; _user: string }
+        Returns: boolean
+      }
+      can_write_export_asset: {
+        Args: { _name: string; _user: string }
+        Returns: boolean
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
