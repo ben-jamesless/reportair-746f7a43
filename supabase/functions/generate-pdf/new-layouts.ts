@@ -345,7 +345,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 
     // Title: event name — full content width, wraps to 2 lines if needed
     const eventName = (proj.name as string) || "Event";
-    const titleY = H * 0.63; // was 0.80 — raised to reduce dead space above title
+    const titleY = H - 160; // ~160pt from top of page, just below the logo bar
     const titleSize = 44;
     const titleLines = wrapText(eventName, font, titleSize, CW);
     const titleLineCount = Math.min(titleLines.length, 2);
