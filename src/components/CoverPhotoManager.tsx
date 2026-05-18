@@ -87,12 +87,11 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
     setSaving(true);
     const { error } = await supabase
       .from("projects")
-      .update({ cover_photo_id: photoId, cover_asset_path: null })
+      .update({ cover_photo_id: photoId })
       .eq("id", projectId);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     setCoverPhotoId(photoId);
-    setCoverAssetPath(null);
     toast.success("Cover photo updated");
   };
 
