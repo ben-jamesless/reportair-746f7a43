@@ -871,6 +871,10 @@ Deno.serve(async (req) => {
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
+        coverImage,
+        accentColour: brandColour,
+        whiteLabelPdf,
+        companyName,
       });
     } else if (templateKey === "horizontal_log_v1") {
       await renderHorizontalLogV1({
@@ -878,6 +882,9 @@ Deno.serve(async (req) => {
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
+        accentColour: brandColour,
+        whiteLabelPdf,
+        companyName,
       });
     }
 
