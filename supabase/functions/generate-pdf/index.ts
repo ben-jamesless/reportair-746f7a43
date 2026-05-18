@@ -487,6 +487,32 @@ Deno.serve(async (req) => {
       } catch { return null; }
     };
 
+    // Custom cover image (Studio only): prefer cover_asset_path, then cover_photo_id.
+    if (canUseLogo) {
+      const coverAssetPath = (proj as { cover_asset_path?: string | null }).cover_asset_path ?? null;
+      const coverPhotoId = (proj as { cover_photo_id?: string | null }).cover_photo_id ?? null;
+      if (coverAssetPath) {
+        try {
+          const { data: coverBlob } = await supabase.storage.from("export-assets").download(coverAssetPath);
+          if (coverBlob) {
+            const bytes = new Uint8Array(await coverBlob.arrayBuffer());
+            try { coverImage = await pdfDoc.embedPng(bytes); }
+            catch { try { coverImage = await pdfDoc.embedJpg(bytes); } catch { coverImage = null; } }
+          }
+        } catch { /* fall through */ }
+      } else if (coverPhotoId) {
+        const { data: coverPhoto } = await supabase
+          .from("photos")
+          .select("storage_path, report_path")
+          .eq("id", coverPhotoId)
+          .maybeSingle();
+        if (coverPhoto) {
+          const url = await photoUrlFor(coverPhoto as { storage_path: string; report_path: string | null });
+          if (url) coverImage = await fetchAndEmbedImage(pdfDoc, url);
+        }
+      }
+    }
+
     // Pre-fetch photo images for each area (parallel). Cap to 9 per area.
     type AreaData = {
       id: string;
