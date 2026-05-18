@@ -89,6 +89,22 @@ const Auth = () => {
     }
   };
 
+  const VPN_HELP =
+    "If you're on a VPN or privacy DNS, it may be blocking oauth.lovable.app. Try disabling the VPN, switching server, or sign in with email instead.";
+
+  const looksLikeNetworkBlock = (msg: string) => {
+    const m = msg.toLowerCase();
+    return (
+      m.includes("failed to fetch") ||
+      m.includes("networkerror") ||
+      m.includes("load failed") ||
+      m.includes("timeout") ||
+      m.includes("timed out") ||
+      m.includes("oauth.lovable.app") ||
+      m.includes("network")
+    );
+  };
+
   const handleGoogle = async () => {
     setBusy(true);
     try {
@@ -104,14 +120,18 @@ const Auth = () => {
       if (result.error) {
         setBusy(false);
         const msg = result.error instanceof Error ? result.error.message : String(result.error);
-        toast.error("Google sign-in failed", { description: msg });
+        toast.error("Google sign-in failed", {
+          description: looksLikeNetworkBlock(msg) ? VPN_HELP : msg,
+        });
         return;
       }
       navigate("/projects");
     } catch (err) {
       setBusy(false);
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
-      toast.error(msg, { description: NETWORK_HELP });
+      toast.error("Google sign-in failed", {
+        description: looksLikeNetworkBlock(msg) ? VPN_HELP : `${msg} — ${NETWORK_HELP}`,
+      });
     }
   };
 
@@ -133,10 +153,15 @@ const Auth = () => {
   );
 
   const googleButton = (
-    <Button variant="outline" type="button" className="w-full" onClick={handleGoogle} disabled={busy}>
-      <GoogleIcon />
-      Continue with Google
-    </Button>
+    <div className="space-y-2">
+      <Button variant="outline" type="button" className="w-full" onClick={handleGoogle} disabled={busy}>
+        <GoogleIcon />
+        Continue with Google
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Google not working? Some VPNs block it — use email sign-in instead.
+      </p>
+    </div>
   );
 
   const content = signupSent ? (
