@@ -330,12 +330,22 @@ export const ExportPdfDialog = ({
   const selectCoverPhoto = async (photoId: string) => {
     setCoverSaving(true);
     const { error } = await supabase.from("projects")
-      .update({ cover_photo_id: photoId, cover_asset_path: null })
+      .update({ cover_photo_id: photoId })
       .eq("id", projectId);
     setCoverSaving(false);
     if (error) { toast.error(error.message); return; }
     setCoverPhotoId(photoId);
-    setCoverAssetPath(null);
+  };
+
+  const selectCoverAsset = async () => {
+    if (!coverAssetPath) return;
+    setCoverSaving(true);
+    const { error } = await supabase.from("projects")
+      .update({ cover_photo_id: null })
+      .eq("id", projectId);
+    setCoverSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setCoverPhotoId(null);
   };
 
   const clearCover = async () => {
@@ -767,14 +777,16 @@ export const ExportPdfDialog = ({
                 <label className="text-sm font-medium text-foreground">Cover photo</label>
                 <Crown className="h-3.5 w-3.5 text-primary" aria-label="Studio feature" />
               </div>
-              <div className="-mx-1 overflow-x-auto px-1 pb-1">
-                <div className="flex gap-2">
+              <div className="-mx-1 overflow-x-auto px-1 py-1.5">
+                <div className="flex gap-3 p-1">
                   {coverAssetPath && (
                     <button
                       type="button"
+                      onClick={selectCoverAsset}
+                      disabled={coverSaving || !coverPhotoId}
                       className={cn(
-                        "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted",
-                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                        "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        !coverPhotoId && "ring-2 ring-primary ring-offset-2",
                       )}
                       title="Custom upload"
                       aria-label="Custom uploaded cover"
@@ -790,7 +802,7 @@ export const ExportPdfDialog = ({
                     <p className="text-xs text-muted-foreground">No photos in this project yet.</p>
                   ) : (
                     coverPhotos.map((p) => {
-                      const selected = !coverAssetPath && coverPhotoId === p.id;
+                      const selected = coverPhotoId === p.id;
                       const url = coverThumbs[p.id];
                       return (
                         <button

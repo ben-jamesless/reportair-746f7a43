@@ -87,12 +87,11 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
     setSaving(true);
     const { error } = await supabase
       .from("projects")
-      .update({ cover_photo_id: photoId, cover_asset_path: null })
+      .update({ cover_photo_id: photoId })
       .eq("id", projectId);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     setCoverPhotoId(photoId);
-    setCoverAssetPath(null);
     toast.success("Cover photo updated");
   };
 
@@ -161,8 +160,8 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
         ) : photos.length === 0 ? (
           <p className="text-xs text-muted-foreground">No photos in this project yet.</p>
         ) : (
-          <div className="-mx-1 overflow-x-auto px-1 pb-1">
-            <div className="flex gap-2">
+          <div className="-mx-1 overflow-x-auto px-1 py-1.5">
+            <div className="flex gap-3 p-1">
               {photos.map((p) => {
                 const selected = coverPhotoId === p.id;
                 const url = thumbs[p.id];
