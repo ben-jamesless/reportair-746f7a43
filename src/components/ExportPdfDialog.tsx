@@ -330,12 +330,22 @@ export const ExportPdfDialog = ({
   const selectCoverPhoto = async (photoId: string) => {
     setCoverSaving(true);
     const { error } = await supabase.from("projects")
-      .update({ cover_photo_id: photoId, cover_asset_path: null })
+      .update({ cover_photo_id: photoId })
       .eq("id", projectId);
     setCoverSaving(false);
     if (error) { toast.error(error.message); return; }
     setCoverPhotoId(photoId);
-    setCoverAssetPath(null);
+  };
+
+  const selectCoverAsset = async () => {
+    if (!coverAssetPath) return;
+    setCoverSaving(true);
+    const { error } = await supabase.from("projects")
+      .update({ cover_photo_id: null })
+      .eq("id", projectId);
+    setCoverSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setCoverPhotoId(null);
   };
 
   const clearCover = async () => {
