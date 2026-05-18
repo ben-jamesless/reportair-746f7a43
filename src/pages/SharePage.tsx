@@ -139,6 +139,8 @@ const SharePage = () => {
   const [downloading, setDownloading] = useState(false);
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
+  const [brandColour, setBrandColour] = useState<string | null>(null);
+  const accent = brandColour ?? TEAL;
 
   useEffect(() => {
     if (!token) return;
