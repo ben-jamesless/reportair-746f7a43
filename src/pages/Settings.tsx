@@ -232,7 +232,10 @@ export default function SettingsPage() {
                     <div>
                       <Label>Company logo</Label>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Displayed on exported PDFs. PNG or JPG only. SVG is not supported. Recommended size: 800 × 800 px.
+                        Displayed on exported PDFs.
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG or JPG only. SVG is not supported. Recommended size: 800 × 800 px.
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
