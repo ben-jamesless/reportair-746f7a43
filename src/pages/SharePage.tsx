@@ -139,6 +139,8 @@ const SharePage = () => {
   const [downloading, setDownloading] = useState(false);
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
+  const [brandColour, setBrandColour] = useState<string | null>(null);
+  const accent = brandColour ?? TEAL;
 
   useEffect(() => {
     if (!token) return;
@@ -183,6 +185,12 @@ const SharePage = () => {
     if (r.project?.name) {
       document.title = `${r.project.name} — BuildSlides`;
     }
+    // Fetch the team's brand colour for the share page accent.
+    try {
+      const { data: bc } = await supabase.rpc("get_share_brand_colour", { _token: token });
+      if (typeof bc === "string" && /^#[0-9a-fA-F]{6}$/.test(bc)) setBrandColour(bc);
+      else setBrandColour(null);
+    } catch { /* silent — fall back to default accent */ }
   };
 
   const loadFeedback = useCallback(async () => {
@@ -364,7 +372,7 @@ const SharePage = () => {
             <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <Button
               className="w-full text-white"
-              style={{ backgroundColor: TEAL }}
+              style={{ backgroundColor: accent }}
               onClick={() => resolve(password)}
               disabled={!!(lockedUntil && Date.now() < lockedUntil)}
             >
@@ -490,7 +498,7 @@ const SharePage = () => {
                   onClick={downloadLatestReport}
                   disabled={downloading}
                   className="text-sm font-medium text-white hover:opacity-90"
-                  style={{ backgroundColor: TEAL }}
+                  style={{ backgroundColor: accent }}
                 >
                   {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                   Download latest report
@@ -513,7 +521,7 @@ const SharePage = () => {
               )}
               style={
                 activeKey === ALL_DAYS
-                  ? { backgroundColor: TEAL, color: "#ffffff" }
+                  ? { backgroundColor: accent, color: "#ffffff" }
                   : { color: BODY }
               }
               onMouseEnter={(e) => {
@@ -544,7 +552,7 @@ const SharePage = () => {
                   key={key}
                   onClick={() => handleSelectDay(key)}
                   className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
-                  style={active ? { backgroundColor: TEAL, color: "#ffffff" } : { color: BODY }}
+                  style={active ? { backgroundColor: accent, color: "#ffffff" } : { color: BODY }}
                   onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = SURFACE; }}
                   onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
                 >
@@ -569,7 +577,7 @@ const SharePage = () => {
                       key={al.id}
                       onClick={() => setActiveKey(key)}
                       className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
-                      style={active ? { backgroundColor: TEAL, color: "#ffffff" } : { color: BODY }}
+                      style={active ? { backgroundColor: accent, color: "#ffffff" } : { color: BODY }}
                       onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = SURFACE; }}
                       onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
                     >
@@ -597,7 +605,7 @@ const SharePage = () => {
                       key={ar.id}
                       onClick={() => setActiveKey(key)}
                       className="flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left text-xs transition-colors"
-                      style={active ? { backgroundColor: TEAL, color: "#ffffff" } : { color: BODY }}
+                      style={active ? { backgroundColor: accent, color: "#ffffff" } : { color: BODY }}
                       onMouseEnter={(e) => { if (!active) e.currentTarget.style.backgroundColor = SURFACE; }}
                       onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
                     >

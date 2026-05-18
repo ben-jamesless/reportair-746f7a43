@@ -1020,6 +1020,7 @@ export type Database = {
           exports_this_month: number
           id: string
           industry: string | null
+          logo_path: string | null
           name: string
           plan: string
           region: string | null
@@ -1044,6 +1045,7 @@ export type Database = {
           exports_this_month?: number
           id?: string
           industry?: string | null
+          logo_path?: string | null
           name: string
           plan?: string
           region?: string | null
@@ -1068,6 +1070,7 @@ export type Database = {
           exports_this_month?: number
           id?: string
           industry?: string | null
+          logo_path?: string | null
           name?: string
           plan?: string
           region?: string | null
@@ -1272,6 +1275,7 @@ export type Database = {
         Returns: number
       }
       get_invite_email: { Args: { _token: string }; Returns: string }
+      get_share_brand_colour: { Args: { _token: string }; Returns: string }
       get_share_export_url: { Args: { _token: string }; Returns: string }
       get_share_photo_url: {
         Args: { _photo_id: string; _token: string }
