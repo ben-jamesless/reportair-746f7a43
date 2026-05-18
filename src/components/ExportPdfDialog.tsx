@@ -854,7 +854,7 @@ export const ExportPdfDialog = ({
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Used as the hero image on Client Deck exports.
+                Used as the hero image on PDF exports.
               </p>
             </div>
           )}
