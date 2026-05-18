@@ -160,6 +160,17 @@ export const ExportPdfDialog = ({
   const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
   const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");
 
+  // Cover photo selector (Studio only)
+  const isStudio = plan === "studio";
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
+  const [coverAssetPath, setCoverAssetPath] = useState<string | null>(null);
+  const [coverAssetUrl, setCoverAssetUrl] = useState<string | null>(null);
+  const [coverPhotos, setCoverPhotos] = useState<{ id: string; storage_path: string }[]>([]);
+  const [coverThumbs, setCoverThumbs] = useState<Record<string, string>>({});
+  const [coverSaving, setCoverSaving] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverFileRef = useRef<HTMLInputElement>(null);
+
   // Pro+ unlocks the two horizontal layouts at launch. Solo gets portrait only.
   const isPro = plan !== "solo";
 
