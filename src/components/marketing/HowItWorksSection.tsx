@@ -364,6 +364,7 @@ const GraphicPanel = ({ children }: { children: React.ReactNode }) => (
       flexDirection: "column",
       justifyContent: "center",
       gap: 12,
+      minHeight: 340,
     }}
   >
     {children}
@@ -393,7 +394,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
     <GraphicPanel>
       <div
         style={{
-          aspectRatio: "16 / 10",
+          aspectRatio: "16 / 7",
           background: "linear-gradient(135deg,#15191D,#0F1417)",
           borderRadius: 12,
           border: "1.5px solid rgba(217,79,42,0.3)",
@@ -463,7 +464,7 @@ const CapturePanel = ({ onNext }: { onNext: () => void }) => (
           { bg: "linear-gradient(135deg,#4A3020,#3A2010)", check: true },
           { bg: "linear-gradient(135deg,#302A40,#201A30)", check: false },
         ].map((t, i) => (
-          <div key={i} style={{ aspectRatio: "1", borderRadius: 8, position: "relative", overflow: "hidden", background: t.bg }}>
+          <div key={i} style={{ aspectRatio: "4 / 3", borderRadius: 8, position: "relative", overflow: "hidden", background: t.bg }}>
             {t.check && (
               <div
                 style={{
