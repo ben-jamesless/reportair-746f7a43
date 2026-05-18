@@ -703,8 +703,11 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   const eventName = (proj.name ?? "Event").trim();
   const venue = (proj.event_location ?? "").trim();
   const eyebrowRight = dayEyebrow(buildDayLabel).replace("DAILY BUILD REPORT", "PRODUCTION LOG");
-  const footerLeft = `BUILDSLIDES · PRODUCTION LOG · ${reportDateLabel.toUpperCase()}`;
+  const footerLeft = args.whiteLabelPdf && args.companyName
+    ? `${args.companyName.toUpperCase()} · PRODUCTION LOG · ${reportDateLabel.toUpperCase()}`
+    : `BUILDSLIDES · PRODUCTION LOG · ${reportDateLabel.toUpperCase()}`;
   const totalPages = 1;
+  const accent = resolveAccent(args.accentColour);
 
   const page = pdfDoc.addPage([W, H]);
   page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: COLOR.INK });
@@ -713,6 +716,8 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
     eyebrowLeft: "TEMPLATE B · PRODUCTION LOG",
     eyebrowRight,
     footerLeft, pageNumber: 1, totalPages,
+    whiteLabelPdf: args.whiteLabelPdf, logoImage: args.logoImage,
+    companyName: args.companyName, accentColour: args.accentColour,
   });
 
   // ----- Title block -----
@@ -729,7 +734,7 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   if (venue) subParts.push(venue.toUpperCase());
   subParts.push(reportDateLabel.toUpperCase());
   page.drawText(subParts.join("  ·  "), {
-    x: 12 * MM, y: ty - 4, size: 8.5, font: irFont, color: COLOR.ACCENT,
+    x: 12 * MM, y: ty - 4, size: 8.5, font: irFont, color: accent,
   });
 
   // Event logo — top-right, only when provided
@@ -790,7 +795,7 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
     page.drawLine({
       start: { x: kx + 12, y: KPI_TOP - 12 },
       end: { x: kx + 32, y: KPI_TOP - 12 },
-      thickness: 1.5, color: COLOR.ACCENT,
+      thickness: 1.5, color: accent,
     });
     page.drawText(kpis[i].label, {
       x: kx + 12, y: KPI_TOP - 22, size: 8, font: irFont, color: COLOR.MUTED_ON_INK,
@@ -810,14 +815,14 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   if (narrative) {
     // Accent left rail + outline
     page.drawRectangle({
-      x: 12 * MM, y: NARR_BOTTOM, width: 3, height: NARR_H, color: COLOR.ACCENT,
+      x: 12 * MM, y: NARR_BOTTOM, width: 3, height: NARR_H, color: accent,
     });
     page.drawRectangle({
       x: 12 * MM + 3, y: NARR_BOTTOM, width: W - 24 * MM - 3, height: NARR_H,
       borderColor: COLOR.MUTED_ON_INK, borderWidth: 0.5,
     });
     page.drawText("TODAY'S NARRATIVE", {
-      x: 12 * MM + 16, y: NARR_TOP - 14, size: 8, font: irFont, color: COLOR.ACCENT,
+      x: 12 * MM + 16, y: NARR_TOP - 14, size: 8, font: irFont, color: accent,
     });
     const lines = wrapLines(narrative, irFont, 10.5, W - 24 * MM - 32).slice(0, 6);
     let ny = NARR_TOP - 30;
