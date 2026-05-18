@@ -77,17 +77,17 @@ const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, ex
 // Layout variant — drives orientation + template in the PDF generator.
 // portrait_v1 ships at launch on every plan. The two horizontal variants are
 // Pro+ at launch; backend branches on options.template.
-type LayoutVariant = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
+type LayoutVariant = "portrait_v1" | "editorial_portrait_v1" | "grid_landscape_v1";
 
 // `comingSoon` gates layouts that don't yet have a renderer in the generate-pdf
-// edge function. With horizontal_deck_v1 and horizontal_log_v1 now wired up
-// in generate-pdf/horizontal-layouts.ts, all three tiles are selectable.
+// edge function. With editorial_portrait_v1 and grid_landscape_v1 now wired up
+// in generate-pdf/new-layouts.ts, all three tiles are selectable.
 // Keep the flag on the type so future templates can ship in the UI first
 // while the renderer is still in progress.
 const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean; comingSoon: boolean }[] = [
-  { value: "portrait_v1",       label: "Portrait",        hint: "Original · photo-led report",         orientation: "portrait",  pro: false, comingSoon: false },
-  { value: "horizontal_deck_v1", label: "Client deck",     hint: "Landscape · hero photo + grid",       orientation: "landscape", pro: true,  comingSoon: false },
-  { value: "horizontal_log_v1",  label: "Production log",  hint: "Landscape · data-dense, zone view",   orientation: "landscape", pro: true,  comingSoon: false },
+  { value: "portrait_v1",            label: "Portrait",    hint: "Original · photo-led report",          orientation: "portrait",  pro: false, comingSoon: false },
+  { value: "editorial_portrait_v1",  label: "Editorial",   hint: "Portrait · dark cover, area pages",    orientation: "portrait",  pro: true,  comingSoon: false },
+  { value: "grid_landscape_v1",      label: "Grid",        hint: "Landscape · 3-column photo grid",      orientation: "landscape", pro: true,  comingSoon: false },
 ];
 
 const LAYOUT_STORAGE_KEY = (projectId: string) => `bs:export:layout:${projectId}`;
@@ -171,16 +171,16 @@ export const ExportPdfDialog = ({
   const [coverUploading, setCoverUploading] = useState(false);
   const coverFileRef = useRef<HTMLInputElement>(null);
 
-  // Pro+ unlocks the two horizontal layouts at launch. Solo gets portrait only.
+  // Pro+ unlocks the two new layouts at launch. Solo gets portrait only.
   const isPro = plan !== "solo";
 
   // Default order: last-used layout for THIS project (LAYOUT_STORAGE_KEY) →
   // template's recommended layout (set by NewEventPanel at create time) →
   // portrait. This means a freshly-created Exhibition project opens the
-  // export dialog with Production Log already selected, while users who
+  // export dialog with Grid already selected, while users who
   // override it once keep their override.
   const isValidLayout = (v: unknown): v is LayoutVariant =>
-    v === "portrait_v1" || v === "horizontal_deck_v1" || v === "horizontal_log_v1";
+    v === "portrait_v1" || v === "editorial_portrait_v1" || v === "grid_landscape_v1";
   const recommendedLayout = useMemo<LayoutVariant | null>(() => {
     if (typeof window === "undefined") return null;
     const v = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
