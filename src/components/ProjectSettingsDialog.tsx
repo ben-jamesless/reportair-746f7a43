@@ -34,7 +34,7 @@ interface Props {
   project: ProjectForEdit;
   onChanged?: () => void;
   /** Optional default tab to open on. */
-  defaultTab?: "details" | "areas" | "albums" | "members" | "share";
+  defaultTab?: "details" | "areas" | "albums" | "members" | "share" | "cover";
   /** Pass null to omit the built-in trigger (use controlled open instead). */
   trigger?: React.ReactNode | null;
   open?: boolean;
@@ -46,7 +46,8 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [canManageAlbums, setCanManageAlbums] = useState(false);
-  const { canUseShareLink } = usePlan();
+  const { canUseShareLink, plan } = usePlan();
+  const isStudio = plan === "studio";
 
   useEffect(() => {
     if (!open) return;
@@ -98,6 +99,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               {canManageAlbums && <TabsTrigger value="albums">Albums</TabsTrigger>}
               <TabsTrigger value="members">Members</TabsTrigger>
               <TabsTrigger value="share">Share{!canUseShareLink && <Crown className="ml-1 h-3 w-3 text-amber-400 inline" />}</TabsTrigger>
+              {isStudio && <TabsTrigger value="cover">Cover photo</TabsTrigger>}
             </TabsList>
           </div>
           <TabsContent value="details" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
@@ -137,6 +139,11 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
           <TabsContent value="share" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
             <ShareLinksManager projectId={projectId} />
           </TabsContent>
+          {isStudio && (
+            <TabsContent value="cover" className="mt-4 min-h-0 flex-1 overflow-y-auto px-1">
+              <CoverPhotoManager projectId={projectId} />
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
     </Dialog>
