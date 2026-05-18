@@ -36,6 +36,14 @@ const COLOR = {
   WHITE: rgb(1, 1, 1),
 };
 
+// Resolve effective accent colour. Studio custom override or BuildSlides default.
+function resolveAccent(accentColour?: string | null): ReturnType<typeof rgb> {
+  if (accentColour && /^#[0-9a-fA-F]{6}$/.test(accentColour)) {
+    return HEX(accentColour);
+  }
+  return COLOR.ACCENT;
+}
+
 // ============ Shared types ============
 export type AreaData = {
   id: string;
@@ -75,6 +83,10 @@ export type RenderArgs = {
   buildDayLabel: string;
   reportNumber: string;
   logoImage?: PDFImage | null;
+  coverImage?: PDFImage | null;
+  accentColour?: string | null;
+  whiteLabelPdf?: boolean;
+  companyName?: string | null;
 };
 
 // ============ Utilities ============
@@ -296,6 +308,11 @@ function drawPageChrome(
     footerLeft: string;        // e.g. "BUILDSLIDES · REPORT · 17 MAY 2026"
     pageNumber: number;
     totalPages: number;
+    // Studio branding
+    whiteLabelPdf?: boolean;
+    logoImage?: PDFImage | null;
+    companyName?: string | null;
+    accentColour?: string | null;
   },
 ) {
   const { W, H, chrome, pjsFont, irFont } = args;
@@ -303,16 +320,27 @@ function drawPageChrome(
   const textColor = ink ? COLOR.TEXT_ON_INK : COLOR.TEXT_ON_PAPER;
   const mutedColor = ink ? COLOR.MUTED_ON_INK : COLOR.MUTED_ON_PAPER;
   const ruleColor = ink ? COLOR.MUTED_ON_INK : COLOR.RULE;
+  const accent = resolveAccent(args.accentColour);
 
   // Top strip
   const HEADER_Y = H - 14 * MM;
-  drawWordmark(page, 12 * MM, HEADER_Y, 9, pjsFont, textColor);
+  if (args.whiteLabelPdf && args.logoImage) {
+    // White-label: replace wordmark with the team/event logo at the same anchor.
+    const wordmarkFontSize = 9;
+    const maxH = wordmarkFontSize * 1.6 * 1.2; // ~17.3pt
+    const img = args.logoImage;
+    const scale = Math.min(maxH / img.height, (40 * MM) / img.width);
+    const lw = img.width * scale, lh = img.height * scale;
+    page.drawImage(img, { x: 12 * MM, y: HEADER_Y - lh * 0.15, width: lw, height: lh });
+  } else {
+    drawWordmark(page, 12 * MM, HEADER_Y, 9, pjsFont, textColor);
+  }
   page.drawText(args.eyebrowLeft, {
     x: 38 * MM, y: HEADER_Y + 1, size: 7, font: irFont, color: mutedColor,
   });
   const erW = irFont.widthOfTextAtSize(args.eyebrowRight, 7);
   page.drawText(args.eyebrowRight, {
-    x: W - 12 * MM - erW, y: HEADER_Y + 1, size: 7, font: irFont, color: COLOR.ACCENT,
+    x: W - 12 * MM - erW, y: HEADER_Y + 1, size: 7, font: irFont, color: accent,
   });
   page.drawLine({
     start: { x: 12 * MM, y: HEADER_Y - 4 },
