@@ -815,12 +815,14 @@ Deno.serve(async (req) => {
         pdfDoc, pjsFont, irFont, proj, areaData, dayPhotos,
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
+        logoImage: eventLogoImage,
       });
     } else if (templateKey === "horizontal_log_v1") {
       await renderHorizontalLogV1({
         pdfDoc, pjsFont, irFont, proj, areaData, dayPhotos,
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
+        logoImage: eventLogoImage,
       });
     }
 

@@ -74,6 +74,7 @@ export type RenderArgs = {
   reportDateLabel: string;
   buildDayLabel: string;
   reportNumber: string;
+  logoImage?: PDFImage | null;
 };
 
 // ============ Utilities ============
@@ -414,13 +415,28 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       });
     }
 
-    // Hero photo tile — pick the first photo we have. If no photo, render
-    // a labelled placeholder tile with brackets so the page still reads.
-    // Per spec ("hide sections entirely if data is missing") we still draw
-    // the cover but skip the tile if there are zero photos overall.
-    const hero = areaData.find(a => a.photoImages.some(Boolean));
-    const heroImg = hero?.photoImages.find(Boolean) ?? null;
-    const heroLabel = hero ? hero.name.toUpperCase() : "";
+    // Event logo — top-right of cover, only when provided
+    if (args.logoImage) {
+      const logoBoxW = 72, logoBoxH = 36;
+      const logoBoxX = W - 12 * MM - logoBoxW;
+      const logoBoxY = H - 26 * MM - logoBoxH;
+      const scale = Math.min(logoBoxW / args.logoImage.width, logoBoxH / args.logoImage.height);
+      const lw = args.logoImage.width * scale, lh = args.logoImage.height * scale;
+      page.drawImage(args.logoImage, {
+        x: logoBoxX + (logoBoxW - lw) / 2,
+        y: logoBoxY + (logoBoxH - lh) / 2,
+        width: lw, height: lh,
+      });
+    }
+
+    // Hero photo tile — pick the area with the most photos (more photogenic
+    // zones tend to be the most representative of the event), then use its
+    // first image. Falls back gracefully if no area has photos.
+    const heroArea = [...areaData]
+      .filter(a => a.photoImages.some(Boolean))
+      .sort((a, b) => b.photoCount - a.photoCount)[0] ?? null;
+    const heroImg = heroArea?.photoImages.find(Boolean) ?? null;
+    const heroLabel = heroArea ? heroArea.name.toUpperCase() : "";
 
     const TILE_TOP = ty - 16;
     const TILE_BOTTOM = 40 * MM;
@@ -679,6 +695,20 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   page.drawText(subParts.join("  ·  "), {
     x: 12 * MM, y: ty - 4, size: 8.5, font: irFont, color: COLOR.ACCENT,
   });
+
+  // Event logo — top-right, only when provided
+  if (args.logoImage) {
+    const logoBoxW = 72, logoBoxH = 36;
+    const logoBoxX = W - 12 * MM - logoBoxW;
+    const logoBoxY = H - 26 * MM - logoBoxH;
+    const scale = Math.min(logoBoxW / args.logoImage.width, logoBoxH / args.logoImage.height);
+    const lw = args.logoImage.width * scale, lh = args.logoImage.height * scale;
+    page.drawImage(args.logoImage, {
+      x: logoBoxX + (logoBoxW - lw) / 2,
+      y: logoBoxY + (logoBoxH - lh) / 2,
+      width: lw, height: lh,
+    });
+  }
 
   // ----- KPI strip -----
   //
