@@ -153,10 +153,15 @@ const Auth = () => {
   );
 
   const googleButton = (
-    <Button variant="outline" type="button" className="w-full" onClick={handleGoogle} disabled={busy}>
-      <GoogleIcon />
-      Continue with Google
-    </Button>
+    <div className="space-y-2">
+      <Button variant="outline" type="button" className="w-full" onClick={handleGoogle} disabled={busy}>
+        <GoogleIcon />
+        Continue with Google
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        Google not working? Some VPNs block it — use email sign-in instead.
+      </p>
+    </div>
   );
 
   const content = signupSent ? (
