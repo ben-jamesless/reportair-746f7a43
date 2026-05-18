@@ -685,10 +685,16 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     // Left content column
     const LX = 40, LW = 360;
 
-    // Title: event name (single line, no "THE" prefix)
+    // Title: event name — wraps within left column so it never overlaps the cover photo
     const eventName = (proj.name as string) || "Event";
     const hoppingY = BODY_TOP - 68;
-    page.drawText(eventName, { x: LX, y: hoppingY, size: 46, font, color: C.INK });
+    {
+      const titleSize = 46;
+      const titleLines = wrapText(eventName, font, titleSize, LW);
+      titleLines.slice(0, 2).forEach((ln, li) => {
+        page.drawText(ln, { x: LX, y: hoppingY - li * (titleSize + 6), size: titleSize, font, color: C.INK });
+      });
+    }
 
     // Orange accent rule
     const ruleY = hoppingY - 22;
