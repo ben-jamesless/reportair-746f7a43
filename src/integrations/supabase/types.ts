@@ -801,6 +801,8 @@ export type Database = {
           build_start_date: string | null
           client_name: string | null
           color: string
+          cover_asset_path: string | null
+          cover_photo_id: string | null
           created_at: string
           created_by: string
           default_view: Database["public"]["Enums"]["project_default_view"]
@@ -829,6 +831,8 @@ export type Database = {
           build_start_date?: string | null
           client_name?: string | null
           color?: string
+          cover_asset_path?: string | null
+          cover_photo_id?: string | null
           created_at?: string
           created_by: string
           default_view?: Database["public"]["Enums"]["project_default_view"]
@@ -857,6 +861,8 @@ export type Database = {
           build_start_date?: string | null
           client_name?: string | null
           color?: string
+          cover_asset_path?: string | null
+          cover_photo_id?: string | null
           created_at?: string
           created_by?: string
           default_view?: Database["public"]["Enums"]["project_default_view"]
@@ -881,6 +887,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "projects_cover_photo_id_fkey"
+            columns: ["cover_photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "projects_folder_id_fkey"
             columns: ["folder_id"]
@@ -999,6 +1012,7 @@ export type Database = {
         Row: {
           billing_interval: string | null
           billing_owner_user_id: string
+          brand_colour: string | null
           created_at: string
           created_by: string
           current_period_end: string | null
@@ -1017,10 +1031,12 @@ export type Database = {
           suspended_at: string | null
           trial_ends_at: string | null
           updated_at: string
+          white_label_pdf: boolean
         }
         Insert: {
           billing_interval?: string | null
           billing_owner_user_id: string
+          brand_colour?: string | null
           created_at?: string
           created_by: string
           current_period_end?: string | null
@@ -1039,10 +1055,12 @@ export type Database = {
           suspended_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
+          white_label_pdf?: boolean
         }
         Update: {
           billing_interval?: string | null
           billing_owner_user_id?: string
+          brand_colour?: string | null
           created_at?: string
           created_by?: string
           current_period_end?: string | null
@@ -1061,6 +1079,7 @@ export type Database = {
           suspended_at?: string | null
           trial_ends_at?: string | null
           updated_at?: string
+          white_label_pdf?: boolean
         }
         Relationships: []
       }
