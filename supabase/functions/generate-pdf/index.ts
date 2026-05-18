@@ -3,7 +3,7 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
-import { renderHorizontalDeckV1, renderHorizontalLogV1 } from "./horizontal-layouts.ts";
+import { renderEditorialPortraitV1, renderGridLandscapeV1 } from "./new-layouts.ts";
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
@@ -545,15 +545,15 @@ Deno.serve(async (req) => {
     // ============ Template branch ============
     // The export dialog writes `template` into options. Three layouts are
     // wired up so far:
-    //   portrait_v1        — original 1 cover + 1 page per area (A4 portrait)
-    //   horizontal_deck_v1 — "Client deck" landscape, light cream PAPER surface
-    //   horizontal_log_v1  — "Production log" landscape, dark INK surface
+    //   portrait_v1             — original portrait (untouched)
+    //   editorial_portrait_v1   — new Concept 1: dark cover, editorial layout
+    //   grid_landscape_v1       — new Concept 4: landscape 3-column grid
     // Any unknown / missing value falls back to portrait_v1 so the function is
     // backwards compatible with existing queued exports.
-    type TemplateKey = "portrait_v1" | "horizontal_deck_v1" | "horizontal_log_v1";
+    type TemplateKey = "portrait_v1" | "editorial_portrait_v1" | "grid_landscape_v1";
     const rawTemplate = (exp.options?.template ?? "portrait_v1") as string;
     const templateKey: TemplateKey =
-      rawTemplate === "horizontal_deck_v1" || rawTemplate === "horizontal_log_v1"
+      rawTemplate === "editorial_portrait_v1" || rawTemplate === "grid_landscape_v1"
         ? rawTemplate
         : "portrait_v1";
 
@@ -865,9 +865,9 @@ Deno.serve(async (req) => {
       const rw = irFont.widthOfTextAtSize((right ?? ""), fSize);
       p.drawText((right ?? ""), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
     }
-    } else if (templateKey === "horizontal_deck_v1") {
-      await renderHorizontalDeckV1({
-        pdfDoc, pjsFont, irFont, proj, areaData, dayPhotos,
+    } else if (templateKey === "editorial_portrait_v1") {
+      await renderEditorialPortraitV1({
+        pdfDoc, pjsFont, irFont, proj, areaData,
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
@@ -876,12 +876,13 @@ Deno.serve(async (req) => {
         whiteLabelPdf,
         companyName,
       });
-    } else if (templateKey === "horizontal_log_v1") {
-      await renderHorizontalLogV1({
-        pdfDoc, pjsFont, irFont, proj, areaData, dayPhotos,
+    } else if (templateKey === "grid_landscape_v1") {
+      await renderGridLandscapeV1({
+        pdfDoc, pjsFont, irFont, proj, areaData,
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
+        coverImage,
         accentColour: brandColour,
         whiteLabelPdf,
         companyName,
