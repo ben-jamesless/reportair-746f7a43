@@ -345,7 +345,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 
     // Title: event name — full content width, wraps to 2 lines if needed
     const eventName = (proj.name as string) || "Event";
-    const titleY = H * 0.80;
+    const titleY = H * 0.63; // was 0.80 — raised to reduce dead space above title
     const titleSize = 44;
     const titleLines = wrapText(eventName, font, titleSize, CW);
     const titleLineCount = Math.min(titleLines.length, 2);
@@ -359,7 +359,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     const overallStatus = (proj.overall_status as string | null) ?? null;
     const pillLabel = statusLabel(overallStatus);
     const pillBg = statusBg(overallStatus);
-    const pillY = titleBottom - 18;
+    const pillY = titleBottom - 26; // more breathing room between title and pill
     pill(page, ML, pillY, pillLabel, pillBg, C.WHITE, body, 7.5);
 
     // Accent rule below pill
