@@ -372,7 +372,7 @@ const SharePage = () => {
             <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <Button
               className="w-full text-white"
-              style={{ backgroundColor: TEAL }}
+              style={{ backgroundColor: accent }}
               onClick={() => resolve(password)}
               disabled={!!(lockedUntil && Date.now() < lockedUntil)}
             >
@@ -498,7 +498,7 @@ const SharePage = () => {
                   onClick={downloadLatestReport}
                   disabled={downloading}
                   className="text-sm font-medium text-white hover:opacity-90"
-                  style={{ backgroundColor: TEAL }}
+                  style={{ backgroundColor: accent }}
                 >
                   {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                   Download latest report
