@@ -344,10 +344,20 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     const dw = body.widthOfTextAtSize(dayLbl, 9);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 9, font: body, color: effectiveAccent });
 
-    // Title: event name
+    // Title: event name — constrained to left half so it never overlaps the cover photo
     const eventName = (proj.name as string) || "Event";
     const titleY = H * 0.80;
-    page.drawText(eventName, { x: ML, y: titleY, size: 44, font, color: C.WHITE });
+    // Cover photo starts at x ≈ W/2 + 20; keep title within the left column
+    const titleMaxW = W / 2 - ML - 20;
+    {
+      let titleText = eventName;
+      const titleSize = 44;
+      while (titleText.length > 1 && font.widthOfTextAtSize(titleText, titleSize) > titleMaxW) {
+        titleText = titleText.slice(0, -1);
+      }
+      if (titleText !== eventName) titleText = titleText.slice(0, -1) + "…";
+      page.drawText(titleText, { x: ML, y: titleY, size: titleSize, font, color: C.WHITE });
+    }
 
     // Overall status pill directly under title
     const overallStatus = (proj.overall_status as string | null) ?? null;
@@ -387,6 +397,52 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
       lines.forEach((ln, li) => {
         page.drawText(ln, { x: fx + 8, y: fy + fieldH - 26 - li * 11, size: 9, font: body, color: C.COVER_VALUE });
       });
+    });
+
+    // ── Area Summary table (like original portrait report) ──────────────────
+    const fieldsBottomY = fieldsTop - 1 * (fieldH + rowGap) - fieldH;
+    const summaryTopY = fieldsBottomY - 18;
+    // Heading
+    page.drawText("AREA SUMMARY", { x: ML, y: summaryTopY, size: 8, font, color: C.WHITE });
+    page.drawLine({ start: { x: ML, y: summaryTopY - 3 }, end: { x: ML + body.widthOfTextAtSize("AREA SUMMARY", 8) + 2, y: summaryTopY - 3 }, thickness: 1.5, color: effectiveAccent });
+    // Column headers
+    const sumHeaderY = summaryTopY - 16;
+    const sumCols = [
+      { label: "AREA",   x: ML,       w: 180 },
+      { label: "STATUS", x: ML + 190, w: 100 },
+      { label: "PHOTOS", x: ML + 300, w: 60 },
+      { label: "NOTES",  x: ML + 370, w: CW - 370 },
+    ];
+    sumCols.forEach(({ label, x }) => {
+      page.drawText(label, { x, y: sumHeaderY, size: 6, font: body, color: C.COVER_MUTED });
+    });
+    page.drawLine({ start: { x: ML, y: sumHeaderY - 6 }, end: { x: W - MR, y: sumHeaderY - 6 }, thickness: 0.4, color: C.COVER_CELL_BD });
+    // Rows
+    const rowH = 18;
+    areaData.forEach((area, ri) => {
+      const ry = sumHeaderY - 6 - (ri + 1) * rowH;
+      if (ry < 105) return; // stop if we'd run into the bottom strip
+      // Area name
+      let aName = area.name || "—";
+      while (aName.length > 1 && body.widthOfTextAtSize(aName, 8) > sumCols[0].w - 4) aName = aName.slice(0, -1);
+      if (aName !== area.name) aName = aName.slice(0, -1) + "…";
+      page.drawText(aName, { x: sumCols[0].x, y: ry + 4, size: 8, font, color: hex("#DDDDDD") });
+      // Status pill
+      const sLbl = statusLabel(area.status);
+      const sBg  = statusBg(area.status);
+      const sPh  = 12, sPv = 2.5;
+      const sPw  = body.widthOfTextAtSize(sLbl, 6.5) + sPh * 2;
+      page.drawRectangle({ x: sumCols[1].x, y: ry + 1, width: sPw, height: 6.5 + sPv * 2, color: sBg, borderRadius: (6.5 + sPv * 2) / 2 });
+      page.drawText(sLbl, { x: sumCols[1].x + sPh, y: ry + 1 + sPv + 0.5, size: 6.5, font: body, color: C.WHITE });
+      // Photo count
+      page.drawText(String(area.photoCount ?? 0), { x: sumCols[2].x, y: ry + 4, size: 8, font: body, color: C.COVER_MUTED });
+      // Notes snippet
+      let noteSnip = area.notes || "—";
+      while (noteSnip.length > 1 && body.widthOfTextAtSize(noteSnip, 7.5) > sumCols[3].w - 4) noteSnip = noteSnip.slice(0, -1);
+      if (noteSnip !== (area.notes || "—")) noteSnip = noteSnip.slice(0, -1) + "…";
+      page.drawText(noteSnip, { x: sumCols[3].x, y: ry + 4, size: 7.5, font: body, color: C.COVER_MUTED });
+      // Row divider
+      page.drawLine({ start: { x: ML, y: ry }, end: { x: W - MR, y: ry }, thickness: 0.3, color: C.COVER_CELL_BD });
     });
 
     // Orange accent rule above bottom strip
@@ -430,19 +486,49 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     const accentRuleY = headingY - 24;
     page.drawLine({ start: { x: ML, y: accentRuleY }, end: { x: W - MR, y: accentRuleY }, thickness: 0.9, color: effectiveAccent });
 
-    // Photos
+    // Photos — always 2×2 grid, overflow to extra pages
+    const GAP = 10;
+    const GRID_CELL_H = 180;
+    const GRID_CELL_W = (CW - GAP) / 2;
+    // Pad photoImages to a multiple of 4 (fill with null for empty cells)
+    const allPhotos: (PDFImage | null)[] = [...area.photoImages];
+    while (allPhotos.length % 4 !== 0) allPhotos.push(null);
+    if (allPhotos.length === 0) allPhotos.push(null, null, null, null);
+
+    // First page already started — draw first 4 photos here
     let y = accentRuleY - 28;
-    const photoH = 200;
-    const gap = 10;
-    const hasTwo = area.photoImages.length >= 2;
-    if (hasTwo) {
-      const cellW = (CW - gap) / 2;
-      photoPlaceholder(page, ML,                   y - photoH, cellW, photoH, body, "PHOTO 1", area.photoImages[0]);
-      photoPlaceholder(page, ML + cellW + gap, y - photoH, cellW, photoH, body, "PHOTO 2", area.photoImages[1]);
-    } else {
-      photoPlaceholder(page, ML, y - photoH, CW, photoH, body, "PHOTO 1", area.photoImages[0] ?? null);
+    const firstBatch = allPhotos.slice(0, 4);
+    firstBatch.forEach((img, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const px = ML + col * (GRID_CELL_W + GAP);
+      const py = y - (row + 1) * GRID_CELL_H - row * GAP;
+      photoPlaceholder(page, px, py, GRID_CELL_W, GRID_CELL_H, body, `PHOTO ${i + 1}`, img);
+    });
+    y -= 2 * GRID_CELL_H + GAP + 22;
+
+    // Overflow pages — groups of 4
+    const overflowBatches: (PDFImage | null)[][] = [];
+    for (let start = 4; start < allPhotos.length; start += 4) {
+      overflowBatches.push(allPhotos.slice(start, start + 4));
     }
-    y -= photoH + 22;
+    overflowBatches.forEach((batch, bi) => {
+      const ovPage = pdfDoc.addPage([W, H]);
+      fillRect(ovPage, 0, 0, W, H, C.PAPER);
+      const ovRuleY = drawAreaHeader(ovPage);
+      // Continuation label
+      ovPage.drawText(`${area.name || "Area"} (continued)`, { x: ML, y: ovRuleY - 20, size: 14, font, color: C.INK });
+      let oy = ovRuleY - 50;
+      batch.forEach((img, i) => {
+        const globalIdx = 4 + bi * 4 + i;
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const px = ML + col * (GRID_CELL_W + GAP);
+        const py = oy - (row + 1) * GRID_CELL_H - row * GAP;
+        photoPlaceholder(ovPage, px, py, GRID_CELL_W, GRID_CELL_H, body, `PHOTO ${globalIdx + 1}`, img);
+      });
+      drawAreaFooter(ovPage, `${ai + 2} / ${areaData.length + 1}`);
+    });
 
     // Notes label
     page.drawText("NOTES", { x: ML, y, size: 7, font: body, color: effectiveAccent });
@@ -455,6 +541,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
       y -= 15;
     });
 
+    // No OBSERVATIONS section — not wired in backend
     drawAreaFooter(page, `${ai + 2} / ${areaData.length + 1}`);
   });
 }
@@ -582,10 +669,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
       ny -= 13;
     });
 
-    // Observations divider + label
-    page.drawLine({ start: { x: COL3_X + PAD, y: 390 }, end: { x: COL3_X + COL3_W - PAD, y: 390 }, thickness: 0.5, color: C.RULE });
-    page.drawText("OBSERVATIONS", { x: COL3_X + PAD, y: 376, size: 6, font: body, color: effectiveAccent });
-    page.drawText("—", { x: COL3_X + PAD, y: 358, size: 9, font: body, color: C.INK });
+    // OBSERVATIONS removed — not wired in backend
   }
 
   // ════════════════════════════════════════════
