@@ -628,33 +628,54 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     page.drawLine({ start: { x: COL2_X, y: COL_RULE_Y }, end: { x: COL2_X + COL2_W, y: COL_RULE_Y }, thickness: 0.5, color: C.RULE });
 
     const PAD = 10, GAP = 8, BOT = 10;
+
     if (photos.length === 0) {
       // No photos — leave column blank
       return;
-    } else if (photos.length >= 4) {
-      // 2×2 landscape grid
+    }
+
+    // Helper: draw up to 4 photos in 2×2 grid on a given page's photo column
+    function drawPhotoGrid(targetPage: PDFPage, batch: typeof photos, startIdx: number) {
       const avH = PHOTO_CEIL - BOT;
       const ph = (avH - GAP) / 2;
       const pw = (COL2_W - PAD * 2 - GAP) / 2;
       const rows = [BOT, BOT + ph + GAP];
-      [0, 1, 2, 3].forEach((i) => {
+      batch.slice(0, 4).forEach((slot, i) => {
         const col = i % 2, row = Math.floor(i / 2);
         const px = COL2_X + PAD + col * (pw + GAP);
-        const py = rows[1 - row]; // row 0 = upper, row 1 = lower
-        photoPlaceholder(page, px, py, pw, ph, body, photos[i]?.label ?? `PHOTO ${i + 1}`, photos[i]?.img);
+        const py = rows[1 - row];
+        photoPlaceholder(targetPage, px, py, pw, ph, body, slot?.label ?? `PHOTO ${startIdx + i + 1}`, slot?.img ?? null);
       });
-    } else if (photos.length === 1) {
+    }
+
+    if (photos.length === 1) {
       // Single full photo
       const ph = PHOTO_CEIL - BOT;
       const pw = COL2_W - PAD * 2;
       photoPlaceholder(page, COL2_X + PAD, BOT, pw, ph, body, photos[0]?.label ?? "PHOTO 1", photos[0]?.img);
+    } else if (photos.length <= 4) {
+      // 2×2 grid (or partial — only real photos rendered)
+      drawPhotoGrid(page, photos, 0);
     } else {
-      // 2 portrait side by side
-      const ph = PHOTO_CEIL - BOT;
-      const pw = (COL2_W - PAD * 2 - GAP) / 2;
-      [0, 1].forEach((i) => {
-        const px = COL2_X + PAD + i * (pw + GAP);
-        photoPlaceholder(page, px, BOT, pw, ph, body, photos[i]?.label ?? `PHOTO ${i + 1}`, photos[i]?.img ?? null);
+      // First 4 on current page, overflow onto continuation pages
+      drawPhotoGrid(page, photos.slice(0, 4), 0);
+      const overflowBatches: typeof photos[] = [];
+      for (let start = 4; start < photos.length; start += 4) {
+        overflowBatches.push(photos.slice(start, start + 4));
+      }
+      overflowBatches.forEach((batch, bi) => {
+        const ovPage = pdfDoc.addPage([W, H]);
+        fillRect(ovPage, 0, 0, W, H, C.PAPER);
+        drawHeader(ovPage);
+        drawSidebar(ovPage, currentAreaName, currentAreaStatus, reportDateLabel,
+          `${String(currentAreaPageNum).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`);
+        drawNotesCol(ovPage, ""); // blank notes on overflow pages
+        // Draw photo column header
+        ovPage.drawLine({ start: { x: COL2_X, y: 0 }, end: { x: COL2_X, y: BODY_TOP }, thickness: 0.5, color: C.RULE });
+        ovPage.drawLine({ start: { x: COL2_X + COL2_W, y: 0 }, end: { x: COL2_X + COL2_W, y: BODY_TOP }, thickness: 0.5, color: C.RULE });
+        ovPage.drawText("PHOTOS (CONTINUED)", { x: COL2_X + 12, y: COL_LABEL_Y, size: 6, font: body, color: effectiveAccent });
+        ovPage.drawLine({ start: { x: COL2_X, y: COL_RULE_Y }, end: { x: COL2_X + COL2_W, y: COL_RULE_Y }, thickness: 0.5, color: C.RULE });
+        drawPhotoGrid(ovPage, batch, 4 + bi * 4);
       });
     }
   }
@@ -775,14 +796,25 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   // ════════════════════════════════════════════
   // AREA PAGES
   // ════════════════════════════════════════════
+  // Context vars used by drawPhotosCol overflow pages
+  let currentAreaName = "";
+  let currentAreaStatus = "";
+  let currentAreaPageNum = 2;
+  const totalPages = areaData.length + 1;
+
   areaData.forEach((area, ai) => {
     const page = pdfDoc.addPage([W, H]);
     fillRect(page, 0, 0, W, H, C.PAPER);
 
     drawHeader(page);
 
-    const pageLabel = `${String(ai + 2).padStart(2, "0")} / ${String(areaData.length + 1).padStart(2, "0")}`;
+    const pageLabel = `${String(ai + 2).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`;
     drawSidebar(page, area.name, area.status, reportDateLabel, pageLabel);
+
+    // Set context for overflow pages inside drawPhotosCol
+    currentAreaName = area.name || "Area";
+    currentAreaStatus = area.status || "";
+    currentAreaPageNum = ai + 2;
 
     // Photos: only pass real (non-null) images — no placeholders for empty areas
     const realImgs = area.photoImages.filter((img) => img != null) as PDFImage[];
