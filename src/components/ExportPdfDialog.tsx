@@ -579,6 +579,93 @@ export const ExportPdfDialog = ({
           )}
 
 
+          {isStudio && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <label className="text-sm font-medium text-foreground">Cover photo</label>
+                <Crown className="h-3.5 w-3.5 text-primary" aria-label="Studio feature" />
+              </div>
+              <div className="-mx-1 overflow-x-auto px-1 pb-1">
+                <div className="flex gap-2">
+                  {coverAssetPath && (
+                    <button
+                      type="button"
+                      onClick={() => { /* already selected */ }}
+                      className={cn(
+                        "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted",
+                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                      )}
+                      title="Custom upload"
+                      aria-label="Custom uploaded cover"
+                    >
+                      {coverAssetUrl ? (
+                        <img src={coverAssetUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-muted" />
+                      )}
+                    </button>
+                  )}
+                  {coverPhotos.length === 0 && !coverAssetPath ? (
+                    <p className="text-xs text-muted-foreground">No photos in this project yet.</p>
+                  ) : (
+                    coverPhotos.map((p) => {
+                      const selected = !coverAssetPath && coverPhotoId === p.id;
+                      const url = coverThumbs[p.id];
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => selectCoverPhoto(p.id)}
+                          disabled={coverSaving}
+                          className={cn(
+                            "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                            selected && "ring-2 ring-primary ring-offset-2",
+                          )}
+                          aria-label="Select cover photo"
+                        >
+                          {url ? (
+                            <img src={url} alt="" className="h-full w-full object-cover" />
+                          ) : null}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => coverFileRef.current?.click()}
+                  disabled={coverUploading}
+                >
+                  {coverUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Upload image
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearCover}
+                  disabled={coverSaving || (!coverPhotoId && !coverAssetPath)}
+                >
+                  Clear
+                </Button>
+                <input
+                  ref={coverFileRef}
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  className="hidden"
+                  onChange={handleCoverUpload}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Used as the hero image on Client Deck exports.
+              </p>
+            </div>
+          )}
+
 
           {mode === "single" && dayKey && (
             <Card className="border-primary/30 bg-primary/5">
