@@ -1,38 +1,27 @@
-# Remove blue tones from marketing home
+## Goal
+Make Google login practical for the majority of users, including users on restrictive VPNs where `oauth.lovable.app` cannot be reached.
 
-Pre-change screenshot saved: `tool-results://screenshots/20260517-034705-860306.png` (full-page).
+## Key finding
+The app already uses the Lovable Cloud Google OAuth flow correctly via `lovable.auth.signInWithOAuth("google")`. The failure is not an app-code auth bug: restrictive VPN/DNS filtering is blocking the OAuth broker host before the login flow can complete.
 
-## Findings
+## Plan
+1. **Keep email/password as a guaranteed fallback**
+   - Preserve the existing email/password sign-in and signup flow so VPN users are not locked out.
 
-Although `BRAND.sky` was rebranded to orange, many marketing files still contain raw blue hex values and blue rgba glows inline. Affected files:
+2. **Improve Google login failure handling**
+   - Update the Google sign-in handler to detect network/broker failures and show a clear, actionable message instead of a generic error.
+   - Message direction: “Google sign-in could not be reached. If you’re using a VPN or privacy DNS, allow `oauth.lovable.app`, switch VPN server, or use email sign-in.”
 
-- `src/pages/Index.tsx` (Reviews, Final CTA radial glows)
-- `src/components/marketing/HeroSection.tsx` (panel bg, glow halo, pulse ring, chip backgrounds, SVG strokes)
-- `src/components/marketing/HowItWorksSection.tsx` (stepper, device frame, ghost buttons, status pills)
-- `src/components/marketing/FAQSection.tsx` (section bg, expanded item bg)
-- `src/components/marketing/TimeSavedSection.tsx` (section bg, eyebrow color)
-- `src/components/marketing/UseCasesSection.tsx` (section bg, eyebrow color)
-- `src/components/marketing/PricingSection.tsx` (section bg, card bg/border, toggle, glow)
+3. **Add a lightweight fallback prompt near Google login**
+   - Add concise helper text near the Google button only when relevant, not as a permanent warning-heavy banner.
+   - Keep the primary UX Google-first, with email still available.
 
-## Color mapping (find → replace, marketing only)
+4. **Optional stronger fix outside code**
+   - If you want the best possible mitigation, configure your own branded Google OAuth credentials in Lovable Cloud. This improves trust/branding, but the managed broker may still be part of the hosted OAuth routing, so it may not fully eliminate VPN DNS blocking.
+   - If VPN-blocked OAuth must be fully avoided, the only reliable product strategy is to maintain email/password fallback.
 
-| Old (blue) | New (brand) | Use |
-|---|---|---|
-| `#060D18` | `#0F1417` (ink) | dark section background |
-| `#0B1830`, `#0E2040`, `#0E2044` | `#1A2025` (ink-2) | panel/card gradient stops |
-| `rgba(26,110,255,X)` | `rgba(217,79,42,X)` | borders, glows, active rings, pulse, chip bg |
-| `rgba(168,196,255,X)` | `rgba(244,241,234,X)` (paper at same alpha) | eyebrow muted text, SVG strokes |
-| `linear-gradient(135deg, rgba(11,24,48,0.95), rgba(14,32,68,0.85))` | `linear-gradient(135deg, rgba(26,32,37,0.95), rgba(15,20,23,0.85))` | reused panel bg constant |
-
-No other behavior changes. No tokens, fonts, copy, or layout touched.
-
-## Steps
-
-1. Apply the mapping above via targeted `code--line_replace` edits in each listed file.
-2. Leave `BRAND.sky`/`BRAND.deepSky` alone (already orange) — uses of those tokens stay as-is.
-3. Re-screenshot `/` full-page after edits and visually confirm no blue remains (hero panel, How it works, Time saved, Reviews, FAQ, Pricing, Final CTA).
-
-## Out of scope
-
-- App (logged-in) views — only the marketing home (`/`).
-- Domain, copy, layout, fonts, JSON-LD.
+## Technical details
+- File to update: `src/pages/Auth.tsx`.
+- Do not edit the auto-generated Lovable integration file.
+- Do not change database/auth tables or edge functions.
+- No service worker/PWA OAuth caching issue was found in the current project search.
