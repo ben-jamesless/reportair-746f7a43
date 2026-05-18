@@ -184,14 +184,13 @@ function photoPlaceholder(
 ) {
   fillRect(page, x, y, w, h, C.PHOTO_BG, C.PHOTO_BD, 0.5);
   if (img) {
-    withClip(page, x, y, w, h, () => {
-      const scale = Math.max(w / img.width, h / img.height);
-      const iw = img.width * scale, ih = img.height * scale;
-      page.drawImage(img, {
-        x: x + (w - iw) / 2,
-        y: y + (h - ih) / 2,
-        width: iw, height: ih,
-      });
+    // Math.min (fit) — photo sits fully within cell, letterboxed, no cropping
+    const scale = Math.min(w / img.width, h / img.height);
+    const iw = img.width * scale, ih = img.height * scale;
+    page.drawImage(img, {
+      x: x + (w - iw) / 2,
+      y: y + (h - ih) / 2,
+      width: iw, height: ih,
     });
   } else {
     const lw = font.widthOfTextAtSize(label, 8);
