@@ -344,19 +344,15 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     const dw = body.widthOfTextAtSize(dayLbl, 9);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 9, font: body, color: effectiveAccent });
 
-    // Title: event name — constrained to left half so it never overlaps the cover photo
+    // Title: event name — full content width, wraps to 2 lines if needed
     const eventName = (proj.name as string) || "Event";
     const titleY = H * 0.80;
-    // Cover photo starts at x ≈ W/2 + 20; keep title within the left column
-    const titleMaxW = W / 2 - ML - 20;
     {
-      let titleText = eventName;
       const titleSize = 44;
-      while (titleText.length > 1 && font.widthOfTextAtSize(titleText, titleSize) > titleMaxW) {
-        titleText = titleText.slice(0, -1);
-      }
-      if (titleText !== eventName) titleText = titleText.slice(0, -1) + "…";
-      page.drawText(titleText, { x: ML, y: titleY, size: titleSize, font, color: C.WHITE });
+      const titleLines = wrapText(eventName, font, titleSize, CW);
+      titleLines.slice(0, 2).forEach((ln, li) => {
+        page.drawText(ln, { x: ML, y: titleY - li * (titleSize + 6), size: titleSize, font, color: C.WHITE });
+      });
     }
 
     // Overall status pill directly under title
@@ -486,49 +482,54 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     const accentRuleY = headingY - 24;
     page.drawLine({ start: { x: ML, y: accentRuleY }, end: { x: W - MR, y: accentRuleY }, thickness: 0.9, color: effectiveAccent });
 
-    // Photos — always 2×2 grid, overflow to extra pages
+    // Photos — 2×2 grid only when actual photos exist; no placeholders for empty areas
     const GAP = 10;
     const GRID_CELL_H = 180;
     const GRID_CELL_W = (CW - GAP) / 2;
-    // Pad photoImages to a multiple of 4 (fill with null for empty cells)
-    const allPhotos: (PDFImage | null)[] = [...area.photoImages];
-    while (allPhotos.length % 4 !== 0) allPhotos.push(null);
-    if (allPhotos.length === 0) allPhotos.push(null, null, null, null);
-
-    // First page already started — draw first 4 photos here
+    const realPhotos = area.photoImages.filter((img) => img != null) as PDFImage[];
     let y = accentRuleY - 28;
-    const firstBatch = allPhotos.slice(0, 4);
-    firstBatch.forEach((img, i) => {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const px = ML + col * (GRID_CELL_W + GAP);
-      const py = y - (row + 1) * GRID_CELL_H - row * GAP;
-      photoPlaceholder(page, px, py, GRID_CELL_W, GRID_CELL_H, body, `PHOTO ${i + 1}`, img);
-    });
-    y -= 2 * GRID_CELL_H + GAP + 22;
 
-    // Overflow pages — groups of 4
-    const overflowBatches: (PDFImage | null)[][] = [];
-    for (let start = 4; start < allPhotos.length; start += 4) {
-      overflowBatches.push(allPhotos.slice(start, start + 4));
-    }
-    overflowBatches.forEach((batch, bi) => {
-      const ovPage = pdfDoc.addPage([W, H]);
-      fillRect(ovPage, 0, 0, W, H, C.PAPER);
-      const ovRuleY = drawAreaHeader(ovPage);
-      // Continuation label
-      ovPage.drawText(`${area.name || "Area"} (continued)`, { x: ML, y: ovRuleY - 20, size: 14, font, color: C.INK });
-      let oy = ovRuleY - 50;
-      batch.forEach((img, i) => {
-        const globalIdx = 4 + bi * 4 + i;
+    if (realPhotos.length > 0) {
+      // Pad real photos to a multiple of 4 for clean grid pages
+      const allPhotos: (PDFImage | null)[] = [...realPhotos];
+      while (allPhotos.length % 4 !== 0) allPhotos.push(null);
+
+      // First page — draw first 4 slots
+      const firstBatch = allPhotos.slice(0, 4);
+      firstBatch.forEach((img, i) => {
         const col = i % 2;
         const row = Math.floor(i / 2);
         const px = ML + col * (GRID_CELL_W + GAP);
-        const py = oy - (row + 1) * GRID_CELL_H - row * GAP;
-        photoPlaceholder(ovPage, px, py, GRID_CELL_W, GRID_CELL_H, body, `PHOTO ${globalIdx + 1}`, img);
+        const py = y - (row + 1) * GRID_CELL_H - row * GAP;
+        // Only render slot if it has a real photo (no empty placeholders)
+        if (img) photoPlaceholder(page, px, py, GRID_CELL_W, GRID_CELL_H, body, `PHOTO ${i + 1}`, img);
       });
-      drawAreaFooter(ovPage, `${ai + 2} / ${areaData.length + 1}`);
-    });
+      y -= 2 * GRID_CELL_H + GAP + 22;
+
+      // Overflow pages — groups of 4
+      const overflowBatches: (PDFImage | null)[][] = [];
+      for (let start = 4; start < allPhotos.length; start += 4) {
+        overflowBatches.push(allPhotos.slice(start, start + 4));
+      }
+      overflowBatches.forEach((batch, bi) => {
+        const ovPage = pdfDoc.addPage([W, H]);
+        fillRect(ovPage, 0, 0, W, H, C.PAPER);
+        const ovRuleY = drawAreaHeader(ovPage);
+        ovPage.drawText(`${area.name || "Area"} (continued)`, { x: ML, y: ovRuleY - 20, size: 14, font, color: C.INK });
+        let oy = ovRuleY - 50;
+        batch.forEach((img, i) => {
+          if (!img) return; // skip empty slots
+          const globalIdx = 4 + bi * 4 + i;
+          const col = i % 2;
+          const row = Math.floor(i / 2);
+          const px = ML + col * (GRID_CELL_W + GAP);
+          const py = oy - (row + 1) * GRID_CELL_H - row * GAP;
+          photoPlaceholder(ovPage, px, py, GRID_CELL_W, GRID_CELL_H, body, `PHOTO ${globalIdx + 1}`, img);
+        });
+        drawAreaFooter(ovPage, `${ai + 2} / ${areaData.length + 1}`);
+      });
+    }
+    // If no photos, y stays at accentRuleY - 28 and we go straight to notes
 
     // Notes label
     page.drawText("NOTES", { x: ML, y, size: 7, font: body, color: effectiveAccent });
