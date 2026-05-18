@@ -347,19 +347,20 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     // Title: event name — full content width, wraps to 2 lines if needed
     const eventName = (proj.name as string) || "Event";
     const titleY = H * 0.80;
-    {
-      const titleSize = 44;
-      const titleLines = wrapText(eventName, font, titleSize, CW);
-      titleLines.slice(0, 2).forEach((ln, li) => {
-        page.drawText(ln, { x: ML, y: titleY - li * (titleSize + 6), size: titleSize, font, color: C.WHITE });
-      });
-    }
+    const titleSize = 44;
+    const titleLines = wrapText(eventName, font, titleSize, CW);
+    const titleLineCount = Math.min(titleLines.length, 2);
+    titleLines.slice(0, 2).forEach((ln, li) => {
+      page.drawText(ln, { x: ML, y: titleY - li * (titleSize + 6), size: titleSize, font, color: C.WHITE });
+    });
+    // Bottom of title block — shifts down if 2 lines
+    const titleBottom = titleY - (titleLineCount - 1) * (titleSize + 6);
 
     // Overall status pill directly under title
     const overallStatus = (proj.overall_status as string | null) ?? null;
     const pillLabel = statusLabel(overallStatus);
     const pillBg = statusBg(overallStatus);
-    const pillY = titleY - 58;
+    const pillY = titleBottom - 18;
     pill(page, ML, pillY, pillLabel, pillBg, C.WHITE, body, 7.5);
 
     // Accent rule below pill
@@ -627,7 +628,10 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     page.drawLine({ start: { x: COL2_X, y: COL_RULE_Y }, end: { x: COL2_X + COL2_W, y: COL_RULE_Y }, thickness: 0.5, color: C.RULE });
 
     const PAD = 10, GAP = 8, BOT = 10;
-    if (photos.length >= 4) {
+    if (photos.length === 0) {
+      // No photos — leave column blank
+      return;
+    } else if (photos.length >= 4) {
       // 2×2 landscape grid
       const avH = PHOTO_CEIL - BOT;
       const ph = (avH - GAP) / 2;
@@ -688,16 +692,17 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     // Title: event name — wraps within left column so it never overlaps the cover photo
     const eventName = (proj.name as string) || "Event";
     const hoppingY = BODY_TOP - 68;
-    {
-      const titleSize = 46;
-      const titleLines = wrapText(eventName, font, titleSize, LW);
-      titleLines.slice(0, 2).forEach((ln, li) => {
-        page.drawText(ln, { x: LX, y: hoppingY - li * (titleSize + 6), size: titleSize, font, color: C.INK });
-      });
-    }
+    const titleSize = 46;
+    const titleLines = wrapText(eventName, font, titleSize, LW);
+    const titleLineCount = Math.min(titleLines.length, 2);
+    titleLines.slice(0, 2).forEach((ln, li) => {
+      page.drawText(ln, { x: LX, y: hoppingY - li * (titleSize + 6), size: titleSize, font, color: C.INK });
+    });
+    // Bottom of title block — shifts dependent elements down if 2 lines
+    const titleBottom = hoppingY - (titleLineCount - 1) * (titleSize + 6);
 
-    // Orange accent rule
-    const ruleY = hoppingY - 22;
+    // Orange accent rule — anchored to bottom of title
+    const ruleY = titleBottom - 22;
     page.drawLine({ start: { x: LX, y: ruleY }, end: { x: LX + 100, y: ruleY }, thickness: 3, color: effectiveAccent });
 
     // Date — Mono style
@@ -779,11 +784,9 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     const pageLabel = `${String(ai + 2).padStart(2, "0")} / ${String(areaData.length + 1).padStart(2, "0")}`;
     drawSidebar(page, area.name, area.status, reportDateLabel, pageLabel);
 
-    // Photos: use up to 4 images; pick 2×2 if ≥4, portrait pair if ≥2, single otherwise
-    const imgs = area.photoImages.slice(0, 4);
-    const photoSlots = imgs.map((img, i) => ({ img: img ?? null, label: `PHOTO ${i + 1}` }));
-    // Pad to at least 2 slots for layout decision
-    while (photoSlots.length < 2) photoSlots.push({ img: null, label: `PHOTO ${photoSlots.length + 1}` });
+    // Photos: only pass real (non-null) images — no placeholders for empty areas
+    const realImgs = area.photoImages.filter((img) => img != null) as PDFImage[];
+    const photoSlots = realImgs.map((img, i) => ({ img: img as PDFImage | null, label: `PHOTO ${i + 1}` }));
     drawPhotosCol(page, photoSlots);
     drawNotesCol(page, area.notes);
   });
