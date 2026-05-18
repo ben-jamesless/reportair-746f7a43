@@ -777,14 +777,16 @@ export const ExportPdfDialog = ({
                 <label className="text-sm font-medium text-foreground">Cover photo</label>
                 <Crown className="h-3.5 w-3.5 text-primary" aria-label="Studio feature" />
               </div>
-              <div className="-mx-1 overflow-x-auto px-1 pb-1">
-                <div className="flex gap-2">
+              <div className="-mx-1 overflow-x-auto px-1 py-1.5">
+                <div className="flex gap-3 p-1">
                   {coverAssetPath && (
                     <button
                       type="button"
+                      onClick={selectCoverAsset}
+                      disabled={coverSaving || !coverPhotoId}
                       className={cn(
-                        "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted",
-                        "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                        "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                        !coverPhotoId && "ring-2 ring-primary ring-offset-2",
                       )}
                       title="Custom upload"
                       aria-label="Custom uploaded cover"
@@ -800,7 +802,7 @@ export const ExportPdfDialog = ({
                     <p className="text-xs text-muted-foreground">No photos in this project yet.</p>
                   ) : (
                     coverPhotos.map((p) => {
-                      const selected = !coverAssetPath && coverPhotoId === p.id;
+                      const selected = coverPhotoId === p.id;
                       const url = coverThumbs[p.id];
                       return (
                         <button
