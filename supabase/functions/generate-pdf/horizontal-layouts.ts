@@ -36,6 +36,14 @@ const COLOR = {
   WHITE: rgb(1, 1, 1),
 };
 
+// Resolve effective accent colour. Studio custom override or BuildSlides default.
+function resolveAccent(accentColour?: string | null): ReturnType<typeof rgb> {
+  if (accentColour && /^#[0-9a-fA-F]{6}$/.test(accentColour)) {
+    return HEX(accentColour);
+  }
+  return COLOR.ACCENT;
+}
+
 // ============ Shared types ============
 export type AreaData = {
   id: string;
@@ -75,6 +83,10 @@ export type RenderArgs = {
   buildDayLabel: string;
   reportNumber: string;
   logoImage?: PDFImage | null;
+  coverImage?: PDFImage | null;
+  accentColour?: string | null;
+  whiteLabelPdf?: boolean;
+  companyName?: string | null;
 };
 
 // ============ Utilities ============
@@ -296,6 +308,11 @@ function drawPageChrome(
     footerLeft: string;        // e.g. "BUILDSLIDES · REPORT · 17 MAY 2026"
     pageNumber: number;
     totalPages: number;
+    // Studio branding
+    whiteLabelPdf?: boolean;
+    logoImage?: PDFImage | null;
+    companyName?: string | null;
+    accentColour?: string | null;
   },
 ) {
   const { W, H, chrome, pjsFont, irFont } = args;
@@ -303,16 +320,27 @@ function drawPageChrome(
   const textColor = ink ? COLOR.TEXT_ON_INK : COLOR.TEXT_ON_PAPER;
   const mutedColor = ink ? COLOR.MUTED_ON_INK : COLOR.MUTED_ON_PAPER;
   const ruleColor = ink ? COLOR.MUTED_ON_INK : COLOR.RULE;
+  const accent = resolveAccent(args.accentColour);
 
   // Top strip
   const HEADER_Y = H - 14 * MM;
-  drawWordmark(page, 12 * MM, HEADER_Y, 9, pjsFont, textColor);
+  if (args.whiteLabelPdf && args.logoImage) {
+    // White-label: replace wordmark with the team/event logo at the same anchor.
+    const wordmarkFontSize = 9;
+    const maxH = wordmarkFontSize * 1.6 * 1.2; // ~17.3pt
+    const img = args.logoImage;
+    const scale = Math.min(maxH / img.height, (40 * MM) / img.width);
+    const lw = img.width * scale, lh = img.height * scale;
+    page.drawImage(img, { x: 12 * MM, y: HEADER_Y - lh * 0.15, width: lw, height: lh });
+  } else {
+    drawWordmark(page, 12 * MM, HEADER_Y, 9, pjsFont, textColor);
+  }
   page.drawText(args.eyebrowLeft, {
     x: 38 * MM, y: HEADER_Y + 1, size: 7, font: irFont, color: mutedColor,
   });
   const erW = irFont.widthOfTextAtSize(args.eyebrowRight, 7);
   page.drawText(args.eyebrowRight, {
-    x: W - 12 * MM - erW, y: HEADER_Y + 1, size: 7, font: irFont, color: COLOR.ACCENT,
+    x: W - 12 * MM - erW, y: HEADER_Y + 1, size: 7, font: irFont, color: accent,
   });
   page.drawLine({
     start: { x: 12 * MM, y: HEADER_Y - 4 },
@@ -381,7 +409,10 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
   // Day-spread total count: just the spread page for now (cover + 1 spread).
   // When we add per-day pagination this becomes dayCount + 1.
   const totalPages = 2;
-  const footerLeft = `BUILDSLIDES · DAILY REPORT · ${reportDateLabel.toUpperCase()}`;
+  const footerLeft = args.whiteLabelPdf && args.companyName
+    ? `${args.companyName.toUpperCase()} · DAILY REPORT · ${reportDateLabel.toUpperCase()}`
+    : `BUILDSLIDES · DAILY REPORT · ${reportDateLabel.toUpperCase()}`;
+  const accent = resolveAccent(args.accentColour);
 
   // ===== Cover page =====
   {
@@ -392,6 +423,8 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       eyebrowLeft: "TEMPLATE A · CLIENT DECK",
       eyebrowRight: eyebrow,
       footerLeft, pageNumber: 1, totalPages,
+      whiteLabelPdf: args.whiteLabelPdf, logoImage: args.logoImage,
+      companyName: args.companyName, accentColour: args.accentColour,
     });
 
     // Title block — large display
@@ -435,7 +468,8 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
     const heroArea = [...areaData]
       .filter(a => a.photoImages.some(Boolean))
       .sort((a, b) => b.photoCount - a.photoCount)[0] ?? null;
-    const heroImg = heroArea?.photoImages.find(Boolean) ?? null;
+    const autoHero = heroArea?.photoImages.find(Boolean) ?? null;
+    const heroImg = args.coverImage ?? autoHero;
     const heroLabel = heroArea ? heroArea.name.toUpperCase() : "";
 
     const TILE_TOP = ty - 16;
@@ -485,6 +519,8 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       eyebrowLeft: "TEMPLATE A · CLIENT DECK",
       eyebrowRight: eyebrow,
       footerLeft, pageNumber: 2, totalPages,
+      whiteLabelPdf: args.whiteLabelPdf, logoImage: args.logoImage,
+      companyName: args.companyName, accentColour: args.accentColour,
     });
 
     // ----- Left column: "Today in 6 lines" -----
@@ -510,10 +546,10 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       page.drawLine({
         start: { x: LEFT_X, y: leftY + 10 },
         end:   { x: LEFT_X + 20, y: leftY + 10 },
-        thickness: 1.25, color: COLOR.ACCENT,
+        thickness: 1.25, color: accent,
       });
       page.drawText("TODAY IN 6 LINES", {
-        x: LEFT_X, y: leftY, size: 7, font: irFont, color: COLOR.ACCENT,
+        x: LEFT_X, y: leftY, size: 7, font: irFont, color: accent,
       });
       // Bigger gap so the 22pt headline's ascenders don't touch the eyebrow.
       leftY -= 28;
@@ -528,7 +564,7 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       for (const b of restBullets) {
         const lines = wrapLines(b, irFont, 9.5, LEFT_W - 14);
         // Dot
-        page.drawCircle({ x: LEFT_X + 3, y: leftY + 4, size: 1.6, color: COLOR.ACCENT });
+        page.drawCircle({ x: LEFT_X + 3, y: leftY + 4, size: 1.6, color: accent });
         for (let i = 0; i < lines.length; i++) {
           page.drawText(lines[i], {
             x: LEFT_X + 12, y: leftY + (i === 0 ? 0 : -12 * i),
@@ -667,8 +703,11 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   const eventName = (proj.name ?? "Event").trim();
   const venue = (proj.event_location ?? "").trim();
   const eyebrowRight = dayEyebrow(buildDayLabel).replace("DAILY BUILD REPORT", "PRODUCTION LOG");
-  const footerLeft = `BUILDSLIDES · PRODUCTION LOG · ${reportDateLabel.toUpperCase()}`;
+  const footerLeft = args.whiteLabelPdf && args.companyName
+    ? `${args.companyName.toUpperCase()} · PRODUCTION LOG · ${reportDateLabel.toUpperCase()}`
+    : `BUILDSLIDES · PRODUCTION LOG · ${reportDateLabel.toUpperCase()}`;
   const totalPages = 1;
+  const accent = resolveAccent(args.accentColour);
 
   const page = pdfDoc.addPage([W, H]);
   page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: COLOR.INK });
@@ -677,6 +716,8 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
     eyebrowLeft: "TEMPLATE B · PRODUCTION LOG",
     eyebrowRight,
     footerLeft, pageNumber: 1, totalPages,
+    whiteLabelPdf: args.whiteLabelPdf, logoImage: args.logoImage,
+    companyName: args.companyName, accentColour: args.accentColour,
   });
 
   // ----- Title block -----
@@ -693,7 +734,7 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   if (venue) subParts.push(venue.toUpperCase());
   subParts.push(reportDateLabel.toUpperCase());
   page.drawText(subParts.join("  ·  "), {
-    x: 12 * MM, y: ty - 4, size: 8.5, font: irFont, color: COLOR.ACCENT,
+    x: 12 * MM, y: ty - 4, size: 8.5, font: irFont, color: accent,
   });
 
   // Event logo — top-right, only when provided
@@ -754,7 +795,7 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
     page.drawLine({
       start: { x: kx + 12, y: KPI_TOP - 12 },
       end: { x: kx + 32, y: KPI_TOP - 12 },
-      thickness: 1.5, color: COLOR.ACCENT,
+      thickness: 1.5, color: accent,
     });
     page.drawText(kpis[i].label, {
       x: kx + 12, y: KPI_TOP - 22, size: 8, font: irFont, color: COLOR.MUTED_ON_INK,
@@ -774,14 +815,14 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
   if (narrative) {
     // Accent left rail + outline
     page.drawRectangle({
-      x: 12 * MM, y: NARR_BOTTOM, width: 3, height: NARR_H, color: COLOR.ACCENT,
+      x: 12 * MM, y: NARR_BOTTOM, width: 3, height: NARR_H, color: accent,
     });
     page.drawRectangle({
       x: 12 * MM + 3, y: NARR_BOTTOM, width: W - 24 * MM - 3, height: NARR_H,
       borderColor: COLOR.MUTED_ON_INK, borderWidth: 0.5,
     });
     page.drawText("TODAY'S NARRATIVE", {
-      x: 12 * MM + 16, y: NARR_TOP - 14, size: 8, font: irFont, color: COLOR.ACCENT,
+      x: 12 * MM + 16, y: NARR_TOP - 14, size: 8, font: irFont, color: accent,
     });
     const lines = wrapLines(narrative, irFont, 10.5, W - 24 * MM - 32).slice(0, 6);
     let ny = NARR_TOP - 30;
@@ -849,7 +890,7 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
         for (const b of bullets) {
           const lines = wrapLines(b, irFont, 8.5, ZONE_W - 12).slice(0, 2);
           // Dot
-          page.drawCircle({ x: zx + 3, y: by + 3.5, size: 1.4, color: COLOR.ACCENT });
+          page.drawCircle({ x: zx + 3, y: by + 3.5, size: 1.4, color: accent });
           for (let k = 0; k < lines.length; k++) {
             page.drawText(lines[k], {
               x: zx + 10, y: by - k * 11,

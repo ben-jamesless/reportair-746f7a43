@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
       { data: areaNotesRows },
       { data: photos },
     ] = await Promise.all([
-      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id").eq("id", projectId).single(),
+      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id, cover_photo_id, cover_asset_path").eq("id", projectId).single(),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
       supabase.from("area_day_status").select("area_id, status").eq("project_id", projectId).eq("date", reportDateStr),
@@ -438,11 +438,21 @@ Deno.serve(async (req) => {
     let eventLogoImage: PDFImage | null = null;
     const { data: teamData } = await supabase
       .from("teams")
-      .select("plan")
+      .select("plan, brand_colour, white_label_pdf, name")
       .eq("id", (proj as { team_id: string }).team_id)
       .maybeSingle();
     const teamPlan = (teamData as { plan?: string } | null)?.plan ?? "free";
     const canUseLogo = teamPlan === "studio";
+    const brandColour: string | null = canUseLogo
+      ? ((teamData as { brand_colour?: string | null } | null)?.brand_colour ?? null)
+      : null;
+    const whiteLabelPdf: boolean = canUseLogo
+      ? ((teamData as { white_label_pdf?: boolean } | null)?.white_label_pdf ?? false)
+      : false;
+    // Company name for white-label footer — use the team name (no company_name on profiles).
+    const companyName: string | null = whiteLabelPdf
+      ? ((teamData as { name?: string | null } | null)?.name ?? null)
+      : null;
     const effectiveLogoPath: string | null = canUseLogo
       ? ((exp.logo_path as string | null) || ((proj as { logo_path?: string | null }).logo_path ?? null))
       : null;
@@ -456,6 +466,9 @@ Deno.serve(async (req) => {
         }
       } catch (_) { /* fall through */ }
     }
+
+    // Custom cover image is fetched after photoUrlFor is declared (below).
+    let coverImage: PDFImage | null = null;
 
     const exportQuality: "compressed" | "high_res" = exp.options?.quality === "high_res" ? "high_res" : "compressed";
     const IMAGE_TRANSFORM = {
@@ -473,6 +486,32 @@ Deno.serve(async (req) => {
         return signed?.signedUrl ?? null;
       } catch { return null; }
     };
+
+    // Custom cover image (Studio only): prefer cover_asset_path, then cover_photo_id.
+    if (canUseLogo) {
+      const coverAssetPath = (proj as { cover_asset_path?: string | null }).cover_asset_path ?? null;
+      const coverPhotoId = (proj as { cover_photo_id?: string | null }).cover_photo_id ?? null;
+      if (coverAssetPath) {
+        try {
+          const { data: coverBlob } = await supabase.storage.from("export-assets").download(coverAssetPath);
+          if (coverBlob) {
+            const bytes = new Uint8Array(await coverBlob.arrayBuffer());
+            try { coverImage = await pdfDoc.embedPng(bytes); }
+            catch { try { coverImage = await pdfDoc.embedJpg(bytes); } catch { coverImage = null; } }
+          }
+        } catch { /* fall through */ }
+      } else if (coverPhotoId) {
+        const { data: coverPhoto } = await supabase
+          .from("photos")
+          .select("storage_path, report_path")
+          .eq("id", coverPhotoId)
+          .maybeSingle();
+        if (coverPhoto) {
+          const url = await photoUrlFor(coverPhoto as { storage_path: string; report_path: string | null });
+          if (url) coverImage = await fetchAndEmbedImage(pdfDoc, url);
+        }
+      }
+    }
 
     // Pre-fetch photo images for each area (parallel). Cap to 9 per area.
     type AreaData = {
@@ -522,6 +561,20 @@ Deno.serve(async (req) => {
     // ============ Page constants ============
     const W = 595.28, H = 841.89;
     const totalPages = 1 + areaData.length;
+    // Studio: custom accent overrides COLOR.SKY (the portrait template's accent).
+    const effectiveAccent = brandColour && /^#[0-9a-fA-F]{6}$/.test(brandColour) ? HEX(brandColour) : COLOR.SKY;
+    // Studio white-label: skip the BuildSlides wordmark and stamp the team logo instead.
+    const drawBrandHeader = (page: PDFPage, x: number, y: number, fontSize: number) => {
+      if (whiteLabelPdf && eventLogoImage) {
+        const maxH = fontSize * 1.6 * 1.2;
+        const img = eventLogoImage;
+        const scale = Math.min(maxH / img.height, 120 / img.width);
+        const lw = img.width * scale, lh = img.height * scale;
+        page.drawImage(img, { x, y: y - lh * 0.15, width: lw, height: lh });
+      } else {
+        drawWordmark(page, x, y, fontSize, pjsFont);
+      }
+    };
 
     // ===== Cover page =====
     {
@@ -530,12 +583,12 @@ Deno.serve(async (req) => {
       const page = pdfDoc.addPage([W, H]);
 
       // Top bar
-      page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: COLOR.SKY });
+      page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: effectiveAccent });
       // Left stripe
-      page.drawRectangle({ x: 0, y: 0, width: 4, height: H - 3.5, color: COLOR.SKY });
+      page.drawRectangle({ x: 0, y: 0, width: 4, height: H - 3.5, color: effectiveAccent });
 
-      // Header: wordmark + report number
-      drawWordmark(page, M + 8, H - 16 * MM, 10, pjsFont);
+      // Header: wordmark (or team logo when white-label) + report number
+      drawBrandHeader(page, M + 8, H - 16 * MM, 10);
       const rnText = `No. ${reportNumber}`;
       const rnW = irFont.widthOfTextAtSize(rnText, 8);
       page.drawText(rnText, { x: W - M - rnW, y: H - 16 * MM, size: 8, font: irFont, color: COLOR.MIST });
@@ -549,7 +602,7 @@ Deno.serve(async (req) => {
 
       // Date row
       const dateY = H - 47 * MM;
-      page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: COLOR.SKY });
+      page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
       page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
 
@@ -603,7 +656,7 @@ Deno.serve(async (req) => {
         const blkH = rowIdx === 0 ? row1H : row2H;
         const by_bot = by_top - blkH;
 
-        page.drawRectangle({ x: bx, y: by_bot, width: 3, height: blkH, color: COLOR.SKY });
+        page.drawRectangle({ x: bx, y: by_bot, width: 3, height: blkH, color: effectiveAccent });
         page.drawText(cards[i].label, { x: bx + 10, y: by_top - 11, size: 7.5, font: pjsFont, color: COLOR.INK });
         let ly = by_top - CARD_PAD_TOP;
         for (const ln of cardLines[i]) {
@@ -618,7 +671,7 @@ Deno.serve(async (req) => {
       const tblTitle = "AREA SUMMARY";
       page.drawText(tblTitle, { x: M + 8, y: TBL_HEADER_Y, size: 9, font: pjsFont, color: COLOR.INK });
       const tblTitleW = pjsFont.widthOfTextAtSize(tblTitle, 9);
-      page.drawLine({ start: { x: M + 8, y: TBL_HEADER_Y - 2 }, end: { x: M + 8 + tblTitleW, y: TBL_HEADER_Y - 2 }, thickness: 1.5, color: COLOR.SKY });
+      page.drawLine({ start: { x: M + 8, y: TBL_HEADER_Y - 2 }, end: { x: M + 8 + tblTitleW, y: TBL_HEADER_Y - 2 }, thickness: 1.5, color: effectiveAccent });
 
       const TABLE_W = CW - 8;
       const C_AREA = 45 * MM;
@@ -696,7 +749,7 @@ Deno.serve(async (req) => {
       page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
       const metaLeft = `Photos: ${area.photoCount}  ·  ${reportDateLabel}  ·  ${buildDayLabel}`;
       page.drawText((metaLeft ?? ""), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
-      drawWordmark(page, W - M - 70, META_Y + 3.5 * MM, 8.5, pjsFont);
+      drawBrandHeader(page, W - M - 70, META_Y + 3.5 * MM, 8.5);
 
       const NOTES_TOP = META_Y - 10 * MM;
       page.drawText("AREA NOTES", { x: M + 6, y: NOTES_TOP, size: 9, font: pjsFont, color: COLOR.INK });
@@ -802,7 +855,9 @@ Deno.serve(async (req) => {
       p.drawLine({ start: { x: 18 * MM, y: 19 * MM }, end: { x: W - 18 * MM, y: 19 * MM }, thickness: 0.4, color: COLOR.BORDER });
       const left = `${eventNameForFooter} · ${reportDateLabel}`;
       const center = `Page ${pageNum} of ${totalPages}`;
-      const right = `${reportNumber} · Daily Report`;
+      const right = whiteLabelPdf && companyName
+        ? `${reportNumber} · ${companyName}`
+        : `${reportNumber} · Daily Report`;
       const fSize = 7;
       p.drawText((left ?? ""), { x: 18 * MM, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
       const cw = irFont.widthOfTextAtSize(center, fSize);
@@ -816,6 +871,10 @@ Deno.serve(async (req) => {
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
+        coverImage,
+        accentColour: brandColour,
+        whiteLabelPdf,
+        companyName,
       });
     } else if (templateKey === "horizontal_log_v1") {
       await renderHorizontalLogV1({
@@ -823,6 +882,9 @@ Deno.serve(async (req) => {
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
+        accentColour: brandColour,
+        whiteLabelPdf,
+        companyName,
       });
     }
 
