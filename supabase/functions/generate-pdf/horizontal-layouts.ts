@@ -409,7 +409,10 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
   // Day-spread total count: just the spread page for now (cover + 1 spread).
   // When we add per-day pagination this becomes dayCount + 1.
   const totalPages = 2;
-  const footerLeft = `BUILDSLIDES · DAILY REPORT · ${reportDateLabel.toUpperCase()}`;
+  const footerLeft = args.whiteLabelPdf && args.companyName
+    ? `${args.companyName.toUpperCase()} · DAILY REPORT · ${reportDateLabel.toUpperCase()}`
+    : `BUILDSLIDES · DAILY REPORT · ${reportDateLabel.toUpperCase()}`;
+  const accent = resolveAccent(args.accentColour);
 
   // ===== Cover page =====
   {
@@ -420,6 +423,8 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       eyebrowLeft: "TEMPLATE A · CLIENT DECK",
       eyebrowRight: eyebrow,
       footerLeft, pageNumber: 1, totalPages,
+      whiteLabelPdf: args.whiteLabelPdf, logoImage: args.logoImage,
+      companyName: args.companyName, accentColour: args.accentColour,
     });
 
     // Title block — large display
@@ -463,7 +468,8 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
     const heroArea = [...areaData]
       .filter(a => a.photoImages.some(Boolean))
       .sort((a, b) => b.photoCount - a.photoCount)[0] ?? null;
-    const heroImg = heroArea?.photoImages.find(Boolean) ?? null;
+    const autoHero = heroArea?.photoImages.find(Boolean) ?? null;
+    const heroImg = args.coverImage ?? autoHero;
     const heroLabel = heroArea ? heroArea.name.toUpperCase() : "";
 
     const TILE_TOP = ty - 16;
