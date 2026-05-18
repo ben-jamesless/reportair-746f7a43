@@ -890,7 +890,7 @@ export async function renderHorizontalLogV1(args: RenderArgs): Promise<void> {
         for (const b of bullets) {
           const lines = wrapLines(b, irFont, 8.5, ZONE_W - 12).slice(0, 2);
           // Dot
-          page.drawCircle({ x: zx + 3, y: by + 3.5, size: 1.4, color: COLOR.ACCENT });
+          page.drawCircle({ x: zx + 3, y: by + 3.5, size: 1.4, color: accent });
           for (let k = 0; k < lines.length; k++) {
             page.drawText(lines[k], {
               x: zx + 10, y: by - k * 11,
