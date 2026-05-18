@@ -519,6 +519,8 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       eyebrowLeft: "TEMPLATE A · CLIENT DECK",
       eyebrowRight: eyebrow,
       footerLeft, pageNumber: 2, totalPages,
+      whiteLabelPdf: args.whiteLabelPdf, logoImage: args.logoImage,
+      companyName: args.companyName, accentColour: args.accentColour,
     });
 
     // ----- Left column: "Today in 6 lines" -----
@@ -544,10 +546,10 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       page.drawLine({
         start: { x: LEFT_X, y: leftY + 10 },
         end:   { x: LEFT_X + 20, y: leftY + 10 },
-        thickness: 1.25, color: COLOR.ACCENT,
+        thickness: 1.25, color: accent,
       });
       page.drawText("TODAY IN 6 LINES", {
-        x: LEFT_X, y: leftY, size: 7, font: irFont, color: COLOR.ACCENT,
+        x: LEFT_X, y: leftY, size: 7, font: irFont, color: accent,
       });
       // Bigger gap so the 22pt headline's ascenders don't touch the eyebrow.
       leftY -= 28;
@@ -562,7 +564,7 @@ export async function renderHorizontalDeckV1(args: RenderArgs): Promise<void> {
       for (const b of restBullets) {
         const lines = wrapLines(b, irFont, 9.5, LEFT_W - 14);
         // Dot
-        page.drawCircle({ x: LEFT_X + 3, y: leftY + 4, size: 1.6, color: COLOR.ACCENT });
+        page.drawCircle({ x: LEFT_X + 3, y: leftY + 4, size: 1.6, color: accent });
         for (let i = 0; i < lines.length; i++) {
           page.drawText(lines[i], {
             x: LEFT_X + 12, y: leftY + (i === 0 ? 0 : -12 * i),
