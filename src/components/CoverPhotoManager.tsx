@@ -203,7 +203,7 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
         <div>
           <Label>Or upload a custom cover image</Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            PNG or JPG only. SVG is not supported. Recommended size: 800 × 800 px.
+            PNG or JPG only. SVG is not supported. Recommended size: 1920 × 1080 px (landscape).
           </p>
         </div>
 
