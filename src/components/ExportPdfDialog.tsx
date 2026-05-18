@@ -282,6 +282,101 @@ export const ExportPdfDialog = ({
     return () => { cancelled = true; };
   }, [open, projectId]);
 
+  // Load cover photo selection + recent photo strip (Studio only)
+  useEffect(() => {
+    if (!open || !isStudio) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: proj }, { data: photos }] = await Promise.all([
+        supabase.from("projects").select("cover_photo_id, cover_asset_path").eq("id", projectId).maybeSingle(),
+        supabase.from("photos").select("id, storage_path").eq("project_id", projectId).order("captured_at", { ascending: false }).limit(12),
+      ]);
+      if (cancelled) return;
+      const p = proj as { cover_photo_id: string | null; cover_asset_path: string | null } | null;
+      setCoverPhotoId(p?.cover_photo_id ?? null);
+      setCoverAssetPath(p?.cover_asset_path ?? null);
+      setCoverPhotos((photos ?? []) as { id: string; storage_path: string }[]);
+    })();
+    return () => { cancelled = true; };
+  }, [open, projectId, isStudio]);
+
+  // Signed thumbnail URLs for the cover strip
+  useEffect(() => {
+    if (!isStudio || coverPhotos.length === 0) { setCoverThumbs({}); return; }
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(coverPhotos.map(async (p) => {
+        const { data } = await supabase.storage.from("photos").createSignedUrl(p.storage_path, 60 * 30, {
+          transform: { width: 128, height: 96, resize: "cover" },
+        });
+        return [p.id, data?.signedUrl ?? ""] as const;
+      }));
+      if (!cancelled) setCoverThumbs(Object.fromEntries(results));
+    })();
+    return () => { cancelled = true; };
+  }, [coverPhotos, isStudio]);
+
+  // Signed URL for custom cover asset preview
+  useEffect(() => {
+    if (!coverAssetPath) { setCoverAssetUrl(null); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.storage.from("export-assets").createSignedUrl(coverAssetPath, 60 * 30);
+      if (!cancelled) setCoverAssetUrl(data?.signedUrl ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [coverAssetPath]);
+
+  const selectCoverPhoto = async (photoId: string) => {
+    setCoverSaving(true);
+    const { error } = await supabase.from("projects")
+      .update({ cover_photo_id: photoId, cover_asset_path: null })
+      .eq("id", projectId);
+    setCoverSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setCoverPhotoId(photoId);
+    setCoverAssetPath(null);
+  };
+
+  const clearCover = async () => {
+    setCoverSaving(true);
+    const { error } = await supabase.from("projects")
+      .update({ cover_photo_id: null, cover_asset_path: null })
+      .eq("id", projectId);
+    setCoverSaving(false);
+    if (error) { toast.error(error.message); return; }
+    setCoverPhotoId(null);
+    setCoverAssetPath(null);
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/jpeg") && file.type !== "image/png") {
+      toast.error("Only PNG or JPG files are supported.");
+      return;
+    }
+    setCoverUploading(true);
+    try {
+      const ext = file.type === "image/png" ? "png" : "jpg";
+      const storagePath = `covers/${projectId}/cover.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("export-assets")
+        .upload(storagePath, file, { upsert: true, contentType: file.type });
+      if (uploadError) { toast.error(uploadError.message); return; }
+      const { error: updateError } = await supabase.from("projects")
+        .update({ cover_asset_path: storagePath, cover_photo_id: null })
+        .eq("id", projectId);
+      if (updateError) { toast.error(updateError.message); return; }
+      toast.success("Cover image uploaded");
+      setCoverAssetPath(storagePath);
+      setCoverPhotoId(null);
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
   // Poll the active export until it resolves
   const pollStartedAt = useRef<number | null>(null);
   useEffect(() => {
