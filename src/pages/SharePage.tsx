@@ -185,6 +185,12 @@ const SharePage = () => {
     if (r.project?.name) {
       document.title = `${r.project.name} — BuildSlides`;
     }
+    // Fetch the team's brand colour for the share page accent.
+    try {
+      const { data: bc } = await supabase.rpc("get_share_brand_colour", { _token: token });
+      if (typeof bc === "string" && /^#[0-9a-fA-F]{6}$/.test(bc)) setBrandColour(bc);
+      else setBrandColour(null);
+    } catch { /* silent — fall back to default accent */ }
   };
 
   const loadFeedback = useCallback(async () => {
