@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
       { data: areaNotesRows },
       { data: photos },
     ] = await Promise.all([
-      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id").eq("id", projectId).single(),
+      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id, cover_photo_id, cover_asset_path").eq("id", projectId).single(),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
       supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
       supabase.from("area_day_status").select("area_id, status").eq("project_id", projectId).eq("date", reportDateStr),
@@ -438,11 +438,21 @@ Deno.serve(async (req) => {
     let eventLogoImage: PDFImage | null = null;
     const { data: teamData } = await supabase
       .from("teams")
-      .select("plan")
+      .select("plan, brand_colour, white_label_pdf, name")
       .eq("id", (proj as { team_id: string }).team_id)
       .maybeSingle();
     const teamPlan = (teamData as { plan?: string } | null)?.plan ?? "free";
     const canUseLogo = teamPlan === "studio";
+    const brandColour: string | null = canUseLogo
+      ? ((teamData as { brand_colour?: string | null } | null)?.brand_colour ?? null)
+      : null;
+    const whiteLabelPdf: boolean = canUseLogo
+      ? ((teamData as { white_label_pdf?: boolean } | null)?.white_label_pdf ?? false)
+      : false;
+    // Company name for white-label footer — use the team name (no company_name on profiles).
+    const companyName: string | null = whiteLabelPdf
+      ? ((teamData as { name?: string | null } | null)?.name ?? null)
+      : null;
     const effectiveLogoPath: string | null = canUseLogo
       ? ((exp.logo_path as string | null) || ((proj as { logo_path?: string | null }).logo_path ?? null))
       : null;
@@ -455,6 +465,33 @@ Deno.serve(async (req) => {
           catch { try { eventLogoImage = await pdfDoc.embedJpg(bytes); } catch { eventLogoImage = null; } }
         }
       } catch (_) { /* fall through */ }
+    }
+
+    // Custom cover image (Studio only): prefer cover_asset_path then cover_photo_id.
+    let coverImage: PDFImage | null = null;
+    if (canUseLogo) {
+      const coverAssetPath = (proj as { cover_asset_path?: string | null }).cover_asset_path ?? null;
+      const coverPhotoId = (proj as { cover_photo_id?: string | null }).cover_photo_id ?? null;
+      if (coverAssetPath) {
+        try {
+          const { data: coverBlob } = await supabase.storage.from("export-assets").download(coverAssetPath);
+          if (coverBlob) {
+            const bytes = new Uint8Array(await coverBlob.arrayBuffer());
+            try { coverImage = await pdfDoc.embedPng(bytes); }
+            catch { try { coverImage = await pdfDoc.embedJpg(bytes); } catch { coverImage = null; } }
+          }
+        } catch { /* fall through */ }
+      } else if (coverPhotoId) {
+        const { data: coverPhoto } = await supabase
+          .from("photos")
+          .select("storage_path, report_path")
+          .eq("id", coverPhotoId)
+          .maybeSingle();
+        if (coverPhoto) {
+          const url = await photoUrlFor(coverPhoto as { storage_path: string; report_path: string | null });
+          if (url) coverImage = await fetchAndEmbedImage(pdfDoc, url);
+        }
+      }
     }
 
     const exportQuality: "compressed" | "high_res" = exp.options?.quality === "high_res" ? "high_res" : "compressed";
