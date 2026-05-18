@@ -123,15 +123,15 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
     try {
       const ext = file.type === "image/png" ? "png" : "jpg";
       const path = `covers/${projectId}/cover.${ext}`;
-      const { error: upErr } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from("export-assets")
-        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "3600" });
-      if (upErr) throw upErr;
-      const { error: updErr } = await supabase
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadError) throw uploadError;
+      const { error: updateError } = await supabase
         .from("projects")
         .update({ cover_asset_path: path, cover_photo_id: null })
         .eq("id", projectId);
-      if (updErr) throw updErr;
+      if (updateError) throw updateError;
       setCoverAssetPath(path);
       setCoverPhotoId(null);
       toast.success("Custom cover uploaded");
@@ -203,7 +203,7 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
         <div>
           <Label>Or upload a custom cover image</Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            PNG or JPG only. SVG is not supported. Recommended size: 800 × 800 px.
+            PNG or JPG only. SVG is not supported. Recommended size: 1920 × 1080 px (landscape).
           </p>
         </div>
 
