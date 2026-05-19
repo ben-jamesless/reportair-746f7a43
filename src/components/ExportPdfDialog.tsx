@@ -523,22 +523,6 @@ export const ExportPdfDialog = ({
     downloadingRef.current = true;
     setDownloadingPath(path);
 
-    // Safari and iframe previews can block a new tab/download if it is opened
-    // after async work. Open the tab synchronously from the click, then point it
-    // at the signed URL once it is ready.
-    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
-    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-    const isFramed = typeof window !== "undefined" && window.self !== window.top;
-    const directWindow = isSafari || isFramed ? window.open("", "_blank") : null;
-    if (directWindow) {
-      try {
-        directWindow.opener = null;
-        directWindow.document.write("Preparing your report download…");
-      } catch {
-        // The browser may restrict access; navigation below can still work.
-      }
-    }
-
     try {
       let lastErr: unknown = null;
       let signed: { signedUrl: string } | null = null;
@@ -561,13 +545,7 @@ export const ExportPdfDialog = ({
       }
       if (!signed) {
         console.error("createSignedUrl failed", lastErr);
-        directWindow?.close();
         toast.error("Could not get download link");
-        return;
-      }
-
-      if (directWindow) {
-        directWindow.location.href = signed.signedUrl;
         return;
       }
 
@@ -587,8 +565,8 @@ export const ExportPdfDialog = ({
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
       } catch (e) {
-        console.error("blob download failed, falling back to new tab", e);
-        window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
+        console.error("blob download failed", e);
+        toast.error("Download failed");
       }
     } finally {
       downloadingRef.current = false;
