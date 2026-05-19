@@ -73,10 +73,10 @@ const HeroSection = () => {
 
         .ra-hero .hero-copy { flex: 0 0 420px; position: relative; z-index: 2; }
         .ra-hero .eyebrow {
-          font-family: var(--font-display);
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.16em; text-transform: uppercase;
-          color: rgba(244,241,234,0.7);
+          font-family: 'Geist Mono', ui-monospace, monospace;
+          font-size: 11px; font-weight: 500;
+          letter-spacing: 0.18em; text-transform: uppercase;
+          color: rgba(244,241,234,0.65);
           margin-bottom: 20px;
         }
         .ra-hero .headline {
