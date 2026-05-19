@@ -1069,19 +1069,33 @@ export const ExportPdfDialog = ({
                             <p className="mt-1 truncate text-xs text-destructive">{h.error_message}</p>
                           )}
                         </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          disabled={!ready || downloadingPath === h.output_path}
-                          onClick={() => ready && downloadExport(h.output_path!)}
-                          aria-label="Download export"
-                        >
-                          {downloadingPath === h.output_path ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Download className="h-4 w-4" />
-                          )}
-                        </Button>
+                        {ready && h.output_path && downloadLinks[h.output_path] ? (
+                          <Button size="icon" variant="ghost" asChild>
+                            <a
+                              href={downloadLinks[h.output_path]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={downloadName(h.output_path)}
+                              aria-label="Download export"
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            disabled={!ready || downloadingPath === h.output_path}
+                            onClick={() => ready && downloadExport(h.output_path!)}
+                            aria-label="Download export"
+                          >
+                            {downloadingPath === h.output_path ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                       </li>
                     );
                   })}
