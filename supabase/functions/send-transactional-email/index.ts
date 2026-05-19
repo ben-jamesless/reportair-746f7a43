@@ -21,17 +21,16 @@ function isInternalCall(req: Request): boolean {
   return req.headers.get("x-internal-secret") === Deno.env.get("INTERNAL_SECRET");
 }
 
-// ── Brand helpers ────────────────────────────────────────────────────────────
+// ── Brand helpers (v5) ───────────────────────────────────────────────────────
 
-const LOGO_SVG = `<table cellpadding="0" cellspacing="0"><tr>
-  <td style="padding-right:10px;vertical-align:middle;">
-    <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="11" y="19" width="60" height="50" rx="6" stroke="#3A5A9A" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="27" y="35" width="60" height="50" rx="6" stroke="#1A6EFF" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+const APP_URL = "https://www.buildslides.com";
+
+const LOGO_HEADER = `<table cellpadding="0" cellspacing="0" role="presentation"><tr>
+  <td style="padding-right:12px;vertical-align:middle;">
+    <img src="${APP_URL}/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
   </td>
   <td style="vertical-align:middle;">
-    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:0.08em;">BUILDSLIDES</span>
+    <span style="font-family:Geist,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildSlides</span>
   </td>
 </tr></table>`;
 
@@ -45,19 +44,19 @@ function baseWrapper(subheader: string, body: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background-color:#EDF1F7;font-family:'Inter',system-ui,sans-serif;color:#0f172a;">
+<body style="margin:0;padding:0;background-color:#F4F1EA;font-family:Helvetica,Arial,sans-serif;color:#0F1417;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
     <tr><td align="center" style="padding:40px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(30,50,100,0.08),0 8px 24px rgba(30,50,100,0.06);">
-        <tr><td style="background:#0F1724;padding:22px 32px;">${LOGO_SVG}</td></tr>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #C9C5BC;border-radius:12px;overflow:hidden;">
+        <tr><td style="background:#F4F1EA;padding:22px 28px;border-bottom:1px solid #C9C5BC;">${LOGO_HEADER}</td></tr>
         ${subheader}
-        <tr><td style="padding:36px 32px 28px;">${body}</td></tr>
-        <tr><td style="padding:0 32px;"><div style="border-top:1px solid #EDF1F7;"></div></td></tr>
-        <tr><td style="padding:20px 32px;"><p style="margin:0;font-size:12px;color:#94a3b8;font-family:'Inter',sans-serif;">BuildSlides &middot; <a href="https://www.buildslides.com" style="color:#94a3b8;text-decoration:none;">buildslides.com</a></p></td></tr>
+        <tr><td style="padding:32px 28px 28px;">${body}</td></tr>
+        <tr><td style="padding:24px 28px 28px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
+          <p style="margin:0 0 8px;font-size:13px;color:#0F1417;line-height:1.5;"><strong style="color:#0F1417;">Built for the build. Built in Hong Kong.</strong></p>
+          <p style="margin:0 0 12px;font-size:13px;color:#6B6B66;line-height:1.5;">Ben Lee · Director · <a href="mailto:ben@buildslides.com" style="color:#D94F2A;text-decoration:underline;">ben@buildslides.com</a></p>
+          <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="${APP_URL}" style="color:#D94F2A;text-decoration:none;">buildslides.com</a></p>
+        </td></tr>
       </table>
     </td></tr>
   </table>
@@ -65,11 +64,11 @@ function baseWrapper(subheader: string, body: string): string {
 </html>`;
 }
 
-function ctaBtn(url: string, label: string, bg = "#1A6EFF"): string {
-  return `<a href="${escapeHtml(url)}" style="display:inline-block;background:${bg};color:#ffffff;text-decoration:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;padding:13px 28px;border-radius:8px;letter-spacing:0.01em;">${escapeHtml(label)} &rarr;</a>`;
+function ctaBtn(url: string, label: string, bg = "#D94F2A"): string {
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;background:${bg};color:#FFFFFF;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;padding:12px 20px;border-radius:8px;letter-spacing:0.01em;">${escapeHtml(label)} &rarr;</a>`;
 }
 
-function infoBox(content: string, borderColor = "#1A6EFF", bg = "#EDF1F7"): string {
+function infoBox(content: string, borderColor = "#D94F2A", bg = "#F4F1EA"): string {
   return `<table cellpadding="0" cellspacing="0" style="width:100%;background:${bg};border-radius:10px;margin-bottom:28px;border-left:4px solid ${borderColor};"><tr><td style="padding:16px 20px;">${content}</td></tr></table>`;
 }
 
@@ -83,12 +82,12 @@ const PLAN_FEATURES: Record<string, string[][]> = {
 function featureGrid(plan: string): string {
   const rows = PLAN_FEATURES[plan] ?? PLAN_FEATURES.solo;
   const rowsHtml = rows.map(([a, b]) => `<tr>
-    <td style="padding:4px 0;font-size:14px;color:#334155;width:50%;">&#10003;&nbsp; ${escapeHtml(a)}</td>
-    <td style="padding:4px 0;font-size:14px;color:#334155;">${b ? `&#10003;&nbsp; ${escapeHtml(b)}` : ""}</td>
+    <td style="padding:4px 0;font-size:14px;color:#0F1417;width:50%;">&#10003;&nbsp; ${escapeHtml(a)}</td>
+    <td style="padding:4px 0;font-size:14px;color:#0F1417;">${b ? `&#10003;&nbsp; ${escapeHtml(b)}` : ""}</td>
   </tr>`).join("");
-  return `<table cellpadding="0" cellspacing="0" style="width:100%;background:#EDF1F7;border-radius:10px;margin-bottom:28px;">
+  return `<table cellpadding="0" cellspacing="0" style="width:100%;background:#F4F1EA;border-radius:10px;margin-bottom:28px;">
     <tr><td style="padding:20px 24px;">
-      <p style="margin:0 0 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#0F1724;letter-spacing:0.04em;text-transform:uppercase;">What's included</p>
+      <p style="margin:0 0 12px;font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#0F1417;letter-spacing:0.04em;text-transform:uppercase;">What's included</p>
       <table cellpadding="0" cellspacing="0" style="width:100%;">${rowsHtml}</table>
     </td></tr>
   </table>`;
@@ -103,9 +102,9 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
   welcome: (d) => ({
     subject: "Welcome to BuildSlides",
     html: baseWrapper("", `
-      <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Welcome, ${escapeHtml(d.name || "there")}!</h1>
-      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your BuildSlides account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
-      <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;re on the <strong style="color:#0F1724;">Solo plan</strong>. Upgrade anytime to unlock share links, more events, team members, and custom branding.</p>
+      <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Welcome, ${escapeHtml(d.name || "there")}!</h1>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Your BuildSlides account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
+      <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">You&rsquo;re on the <strong style="color:#0F1417;">Solo plan</strong>. Upgrade anytime to unlock share links, more events, team members, and custom branding.</p>
       ${ctaBtn("https://www.buildslides.com/projects", "Go to your projects")}
     `),
   }),
@@ -113,18 +112,18 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
   upgrade: (d) => {
     const planLabel = d.plan ? d.plan.charAt(0).toUpperCase() + d.plan.slice(1) : "Pro";
     const price = PLAN_PRICES[d.plan] ?? "";
-    const strip = `<tr><td style="background:linear-gradient(135deg,#1A6EFF,#5590FF);padding:14px 32px;">
-      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;text-transform:uppercase;">${escapeHtml(planLabel)} Plan &mdash; Active</span>
+    const strip = `<tr><td style="background:linear-gradient(135deg,#D94F2A,#D94F2A);padding:14px 32px;">
+      <span style="font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;text-transform:uppercase;">${escapeHtml(planLabel)} Plan &mdash; Active</span>
     </td></tr>`;
     return {
       subject: `You're now on the ${planLabel} plan`,
       html: baseWrapper(strip, `
-        <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">You&rsquo;re all set, ${escapeHtml(d.name || "there")}.</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Your BuildSlides <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1724;">${escapeHtml(price)}/month</strong>` : ""}.</p>
-        ${d.renewalDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Your next billing date is <strong style="color:#0F1724;">${escapeHtml(d.renewalDate)}</strong>.</p>` : "<p style='margin:0 0 28px;'></p>"}
+        <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">You&rsquo;re all set, ${escapeHtml(d.name || "there")}.</h1>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Your BuildSlides <strong style="color:#0F1417;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1417;">${escapeHtml(price)}/month</strong>` : ""}.</p>
+        ${d.renewalDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">Your next billing date is <strong style="color:#0F1417;">${escapeHtml(d.renewalDate)}</strong>.</p>` : "<p style='margin:0 0 28px;'></p>"}
         ${featureGrid(d.plan)}
         ${ctaBtn("https://www.buildslides.com/projects", "Go to BuildSlides")}
-        <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Manage or cancel anytime from your <a href="https://www.buildslides.com/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Billing page</a>.</p>
+        <p style="margin:20px 0 0;font-size:13px;color:#6B6B66;">Manage or cancel anytime from your <a href="https://www.buildslides.com/billing" style="color:#D94F2A;text-decoration:none;font-weight:500;">Billing page</a>.</p>
       `),
     };
   },
@@ -134,12 +133,12 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
     return {
       subject: "Your BuildSlides subscription has been cancelled",
       html: baseWrapper("", `
-        <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Subscription cancelled</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your <strong style="color:#0F1724;">${escapeHtml(planLabel)}</strong> subscription has been cancelled.</p>
-        ${d.endDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">You&rsquo;ll have full access until <strong style="color:#0F1724;">${escapeHtml(d.endDate)}</strong>, after which your account reverts to the Solo plan. All your projects and photos are safe &mdash; nothing gets deleted.</p>` : ""}
-        ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#0F1724;">Your data is safe.</strong> Projects, photos, and reports remain accessible on the Solo plan. Upgrade again anytime to restore full access.</p>`)}
+        <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Subscription cancelled</h1>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your <strong style="color:#0F1417;">${escapeHtml(planLabel)}</strong> subscription has been cancelled.</p>
+        ${d.endDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">You&rsquo;ll have full access until <strong style="color:#0F1417;">${escapeHtml(d.endDate)}</strong>, after which your account reverts to the Solo plan. All your projects and photos are safe &mdash; nothing gets deleted.</p>` : ""}
+        ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#0F1417;"><strong style="color:#0F1417;">Your data is safe.</strong> Projects, photos, and reports remain accessible on the Solo plan. Upgrade again anytime to restore full access.</p>`)}
         ${ctaBtn("https://www.buildslides.com/billing", "Reactivate subscription")}
-        <p style="margin:20px 0 0;font-size:13px;color:#64748b;">Have feedback on why you left? Just reply to this email &mdash; we read every response.</p>
+        <p style="margin:20px 0 0;font-size:13px;color:#6B6B66;">Have feedback on why you left? Just reply to this email &mdash; we read every response.</p>
       `),
     };
   },
@@ -148,17 +147,17 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
     const planLabel = d.plan ? d.plan.charAt(0).toUpperCase() + d.plan.slice(1) : "your";
     const price = PLAN_PRICES[d.plan] ?? "";
     const alertStrip = `<tr><td style="background:#FEF2F2;border-bottom:1px solid #FECACA;padding:14px 32px;">
-      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#DC2626;letter-spacing:0.04em;">&#9888;&nbsp; Action required &mdash; payment failed</span>
+      <span style="font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#DC2626;letter-spacing:0.04em;">&#9888;&nbsp; Action required &mdash; payment failed</span>
     </td></tr>`;
     return {
       subject: "Action required: payment failed for your BuildSlides subscription",
       html: baseWrapper(alertStrip, `
-        <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">We couldn&rsquo;t process your payment</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your payment${price ? ` of <strong style="color:#0F1724;">${escapeHtml(price)}</strong>` : ""} for the ${escapeHtml(planLabel)} plan was declined.</p>
-        <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">Please update your payment method to keep your subscription active. If we can&rsquo;t collect payment, your account will revert to the Solo plan.</p>
-        ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#334155;"><strong style="color:#DC2626;">Subscription at risk.</strong> Update your card within 3 days to avoid losing access to share links, team members, and unlimited exports.</p>`, "#DC2626", "#FEF2F2")}
+        <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">We couldn&rsquo;t process your payment</h1>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your payment${price ? ` of <strong style="color:#0F1417;">${escapeHtml(price)}</strong>` : ""} for the ${escapeHtml(planLabel)} plan was declined.</p>
+        <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">Please update your payment method to keep your subscription active. If we can&rsquo;t collect payment, your account will revert to the Solo plan.</p>
+        ${infoBox(`<p style="margin:0;font-size:14px;line-height:1.6;color:#0F1417;"><strong style="color:#DC2626;">Subscription at risk.</strong> Update your card within 3 days to avoid losing access to share links, team members, and unlimited exports.</p>`, "#DC2626", "#FEF2F2")}
         ${ctaBtn("https://www.buildslides.com/billing", "Update payment method", "#DC2626")}
-        <p style="margin:20px 0 0;font-size:13px;color:#64748b;">If you need help, reply to this email and we&rsquo;ll sort it out.</p>
+        <p style="margin:20px 0 0;font-size:13px;color:#6B6B66;">If you need help, reply to this email and we&rsquo;ll sort it out.</p>
       `),
     };
   },
@@ -167,29 +166,29 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
     const planLabel = d.plan ? d.plan.charAt(0).toUpperCase() + d.plan.slice(1) : "Pro";
     const price = PLAN_PRICES[d.plan] ?? "";
     const daysLeft = d.daysLeft ?? "2";
-    const strip = `<tr><td style="background:linear-gradient(135deg,#1A6EFF,#5590FF);padding:14px 32px;">
-      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;">Your free trial ends in ${escapeHtml(daysLeft)} day${daysLeft === "1" ? "" : "s"}</span>
+    const strip = `<tr><td style="background:linear-gradient(135deg,#D94F2A,#D94F2A);padding:14px 32px;">
+      <span style="font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;">Your free trial ends in ${escapeHtml(daysLeft)} day${daysLeft === "1" ? "" : "s"}</span>
     </td></tr>`;
     return {
       subject: `Your BuildSlides trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
       html: baseWrapper(strip, `
-        <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">Make the most of BuildSlides</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;">Hi ${escapeHtml(d.name || "there")}, your 14-day free trial of the <strong style="color:#0F1724;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1724;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
-        <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#334155;">After that, you&rsquo;ll move to the Solo plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
-        <table cellpadding="0" cellspacing="0" style="width:100%;background:#EDF1F7;border-radius:10px;margin-bottom:28px;">
+        <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Make the most of BuildSlides</h1>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your 14-day free trial of the <strong style="color:#0F1417;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1417;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
+        <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#0F1417;">After that, you&rsquo;ll move to the Solo plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
+        <table cellpadding="0" cellspacing="0" style="width:100%;background:#F4F1EA;border-radius:10px;margin-bottom:28px;">
           <tr><td style="padding:20px 24px;">
-            <p style="margin:0 0 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:#0F1724;letter-spacing:0.04em;text-transform:uppercase;">Keep with ${escapeHtml(planLabel)} plan</p>
+            <p style="margin:0 0 12px;font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#0F1417;letter-spacing:0.04em;text-transform:uppercase;">Keep with ${escapeHtml(planLabel)} plan</p>
             <table cellpadding="0" cellspacing="0" style="width:100%;">
               ${(PLAN_FEATURES[d.plan] ?? PLAN_FEATURES.solo).map(([a, b]) => `<tr>
-                <td style="padding:4px 0;font-size:14px;color:#334155;width:50%;">&#10003;&nbsp; ${escapeHtml(a)}</td>
-                <td style="padding:4px 0;font-size:14px;color:#334155;">${b ? `&#10003;&nbsp; ${escapeHtml(b)}` : ""}</td>
+                <td style="padding:4px 0;font-size:14px;color:#0F1417;width:50%;">&#10003;&nbsp; ${escapeHtml(a)}</td>
+                <td style="padding:4px 0;font-size:14px;color:#0F1417;">${b ? `&#10003;&nbsp; ${escapeHtml(b)}` : ""}</td>
               </tr>`).join("")}
             </table>
-            ${price ? `<p style="margin:14px 0 0;font-size:14px;color:#64748b;border-top:1px solid #D1D9E6;padding-top:12px;"><strong style="color:#0F1724;">${escapeHtml(price)}/month</strong> &mdash; billed monthly, cancel anytime.</p>` : ""}
+            ${price ? `<p style="margin:14px 0 0;font-size:14px;color:#6B6B66;border-top:1px solid #C9C5BC;padding-top:12px;"><strong style="color:#0F1417;">${escapeHtml(price)}/month</strong> &mdash; billed monthly, cancel anytime.</p>` : ""}
           </td></tr>
         </table>
         ${ctaBtn("https://www.buildslides.com/billing", `Keep my ${planLabel} plan`)}
-        ${d.trialEnd ? `<p style="margin:20px 0 0;font-size:13px;color:#64748b;">Not ready? <a href="https://www.buildslides.com/billing" style="color:#1A6EFF;text-decoration:none;font-weight:500;">Cancel before ${escapeHtml(d.trialEnd)}</a> and you won&rsquo;t be charged.</p>` : ""}
+        ${d.trialEnd ? `<p style="margin:20px 0 0;font-size:13px;color:#6B6B66;">Not ready? <a href="https://www.buildslides.com/billing" style="color:#D94F2A;text-decoration:none;font-weight:500;">Cancel before ${escapeHtml(d.trialEnd)}</a> and you won&rsquo;t be charged.</p>` : ""}
       `),
     };
   },
@@ -197,24 +196,24 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
   share_link: (d) => ({
     subject: `${escapeHtml(d.senderName || "Someone")} shared a report with you`,
     html: baseWrapper("", `
-      <h1 style="margin:0 0 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0F1724;line-height:1.25;">You&rsquo;ve been shared a report</h1>
-      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#334155;"><strong style="color:#0F1724;">${escapeHtml(d.senderName || "Someone")}</strong> has shared the <strong style="color:#0F1724;">${escapeHtml(d.projectName || "a project")}</strong> report with you.</p>
-      <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#334155;">View the latest photos, area progress, and daily status updates &mdash; no account required.</p>
-      <table cellpadding="0" cellspacing="0" style="width:100%;background:#EDF1F7;border-radius:10px;margin-bottom:28px;">
+      <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">You&rsquo;ve been shared a report</h1>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;"><strong style="color:#0F1417;">${escapeHtml(d.senderName || "Someone")}</strong> has shared the <strong style="color:#0F1417;">${escapeHtml(d.projectName || "a project")}</strong> report with you.</p>
+      <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">View the latest photos, area progress, and daily status updates &mdash; no account required.</p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;background:#F4F1EA;border-radius:10px;margin-bottom:28px;">
         <tr><td style="padding:20px 24px;">
           <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>
             <td>
-              <p style="margin:0 0 4px;font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:#0F1724;">${escapeHtml(d.projectName || "Project")}</p>
-              <p style="margin:0;font-size:13px;color:#64748b;">Shared by ${escapeHtml(d.senderName || "your team")} &middot; View only</p>
+              <p style="margin:0 0 4px;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#0F1417;">${escapeHtml(d.projectName || "Project")}</p>
+              <p style="margin:0;font-size:13px;color:#6B6B66;">Shared by ${escapeHtml(d.senderName || "your team")} &middot; View only</p>
             </td>
             <td style="text-align:right;vertical-align:middle;">
-              <span style="display:inline-block;background:#1A6EFF;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;">Live</span>
+              <span style="display:inline-block;background:#D94F2A;color:#fff;font-family:Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;">Live</span>
             </td>
           </tr></table>
         </td></tr>
       </table>
       ${ctaBtn(d.shareUrl || "https://www.buildslides.com", "View report")}
-      <p style="margin:20px 0 0;font-size:13px;color:#64748b;">This link was shared with you directly. You don&rsquo;t need an account to view it.</p>
+      <p style="margin:20px 0 0;font-size:13px;color:#6B6B66;">This link was shared with you directly. You don&rsquo;t need an account to view it.</p>
     `),
   }),
 };

@@ -83,42 +83,58 @@ function renderEmail(args: {
   const safeUrl = escapeHtml(inviteUrl);
   return `<!doctype html>
 <html lang="en">
-  <body style="margin:0;padding:0;background-color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0f172a;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;">
+  <body style="margin:0;padding:0;background-color:#F4F1EA;font-family:Helvetica,Arial,sans-serif;color:#0F1417;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       <tr>
-        <td align="center" style="padding:32px 16px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:12px;">
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #C9C5BC;border-radius:12px;overflow:hidden;">
             <tr>
-              <td style="padding:32px 32px 8px 32px;">
-                <h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.3;font-weight:600;color:#0f172a;">
+              <td style="background:#F4F1EA;padding:22px 28px;border-bottom:1px solid #C9C5BC;">
+                <table cellpadding="0" cellspacing="0" role="presentation"><tr>
+                  <td style="padding-right:12px;vertical-align:middle;">
+                    <img src="https://www.buildslides.com/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <span style="font-family:Geist,Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildSlides</span>
+                  </td>
+                </tr></table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 28px 8px 28px;">
+                <h1 style="margin:0 0 16px 0;font-size:22px;line-height:1.3;font-weight:700;color:#0F1417;">
                   You've been invited to ${safeProject}
                 </h1>
-                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.6;color:#334155;">
+                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.5;color:#0F1417;">
                   <strong>${safeInviter}</strong> invited you to collaborate on
                   <strong>${safeProject}</strong> in BuildSlides as a
                   <strong>${safeRole}</strong>.
                 </p>
-                <p style="margin:0 0 24px 0;font-size:15px;line-height:1.6;color:#334155;">
+                <p style="margin:0 0 24px 0;font-size:15px;line-height:1.5;color:#0F1417;">
                   Accept the invite to view photos, daily updates, and project activity.
                 </p>
               </td>
             </tr>
             <tr>
-              <td align="center" style="padding:0 32px 32px 32px;">
+              <td align="left" style="padding:0 28px 32px 28px;">
                 <a href="${safeUrl}"
-                   style="display:inline-block;background-color:#1A6EFF;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:8px;">
-                  Accept invite
+                   style="display:inline-block;background:#D94F2A;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:600;padding:12px 20px;border-radius:8px;">
+                  Accept invite &rarr;
                 </a>
-                <p style="margin:24px 0 0 0;font-size:12px;line-height:1.6;color:#64748b;word-break:break-all;">
-                  Or open this link: <br />
-                  <a href="${safeUrl}" style="color:#1A6EFF;">${safeUrl}</a>
+                <p style="margin:24px 0 0 0;font-size:12px;line-height:1.5;color:#6B6B66;word-break:break-all;">
+                  Or open this link:<br />
+                  <a href="${safeUrl}" style="color:#D94F2A;text-decoration:underline;">${safeUrl}</a>
                 </p>
               </td>
             </tr>
+            <tr>
+              <td style="padding:24px 28px 28px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
+                <p style="margin:0 0 8px;font-size:13px;color:#0F1417;line-height:1.5;"><strong>Built for the build. Built in Hong Kong.</strong></p>
+                <p style="margin:0 0 12px;font-size:13px;color:#6B6B66;line-height:1.5;">Ben Lee · Director · <a href="mailto:ben@buildslides.com" style="color:#D94F2A;text-decoration:underline;">ben@buildslides.com</a></p>
+                <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="https://www.buildslides.com" style="color:#D94F2A;text-decoration:none;">buildslides.com</a></p>
+              </td>
+            </tr>
           </table>
-          <p style="margin:24px 0 0 0;font-size:11px;color:#94a3b8;">
-            Sent by BuildSlides
-          </p>
         </td>
       </tr>
     </table>

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 
 export function TrialBanner() {
@@ -7,12 +6,27 @@ export function TrialBanner() {
 
   if (subscriptionStatus !== "trialing" || !trialEndsAt) return null;
 
-  const daysLeft = Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000));
-  const planLabel = plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : "free";
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000),
+  );
+  const planLabel = plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : "Free";
+  const urgent = daysLeft <= 3;
+
+  // Treatment B (accent) for last 3 days, Treatment A (quiet) otherwise.
+  const wrapClass = urgent
+    ? "w-full sticky top-0 z-40 shrink-0 border-b border-[#0F1417]/10 bg-[#D94F2A] text-white"
+    : "w-full sticky top-0 z-40 shrink-0 border-b border-[#C9C5BC] bg-[#F4F1EA] text-[#0F1417]";
+
+  const mutedColor = urgent ? "rgba(255,255,255,0.85)" : "#6B6B66";
+  const linkColor = urgent ? "#FFFFFF" : "#D94F2A";
+  const ctaClass = urgent
+    ? "inline-flex items-center gap-1 rounded-md border border-white/70 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-white/10"
+    : "inline-flex items-center gap-1 rounded-md bg-[#0F1417] px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-[#0F1417]/90";
 
   return (
     <div
-      className="w-full sticky top-0 z-40 shrink-0 border-b border-[#E0A82E]/40 bg-[#F2C14E] text-[#0F1417]"
+      className={wrapClass}
       onClick={() => {
         if (window.innerWidth < 768) {
           window.location.href = "/billing";
@@ -23,29 +37,38 @@ export function TrialBanner() {
         <div className="hidden w-40 md:block" />
 
         <div className="flex flex-1 items-center justify-center gap-2 text-sm">
-          <AlertTriangle size={14} strokeWidth={1.5} className="shrink-0" />
           <span
-            className="hidden sm:inline font-mono uppercase tracking-wider text-[11px]"
-            style={{ fontFamily: "'Geist Mono', ui-monospace, monospace" }}
+            className="hidden sm:inline uppercase tracking-wider text-[11px]"
+            style={{
+              fontFamily: "'Geist Mono', ui-monospace, monospace",
+              color: mutedColor,
+            }}
           >
-            <span className="font-medium">{daysLeft} days remaining</span> in your {planLabel} trial.
+            <span style={{ color: urgent ? "#FFFFFF" : "#0F1417", fontWeight: 500 }}>
+              {daysLeft} day{daysLeft === 1 ? "" : "s"} remaining
+            </span>{" "}
+            in your {planLabel} trial.
           </span>
-          <span className="sm:hidden font-mono text-[11px] uppercase tracking-wider">
-            <span className="font-medium">{daysLeft}d left</span> in trial
+          <span
+            className="sm:hidden uppercase tracking-wider text-[11px]"
+            style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", color: mutedColor }}
+          >
+            <span style={{ color: urgent ? "#FFFFFF" : "#0F1417", fontWeight: 500 }}>
+              {daysLeft}d left
+            </span>{" "}
+            in trial
           </span>
           <Link
             to="/billing"
             className="ml-1 font-medium underline underline-offset-2 hover:opacity-80"
+            style={{ color: linkColor }}
           >
-            See Plans
+            See plans
           </Link>
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link
-            to="/billing"
-            className="inline-flex items-center gap-1 rounded-full border border-[#0F1417] px-3 py-1 text-xs font-medium text-[#0F1417] transition-colors hover:bg-[#0F1417]/10"
-          >
+          <Link to="/billing" className={ctaClass}>
             Upgrade now →
           </Link>
         </div>
