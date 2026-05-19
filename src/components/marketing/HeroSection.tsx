@@ -292,9 +292,7 @@ const HeroSection = () => {
           .ra-hero .chip-icon { width: 30px; height: 30px; }
           .ra-hero .chip-icon svg { width: 16px; height: 16px; }
           .ra-hero .lines-svg { flex: none; width: 100%; max-width: 320px; height: 64px; display: block; }
-          .ra-hero .node { width: 68px; height: 68px; }
-          .ra-hero .node svg { width: 27px; height: 27px; }
-          .ra-hero .node-label { font-size: 6.5px; }
+          .ra-hero .node { width: 72px; height: 72px; }
           .ra-hero .out-line-svg { flex: none; width: 32px; height: 48px; display: block; }
           .ra-hero .report-card { width: 100%; max-width: none; }
         }
