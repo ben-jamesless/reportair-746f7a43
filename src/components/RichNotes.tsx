@@ -22,7 +22,10 @@ const renderInline = (text: string): React.ReactNode[] => {
 
 export const RichNotes = ({ value, className }: { value: string | null | undefined; className?: string }) => {
   if (!value || !value.trim()) return null;
-  const lines = value.split(/\r?\n/);
+  // Promote inline " * x" / " - x" runs onto their own lines so bullets render
+  // properly even when the source text was flattened during paste/sync.
+  const normalised = value.replace(/([^\n])\s+(?=[*\-]\s+\S)/g, "$1\n");
+  const lines = normalised.split(/\r?\n/);
   const blocks: React.ReactNode[] = [];
   let bullets: string[] = [];
   const flushBullets = () => {

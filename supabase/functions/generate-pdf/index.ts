@@ -125,21 +125,43 @@ const normaliseStatus = (s: string | null | undefined): StatusKey => {
 const statusMeta = (s: string | null | undefined) => STATUS[normaliseStatus(s)];
 
 // ============ Utilities ============
+
+/** Normalise note text so bullets render consistently in PDFs.
+ *  - Promotes inline " * x" / " - x" runs onto new lines.
+ *  - Rewrites leading "* " / "- " markers to a bullet glyph.
+ *  - Preserves explicit paragraph breaks.
+ */
+function normaliseBullets(text: string | null | undefined): string {
+  if (!text) return "";
+  let s = String(text).replace(/\r\n/g, "\n");
+  s = s.replace(/([^\n])\s+(?=[*\-]\s+\S)/g, "$1\n");
+  s = s
+    .split("\n")
+    .map((ln) => ln.replace(/^\s*[*\-]\s+/, "\u2022  "))
+    .join("\n");
+  return s;
+}
+
 function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
   const cleaned = text ?? "";
   const paragraphs = cleaned.split(/\r?\n/);
   const out: string[] = [];
   for (const para of paragraphs) {
     if (!para.trim()) { out.push(""); continue; }
+    // Hanging indent for wrapped bullet continuation lines.
+    const isBullet = /^\u2022\s+/.test(para);
+    const indent = isBullet ? "   " : "";
     const words = para.split(/\s+/);
     let current = "";
+    let first = true;
     for (const w of words) {
       const test = current ? `${current} ${w}` : w;
       if (font.widthOfTextAtSize(test, fontSize) <= maxWidth) current = test;
       else {
         if (current) out.push(current);
-        current = w;
+        current = first ? w : `${indent}${w}`;
       }
+      first = false;
     }
     if (current) out.push(current);
   }
@@ -652,10 +674,10 @@ Deno.serve(async (req) => {
       const CARD_PAD_BOTTOM = 8;
       const MIN_BLK_H = 52;
       const cards = [
-        { label: "TODAY'S OBJECTIVES", body: dayNote?.today_objectives ?? "" },
-        { label: "TODAY'S ACHIEVEMENTS", body: dayNote?.today_achievements ?? "" },
-        { label: "TOMORROW'S OBJECTIVES", body: dayNote?.tomorrow_objectives ?? "" },
-        { label: "OPEN ISSUES / RISKS", body: dayNote?.open_issues ?? "" },
+        { label: "TODAY'S OBJECTIVES", body: normaliseBullets(dayNote?.today_objectives) },
+        { label: "TODAY'S ACHIEVEMENTS", body: normaliseBullets(dayNote?.today_achievements) },
+        { label: "TOMORROW'S OBJECTIVES", body: normaliseBullets(dayNote?.tomorrow_objectives) },
+        { label: "OPEN ISSUES / RISKS", body: normaliseBullets(dayNote?.open_issues) },
       ];
       const cardLines = cards.map((c) => wrapLines(c.body || "—", irFont, 8, HALF - 20));
       const cardHeights = cardLines.map((ls) =>
@@ -718,7 +740,7 @@ Deno.serve(async (req) => {
         page.drawText(String(a.photoCount), { x: M + 16 + C_AREA + C_STATUS, y: rowY - ROW_H / 2 - 3, size: 8.5, font: irFont, color: COLOR.SLATE });
         const notesX = M + 16 + C_AREA + C_STATUS + C_PHOTO;
         const notesMaxW = W - M - notesX - 10;
-        const noteLines = wrapLines(a.notes || "—", irFont, 8, notesMaxW).slice(0, 3);
+        const noteLines = wrapLines(normaliseBullets(a.notes) || "—", irFont, 8, notesMaxW).slice(0, 3);
         const blockH = noteLines.length * 11;
         let ny = rowY - ROW_H / 2 + blockH / 2 - 4;
         for (const ln of noteLines) {
@@ -770,7 +792,7 @@ Deno.serve(async (req) => {
       const anW = pjsFont.widthOfTextAtSize("AREA NOTES", 9);
       page.drawLine({ start: { x: M + 6, y: NOTES_TOP - 2 }, end: { x: M + 6 + anW, y: NOTES_TOP - 2 }, thickness: 1.5, color: meta.text });
 
-      const trimmedNotes = (area.notes ?? "").trim();
+      const trimmedNotes = normaliseBullets(area.notes).trim();
       let noteY = NOTES_TOP - 20;
       if (trimmedNotes.length > 0) {
         const noteLines = wrapLines(trimmedNotes, irFont, 10, CW - 14);

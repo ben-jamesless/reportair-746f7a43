@@ -167,18 +167,49 @@ function txt(
   return tw;
 }
 
-/** Wrap text into lines no wider than maxWidth. */
+/** Normalise free-form note text so bullets render consistently.
+ *  - Splits inline " * x" / " - x" runs onto their own lines.
+ *  - Rewrites leading "* " / "- " markers as a bullet glyph + spaces.
+ *  - Preserves explicit paragraph breaks.
+ */
+function normaliseBullets(text: string): string {
+  if (!text) return "";
+  let s = String(text).replace(/\r\n/g, "\n");
+  // Promote inline " * x" / " - x" to their own lines (after a non-newline char,
+  // require leading whitespace so we don't break words like "a*b").
+  s = s.replace(/([^\n])\s+(?=[*\-]\s+\S)/g, "$1\n");
+  // Rewrite line-leading bullet markers to a real bullet glyph.
+  s = s
+    .split("\n")
+    .map((ln) => ln.replace(/^\s*[*\-]\s+/, "\u2022  "))
+    .join("\n");
+  return s;
+}
+
+/** Wrap text into lines no wider than maxWidth. Preserves explicit newlines. */
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const words = (text || "").split(/\s+/);
-  const lines: string[] = [];
-  let cur = "";
-  for (const w of words) {
-    const test = cur ? `${cur} ${w}` : w;
-    if (font.widthOfTextAtSize(test, size) <= maxWidth) { cur = test; }
-    else { if (cur) lines.push(cur); cur = w; }
+  const out: string[] = [];
+  const paragraphs = (text || "").split(/\n/);
+  for (const para of paragraphs) {
+    if (!para.trim()) { out.push(""); continue; }
+    // Detect a bullet line so wrapped continuation lines get hanging indent.
+    const bulletMatch = para.match(/^(\u2022\s+)/);
+    const indent = bulletMatch ? "   " : "";
+    const words = para.split(/\s+/);
+    let cur = "";
+    let first = true;
+    for (const w of words) {
+      const candidate = cur ? `${cur} ${w}` : w;
+      if (font.widthOfTextAtSize(candidate, size) <= maxWidth) { cur = candidate; }
+      else {
+        if (cur) out.push(cur);
+        cur = first ? w : `${indent}${w}`;
+      }
+      first = false;
+    }
+    if (cur) out.push(cur);
   }
-  if (cur) lines.push(cur);
-  return lines.length ? lines : [""];
+  return out.length ? out : [""];
 }
 
 /** Draw an image scaled to fit a box, centred. */
@@ -417,10 +448,10 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     const colW = (CW - 10) / 2;
     const fieldH = 58, rowGap = 8;
     const fields = [
-      { label: "TODAY'S OBJECTIVES",    value: (dayNote?.today_objectives    as string) || "—" },
-      { label: "TODAY'S ACHIEVEMENTS",  value: (dayNote?.today_achievements  as string) || "—" },
-      { label: "TOMORROW'S OBJECTIVES", value: (dayNote?.tomorrow_objectives as string) || "—" },
-      { label: "OPEN ISSUES / RISKS",   value: (dayNote?.open_issues         as string) || "—" },
+      { label: "TODAY'S OBJECTIVES",    value: normaliseBullets((dayNote?.today_objectives    as string) || "—") },
+      { label: "TODAY'S ACHIEVEMENTS",  value: normaliseBullets((dayNote?.today_achievements  as string) || "—") },
+      { label: "TOMORROW'S OBJECTIVES", value: normaliseBullets((dayNote?.tomorrow_objectives as string) || "—") },
+      { label: "OPEN ISSUES / RISKS",   value: normaliseBullets((dayNote?.open_issues         as string) || "—") },
     ];
     fields.forEach(({ label, value }, i) => {
       const col = i % 2, row = Math.floor(i / 2);
@@ -581,7 +612,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     page.drawLine({ start: { x: ML, y: y - 2 }, end: { x: ML + body.widthOfTextAtSize("NOTES", 7), y: y - 2 }, thickness: 0.8, color: effectiveAccent });
     y -= 16;
 
-    const noteLines = wrapText(area.notes || "—", body, 10, CW);
+    const noteLines = wrapText(normaliseBullets(area.notes || "—"), body, 10, CW);
     noteLines.slice(0, 8).forEach((ln) => {
       page.drawText(ln, { x: ML, y, size: 10, font: body, color: C.INK });
       y -= 15;
@@ -724,7 +755,8 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     }
   }
 
-  function drawNotesCol(page: PDFPage, noteText: string) {
+  function drawNotesCol(page: PDFPage, rawNoteText: string) {
+    const noteText = normaliseBullets(rawNoteText);
     const PAD = 10;
     fillRect(page, COL3_X, 0, COL3_W, BODY_TOP, C.PAPER);
     page.drawLine({ start: { x: COL3_X, y: 0 }, end: { x: COL3_X, y: BODY_TOP }, thickness: 0.5, color: C.RULE });
@@ -779,10 +811,10 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     const fieldH = 50, rowGap = 8;
     const fieldsTopY = dateY - 14;
     const fields = [
-      { label: "TODAY'S OBJECTIVES",    value: (dayNote?.today_objectives    as string) || "—" },
-      { label: "TODAY'S ACHIEVEMENTS",  value: (dayNote?.today_achievements  as string) || "—" },
-      { label: "TOMORROW'S OBJECTIVES", value: (dayNote?.tomorrow_objectives as string) || "—" },
-      { label: "OPEN ISSUES / RISKS",   value: (dayNote?.open_issues         as string) || "—" },
+      { label: "TODAY'S OBJECTIVES",    value: normaliseBullets((dayNote?.today_objectives    as string) || "—") },
+      { label: "TODAY'S ACHIEVEMENTS",  value: normaliseBullets((dayNote?.today_achievements  as string) || "—") },
+      { label: "TOMORROW'S OBJECTIVES", value: normaliseBullets((dayNote?.tomorrow_objectives as string) || "—") },
+      { label: "OPEN ISSUES / RISKS",   value: normaliseBullets((dayNote?.open_issues         as string) || "—") },
     ];
     fields.forEach(({ label, value }, i) => {
       const col = i % 2, row = Math.floor(i / 2);

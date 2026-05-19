@@ -988,7 +988,10 @@ const renderInline = (line: string, keyPrefix: string) => {
 };
 
 const RichNotes = ({ text }: { text: string }) => {
-  const lines = text.split("\n");
+  // Promote inline " * x" / " - x" runs to their own lines so bullets render
+  // properly even when the source text was flattened during paste/sync.
+  const normalised = (text || "").replace(/([^\n])\s+(?=[*\-]\s+\S)/g, "$1\n");
+  const lines = normalised.split("\n");
   return (
     <div className="space-y-1 text-sm">
       {lines.map((raw, idx) => {
