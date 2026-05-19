@@ -1,5 +1,4 @@
 import { BRAND } from "./brand-tokens";
-import { Logo } from "./brand";
 
 export type LegalPanel = "terms" | "privacy";
 
@@ -13,7 +12,10 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
   return (
     <footer style={{ background: BRAND.ink, borderTop: "1px solid rgba(255,255,255,.06)" }}>
       <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-5 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
-        <Logo onDark />
+        <a href="/" aria-label="BuildSlides home" className="flex items-center gap-2">
+          <img src="/favicon.svg" alt="" className="h-8 w-8" />
+          <span className="font-display font-black tracking-tight text-base text-white">BuildSlides</span>
+        </a>
         <p className="text-xs" style={{ color: "rgba(237,241,247,.55)" }}>
           © {new Date().getFullYear()} BuildSlides. Photo-first event build reporting.
         </p>
