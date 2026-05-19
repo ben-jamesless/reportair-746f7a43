@@ -1,5 +1,5 @@
 // Note: `behind_schedule` is retained in the type for legacy DB rows but is no
-// longer offered in the picker. New selections should use `complete` instead.
+// longer offered in the picker. New selections render as `Delayed`.
 export type ProjectStatus =
   | "no_status"
   | "on_track"
@@ -17,46 +17,49 @@ type StatusMeta = {
   pillClass: string;
 };
 
+// BuildSlides v5 brand colors:
+// NONE      #9C9A93   ON TRACK  #3A6EA5   DELAYED  #C7382A
+// DISCUSS   #D94F2A   COMPLETE  #3A7D44
 export const PROJECT_STATUSES: StatusMeta[] = [
   {
     value: "no_status",
-    label: "No status",
-    dotClass: "bg-muted-foreground/40",
+    label: "None",
+    dotClass: "bg-[#9C9A93]",
     pillClass: "bg-muted text-muted-foreground border-muted-foreground/30",
   },
   {
     value: "on_track",
     label: "On track",
-    dotClass: "bg-blue-500",
-    pillClass: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/40",
+    dotClass: "bg-[#3A6EA5]",
+    pillClass: "bg-[#3A6EA5]/15 text-[#3A6EA5] dark:text-blue-300 border-[#3A6EA5]/40",
   },
   {
     value: "requires_discussion",
-    label: "Needs discussion",
-    dotClass: "bg-orange-500",
-    pillClass: "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/40",
+    label: "Discuss",
+    dotClass: "bg-[#D94F2A]",
+    pillClass: "bg-[#D94F2A]/15 text-[#D94F2A] dark:text-orange-300 border-[#D94F2A]/40",
   },
   {
     value: "concern",
-    label: "Concern",
-    dotClass: "bg-red-500",
-    pillClass: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40",
+    label: "Delayed",
+    dotClass: "bg-[#C7382A]",
+    pillClass: "bg-[#C7382A]/15 text-[#C7382A] dark:text-red-300 border-[#C7382A]/40",
   },
   {
     value: "complete",
     label: "Complete",
-    dotClass: "bg-emerald-500",
-    pillClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/40",
+    dotClass: "bg-[#3A7D44]",
+    pillClass: "bg-[#3A7D44]/15 text-[#3A7D44] dark:text-emerald-300 border-[#3A7D44]/40",
   },
 ];
 
-// Legacy entry for any rows still set to `behind_schedule` — rendered as a
-// red "Concern" so the UI stays consistent without dropping the DB value.
+// Legacy entry for any rows still set to `behind_schedule` — rendered as
+// "Delayed" so the UI stays consistent without dropping the DB value.
 const LEGACY_BEHIND_SCHEDULE: StatusMeta = {
   value: "behind_schedule",
-  label: "Concern",
-  dotClass: "bg-red-500",
-  pillClass: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/40",
+  label: "Delayed",
+  dotClass: "bg-[#C7382A]",
+  pillClass: "bg-[#C7382A]/15 text-[#C7382A] dark:text-red-300 border-[#C7382A]/40",
 };
 
 export const projectStatusMeta = (s: ProjectStatus | null | undefined): StatusMeta => {

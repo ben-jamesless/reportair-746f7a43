@@ -26,7 +26,7 @@ export function TrialBanner() {
           <AlertTriangle size={14} strokeWidth={1.5} className="shrink-0" />
           <span
             className="hidden sm:inline font-mono uppercase tracking-wider text-[11px]"
-            style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
+            style={{ fontFamily: "'Geist Mono', ui-monospace, monospace" }}
           >
             <span className="font-medium">{daysLeft} days remaining</span> in your {planLabel} trial.
           </span>
