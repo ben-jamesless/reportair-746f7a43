@@ -73,10 +73,10 @@ const HeroSection = () => {
 
         .ra-hero .hero-copy { flex: 0 0 420px; position: relative; z-index: 2; }
         .ra-hero .eyebrow {
-          font-family: var(--font-display);
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.16em; text-transform: uppercase;
-          color: rgba(244,241,234,0.7);
+          font-family: 'Geist Mono', ui-monospace, monospace;
+          font-size: 11px; font-weight: 500;
+          letter-spacing: 0.18em; text-transform: uppercase;
+          color: rgba(244,241,234,0.65);
           margin-bottom: 20px;
         }
         .ra-hero .headline {
@@ -339,7 +339,7 @@ const HeroSection = () => {
       <div className="hero-inner">
         {/* LEFT: COPY */}
         <div className="hero-copy">
-          <p className="eyebrow">{"\n"}</p>
+          <p className="eyebrow">Built for the build</p>
           <h1 className="headline">
             Client-ready event build reports in <span className="accent">10 minutes.</span>
           </h1>

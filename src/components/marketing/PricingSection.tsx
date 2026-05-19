@@ -33,7 +33,7 @@ const PRICING = {
       featured: false,
     },
     {
-      name: "Pro",
+      name: "Crew",
       best: "For growing event teams",
       monthlyPrice: "HK$298",
       annualMonthly: "HK$238",
