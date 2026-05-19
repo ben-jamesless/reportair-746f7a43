@@ -446,33 +446,49 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     // 2×2 info fields
     const fieldsTop = photoY - 12;
     const colW = (CW - 10) / 2;
-    const fieldH = 86, rowGap = 8;
+    const rowGap = 8;
     const fields = [
       { label: "TODAY'S OBJECTIVES",    value: normaliseBullets((dayNote?.today_objectives    as string) || "—") },
       { label: "TODAY'S ACHIEVEMENTS",  value: normaliseBullets((dayNote?.today_achievements  as string) || "—") },
       { label: "TOMORROW'S OBJECTIVES", value: normaliseBullets((dayNote?.tomorrow_objectives as string) || "—") },
       { label: "OPEN ISSUES / RISKS",   value: normaliseBullets((dayNote?.open_issues         as string) || "—") },
     ];
-    fields.forEach(({ label, value }, i) => {
+    // Measure: wrap each field's text and compute card height.
+    const minCardH = 60;
+    const cardCap = 220; // hard cap per card so cover never overflows
+    const measured = fields.map(({ label, value }) => {
+      const lines = wrapText(value, body, 9, colW - 20);
+      const needed = 26 + lines.length * 11 + 6;
+      const h = Math.min(cardCap, Math.max(minCardH, needed));
+      const maxLines = Math.floor((h - 30) / 11);
+      return { label, lines: lines.slice(0, maxLines), h, truncated: lines.length > maxLines };
+    });
+    const rowHeights = [
+      Math.max(measured[0].h, measured[1].h),
+      Math.max(measured[2].h, measured[3].h),
+    ];
+    measured.forEach(({ label, lines, truncated }, i) => {
       const col = i % 2, row = Math.floor(i / 2);
+      const rowH = rowHeights[row];
       const fx = ML + col * (colW + 10);
-      const fy = fieldsTop - row * (fieldH + rowGap) - fieldH;
+      const fy = fieldsTop - (row === 0 ? 0 : rowHeights[0] + rowGap) - rowH;
       page.drawRectangle({
-        x: fx, y: fy, width: colW, height: fieldH,
+        x: fx, y: fy, width: colW, height: rowH,
         color: C.COVER_CELL_BG,
         borderColor: C.COVER_CELL_BD, borderWidth: 0.5,
         borderRadius: 10,
       });
-      page.drawText(label, { x: fx + 8, y: fy + fieldH - 13, size: 5.5, font: body, color: effectiveAccent });
-      const maxLines = Math.floor((fieldH - 30) / 11);
-      const lines = wrapText(value, body, 9, colW - 20).slice(0, maxLines);
-      lines.forEach((ln, li) => {
-        page.drawText(ln, { x: fx + 8, y: fy + fieldH - 26 - li * 11, size: 9, font: body, color: C.COVER_VALUE });
+      page.drawText(label, { x: fx + 8, y: fy + rowH - 13, size: 5.5, font: body, color: effectiveAccent });
+      const displayLines = truncated && lines.length > 0
+        ? [...lines.slice(0, -1), (lines[lines.length - 1] + "…")]
+        : lines;
+      displayLines.forEach((ln, li) => {
+        page.drawText(ln, { x: fx + 8, y: fy + rowH - 26 - li * 11, size: 9, font: body, color: C.COVER_VALUE });
       });
     });
 
     // ── Area Summary table (like original portrait report) ──────────────────
-    const fieldsBottomY = fieldsTop - 1 * (fieldH + rowGap) - fieldH;
+    const fieldsBottomY = fieldsTop - rowHeights[0] - rowGap - rowHeights[1];
     const summaryTopY = fieldsBottomY - 18;
     // Heading
     page.drawText("AREA SUMMARY", { x: ML, y: summaryTopY, size: 8, font, color: C.WHITE });
