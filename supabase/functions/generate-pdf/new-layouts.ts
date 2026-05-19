@@ -212,45 +212,47 @@ function photoPlaceholder(
 }
 
 /** Draw the favicon mark — paper tile with stacked ink + orange cards.
- *  Matches /public/favicon.svg exactly. Returns the tile width. */
+ *  Matches /public/favicon.svg. Prefers a pre-embedded brand mark PNG for
+ *  pixel-perfect fidelity at any tile size. Falls back to drawing solid
+ *  filled cards via primitives if no image is supplied.
+ *  Returns the tile width. */
 function drawFaviconTile(
   page: PDFPage,
   x: number, y: number,
   size = 18,
+  brandMarkImage?: PDFImage | null,
 ): number {
-  // Paper tile background (matches favicon paper rounded square)
+  // Preferred path: embed the favicon PNG directly — matches the canonical
+  // favicon.svg composition (paper tile + stacked ink/accent cards) at any
+  // render size without primitive-drawing geometry bugs.
+  if (brandMarkImage) {
+    page.drawImage(brandMarkImage, { x, y, width: size, height: size });
+    return size;
+  }
+
+  // Fallback: filled solid cards on a paper tile. Designed for small PDF
+  // sizes (8-24pt) where the favicon's hairline frames disappear visually.
+  // Geometry preserves the favicon's stacked-cards proportions but uses
+  // SOLID fills so the mark reads clearly at any size.
   page.drawRectangle({ x, y, width: size, height: size, color: C.PAPER });
 
   // Card geometry as fractions of tile size (derived from favicon viewBox 512)
   const CW = size * 0.391;
   const CH = size * 0.469;
-  const INNER_X = size * 0.023;       // 12/512
-  const INNER_Y_TOP = size * 0.023;   // 12/512 from card top
-  const INNER_W = size * 0.344;       // 176/512
-  const INNER_H = size * 0.320;       // 164/512
 
   // Convert svg-y (from tile top) to pdf-y (from tile bottom)
   const toPdfY = (svgYTop: number, h: number) => y + size - svgYTop - h;
 
-  // Rear card — ink frame + paper inner (svg top = 0.223 * size)
+  // Rear card — solid ink (svg top = 0.223 * size)
   const rxX = x + size * 0.207;
   const rxY = toPdfY(size * 0.223, CH);
   page.drawRectangle({ x: rxX, y: rxY, width: CW, height: CH, color: C.INK });
-  page.drawRectangle({
-    x: rxX + INNER_X,
-    y: rxY + (CH - INNER_Y_TOP - INNER_H),
-    width: INNER_W, height: INNER_H, color: C.PAPER,
-  });
 
-  // Front card — orange frame + paper inner (svg top = 0.309 * size)
+  // Front card — solid accent, drawn LAST so it occludes the rear card
+  // (svg top = 0.309 * size)
   const fxX = x + size * 0.402;
   const fxY = toPdfY(size * 0.309, CH);
   page.drawRectangle({ x: fxX, y: fxY, width: CW, height: CH, color: C.ACCENT });
-  page.drawRectangle({
-    x: fxX + INNER_X,
-    y: fxY + (CH - INNER_Y_TOP - INNER_H),
-    width: INNER_W, height: INNER_H, color: C.PAPER,
-  });
 
   return size;
 }
@@ -266,6 +268,7 @@ function drawWordmark(
   logoImage?: PDFImage | null,
   companyName?: string | null,
   whiteLabelPdf?: boolean,
+  brandMarkImage?: PDFImage | null,
 ): number {
   if (whiteLabelPdf && logoImage) {
     const maxH = markSize * 1.4;
@@ -275,7 +278,7 @@ function drawWordmark(
     return lw;
   }
   const tileSize = markSize;
-  drawFaviconTile(page, x, y - tileSize * 0.18, tileSize);
+  drawFaviconTile(page, x, y - tileSize * 0.18, tileSize, brandMarkImage);
   const gap = tileSize + 6;
   const textColor = darkBg ? C.WHITE : C.INK;
   const textY = y + (tileSize - fontSize) * 0.25 - tileSize * 0.18;
@@ -310,6 +313,7 @@ export type NewLayoutParams = {
   reportNumber: string;
   logoImage: PDFImage | null;
   coverImage: PDFImage | null;
+  brandMarkImage?: PDFImage | null;  // Pre-embedded favicon-96.png for v5 mark
   accentColour?: string | null;
   whiteLabelPdf?: boolean;
   companyName?: string | null;
@@ -322,7 +326,7 @@ export type NewLayoutParams = {
 
 export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<void> {
   const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
-          logoImage, coverImage, accentColour, whiteLabelPdf, companyName } = p;
+          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName } = p;
 
   const W = 595.28, H = 841.89;
   const ML = 42, MR = 42, MT = 42;
@@ -342,7 +346,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
   function drawAreaHeader(page: PDFPage): number {
     const stripTop = H - MT;
     const logoY = stripTop - 16;
-    drawWordmark(page, ML, logoY, font, 10, false, 13, logoImage, companyName, whiteLabelPdf);
+    drawWordmark(page, ML, logoY, font, 10, false, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 8);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 8, font: body, color: effectiveAccent });
@@ -374,7 +378,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     // Header: wordmark left, day label right
     const stripTop = H - MT;
     const logoY = stripTop - 16;
-    drawWordmark(page, ML, logoY, font, 10, true, 13, logoImage, companyName, whiteLabelPdf);
+    drawWordmark(page, ML, logoY, font, 10, true, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 9);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 9, font: body, color: effectiveAccent });
@@ -590,7 +594,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 
 export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
-          logoImage, coverImage, accentColour, whiteLabelPdf, companyName } = p;
+          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName } = p;
 
   const W = 841.89, H = 595.28;   // landscape
   const HEADER_H = 40;
@@ -605,7 +609,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   // ── Shared header ──────────────────────────────────────────────────────────
   function drawHeader(page: PDFPage) {
     fillRect(page, 0, H - HEADER_H, W, HEADER_H, C.INK);
-    drawWordmark(page, 20, H - HEADER_H + 10, font, 10, true, 14, logoImage, companyName, whiteLabelPdf);
+    drawWordmark(page, 20, H - HEADER_H + 10, font, 10, true, 14, logoImage, companyName, whiteLabelPdf, brandMarkImage);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 11);
     page.drawText(dayLbl, { x: W - 20 - dw, y: H - HEADER_H + 14, size: 11, font: body, color: effectiveAccent });

@@ -470,6 +470,20 @@ Deno.serve(async (req) => {
     // Custom cover image is fetched after photoUrlFor is declared (below).
     let coverImage: PDFImage | null = null;
 
+    // BuildSlides v5 brand mark — fetch favicon-96.png from origin and embed.
+    // Used by the new-layouts renderers via drawFaviconTile for pixel-perfect
+    // favicon-style mark in PDF headers. Fails silently — layouts fall back
+    // to primitive-drawn solid cards if the fetch fails.
+    let brandMarkImage: PDFImage | null = null;
+    try {
+      const origin = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
+      const r = await fetchWithTimeout(`${origin}/favicon-96.png`);
+      if (r.ok) {
+        const bytes = new Uint8Array(await r.arrayBuffer());
+        brandMarkImage = await pdfDoc.embedPng(bytes);
+      }
+    } catch (_) { /* fall through — layouts will use primitive fallback */ }
+
     const exportQuality: "compressed" | "high_res" = exp.options?.quality === "high_res" ? "high_res" : "compressed";
     const IMAGE_TRANSFORM = {
       compressed: { width: 900,  quality: 65 },
@@ -872,6 +886,7 @@ Deno.serve(async (req) => {
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
         coverImage,
+        brandMarkImage,
         accentColour: brandColour,
         whiteLabelPdf,
         companyName,
@@ -883,6 +898,7 @@ Deno.serve(async (req) => {
         reportDateLabel, buildDayLabel, reportNumber,
         logoImage: eventLogoImage,
         coverImage,
+        brandMarkImage,
         accentColour: brandColour,
         whiteLabelPdf,
         companyName,
