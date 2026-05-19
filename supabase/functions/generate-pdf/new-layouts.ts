@@ -797,6 +797,9 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     page.drawText(eventName, { x: 20, y: 30, size: 11, font, color: C.WHITE });
     page.drawText(reportDateLabel.toUpperCase(), { x: 20, y: 17, size: 7, font: body, color: hex("#AAAAAA") });
 
+    const overallStatus = (proj.overall_status as string | null) ?? null;
+    const pillLbl = statusLabel(overallStatus);
+    const pillBgCol = statusColour(overallStatus);
     // Right: OVERALL STATUS label + pill — right-aligned, pill sized to content,
     // safely inset from the page edge so it never overflows.
     const RIGHT_INSET = 24;
