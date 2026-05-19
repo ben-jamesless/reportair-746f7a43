@@ -967,8 +967,13 @@ export const ExportPdfDialog = ({
                   {currentExport.error_message && <p className="mt-1 text-xs text-destructive">{currentExport.error_message}</p>}
                 </div>
                 {currentExport.status === "ready" && currentExport.output_path && (
-                  <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)}>
-                    <Download className="mr-2 h-4 w-4" />Download
+                  <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)} disabled={downloadingPath === currentExport.output_path}>
+                    {downloadingPath === currentExport.output_path ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Download
                   </Button>
                 )}
               </CardContent>
@@ -1016,11 +1021,15 @@ export const ExportPdfDialog = ({
                         <Button
                           size="icon"
                           variant="ghost"
-                          disabled={!ready}
+                          disabled={!ready || downloadingPath === h.output_path}
                           onClick={() => ready && downloadExport(h.output_path!)}
                           aria-label="Download export"
                         >
-                          <Download className="h-4 w-4" />
+                          {downloadingPath === h.output_path ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
                         </Button>
                       </li>
                     );
