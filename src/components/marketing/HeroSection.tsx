@@ -339,7 +339,7 @@ const HeroSection = () => {
       <div className="hero-inner">
         {/* LEFT: COPY */}
         <div className="hero-copy">
-          <p className="eyebrow">{"\n"}</p>
+          <p className="eyebrow">Built for the build</p>
           <h1 className="headline">
             Client-ready event build reports in <span className="accent">10 minutes.</span>
           </h1>
