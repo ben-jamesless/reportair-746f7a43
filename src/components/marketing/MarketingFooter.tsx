@@ -1,5 +1,4 @@
 import { BRAND } from "./brand-tokens";
-import { Logo } from "./brand";
 
 export type LegalPanel = "terms" | "privacy";
 
