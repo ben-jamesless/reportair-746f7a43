@@ -81,8 +81,8 @@ const HeroSection = () => {
         }
         .ra-hero .headline {
           font-family: var(--font-display);
-          font-size: 52px; font-weight: 800;
-          line-height: 1.08; color: #fff;
+          font-size: 52px; font-weight: 900;
+          line-height: 1.05; letter-spacing: -0.02em; color: #fff;
           margin-bottom: 24px;
         }
         .ra-hero .headline .accent { color: var(--sky); }
