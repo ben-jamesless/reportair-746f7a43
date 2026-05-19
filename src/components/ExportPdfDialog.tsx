@@ -229,6 +229,8 @@ export const ExportPdfDialog = ({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [downloadingPath, setDownloadingPath] = useState<string | null>(null);
+  const [downloadLinks, setDownloadLinks] = useState<Record<string, string>>({});
 
   // Sorted ascending for picker convenience
   const daysAsc = useMemo(
@@ -493,28 +495,82 @@ export const ExportPdfDialog = ({
   };
 
   const downloadingRef = useRef(false);
+  const downloadName = (path: string) => path.split("/").pop() || "site-story.pdf";
+
+  const signDownloadLink = async (path: string) => {
+    if (downloadLinks[path]) return downloadLinks[path];
+    const name = downloadName(path);
+    const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 60 * 60, { download: name });
+    if (error || !data?.signedUrl) throw error ?? new Error("No signed download URL returned");
+    setDownloadLinks((prev) => ({ ...prev, [path]: data.signedUrl }));
+    return data.signedUrl;
+  };
+
+  useEffect(() => {
+    const paths = [
+      currentExport?.status === "ready" ? currentExport.output_path : null,
+      ...(historyOpen ? historyRows.filter((h) => h.status === "ready").map((h) => h.output_path) : []),
+    ].filter((p): p is string => !!p && !downloadLinks[p]);
+    if (paths.length === 0) return;
+    paths.forEach((path) => {
+      signDownloadLink(path).catch((error) => console.error("preparing download link failed", error));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentExport?.status, currentExport?.output_path, historyOpen, history]);
+
   const downloadExport = async (path: string) => {
     if (downloadingRef.current) return;
     downloadingRef.current = true;
+    setDownloadingPath(path);
+
+    // Safari and iframe previews can block a new tab/download if it is opened
+    // after async work. Open the tab synchronously from the click, then point it
+    // at the signed URL once it is ready.
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    const isFramed = typeof window !== "undefined" && window.self !== window.top;
+    const directWindow = isSafari || isFramed ? window.open("", "_blank") : null;
+    if (directWindow) {
+      try {
+        directWindow.opener = null;
+        directWindow.document.write("Preparing your report download…");
+      } catch {
+        // The browser may restrict access; navigation below can still work.
+      }
+    }
+
     try {
       let lastErr: unknown = null;
       let signed: { signedUrl: string } | null = null;
+      const name = downloadName(path);
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: true });
+          const url = downloadLinks[path] ?? await signDownloadLink(path);
+          signed = { signedUrl: url };
+          break;
+        } catch (e) {
+          try {
+            const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: name });
           if (!error && data?.signedUrl) { signed = data; break; }
           lastErr = error;
-        } catch (e) {
-          lastErr = e;
+          } catch (retryError) {
+            lastErr = retryError;
+          }
         }
         await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
       }
       if (!signed) {
         console.error("createSignedUrl failed", lastErr);
+        directWindow?.close();
         toast.error("Could not get download link");
         return;
       }
-      const name = path.split("/").pop() || "site-story.pdf";
+
+      if (directWindow) {
+        directWindow.location.href = signed.signedUrl;
+        return;
+      }
+
       // Fetch as blob so the download works inside iframes (Lovable preview)
       // and on Safari, where cross-origin `a[download]` is ignored.
       try {
@@ -536,6 +592,7 @@ export const ExportPdfDialog = ({
       }
     } finally {
       downloadingRef.current = false;
+      setDownloadingPath(null);
     }
   };
 
@@ -940,9 +997,35 @@ export const ExportPdfDialog = ({
                   {currentExport.error_message && <p className="mt-1 text-xs text-destructive">{currentExport.error_message}</p>}
                 </div>
                 {currentExport.status === "ready" && currentExport.output_path && (
-                  <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)}>
-                    <Download className="mr-2 h-4 w-4" />Download
-                  </Button>
+                  downloadLinks[currentExport.output_path] ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <a
+                        href={downloadLinks[currentExport.output_path]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={downloadName(currentExport.output_path)}
+                        onClick={() => {
+                          setDownloadingPath(currentExport.output_path);
+                          window.setTimeout(() => setDownloadingPath(null), 1200);
+                        }}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)} disabled={downloadingPath === currentExport.output_path}>
+                      {downloadingPath === currentExport.output_path ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="mr-2 h-4 w-4" />
+                      )}
+                      Download
+                    </Button>
+                  )
+                )}
+                {currentExport.status === "ready" && currentExport.output_path && downloadingPath === currentExport.output_path && downloadLinks[currentExport.output_path] && (
+                  <span className="sr-only">Download started</span>
                 )}
               </CardContent>
             </Card>
@@ -986,15 +1069,33 @@ export const ExportPdfDialog = ({
                             <p className="mt-1 truncate text-xs text-destructive">{h.error_message}</p>
                           )}
                         </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          disabled={!ready}
-                          onClick={() => ready && downloadExport(h.output_path!)}
-                          aria-label="Download export"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                        {ready && h.output_path && downloadLinks[h.output_path] ? (
+                          <Button size="icon" variant="ghost" asChild>
+                            <a
+                              href={downloadLinks[h.output_path]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={downloadName(h.output_path)}
+                              aria-label="Download export"
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            disabled={!ready || downloadingPath === h.output_path}
+                            onClick={() => ready && downloadExport(h.output_path!)}
+                            aria-label="Download export"
+                          >
+                            {downloadingPath === h.output_path ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                       </li>
                     );
                   })}

@@ -324,18 +324,32 @@ const SharePage = () => {
   const downloadLatestReport = async () => {
     if (!token || downloading) return;
     setDownloading(true);
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    const isFramed = typeof window !== "undefined" && window.self !== window.top;
+    const directWindow = isSafari || isFramed ? window.open("", "_blank") : null;
+    if (directWindow) {
+      try {
+        directWindow.opener = null;
+        directWindow.document.write("Preparing your report download…");
+      } catch {
+        // Continue; assigning location below can still work.
+      }
+    }
     try {
       const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-export-url`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
       });
       const json = await res.json();
-      if (!res.ok || !json.url) { toast.error("Could not get download link"); return; }
+      if (!res.ok || !json.url) { directWindow?.close(); toast.error("Could not get download link"); return; }
+      if (directWindow) { directWindow.location.href = json.url; return; }
       const a = document.createElement("a");
-      a.href = json.url; a.rel = "noopener"; a.target = "_self";
+      a.href = json.url; a.rel = "noopener"; a.target = "_blank";
       a.download = "site-story.pdf";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
     } catch {
+      directWindow?.close();
       toast.error("Download failed");
     } finally {
       setDownloading(false);

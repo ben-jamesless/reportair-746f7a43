@@ -34,9 +34,10 @@ Deno.serve(async (req) => {
       });
     }
 
+    const filename = String(path).split("/").pop() || "site-story.pdf";
     const { data: signed, error: sErr } = await supabase.storage
       .from("exports")
-      .createSignedUrl(path as string, 300, { download: true });
+      .createSignedUrl(path as string, 60 * 60, { download: filename });
     if (sErr || !signed?.signedUrl) {
       return new Response(JSON.stringify({ error: "could not sign url" }), {
         status: 500,
