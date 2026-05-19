@@ -217,7 +217,10 @@ export function ProjectHeader({
                   <SelectContent>
                     {PROJECT_STATUSES.map((s) => (
                       <SelectItem key={s.value} value={s.value}>
-                        {s.label}
+                        <span className="flex items-center gap-2">
+                          <span aria-hidden className={cn("inline-block size-2 rounded-full", s.dotClass)} />
+                          <span>{s.label}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
