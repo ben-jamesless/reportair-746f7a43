@@ -24,7 +24,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
         </div>
 
         <div className="relative z-10">
-          <h1 className="font-display text-4xl md:text-5xl font-black tracking-tight text-white">
+          <h1 className="font-display text-4xl md:text-5xl font-black tracking-tight text-[#D94F2A]">
             Built for the build.
           </h1>
           <p className="mt-4 text-base text-[color:var(--bs-rule)]">
