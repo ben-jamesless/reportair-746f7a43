@@ -426,7 +426,12 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
       const col = i % 2, row = Math.floor(i / 2);
       const fx = ML + col * (colW + 10);
       const fy = fieldsTop - row * (fieldH + rowGap) - fieldH;
-      fillRect(page, fx, fy, colW, fieldH, C.COVER_CELL_BG, C.COVER_CELL_BD, 0.5);
+      page.drawRectangle({
+        x: fx, y: fy, width: colW, height: fieldH,
+        color: C.COVER_CELL_BG,
+        borderColor: C.COVER_CELL_BD, borderWidth: 0.5,
+        borderRadius: 10,
+      });
       page.drawText(label, { x: fx + 8, y: fy + fieldH - 13, size: 5.5, font: body, color: effectiveAccent });
       // Wrap value
       const lines = wrapText(value, body, 9, colW - 20).slice(0, 3);
