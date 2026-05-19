@@ -975,32 +975,14 @@ export const ExportPdfDialog = ({
                   {currentExport.error_message && <p className="mt-1 text-xs text-destructive">{currentExport.error_message}</p>}
                 </div>
                 {currentExport.status === "ready" && currentExport.output_path && (
-                  downloadLinks[currentExport.output_path] ? (
-                    <Button size="sm" variant="outline" asChild>
-                      <a
-                        href={downloadLinks[currentExport.output_path]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download={downloadName(currentExport.output_path)}
-                        onClick={() => {
-                          setDownloadingPath(currentExport.output_path);
-                          window.setTimeout(() => setDownloadingPath(null), 1200);
-                        }}
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </a>
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)} disabled={downloadingPath === currentExport.output_path}>
-                      {downloadingPath === currentExport.output_path ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="mr-2 h-4 w-4" />
-                      )}
-                      Download
-                    </Button>
-                  )
+                  <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)} disabled={downloadingPath === currentExport.output_path}>
+                    {downloadingPath === currentExport.output_path ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Download
+                  </Button>
                 )}
                 {currentExport.status === "ready" && currentExport.output_path && downloadingPath === currentExport.output_path && downloadLinks[currentExport.output_path] && (
                   <span className="sr-only">Download started</span>
@@ -1047,33 +1029,19 @@ export const ExportPdfDialog = ({
                             <p className="mt-1 truncate text-xs text-destructive">{h.error_message}</p>
                           )}
                         </div>
-                        {ready && h.output_path && downloadLinks[h.output_path] ? (
-                          <Button size="icon" variant="ghost" asChild>
-                            <a
-                              href={downloadLinks[h.output_path]}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              download={downloadName(h.output_path)}
-                              aria-label="Download export"
-                            >
-                              <Download className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        ) : (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            disabled={!ready || downloadingPath === h.output_path}
-                            onClick={() => ready && downloadExport(h.output_path!)}
-                            aria-label="Download export"
-                          >
-                            {downloadingPath === h.output_path ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Download className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          disabled={!ready || downloadingPath === h.output_path}
+                          onClick={() => ready && downloadExport(h.output_path!)}
+                          aria-label="Download export"
+                        >
+                          {downloadingPath === h.output_path ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
                       </li>
                     );
                   })}
