@@ -444,11 +444,7 @@ const HeroSection = () => {
             {/* Centre node */}
             <div className="node-wrap">
               <div className="node">
-                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="5" y="7" width="18" height="12" rx="1.6" fill="#FFFFFF" opacity="0.55" />
-                  <rect x="9" y="11" width="18" height="12" rx="1.6" fill="#FFFFFF" />
-                </svg>
-                
+                <img src="/favicon.svg" alt="" style={{ width: 56, height: 56 }} />
               </div>
             </div>
 
