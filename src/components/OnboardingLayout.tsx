@@ -17,8 +17,9 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
         style={{ background: "#0F1417" }}
       >
         <div className="relative z-10">
-          <Link to="/" aria-label="BuildSlides home" className="flex items-center">
-            <img src="/lockups/lockup_horizontal_paper.svg" alt="BuildSlides" className="h-7 w-auto" />
+          <Link to="/" aria-label="BuildSlides home" className="flex items-center gap-2">
+            <img src="/favicon.svg" alt="" className="h-8 w-8" />
+            <span className="font-display font-black tracking-tight text-base text-white">BuildSlides</span>
           </Link>
         </div>
 
