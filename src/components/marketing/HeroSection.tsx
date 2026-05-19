@@ -453,11 +453,7 @@ const HeroSection = () => {
             <div className="report-card">
               <div className="rc-header">
                 <div className="rc-logo">
-                  <svg viewBox="0 0 32 32" fill="none">
-                    <rect x="0" y="0" width="32" height="32" rx="7" fill="#D94F2A" />
-                    <rect x="7" y="9.5" width="14" height="9" rx="1.6" fill="#FFFFFF" opacity="0.55" />
-                    <rect x="11" y="13.5" width="14" height="9" rx="1.6" fill="#FFFFFF" />
-                  </svg>
+                  <img src="/favicon.svg" alt="" style={{ width: 18, height: 18, display: "block" }} />
                   <span className="rc-logo-text">BuildSlides</span>
                 </div>
                 <span className="rc-dr">No. DR-002</span>
