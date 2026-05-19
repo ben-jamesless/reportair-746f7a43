@@ -30,7 +30,7 @@ const faqs = [
   {
     question: "What does it cost?",
     answer:
-      "Solo HK$128/mo, Pro HK$298/mo, Studio HK$688/mo. Annual billing saves 20%. 14-day free trial on every tier — see the pricing section below.",
+      "Solo HK$128/mo, Crew HK$298/mo, Studio HK$688/mo. Annual billing saves 20%. 14-day free trial on every tier — see the pricing section below.",
   },
   {
     question: "Can multiple people work on the same event at once?",
