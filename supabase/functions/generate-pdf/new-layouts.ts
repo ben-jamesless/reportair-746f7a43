@@ -49,10 +49,12 @@ const C = {
   COVER_MUTED:   hex("#A1A1AA"),
   COVER_DATE:    hex("#71717A"),
   COVER_VALUE:   hex("#CCCCCC"),
-  // Status
-  GREEN: hex("#22C55E"),
-  BLUE:  hex("#3B82F6"),
-  GREY:  hex("#9CA3AF"),
+  // Status — v5 palette
+  GREEN:   hex("#3A7D44"),  // on track
+  BLUE:    hex("#3A6EA5"),  // complete / done
+  GREY:    hex("#9C9A93"),  // no status
+  AMBER:   hex("#D94F2A"),  // delay / risk (accent)
+  RED:     hex("#C7382A"),  // blocked / snag
   // Photo placeholder
   PHOTO_BG: hex("#E8E6E0"),
   PHOTO_BD: hex("#C9C5BC"),
@@ -65,10 +67,10 @@ const C = {
 function statusColour(s: string | null): ReturnType<typeof rgb> {
   if (!s) return C.GREY;
   const l = s.toLowerCase();
-  if (l.includes("track") || l.includes("complete") || l === "done") {
-    return l.includes("complete") || l === "done" ? C.BLUE : C.GREEN;
-  }
-  if (l.includes("delay") || l.includes("snag") || l.includes("risk")) return hex("#EF4444");
+  if (l.includes("complete") || l === "done") return C.BLUE;
+  if (l.includes("track")) return C.GREEN;
+  if (l.includes("block") || l.includes("snag")) return C.RED;
+  if (l.includes("delay") || l.includes("risk")) return C.AMBER;
   return C.GREY;
 }
 
