@@ -192,58 +192,60 @@ function drawImageFit(
   page.drawImage(img, { x: x + (w - iw) / 2, y: y + (h - ih) / 2, width: iw, height: ih });
 }
 
-/** Draw a photo placeholder box. */
+/** Draw a photo into a slot, scaled to fit, no background, centred.
+ *  If no image, draw nothing (slot is left blank — page bg shows through). */
 function photoPlaceholder(
   page: PDFPage,
   x: number, y: number, w: number, h: number,
-  font: PDFFont,
-  label = "PHOTO",
+  _font: PDFFont,
+  _label = "PHOTO",
   img?: PDFImage | null,
 ) {
-  fillRect(page, x, y, w, h, C.PHOTO_BG, C.PHOTO_BD, 0.5);
-  if (img) {
-    // Math.min (fit) — photo sits fully within cell, letterboxed, no cropping
-    const scale = Math.min(w / img.width, h / img.height);
-    const iw = img.width * scale, ih = img.height * scale;
-    page.drawImage(img, {
-      x: x + (w - iw) / 2,
-      y: y + (h - ih) / 2,
-      width: iw, height: ih,
-    });
-  } else {
-    const lw = font.widthOfTextAtSize(label, 8);
-    page.drawText(label, { x: x + w / 2 - lw / 2, y: y + h / 2 - 4, size: 8, font, color: hex("#AAAAAA") });
-  }
+  if (!img) return;
+  const scale = Math.min(w / img.width, h / img.height);
+  const iw = img.width * scale, ih = img.height * scale;
+  page.drawImage(img, {
+    x: x + (w - iw) / 2,
+    y: y + (h - ih) / 2,
+    width: iw, height: ih,
+  });
 }
 
-/** Draw the BuildSlides overlapping-squares mark. Returns width consumed. */
-function drawLogoMark(
+/** Draw the V4-B favicon-style mark inside a paper-coloured rounded tile.
+ *  Returns the tile width. */
+function drawFaviconTile(
   page: PDFPage,
   x: number, y: number,
-  size = 14,
-  darkBg = false,
+  size = 18,
 ): number {
-  const offset = size * 0.28;
-  const sq = size - offset;
-  if (darkBg) {
-    page.drawRectangle({ x, y: y + offset, width: sq, height: sq, color: hex("#2A2A2A"), borderColor: hex("#888888"), borderWidth: 0.6 });
-    page.drawRectangle({ x: x + offset * 0.5, y: y + offset * 0.5, width: sq, height: sq, color: C.PAPER, borderColor: hex("#CCCCCC"), borderWidth: 0.4 });
-  } else {
-    page.drawRectangle({ x, y: y + offset, width: sq, height: sq, color: C.INK, borderColor: C.INK, borderWidth: 0.5 });
-    page.drawRectangle({ x: x + offset * 0.5, y: y + offset * 0.5, width: sq, height: sq, color: C.PAPER, borderColor: C.INK, borderWidth: 0.5 });
-  }
-  page.drawRectangle({ x: x + offset, y, width: sq, height: sq, color: C.ACCENT, borderColor: C.ACCENT, borderWidth: 0.3 });
+  const r = size * 0.18;
+  // Paper tile
+  page.drawRectangle({ x, y, width: size, height: size, color: C.PAPER, borderRadius: r });
+  // Two overlapping cards inside (rear ink frame + paper inner, front orange frame + paper inner)
+  const pad = size * 0.18;
+  const cw = size * 0.42;
+  const ch = size * 0.5;
+  // Rear card (ink frame)
+  const rx = x + pad;
+  const ry = y + size - pad - ch;
+  page.drawRectangle({ x: rx, y: ry, width: cw, height: ch, color: C.INK });
+  page.drawRectangle({ x: rx + cw * 0.08, y: ry + ch * 0.16, width: cw * 0.84, height: ch * 0.7, color: C.PAPER });
+  // Front card (orange frame), offset right + down
+  const fx = rx + cw * 0.5;
+  const fy = ry - ch * 0.18;
+  page.drawRectangle({ x: fx, y: fy, width: cw, height: ch, color: C.ACCENT });
+  page.drawRectangle({ x: fx + cw * 0.08, y: fy + ch * 0.16, width: cw * 0.84, height: ch * 0.7, color: C.PAPER });
   return size;
 }
 
-/** Draw BuildSlides wordmark (mark + text). Returns total width. */
+/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width. */
 function drawWordmark(
   page: PDFPage,
   x: number, y: number,
   font: PDFFont,
   fontSize = 10,
   darkBg = false,
-  markSize = 14,
+  markSize = 16,
   logoImage?: PDFImage | null,
   companyName?: string | null,
   whiteLabelPdf?: boolean,
@@ -255,15 +257,17 @@ function drawWordmark(
     page.drawImage(logoImage, { x, y: y - lh * 0.1, width: lw, height: lh });
     return lw;
   }
-  const mw = drawLogoMark(page, x, y, markSize, darkBg);
-  const gap = mw + 5;
+  const tileSize = markSize;
+  drawFaviconTile(page, x, y - tileSize * 0.18, tileSize);
+  const gap = tileSize + 6;
   const textColor = darkBg ? C.WHITE : C.INK;
-  const textY = y + (markSize - fontSize) * 0.35;
-  page.drawText(companyName || "BuildSlides", { x: x + gap, y: textY, size: fontSize, font, color: textColor });
-  const tw = font.widthOfTextAtSize(companyName || "BuildSlides", fontSize);
-  page.drawText(".", { x: x + gap + tw, y: textY, size: fontSize, font, color: C.ACCENT });
-  return gap + tw + font.widthOfTextAtSize(".", fontSize);
+  const textY = y + (tileSize - fontSize) * 0.25 - tileSize * 0.18;
+  const label = companyName || "BuildSlides";
+  page.drawText(label, { x: x + gap, y: textY, size: fontSize, font, color: textColor });
+  const tw = font.widthOfTextAtSize(label, fontSize);
+  return gap + tw;
 }
+
 
 // ── Shared data types (match index.ts) ───────────────────────────────────────
 
