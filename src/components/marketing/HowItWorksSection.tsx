@@ -26,8 +26,8 @@ const HowItWorksSection = () => {
   return (
     <section id="how-it-works" style={{ background: "#0F1417", color: "#fff", overflowX: "hidden" }}>
       <style>{`
-        .hiw-scope { font-family: 'Inter', sans-serif; }
-        .hiw-scope .display { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+        .hiw-scope { font-family: 'Geist', system-ui, sans-serif; }
+        .hiw-scope .display { font-family: 'Geist', system-ui, sans-serif; }
         @keyframes hiwCameraPulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(217,79,42,0.5); }
           50% { box-shadow: 0 0 0 12px rgba(217,79,42,0); }
