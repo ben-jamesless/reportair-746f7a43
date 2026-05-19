@@ -50,11 +50,11 @@ const C = {
   COVER_DATE:    hex("#71717A"),
   COVER_VALUE:   hex("#CCCCCC"),
   // Status — v5 palette
-  GREEN:   hex("#3A7D44"),  // on track
-  BLUE:    hex("#3A6EA5"),  // complete / done
-  GREY:    hex("#9C9A93"),  // no status
-  AMBER:   hex("#D94F2A"),  // delay / risk (accent)
-  RED:     hex("#C7382A"),  // blocked / snag
+  GREEN:   hex("#3A7D44"),  // complete
+  BLUE:    hex("#3A6EA5"),  // on track
+  GREY:    hex("#9C9A93"),  // none
+  AMBER:   hex("#D94F2A"),  // discuss (accent)
+  RED:     hex("#C7382A"),  // delayed
   // Photo placeholder
   PHOTO_BG: hex("#E8E6E0"),
   PHOTO_BD: hex("#C9C5BC"),
@@ -64,20 +64,36 @@ const C = {
   SIDEBAR_PG:   hex("#4A6080"),
 };
 
-function statusColour(s: string | null): ReturnType<typeof rgb> {
-  if (!s) return C.GREY;
+/** Normalise raw DB enum to canonical v5 keys. */
+function normaliseStatus(s: string | null | undefined): "none" | "on_track" | "requires_discussion" | "concern" | "complete" {
+  if (!s) return "none";
   const l = s.toLowerCase();
-  if (l.includes("complete") || l === "done") return C.BLUE;
-  if (l.includes("track")) return C.GREEN;
-  if (l.includes("block") || l.includes("snag")) return C.RED;
-  if (l.includes("delay") || l.includes("risk")) return C.AMBER;
+  if (l === "no_status" || l === "none") return "none";
+  if (l === "complete" || l === "done") return "complete";
+  if (l === "on_track" || l.includes("track")) return "on_track";
+  if (l === "requires_discussion" || l.includes("discuss")) return "requires_discussion";
+  if (l === "concern" || l === "delayed" || l.includes("delay") || l.includes("block") || l.includes("snag") || l.includes("risk") || l.includes("behind")) return "concern";
+  return "none";
+}
+
+function statusColour(s: string | null): ReturnType<typeof rgb> {
+  const k = normaliseStatus(s);
+  if (k === "complete") return C.GREEN;
+  if (k === "on_track") return C.BLUE;
+  if (k === "requires_discussion") return C.AMBER;
+  if (k === "concern") return C.RED;
   return C.GREY;
 }
 
 function statusLabel(s: string | null): string {
-  if (!s || s === "no_status") return "—";
-  return s.replace(/_/g, " ").toUpperCase();
+  const k = normaliseStatus(s);
+  return k === "none" ? "NONE"
+       : k === "on_track" ? "ON TRACK"
+       : k === "requires_discussion" ? "DISCUSS"
+       : k === "concern" ? "DELAYED"
+       : "COMPLETE";
 }
+
 
 /** Clip content to a rectangle, execute draw calls, then restore. */
 function withClip(
