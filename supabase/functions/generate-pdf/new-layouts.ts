@@ -797,18 +797,20 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     page.drawText(eventName, { x: 20, y: 30, size: 11, font, color: C.WHITE });
     page.drawText(reportDateLabel.toUpperCase(), { x: 20, y: 17, size: 7, font: body, color: hex("#AAAAAA") });
 
-    // Right: OVERALL STATUS label + pill
-    const overallStatus = (proj.overall_status as string | null) ?? null;
-    const pillLbl = statusLabel(overallStatus);
-    const pillBgCol = statusColour(overallStatus);
-    const PILL_W = 72, PILL_H = 14;
-    const PILL_Y = (BAR_H - PILL_H) / 2;
-    page.drawRectangle({ x: W - PILL_W - 8, y: PILL_Y, width: PILL_W, height: PILL_H, color: pillBgCol, borderRadius: PILL_H / 2 });
+    // Right: OVERALL STATUS label + pill — right-aligned, pill sized to content,
+    // safely inset from the page edge so it never overflows.
+    const RIGHT_INSET = 24;
+    const PILL_H = 14;
+    const PILL_PAD_H = 10;
     const pllw = body.widthOfTextAtSize(pillLbl, 7.5);
-    page.drawText(pillLbl, { x: W - PILL_W - 8 + (PILL_W - pllw) / 2, y: PILL_Y + 3.5, size: 7.5, font: body, color: C.WHITE });
+    const pillW = pllw + PILL_PAD_H * 2;
+    const PILL_Y_BAR = (BAR_H - PILL_H) / 2;
+    const pillX = W - RIGHT_INSET - pillW;
+    page.drawRectangle({ x: pillX, y: PILL_Y_BAR, width: pillW, height: PILL_H, color: pillBgCol, borderRadius: PILL_H / 2 });
+    page.drawText(pillLbl, { x: pillX + PILL_PAD_H, y: PILL_Y_BAR + 3.5, size: 7.5, font: body, color: C.WHITE });
     const osLabel = "OVERALL STATUS";
     const oslw = body.widthOfTextAtSize(osLabel, 7);
-    page.drawText(osLabel, { x: W - PILL_W - 12 - oslw, y: PILL_Y + 4, size: 7, font: body, color: hex("#AAAAAA") });
+    page.drawText(osLabel, { x: pillX - 10 - oslw, y: PILL_Y_BAR + 4, size: 7, font: body, color: hex("#AAAAAA") });
   }
 
   // ════════════════════════════════════════════
