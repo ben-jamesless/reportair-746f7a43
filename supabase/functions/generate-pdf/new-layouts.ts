@@ -446,7 +446,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     // 2×2 info fields
     const fieldsTop = photoY - 12;
     const colW = (CW - 10) / 2;
-    const fieldH = 58, rowGap = 8;
+    const fieldH = 86, rowGap = 8;
     const fields = [
       { label: "TODAY'S OBJECTIVES",    value: normaliseBullets((dayNote?.today_objectives    as string) || "—") },
       { label: "TODAY'S ACHIEVEMENTS",  value: normaliseBullets((dayNote?.today_achievements  as string) || "—") },
@@ -464,8 +464,8 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
         borderRadius: 10,
       });
       page.drawText(label, { x: fx + 8, y: fy + fieldH - 13, size: 5.5, font: body, color: effectiveAccent });
-      // Wrap value
-      const lines = wrapText(value, body, 9, colW - 20).slice(0, 3);
+      const maxLines = Math.floor((fieldH - 30) / 11);
+      const lines = wrapText(value, body, 9, colW - 20).slice(0, maxLines);
       lines.forEach((ln, li) => {
         page.drawText(ln, { x: fx + 8, y: fy + fieldH - 26 - li * 11, size: 9, font: body, color: C.COVER_VALUE });
       });
