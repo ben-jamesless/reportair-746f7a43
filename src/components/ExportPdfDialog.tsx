@@ -229,6 +229,7 @@ export const ExportPdfDialog = ({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [downloadingPath, setDownloadingPath] = useState<string | null>(null);
 
   // Sorted ascending for picker convenience
   const daysAsc = useMemo(
@@ -496,12 +497,31 @@ export const ExportPdfDialog = ({
   const downloadExport = async (path: string) => {
     if (downloadingRef.current) return;
     downloadingRef.current = true;
+    setDownloadingPath(path);
+
+    // Safari and iframe previews can block a new tab/download if it is opened
+    // after async work. Open the tab synchronously from the click, then point it
+    // at the signed URL once it is ready.
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
+    const isFramed = typeof window !== "undefined" && window.self !== window.top;
+    const directWindow = isSafari || isFramed ? window.open("", "_blank") : null;
+    if (directWindow) {
+      try {
+        directWindow.opener = null;
+        directWindow.document.write("Preparing your report download…");
+      } catch {
+        // The browser may restrict access; navigation below can still work.
+      }
+    }
+
     try {
       let lastErr: unknown = null;
       let signed: { signedUrl: string } | null = null;
+      const name = path.split("/").pop() || "site-story.pdf";
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: true });
+          const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: name });
           if (!error && data?.signedUrl) { signed = data; break; }
           lastErr = error;
         } catch (e) {
@@ -511,10 +531,16 @@ export const ExportPdfDialog = ({
       }
       if (!signed) {
         console.error("createSignedUrl failed", lastErr);
+        directWindow?.close();
         toast.error("Could not get download link");
         return;
       }
-      const name = path.split("/").pop() || "site-story.pdf";
+
+      if (directWindow) {
+        directWindow.location.href = signed.signedUrl;
+        return;
+      }
+
       // Fetch as blob so the download works inside iframes (Lovable preview)
       // and on Safari, where cross-origin `a[download]` is ignored.
       try {
@@ -536,6 +562,7 @@ export const ExportPdfDialog = ({
       }
     } finally {
       downloadingRef.current = false;
+      setDownloadingPath(null);
     }
   };
 
