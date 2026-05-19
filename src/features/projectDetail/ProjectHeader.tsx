@@ -212,7 +212,6 @@ export function ProjectHeader({
                     "h-6 px-2.5 rounded-full text-xs font-semibold border w-auto gap-1.5",
                     projectStatusMeta(project.overall_status).pillClass
                   )}>
-                    <span aria-hidden className={cn("inline-block size-2 rounded-full", projectStatusMeta(project.overall_status).dotClass)} />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
