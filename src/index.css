@@ -62,8 +62,8 @@
     --bs-pdf-muted:      #6B6B70;
 
     /* ===== shadcn semantic tokens, mapped to BuildSlides (HSL only) ===== */
-    /* paper #FAF7F0 */
-    --background: 42 36% 96%;
+    /* paper #F4F1EA (v5) */
+    --background: 42 36% 94%;
     /* ink #0F1417 (body text) */
     --foreground: 200 11% 8%;
     /* ink for headings + wordmark */
@@ -208,10 +208,18 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Geist', system-ui, sans-serif;
     color: hsl(var(--heading, var(--foreground)));
-    font-weight: 600;
   }
-  h1 { letter-spacing: -0.02em; }
-  h2 { letter-spacing: -0.02em; }
+  h1 { font-weight: 900; letter-spacing: -0.02em; }
+  h2 { font-weight: 700; letter-spacing: -0.015em; }
+  h3 { font-weight: 700; letter-spacing: -0.01em; }
+  h4, h5, h6 { font-weight: 600; }
+  .eyebrow,
+  [data-eyebrow] {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+  }
 }
 
 @layer utilities {
