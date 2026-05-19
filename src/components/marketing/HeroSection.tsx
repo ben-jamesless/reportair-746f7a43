@@ -318,9 +318,7 @@ const HeroSection = () => {
           .ra-hero .chip-icon svg { width: 15px; height: 15px; }
           .ra-hero .chip-label { font-size: 12px; }
           .ra-hero .lines-svg { flex: none; width: 100%; max-width: 300px; height: 64px; display: block; }
-          .ra-hero .node { width: 68px; height: 68px; border-radius: 17px; }
-          .ra-hero .node svg { width: 28px; height: 28px; }
-          .ra-hero .node-label { font-size: 7px; }
+          .ra-hero .node { width: 72px; height: 72px; }
           .ra-hero .out-line-svg { flex: none; width: 32px; height: 52px; display: block; }
           .ra-hero .report-card { width: 100%; max-width: 340px; border-radius: 14px; }
         }
