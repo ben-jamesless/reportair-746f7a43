@@ -314,18 +314,15 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     return ruleY;
   }
 
-  // ── Footer (area pages) ────────────────────────────────────────────────────
+  // ── Footer (area pages) — v5 brand line ───────────────────────────────────
   function drawAreaFooter(page: PDFPage, pageLabel: string) {
     const ruleY = 46;
     page.drawLine({ start: { x: ML, y: ruleY }, end: { x: W - MR, y: ruleY }, thickness: 0.5, color: C.RULE });
     const rowY = 22;
-    const eventName = (proj.name as string) || "Event";
-    page.drawText(eventName, { x: ML, y: rowY, size: 7, font: body, color: C.MUTED });
-    const dateTxt = reportDateLabel;
-    const dw = body.widthOfTextAtSize(dateTxt, 7);
-    page.drawText(dateTxt, { x: W / 2 - dw / 2, y: rowY, size: 7, font: body, color: C.MUTED });
-    const plw = body.widthOfTextAtSize(pageLabel, 7);
-    page.drawText(pageLabel, { x: W - MR - plw, y: rowY, size: 7, font: body, color: C.MUTED });
+    const brand = "BUILDSLIDES.COM  ·  BUILT FOR THE BUILD.  ·  HONG KONG";
+    page.drawText(brand, { x: ML, y: rowY, size: 7, font: body, color: C.MUTED });
+    const plw = body.widthOfTextAtSize(pageLabel.toUpperCase(), 7);
+    page.drawText(pageLabel.toUpperCase(), { x: W - MR - plw, y: rowY, size: 7, font: body, color: C.MUTED });
   }
 
   // ════════════════════════════════════════════
