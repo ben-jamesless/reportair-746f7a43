@@ -1,5 +1,5 @@
 // new-layouts.ts
-// Two new PDF layout renderers for ReportAir.
+// Two new PDF layout renderers for BuildSlides.
 //
 //   renderEditorialPortraitV1  — "Editorial" A4 portrait
 //     Dark charcoal cover, DM Sans display title, ON TRACK pill under title,
