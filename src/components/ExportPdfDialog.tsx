@@ -230,6 +230,7 @@ export const ExportPdfDialog = ({
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [downloadingPath, setDownloadingPath] = useState<string | null>(null);
+  const [downloadLinks, setDownloadLinks] = useState<Record<string, string>>({});
 
   // Sorted ascending for picker convenience
   const daysAsc = useMemo(
@@ -494,6 +495,29 @@ export const ExportPdfDialog = ({
   };
 
   const downloadingRef = useRef(false);
+  const downloadName = (path: string) => path.split("/").pop() || "site-story.pdf";
+
+  const signDownloadLink = async (path: string) => {
+    if (downloadLinks[path]) return downloadLinks[path];
+    const name = downloadName(path);
+    const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 60 * 60, { download: name });
+    if (error || !data?.signedUrl) throw error ?? new Error("No signed download URL returned");
+    setDownloadLinks((prev) => ({ ...prev, [path]: data.signedUrl }));
+    return data.signedUrl;
+  };
+
+  useEffect(() => {
+    const paths = [
+      currentExport?.status === "ready" ? currentExport.output_path : null,
+      ...(historyOpen ? historyRows.filter((h) => h.status === "ready").map((h) => h.output_path) : []),
+    ].filter((p): p is string => !!p && !downloadLinks[p]);
+    if (paths.length === 0) return;
+    paths.forEach((path) => {
+      signDownloadLink(path).catch((error) => console.error("preparing download link failed", error));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentExport?.status, currentExport?.output_path, historyOpen, history]);
+
   const downloadExport = async (path: string) => {
     if (downloadingRef.current) return;
     downloadingRef.current = true;
@@ -518,14 +542,20 @@ export const ExportPdfDialog = ({
     try {
       let lastErr: unknown = null;
       let signed: { signedUrl: string } | null = null;
-      const name = path.split("/").pop() || "site-story.pdf";
+      const name = downloadName(path);
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
-          const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: name });
+          const url = downloadLinks[path] ?? await signDownloadLink(path);
+          signed = { signedUrl: url };
+          break;
+        } catch (e) {
+          try {
+            const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: name });
           if (!error && data?.signedUrl) { signed = data; break; }
           lastErr = error;
-        } catch (e) {
-          lastErr = e;
+          } catch (retryError) {
+            lastErr = retryError;
+          }
         }
         await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
       }
