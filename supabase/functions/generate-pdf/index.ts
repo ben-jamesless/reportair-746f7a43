@@ -202,38 +202,38 @@ function drawPill(
   return w;
 }
 
-function drawLogomark(page: PDFPage, x: number, y: number, size: number) {
-  const s = size / 100;
+// Favicon-style mark: paper tile with ink rear card + orange front card.
+// Matches /public/favicon.svg and the login-page lockup.
+function drawLogomark(page: PDFPage, x: number, y: number, size: number, brandMarkImage?: PDFImage | null) {
+  if (brandMarkImage) {
+    page.drawImage(brandMarkImage, { x, y, width: size, height: size });
+    return;
+  }
+  // Fallback: filled solid cards on a paper tile.
+  page.drawRectangle({ x, y, width: size, height: size, color: COLOR.PAPER ?? rgb(0.957, 0.945, 0.917) });
+  const CW = size * 0.391;
+  const CH = size * 0.469;
+  const toPdfY = (svgYTop: number, h: number) => y + size - svgYTop - h;
+  // Rear card — solid ink
   page.drawRectangle({
-    x: x + 11 * s,
-    y: y + 31 * s,
-    width: 60 * s,
-    height: 50 * s,
-    borderColor: COLOR.SKY_SOFT,
-    borderWidth: 4.4 * s,
+    x: x + size * 0.207, y: toPdfY(size * 0.223, CH),
+    width: CW, height: CH, color: COLOR.INK,
   });
+  // Front card — solid accent
   page.drawRectangle({
-    x: x + 27 * s,
-    y: y + 15 * s,
-    width: 60 * s,
-    height: 50 * s,
-    borderColor: COLOR.SKY,
-    borderWidth: 6.8 * s,
+    x: x + size * 0.402, y: toPdfY(size * 0.309, CH),
+    width: CW, height: CH, color: COLOR.SKY,
   });
 }
 
-function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjsFont: PDFFont) {
+function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjsFont: PDFFont, brandMarkImage?: PDFImage | null) {
   const iconSize = fontSize * 1.6;
-  drawLogomark(page, x, y - iconSize * 0.15, iconSize);
-  const gap = iconSize * 0.3;
-  const text = "BUILDSLIDES";
-  let cx = x + iconSize + gap;
-  const tracking = fontSize * 0.04;
-  for (const ch of text) {
-    page.drawText(ch, { x: cx, y, size: fontSize, font: pjsFont, color: COLOR.INK });
-    cx += pjsFont.widthOfTextAtSize(ch, fontSize) + tracking;
-  }
+  drawLogomark(page, x, y - iconSize * 0.15, iconSize, brandMarkImage);
+  const gap = iconSize * 0.35;
+  const text = "BuildSlides";
+  page.drawText(text, { x: x + iconSize + gap, y, size: fontSize, font: pjsFont, color: COLOR.INK });
 }
+
 
 // ============ Image embedding ============
 async function fetchAndEmbedImage(pdfDoc: PDFDocument, url: string): Promise<PDFImage | null> {
@@ -586,7 +586,7 @@ Deno.serve(async (req) => {
         const lw = img.width * scale, lh = img.height * scale;
         page.drawImage(img, { x, y: y - lh * 0.15, width: lw, height: lh });
       } else {
-        drawWordmark(page, x, y, fontSize, pjsFont);
+        drawWordmark(page, x, y, fontSize, pjsFont, brandMarkImage);
       }
     };
 
