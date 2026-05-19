@@ -267,7 +267,7 @@
   /* Status rails (left 4px border on area cards) */
   .bs-area-rail { border-left-width: 4px; border-left-style: solid; }
   .bs-area-rail.is-ontrack  { border-left-color: var(--bs-status-ontrack-rail); }
-  .bs-area-rail.is-active   { border-left-color: var(--bs-status-active-rail); }
+  
   .bs-area-rail.is-review   { border-left-color: var(--bs-status-review-rail); }
   .bs-area-rail.is-concern  { border-left-color: var(--bs-status-concern-rail); }
   .bs-area-rail.is-archived { border-left-color: var(--bs-status-archived-rail); }
