@@ -586,7 +586,7 @@ Deno.serve(async (req) => {
         const lw = img.width * scale, lh = img.height * scale;
         page.drawImage(img, { x, y: y - lh * 0.15, width: lw, height: lh });
       } else {
-        drawWordmark(page, x, y, fontSize, pjsFont);
+        drawWordmark(page, x, y, fontSize, pjsFont, brandMarkImage);
       }
     };
 
