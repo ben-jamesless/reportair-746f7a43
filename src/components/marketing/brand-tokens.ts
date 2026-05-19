@@ -40,5 +40,5 @@ export const BRAND = {
   yellow: "#F2C14E",
 };
 
-export const display = { fontFamily: "'DM Sans', 'Inter', sans-serif" };
-export const body = { fontFamily: "'Inter', sans-serif" };
+export const display = { fontFamily: "'Geist', system-ui, sans-serif" };
+export const body = { fontFamily: "'Geist', system-ui, sans-serif" };

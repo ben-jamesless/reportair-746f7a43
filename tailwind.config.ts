@@ -76,9 +76,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        display: ["DM Sans", "Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        sans: ["Geist", "system-ui", "sans-serif"],
+        display: ["Geist", "system-ui", "sans-serif"],
+        mono: ['"Geist Mono"', "ui-monospace", "monospace"],
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",

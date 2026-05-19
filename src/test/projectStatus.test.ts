@@ -8,11 +8,11 @@ describe("projectStatusMeta", () => {
     }
   });
 
-  it("maps legacy behind_schedule to the red Concern style without losing the value", () => {
+  it("maps legacy behind_schedule to the red Delayed style without losing the value", () => {
     const meta = projectStatusMeta("behind_schedule");
     expect(meta.value).toBe("behind_schedule");
-    expect(meta.label).toBe("Concern");
-    expect(meta.dotClass).toContain("red");
+    expect(meta.label).toBe("Delayed");
+    expect(meta.dotClass).toContain("C7382A");
   });
 
   it("falls back to no_status for null / undefined / unknown values", () => {
