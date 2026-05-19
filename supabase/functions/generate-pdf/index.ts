@@ -110,11 +110,11 @@ const COLOR = {
 
 type StatusKey = "on_track" | "complete" | "requires_discussion" | "delayed" | "no_status";
 const STATUS: Record<StatusKey, { label: string; text: ReturnType<typeof rgb>; bg: ReturnType<typeof rgb> }> = {
-  on_track: { label: "On Track", text: HEX("#1E8A5A"), bg: HEX("#E4F5EC") },
-  complete: { label: "Complete", text: HEX("#1E8A5A"), bg: HEX("#E4F5EC") },
-  requires_discussion: { label: "Requires Discussion", text: HEX("#B53D1F"), bg: HEX("#FBE6DE") },
-  delayed: { label: "Delayed", text: HEX("#A52A1C"), bg: HEX("#F8D7D1") },
-  no_status: { label: "No Status", text: HEX("#6B6B70"), bg: HEX("#ECE7DA") },
+  on_track:            { label: "On Track", text: HEX("#FFFFFF"), bg: HEX("#3A6EA5") },
+  complete:            { label: "Complete", text: HEX("#FFFFFF"), bg: HEX("#3A7D44") },
+  requires_discussion: { label: "Discuss",  text: HEX("#FFFFFF"), bg: HEX("#D94F2A") },
+  delayed:             { label: "Delayed",  text: HEX("#FFFFFF"), bg: HEX("#C7382A") },
+  no_status:           { label: "None",     text: HEX("#FFFFFF"), bg: HEX("#9C9A93") },
 };
 const normaliseStatus = (s: string | null | undefined): StatusKey => {
   if (!s) return "no_status";
