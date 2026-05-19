@@ -21,17 +21,16 @@ function isInternalCall(req: Request): boolean {
   return req.headers.get("x-internal-secret") === Deno.env.get("INTERNAL_SECRET");
 }
 
-// ── Brand helpers ────────────────────────────────────────────────────────────
+// ── Brand helpers (v5) ───────────────────────────────────────────────────────
 
-const LOGO_SVG = `<table cellpadding="0" cellspacing="0"><tr>
-  <td style="padding-right:10px;vertical-align:middle;">
-    <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="11" y="19" width="60" height="50" rx="6" stroke="#3A5A9A" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="27" y="35" width="60" height="50" rx="6" stroke="#1A6EFF" stroke-width="6.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
+const APP_URL = "https://www.buildslides.com";
+
+const LOGO_HEADER = `<table cellpadding="0" cellspacing="0" role="presentation"><tr>
+  <td style="padding-right:12px;vertical-align:middle;">
+    <img src="${APP_URL}/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
   </td>
   <td style="vertical-align:middle;">
-    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:#ffffff;letter-spacing:0.08em;">BUILDSLIDES</span>
+    <span style="font-family:Geist,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildSlides</span>
   </td>
 </tr></table>`;
 
@@ -45,19 +44,19 @@ function baseWrapper(subheader: string, body: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background-color:#EDF1F7;font-family:'Inter',system-ui,sans-serif;color:#0f172a;">
+<body style="margin:0;padding:0;background-color:#F4F1EA;font-family:Helvetica,Arial,sans-serif;color:#0F1417;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
     <tr><td align="center" style="padding:40px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(30,50,100,0.08),0 8px 24px rgba(30,50,100,0.06);">
-        <tr><td style="background:#0F1724;padding:22px 32px;">${LOGO_SVG}</td></tr>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #C9C5BC;border-radius:12px;overflow:hidden;">
+        <tr><td style="background:#F4F1EA;padding:22px 28px;border-bottom:1px solid #C9C5BC;">${LOGO_HEADER}</td></tr>
         ${subheader}
-        <tr><td style="padding:36px 32px 28px;">${body}</td></tr>
-        <tr><td style="padding:0 32px;"><div style="border-top:1px solid #EDF1F7;"></div></td></tr>
-        <tr><td style="padding:20px 32px;"><p style="margin:0;font-size:12px;color:#94a3b8;font-family:'Inter',sans-serif;">BuildSlides &middot; <a href="https://www.buildslides.com" style="color:#94a3b8;text-decoration:none;">buildslides.com</a></p></td></tr>
+        <tr><td style="padding:32px 28px 28px;">${body}</td></tr>
+        <tr><td style="padding:24px 28px 28px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
+          <p style="margin:0 0 8px;font-size:13px;color:#0F1417;line-height:1.5;"><strong style="color:#0F1417;">Built for the build. Built in Hong Kong.</strong></p>
+          <p style="margin:0 0 12px;font-size:13px;color:#6B6B66;line-height:1.5;">Ben Lee · Director · <a href="mailto:ben@buildslides.com" style="color:#D94F2A;text-decoration:underline;">ben@buildslides.com</a></p>
+          <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="${APP_URL}" style="color:#D94F2A;text-decoration:none;">buildslides.com</a></p>
+        </td></tr>
       </table>
     </td></tr>
   </table>
@@ -65,11 +64,11 @@ function baseWrapper(subheader: string, body: string): string {
 </html>`;
 }
 
-function ctaBtn(url: string, label: string, bg = "#1A6EFF"): string {
-  return `<a href="${escapeHtml(url)}" style="display:inline-block;background:${bg};color:#ffffff;text-decoration:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;padding:13px 28px;border-radius:8px;letter-spacing:0.01em;">${escapeHtml(label)} &rarr;</a>`;
+function ctaBtn(url: string, label: string, bg = "#D94F2A"): string {
+  return `<a href="${escapeHtml(url)}" style="display:inline-block;background:${bg};color:#FFFFFF;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;padding:12px 20px;border-radius:8px;letter-spacing:0.01em;">${escapeHtml(label)} &rarr;</a>`;
 }
 
-function infoBox(content: string, borderColor = "#1A6EFF", bg = "#EDF1F7"): string {
+function infoBox(content: string, borderColor = "#D94F2A", bg = "#F4F1EA"): string {
   return `<table cellpadding="0" cellspacing="0" style="width:100%;background:${bg};border-radius:10px;margin-bottom:28px;border-left:4px solid ${borderColor};"><tr><td style="padding:16px 20px;">${content}</td></tr></table>`;
 }
 
