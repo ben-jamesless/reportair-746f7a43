@@ -808,7 +808,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
 
     // 4 info fields — 2×2 grid in left column
     const fieldColW = (LW - 10) / 2;
-    const fieldH = 50, rowGap = 8;
+    const fieldH = 86, rowGap = 8;
     const fieldsTopY = dateY - 14;
     const fields = [
       { label: "TODAY'S OBJECTIVES",    value: normaliseBullets((dayNote?.today_objectives    as string) || "—") },
@@ -822,7 +822,8 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
       const fy = fieldsTopY - row * (fieldH + rowGap) - fieldH;
       page.drawRectangle({ x: fx, y: fy, width: fieldColW, height: fieldH, borderColor: C.RULE, borderWidth: 0.5, borderRadius: 10 });
       page.drawText(label, { x: fx + 6, y: fy + fieldH - 12, size: 5.5, font: body, color: effectiveAccent });
-      const lines = wrapText(value, body, 9, fieldColW - 14).slice(0, 2);
+      const maxLines = Math.floor((fieldH - 28) / 11);
+      const lines = wrapText(value, body, 9, fieldColW - 14).slice(0, maxLines);
       lines.forEach((ln, li) => {
         page.drawText(ln, { x: fx + 6, y: fy + fieldH - 24 - li * 11, size: 9, font: body, color: C.INK });
       });
