@@ -514,15 +514,26 @@ export const ExportPdfDialog = ({
         toast.error("Could not get download link");
         return;
       }
-      const a = document.createElement("a");
-      a.href = signed.signedUrl;
-      a.rel = "noopener";
-      a.target = "_self";
       const name = path.split("/").pop() || "site-story.pdf";
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      // Fetch as blob so the download works inside iframes (Lovable preview)
+      // and on Safari, where cross-origin `a[download]` is ignored.
+      try {
+        const resp = await fetch(signed.signedUrl);
+        if (!resp.ok) throw new Error(`http ${resp.status}`);
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = name;
+        a.rel = "noopener";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      } catch (e) {
+        console.error("blob download failed, falling back to new tab", e);
+        window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
+      }
     } finally {
       downloadingRef.current = false;
     }
