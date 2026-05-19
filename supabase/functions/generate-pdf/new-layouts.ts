@@ -211,30 +211,47 @@ function photoPlaceholder(
   });
 }
 
-/** Draw the V4-B favicon-style mark inside a paper-coloured rounded tile.
- *  Returns the tile width. */
+/** Draw the favicon mark — paper tile with stacked ink + orange cards.
+ *  Matches /public/favicon.svg exactly. Returns the tile width. */
 function drawFaviconTile(
   page: PDFPage,
   x: number, y: number,
   size = 18,
 ): number {
-  const r = size * 0.18;
-  // Paper tile
-  page.drawRectangle({ x, y, width: size, height: size, color: C.PAPER, borderRadius: r });
-  // Two overlapping cards inside (rear ink frame + paper inner, front orange frame + paper inner)
-  const pad = size * 0.18;
-  const cw = size * 0.42;
-  const ch = size * 0.5;
-  // Rear card (ink frame)
-  const rx = x + pad;
-  const ry = y + size - pad - ch;
-  page.drawRectangle({ x: rx, y: ry, width: cw, height: ch, color: C.INK });
-  page.drawRectangle({ x: rx + cw * 0.08, y: ry + ch * 0.16, width: cw * 0.84, height: ch * 0.7, color: C.PAPER });
-  // Front card (orange frame), offset right + down
-  const fx = rx + cw * 0.5;
-  const fy = ry - ch * 0.18;
-  page.drawRectangle({ x: fx, y: fy, width: cw, height: ch, color: C.ACCENT });
-  page.drawRectangle({ x: fx + cw * 0.08, y: fy + ch * 0.16, width: cw * 0.84, height: ch * 0.7, color: C.PAPER });
+  // Paper tile background (matches favicon paper rounded square)
+  page.drawRectangle({ x, y, width: size, height: size, color: C.PAPER });
+
+  // Card geometry as fractions of tile size (derived from favicon viewBox 512)
+  const CW = size * 0.391;
+  const CH = size * 0.469;
+  const INNER_X = size * 0.023;       // 12/512
+  const INNER_Y_TOP = size * 0.023;   // 12/512 from card top
+  const INNER_W = size * 0.344;       // 176/512
+  const INNER_H = size * 0.320;       // 164/512
+
+  // Convert svg-y (from tile top) to pdf-y (from tile bottom)
+  const toPdfY = (svgYTop: number, h: number) => y + size - svgYTop - h;
+
+  // Rear card — ink frame + paper inner (svg top = 0.223 * size)
+  const rxX = x + size * 0.207;
+  const rxY = toPdfY(size * 0.223, CH);
+  page.drawRectangle({ x: rxX, y: rxY, width: CW, height: CH, color: C.INK });
+  page.drawRectangle({
+    x: rxX + INNER_X,
+    y: rxY + (CH - INNER_Y_TOP - INNER_H),
+    width: INNER_W, height: INNER_H, color: C.PAPER,
+  });
+
+  // Front card — orange frame + paper inner (svg top = 0.309 * size)
+  const fxX = x + size * 0.402;
+  const fxY = toPdfY(size * 0.309, CH);
+  page.drawRectangle({ x: fxX, y: fxY, width: CW, height: CH, color: C.ACCENT });
+  page.drawRectangle({
+    x: fxX + INNER_X,
+    y: fxY + (CH - INNER_Y_TOP - INNER_H),
+    width: INNER_W, height: INNER_H, color: C.PAPER,
+  });
+
   return size;
 }
 
