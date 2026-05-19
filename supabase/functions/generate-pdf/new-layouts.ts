@@ -50,11 +50,11 @@ const C = {
   COVER_DATE:    hex("#71717A"),
   COVER_VALUE:   hex("#CCCCCC"),
   // Status — v5 palette
-  GREEN:   hex("#3A7D44"),  // on track
-  BLUE:    hex("#3A6EA5"),  // complete / done
-  GREY:    hex("#9C9A93"),  // no status
-  AMBER:   hex("#D94F2A"),  // delay / risk (accent)
-  RED:     hex("#C7382A"),  // blocked / snag
+  GREEN:   hex("#3A7D44"),  // complete
+  BLUE:    hex("#3A6EA5"),  // on track
+  GREY:    hex("#9C9A93"),  // none
+  AMBER:   hex("#D94F2A"),  // discuss (accent)
+  RED:     hex("#C7382A"),  // delayed
   // Photo placeholder
   PHOTO_BG: hex("#E8E6E0"),
   PHOTO_BD: hex("#C9C5BC"),
@@ -64,20 +64,36 @@ const C = {
   SIDEBAR_PG:   hex("#4A6080"),
 };
 
-function statusColour(s: string | null): ReturnType<typeof rgb> {
-  if (!s) return C.GREY;
+/** Normalise raw DB enum to canonical v5 keys. */
+function normaliseStatus(s: string | null | undefined): "none" | "on_track" | "requires_discussion" | "concern" | "complete" {
+  if (!s) return "none";
   const l = s.toLowerCase();
-  if (l.includes("complete") || l === "done") return C.BLUE;
-  if (l.includes("track")) return C.GREEN;
-  if (l.includes("block") || l.includes("snag")) return C.RED;
-  if (l.includes("delay") || l.includes("risk")) return C.AMBER;
+  if (l === "no_status" || l === "none") return "none";
+  if (l === "complete" || l === "done") return "complete";
+  if (l === "on_track" || l.includes("track")) return "on_track";
+  if (l === "requires_discussion" || l.includes("discuss")) return "requires_discussion";
+  if (l === "concern" || l === "delayed" || l.includes("delay") || l.includes("block") || l.includes("snag") || l.includes("risk") || l.includes("behind")) return "concern";
+  return "none";
+}
+
+function statusColour(s: string | null): ReturnType<typeof rgb> {
+  const k = normaliseStatus(s);
+  if (k === "complete") return C.GREEN;
+  if (k === "on_track") return C.BLUE;
+  if (k === "requires_discussion") return C.AMBER;
+  if (k === "concern") return C.RED;
   return C.GREY;
 }
 
 function statusLabel(s: string | null): string {
-  if (!s || s === "no_status") return "—";
-  return s.replace(/_/g, " ").toUpperCase();
+  const k = normaliseStatus(s);
+  return k === "none" ? "NONE"
+       : k === "on_track" ? "ON TRACK"
+       : k === "requires_discussion" ? "DISCUSS"
+       : k === "concern" ? "DELAYED"
+       : "COMPLETE";
 }
+
 
 /** Clip content to a rectangle, execute draw calls, then restore. */
 function withClip(
@@ -176,58 +192,60 @@ function drawImageFit(
   page.drawImage(img, { x: x + (w - iw) / 2, y: y + (h - ih) / 2, width: iw, height: ih });
 }
 
-/** Draw a photo placeholder box. */
+/** Draw a photo into a slot, scaled to fit, no background, centred.
+ *  If no image, draw nothing (slot is left blank — page bg shows through). */
 function photoPlaceholder(
   page: PDFPage,
   x: number, y: number, w: number, h: number,
-  font: PDFFont,
-  label = "PHOTO",
+  _font: PDFFont,
+  _label = "PHOTO",
   img?: PDFImage | null,
 ) {
-  fillRect(page, x, y, w, h, C.PHOTO_BG, C.PHOTO_BD, 0.5);
-  if (img) {
-    // Math.min (fit) — photo sits fully within cell, letterboxed, no cropping
-    const scale = Math.min(w / img.width, h / img.height);
-    const iw = img.width * scale, ih = img.height * scale;
-    page.drawImage(img, {
-      x: x + (w - iw) / 2,
-      y: y + (h - ih) / 2,
-      width: iw, height: ih,
-    });
-  } else {
-    const lw = font.widthOfTextAtSize(label, 8);
-    page.drawText(label, { x: x + w / 2 - lw / 2, y: y + h / 2 - 4, size: 8, font, color: hex("#AAAAAA") });
-  }
+  if (!img) return;
+  const scale = Math.min(w / img.width, h / img.height);
+  const iw = img.width * scale, ih = img.height * scale;
+  page.drawImage(img, {
+    x: x + (w - iw) / 2,
+    y: y + (h - ih) / 2,
+    width: iw, height: ih,
+  });
 }
 
-/** Draw the BuildSlides overlapping-squares mark. Returns width consumed. */
-function drawLogoMark(
+/** Draw the V4-B favicon-style mark inside a paper-coloured rounded tile.
+ *  Returns the tile width. */
+function drawFaviconTile(
   page: PDFPage,
   x: number, y: number,
-  size = 14,
-  darkBg = false,
+  size = 18,
 ): number {
-  const offset = size * 0.28;
-  const sq = size - offset;
-  if (darkBg) {
-    page.drawRectangle({ x, y: y + offset, width: sq, height: sq, color: hex("#2A2A2A"), borderColor: hex("#888888"), borderWidth: 0.6 });
-    page.drawRectangle({ x: x + offset * 0.5, y: y + offset * 0.5, width: sq, height: sq, color: C.PAPER, borderColor: hex("#CCCCCC"), borderWidth: 0.4 });
-  } else {
-    page.drawRectangle({ x, y: y + offset, width: sq, height: sq, color: C.INK, borderColor: C.INK, borderWidth: 0.5 });
-    page.drawRectangle({ x: x + offset * 0.5, y: y + offset * 0.5, width: sq, height: sq, color: C.PAPER, borderColor: C.INK, borderWidth: 0.5 });
-  }
-  page.drawRectangle({ x: x + offset, y, width: sq, height: sq, color: C.ACCENT, borderColor: C.ACCENT, borderWidth: 0.3 });
+  const r = size * 0.18;
+  // Paper tile
+  page.drawRectangle({ x, y, width: size, height: size, color: C.PAPER, borderRadius: r });
+  // Two overlapping cards inside (rear ink frame + paper inner, front orange frame + paper inner)
+  const pad = size * 0.18;
+  const cw = size * 0.42;
+  const ch = size * 0.5;
+  // Rear card (ink frame)
+  const rx = x + pad;
+  const ry = y + size - pad - ch;
+  page.drawRectangle({ x: rx, y: ry, width: cw, height: ch, color: C.INK });
+  page.drawRectangle({ x: rx + cw * 0.08, y: ry + ch * 0.16, width: cw * 0.84, height: ch * 0.7, color: C.PAPER });
+  // Front card (orange frame), offset right + down
+  const fx = rx + cw * 0.5;
+  const fy = ry - ch * 0.18;
+  page.drawRectangle({ x: fx, y: fy, width: cw, height: ch, color: C.ACCENT });
+  page.drawRectangle({ x: fx + cw * 0.08, y: fy + ch * 0.16, width: cw * 0.84, height: ch * 0.7, color: C.PAPER });
   return size;
 }
 
-/** Draw BuildSlides wordmark (mark + text). Returns total width. */
+/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width. */
 function drawWordmark(
   page: PDFPage,
   x: number, y: number,
   font: PDFFont,
   fontSize = 10,
   darkBg = false,
-  markSize = 14,
+  markSize = 16,
   logoImage?: PDFImage | null,
   companyName?: string | null,
   whiteLabelPdf?: boolean,
@@ -239,15 +257,17 @@ function drawWordmark(
     page.drawImage(logoImage, { x, y: y - lh * 0.1, width: lw, height: lh });
     return lw;
   }
-  const mw = drawLogoMark(page, x, y, markSize, darkBg);
-  const gap = mw + 5;
+  const tileSize = markSize;
+  drawFaviconTile(page, x, y - tileSize * 0.18, tileSize);
+  const gap = tileSize + 6;
   const textColor = darkBg ? C.WHITE : C.INK;
-  const textY = y + (markSize - fontSize) * 0.35;
-  page.drawText(companyName || "BuildSlides", { x: x + gap, y: textY, size: fontSize, font, color: textColor });
-  const tw = font.widthOfTextAtSize(companyName || "BuildSlides", fontSize);
-  page.drawText(".", { x: x + gap + tw, y: textY, size: fontSize, font, color: C.ACCENT });
-  return gap + tw + font.widthOfTextAtSize(".", fontSize);
+  const textY = y + (tileSize - fontSize) * 0.25 - tileSize * 0.18;
+  const label = companyName || "BuildSlides";
+  page.drawText(label, { x: x + gap, y: textY, size: fontSize, font, color: textColor });
+  const tw = font.widthOfTextAtSize(label, fontSize);
+  return gap + tw;
 }
+
 
 // ── Shared data types (match index.ts) ───────────────────────────────────────
 
@@ -742,7 +762,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
       const col = i % 2, row = Math.floor(i / 2);
       const fx = LX + col * (fieldColW + 10);
       const fy = fieldsTopY - row * (fieldH + rowGap) - fieldH;
-      fillRect(page, fx, fy, fieldColW, fieldH, hex("#E8E5DC"), C.RULE, 0.5);
+      page.drawRectangle({ x: fx, y: fy, width: fieldColW, height: fieldH, borderColor: C.RULE, borderWidth: 0.5 });
       page.drawText(label, { x: fx + 6, y: fy + fieldH - 12, size: 5.5, font: body, color: effectiveAccent });
       const lines = wrapText(value, body, 9, fieldColW - 14).slice(0, 2);
       lines.forEach((ln, li) => {
@@ -777,18 +797,23 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     page.drawText(eventName, { x: 20, y: 30, size: 11, font, color: C.WHITE });
     page.drawText(reportDateLabel.toUpperCase(), { x: 20, y: 17, size: 7, font: body, color: hex("#AAAAAA") });
 
-    // Right: OVERALL STATUS label + pill
     const overallStatus = (proj.overall_status as string | null) ?? null;
     const pillLbl = statusLabel(overallStatus);
     const pillBgCol = statusColour(overallStatus);
-    const PILL_W = 72, PILL_H = 14;
-    const PILL_Y = (BAR_H - PILL_H) / 2;
-    page.drawRectangle({ x: W - PILL_W - 8, y: PILL_Y, width: PILL_W, height: PILL_H, color: pillBgCol, borderRadius: PILL_H / 2 });
+    // Right: OVERALL STATUS label + pill — right-aligned, pill sized to content,
+    // safely inset from the page edge so it never overflows.
+    const RIGHT_INSET = 24;
+    const PILL_H = 14;
+    const PILL_PAD_H = 10;
     const pllw = body.widthOfTextAtSize(pillLbl, 7.5);
-    page.drawText(pillLbl, { x: W - PILL_W - 8 + (PILL_W - pllw) / 2, y: PILL_Y + 3.5, size: 7.5, font: body, color: C.WHITE });
+    const pillW = pllw + PILL_PAD_H * 2;
+    const PILL_Y_BAR = (BAR_H - PILL_H) / 2;
+    const pillX = W - RIGHT_INSET - pillW;
+    page.drawRectangle({ x: pillX, y: PILL_Y_BAR, width: pillW, height: PILL_H, color: pillBgCol, borderRadius: PILL_H / 2 });
+    page.drawText(pillLbl, { x: pillX + PILL_PAD_H, y: PILL_Y_BAR + 3.5, size: 7.5, font: body, color: C.WHITE });
     const osLabel = "OVERALL STATUS";
     const oslw = body.widthOfTextAtSize(osLabel, 7);
-    page.drawText(osLabel, { x: W - PILL_W - 12 - oslw, y: PILL_Y + 4, size: 7, font: body, color: hex("#AAAAAA") });
+    page.drawText(osLabel, { x: pillX - 10 - oslw, y: PILL_Y_BAR + 4, size: 7, font: body, color: hex("#AAAAAA") });
   }
 
   // ════════════════════════════════════════════
