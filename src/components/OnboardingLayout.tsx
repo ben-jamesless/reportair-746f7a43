@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { BuildSlidesLockup } from "@/components/brand/BuildSlidesMark";
 import { cn } from "@/lib/utils";
 
 interface OnboardingLayoutProps {
@@ -12,25 +11,26 @@ interface OnboardingLayoutProps {
 export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingLayoutProps) {
   return (
     <div className="min-h-screen flex bg-card">
-      {/* Left panel — dark brand */}
+      {/* Left panel — solid ink ground */}
       <div
         className="hidden lg:flex lg:w-[45%] flex-col justify-between p-10 relative overflow-hidden"
-        style={{ background: "radial-gradient(ellipse at 60% 80%, #2A3035 0%, #0F1417 65%)" }}
+        style={{ background: "#0F1417" }}
       >
         <div className="relative z-10">
-          <Link to="/" aria-label="Go to home">
-            <BuildSlidesLockup variant="dark" markClassName="h-8 w-8" textClassName="text-lg text-white" />
+          <Link to="/" aria-label="BuildSlides home" className="flex items-center">
+            <img src="/lockups/lockup_horizontal_paper.svg" alt="BuildSlides" className="h-7 w-auto" />
           </Link>
         </div>
 
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold text-white leading-snug mb-4">
-            Professional event reports,
-            <br />
-            made in <span className="text-[#D94F2A]">10 minutes.</span>
+          <h1 className="font-display text-4xl md:text-5xl font-black tracking-tight text-white">
+            Built for the build.
           </h1>
-          <p className="text-white/60 leading-relaxed max-w-sm text-base">
-            Capture progress, keep clients informed, and deliver polished reports — all in one place.
+          <p className="mt-4 text-base text-[color:var(--bs-rule)]">
+            Site to report. 10 minutes.
+          </p>
+          <p className="mt-6 text-sm text-[color:var(--bs-rule)] max-w-md">
+            The daily reporting tool for event-build crews — activations, exhibitions, conferences.
           </p>
         </div>
 

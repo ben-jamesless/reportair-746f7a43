@@ -63,7 +63,7 @@
 
     /* ===== shadcn semantic tokens, mapped to BuildSlides (HSL only) ===== */
     /* paper #F4F1EA (v5) */
-    --background: 42 36% 94%;
+    --background: 42 31% 94%;
     /* ink #0F1417 (body text) */
     --foreground: 200 11% 8%;
     /* ink for headings + wordmark */
