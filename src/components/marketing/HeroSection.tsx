@@ -180,26 +180,19 @@ const HeroSection = () => {
 
         .ra-hero .node-wrap { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; }
         .ra-hero .node {
-          width: 80px; height: 80px; border-radius: 20px;
-          background: var(--sky);
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 5px; opacity: 0; transform: scale(0.7);
-          box-shadow: 0 0 0 0 rgba(217,79,42,0.5), 0 8px 40px rgba(217,79,42,0.35);
+          width: 96px; height: 96px;
+          display: flex; align-items: center; justify-content: center;
+          opacity: 0; transform: scale(0.7);
+          filter: drop-shadow(0 8px 40px rgba(217,79,42,0.35));
           animation: ra-nodeIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.85s forwards,
                      ra-nodePulse 2.8s ease-in-out 1.6s infinite;
         }
         @keyframes ra-nodeIn { to { opacity: 1; transform: scale(1); } }
         @keyframes ra-nodePulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(217,79,42,0.45), 0 8px 40px rgba(217,79,42,0.35); }
-          50%      { box-shadow: 0 0 0 14px rgba(217,79,42,0), 0 8px 40px rgba(217,79,42,0.35); }
+          0%, 100% { filter: drop-shadow(0 8px 40px rgba(217,79,42,0.35)); }
+          50%      { filter: drop-shadow(0 8px 56px rgba(217,79,42,0.55)); }
         }
-        .ra-hero .node svg { width: 56px; height: 56px; }
-        .ra-hero .node-label {
-          font-family: var(--font-display);
-          font-size: 7.5px; font-weight: 800;
-          letter-spacing: 0.12em; color: rgba(255,255,255,0.92);
-          text-transform: uppercase;
-        }
+        .ra-hero .node img { width: 100%; height: 100%; display: block; }
 
         .ra-hero .out-line-svg { flex: 0 0 60px; height: 32px; overflow: visible; }
         .ra-hero .out-line { stroke-dasharray: 120; stroke-dashoffset: 120; animation: ra-drawLine 0.45s cubic-bezier(0.4,0,0.2,1) 1.3s forwards; }
