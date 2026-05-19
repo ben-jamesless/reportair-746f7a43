@@ -230,7 +230,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         {/* ── Logo area ── */}
         <div className={cn("flex h-14 items-center", expanded ? "px-3" : "justify-center px-2")}>
           <Link to="/projects" onClick={onNavigate} className="flex items-center gap-2 min-w-0">
-            <BuildSlidesMark variant="light" className="h-7 w-7 shrink-0" />
+            <img src="/favicon.svg" alt="BuildSlides" className="h-8 w-8 shrink-0" />
             <span className={cn("text-sm font-semibold text-white truncate", labelCls)}>
               BuildSlides
             </span>
