@@ -9,29 +9,29 @@ export const STATUS_META: Record<
   { label: string; short: string; dot: string; activeBg: string; activeText: string; activeBorder: string }
 > = {
   no_status: {
-    label: "No status", short: "No Status",
-    dot: "bg-muted-foreground/40",
+    label: "None", short: "None",
+    dot: "bg-[#9C9A93]",
     activeBg: "bg-muted", activeText: "text-foreground", activeBorder: "border-muted-foreground/30",
   },
   on_track: {
-    label: "On track", short: "On Track",
-    dot: "bg-blue-500",
-    activeBg: "bg-blue-500/15", activeText: "text-blue-700 dark:text-blue-300", activeBorder: "border-blue-500",
+    label: "On track", short: "On track",
+    dot: "bg-[#3A6EA5]",
+    activeBg: "bg-[#3A6EA5]/15", activeText: "text-[#3A6EA5] dark:text-blue-300", activeBorder: "border-[#3A6EA5]/40",
   },
   requires_discussion: {
-    label: "Requires discussion", short: "Requires Discussion",
-    dot: "bg-orange-500",
-    activeBg: "bg-orange-500/15", activeText: "text-orange-700 dark:text-orange-300", activeBorder: "border-orange-500",
+    label: "Discuss", short: "Discuss",
+    dot: "bg-[#D94F2A]",
+    activeBg: "bg-[#D94F2A]/15", activeText: "text-[#D94F2A] dark:text-orange-300", activeBorder: "border-[#D94F2A]/40",
   },
   concern: {
-    label: "Concern / behind schedule", short: "Concern / Behind Schedule",
-    dot: "bg-red-500",
-    activeBg: "bg-red-500/15", activeText: "text-red-700 dark:text-red-300", activeBorder: "border-red-500",
+    label: "Delayed", short: "Delayed",
+    dot: "bg-[#C7382A]",
+    activeBg: "bg-[#C7382A]/15", activeText: "text-[#C7382A] dark:text-red-300", activeBorder: "border-[#C7382A]/40",
   },
   complete: {
     label: "Complete", short: "Complete",
-    dot: "bg-emerald-500",
-    activeBg: "bg-emerald-500/15", activeText: "text-emerald-700 dark:text-emerald-300", activeBorder: "border-emerald-500",
+    dot: "bg-[#3A7D44]",
+    activeBg: "bg-[#3A7D44]/15", activeText: "text-[#3A7D44] dark:text-emerald-300", activeBorder: "border-[#3A7D44]/40",
   },
 };
 
