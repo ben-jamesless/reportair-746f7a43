@@ -762,7 +762,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
       const col = i % 2, row = Math.floor(i / 2);
       const fx = LX + col * (fieldColW + 10);
       const fy = fieldsTopY - row * (fieldH + rowGap) - fieldH;
-      fillRect(page, fx, fy, fieldColW, fieldH, hex("#E8E5DC"), C.RULE, 0.5);
+      page.drawRectangle({ x: fx, y: fy, width: fieldColW, height: fieldH, borderColor: C.RULE, borderWidth: 0.5 });
       page.drawText(label, { x: fx + 6, y: fy + fieldH - 12, size: 5.5, font: body, color: effectiveAccent });
       const lines = wrapText(value, body, 9, fieldColW - 14).slice(0, 2);
       lines.forEach((ln, li) => {
