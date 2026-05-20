@@ -19,6 +19,27 @@
       @font-face { font-family: "Geist"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/Geist-700.woff2") format("woff2"); }
       @font-face { font-family: "Geist"; font-style: normal; font-weight: 900; font-display: swap; src: url("/fonts/Geist-900.woff2") format("woff2"); }
       @font-face { font-family: "Geist Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/GeistMono-400.woff2") format("woff2"); }
+
+      /* Static fallback content for non-JS crawlers (Perplexity, ChatGPT, Claude, etc.).
+         Hidden the moment JS runs so real users only see the React app. */
+      .crawler-fallback {
+        font-family: "Geist", system-ui, sans-serif;
+        background: #0F1417;
+        color: #fff;
+        padding: 48px 24px;
+        max-width: 880px;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
+      .crawler-fallback h1 { font-size: 40px; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 16px; }
+      .crawler-fallback h2 { font-size: 24px; font-weight: 800; margin: 40px 0 12px; color: #fff; }
+      .crawler-fallback h3 { font-size: 18px; font-weight: 700; margin: 20px 0 8px; }
+      .crawler-fallback p, .crawler-fallback li { color: rgba(255,255,255,0.7); font-size: 15px; }
+      .crawler-fallback a { color: #D94F2A; }
+      .crawler-fallback ul { padding-left: 20px; }
+      .crawler-fallback .accent { color: #D94F2A; }
+      .crawler-fallback nav a { margin-right: 16px; }
+      .crawler-fallback footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 13px; color: rgba(255,255,255,0.5); }
     </style>
 
     <meta property="og:type" content="website" />
@@ -37,7 +58,139 @@
     </script>
 </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Static, crawlable marketing content for non-JS bots and AI fetchers
+        (Perplexity, ChatGPT browse, Claude fetch, etc.). React replaces this
+        on mount, so end users never see it. Keep copy in sync with
+        src/components/marketing/*.
+      -->
+      <div class="crawler-fallback">
+        <header>
+          <nav>
+            <a href="/">BuildSlides</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+            <a href="/auth">Sign in</a>
+            <a href="/auth?tab=signup">Start free trial</a>
+          </nav>
+        </header>
+
+        <main>
+          <section>
+            <p>Built for the build</p>
+            <h1>Client-ready event build reports in <span class="accent">10 minutes.</span></h1>
+            <p>BuildSlides is the daily reporting tool for event-build crews — activations, exhibitions, conferences, festivals, golf tournaments, film sets, venues, and corporate events. Capture and sort site photos, then export a polished PDF or a client-safe link in minutes. No more rebuilding decks on the train home.</p>
+          </section>
+
+          <section>
+            <h2>Who it's for</h2>
+            <p>One tool. Every build. BuildSlides is used by production managers, agency owners, and venue ops teams across these event types:</p>
+
+            <h3>Music festivals</h3>
+            <p>Build phase reporting across stages, infrastructure, and vendor setups. Track 20+ areas simultaneously — main stage, arena stage, vendor village, power infrastructure. Daily reports sent to the production manager before site closes; photo evidence for H&amp;S sign-off and client handover.</p>
+
+            <h3>Golf tournaments</h3>
+            <p>Hole-by-hole setup documentation for events at PGA Tour, LPGA, and DP World Tour scale. Sponsor activation tracking with photo proof, daily course-walk reports to the tournament director, and flagging of incomplete branding installs before client walkthrough.</p>
+
+            <h3>Film sets</h3>
+            <p>Shooting locations, set builds, and location dressing. Continuity photo logs shared between shoots and wrap, daily updates to the location manager, and insurance-ready evidence of site condition before and after.</p>
+
+            <h3>Brand activations</h3>
+            <p>Pop-ups, roadshows, and retail installations. Capture build quality and brand compliance at every activation, flag missing assets or off-brand execution instantly, and give clients a live link to the day's install progress.</p>
+
+            <h3>Venues</h3>
+            <p>Fit-outs, installs, and turnarounds across permanent and temporary venues. Document setup zone by zone — staging, rigging, AV, dressing, front-of-house — with photo evidence for client walk-throughs and venue handover.</p>
+
+            <h3>Corporate events</h3>
+            <p>AV, staging, branding installs for conferences, awards ceremonies, and product launches. Client-ready branded report generated on the day of setup, with before/after documentation for venue handover.</p>
+          </section>
+
+          <section id="how-it-works">
+            <h2>How it works — three steps</h2>
+            <p>Build to report. No rebuilds. No chasing photos. Just a clean report, ready to share.</p>
+            <ol>
+              <li><strong>Capture.</strong> Shoot on site, tag as you go. Take photos as the build happens and upload them directly from the field — any device, any location. Flag issues instantly.</li>
+              <li><strong>Upload &amp; sort.</strong> Photos auto-organise by area, day, and status. Add notes, set zone status (On track, Needs discussion, Concern, Complete), and the structured report builds itself.</li>
+              <li><strong>Export &amp; share.</strong> One click for a branded PDF, or a shareable client link that opens in any browser — read-only, password-protectable, no client account required.</li>
+            </ol>
+          </section>
+
+          <section id="pricing">
+            <h2>Pricing</h2>
+            <p>Simple pricing for event teams. Start with one event, then scale across your builds, activations, and client reports. 14-day free trial on every tier. Annual billing saves 20%.</p>
+
+            <h3>Solo — HK$128/month (HK$102/month billed annually)</h3>
+            <p>For solo operators running events.</p>
+            <ul>
+              <li>1 active event</li>
+              <li>Unlimited PDF exports</li>
+              <li>14-day free trial</li>
+            </ul>
+
+            <h3>Crew — HK$298/month (HK$238/month billed annually) — Most teams start here</h3>
+            <p>For growing event teams.</p>
+            <ul>
+              <li>5 active events</li>
+              <li>5 team members</li>
+              <li>Unlimited PDF exports</li>
+              <li>Share &amp; client links</li>
+              <li>Password-protected links</li>
+              <li>Project folders</li>
+              <li>Project invites</li>
+              <li>14-day free trial</li>
+            </ul>
+
+            <h3>Studio — HK$688/month (HK$550/month billed annually)</h3>
+            <p>For agencies and large organisations.</p>
+            <ul>
+              <li>Unlimited events</li>
+              <li>Unlimited team members</li>
+              <li>Unlimited PDF exports</li>
+              <li>Share &amp; client links</li>
+              <li>Custom logo on PDF</li>
+              <li>White-label report header</li>
+              <li>Priority support</li>
+              <li>Onboarding call</li>
+              <li>14-day free trial</li>
+            </ul>
+          </section>
+
+          <section id="faq">
+            <h2>FAQ — the honest answers</h2>
+
+            <h3>Who is this actually for?</h3>
+            <p>Production managers, agency owners, and venue ops teams running live events, exhibitions, and brand activations. If your day ends with you rebuilding a deck on the train home — you're our person.</p>
+
+            <h3>Can I brand the PDF with our logo and colours?</h3>
+            <p>Yes. Drop in your logo and your brand colour and every export comes out with your cover page, header, and footer. White-label PDFs (no BuildSlides watermark) are included on the Studio tier.</p>
+
+            <h3>What does the PDF look like?</h3>
+            <p>Cover with your client's name and event title, then photos grouped by zone and time, each zone tagged with a clear status — On track, Needs discussion, Concern, or Complete. Print-clean. Client-safe. A sample lands in the welcome email.</p>
+
+            <h3>How is this different from a shared Google Drive?</h3>
+            <p>Drive is a bucket. BuildSlides is a workflow — auto-tagging, structured reports, branded export, audit history. The deck-build step disappears.</p>
+
+            <h3>When can I use it?</h3>
+            <p>Closed beta is running with Hong Kong and London crews now. Public beta opens Q2 2026. Drop your email below and you'll get an invite slot.</p>
+
+            <h3>What does it cost?</h3>
+            <p>Solo HK$128/mo, Crew HK$298/mo, Studio HK$688/mo. Annual billing saves 20%. 14-day free trial on every tier.</p>
+
+            <h3>Can multiple people work on the same event at once?</h3>
+            <p>Yes. Invite your team to any event and everyone works in the same project in real time. A site photographer uploads from the ground, a site manager adds notes from the office, and the producer generates the report — all without stepping on each other.</p>
+
+            <h3>Can I share a report with a client who doesn't have an account?</h3>
+            <p>Yes. Generate a shareable link for any daily report which your client can open in any browser. The link shows them a clean, read-only view of that day and the overall project's progress.</p>
+          </section>
+        </main>
+
+        <footer>
+          <p>BuildSlides — Site to report in 10 minutes. Contact: <a href="mailto:ben@buildslides.com">ben@buildslides.com</a></p>
+          <p><a href="/auth">Sign in</a> · <a href="/auth?tab=signup">Start free trial</a> · <a href="#pricing">Pricing</a> · <a href="#faq">FAQ</a></p>
+        </footer>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
