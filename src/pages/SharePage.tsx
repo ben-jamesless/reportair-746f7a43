@@ -135,7 +135,7 @@ const SharePage = () => {
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [activeKey, setActiveKey] = useState<string>(ALL_DAYS); // ALL_DAYS | dateKey | __album_<id>
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [guest, setGuest] = useState<{ name: string; email: string } | null>(null);
+  const [guest, setGuest] = useState<{ name: string; email: string }>({ name: "", email: "" });
   const [downloading, setDownloading] = useState(false);
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
@@ -420,9 +420,8 @@ const SharePage = () => {
     );
   }
 
-  if (!guest) {
-    return <GuestIdentityPrompt onSubmit={(g) => { localStorage.setItem(guestKey(token!), JSON.stringify(g)); setGuest(g); }} />;
-  }
+
+
 
   const overallStatus = project?.overall_status ?? null;
   const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
@@ -1094,6 +1093,7 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
   const [url, setUrl] = useState<string | null>(null);
   const [notes, setNotes] = useState<{ id: string; guest_name: string; body: string; created_at: string }[]>([]);
   const [body, setBody] = useState("");
+  const [guestName, setGuestName] = useState(guest.name);
 
   const loadNotes = useCallback(async () => {
     if (!photo) return;
@@ -1118,9 +1118,9 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
   }, [photo, token, loadNotes]);
 
   const submitNote = async () => {
-    if (!body.trim()) return;
+    if (!body.trim() || !guestName.trim()) return;
     const { error } = await supabase.rpc("add_guest_note_public", {
-      _token: token, _photo_id: photo.id, _name: guest.name, _email: guest.email, _body: body.trim(),
+      _token: token, _photo_id: photo.id, _name: guestName.trim(), _email: guest.email, _body: body.trim(),
     });
     if (error) { toast.error(error.message); return; }
     setBody(""); loadNotes(); onNotesChanged?.(); toast.success("Note added");
@@ -1164,8 +1164,9 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
               ))}
             </div>
             <div className="space-y-2 border-t pt-3">
-              <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Leave a note as ${guest.name}…`} rows={3} maxLength={2000} />
-              <Button size="sm" className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={submitNote} disabled={!body.trim()}>Add note</Button>
+              <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="Your name" maxLength={80} />
+              <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Leave a note…" rows={3} maxLength={2000} />
+              <Button size="sm" className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={submitNote} disabled={!body.trim() || !guestName.trim()}>Add note</Button>
             </div>
           </aside>
         </div>
