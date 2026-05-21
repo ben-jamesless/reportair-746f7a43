@@ -1118,9 +1118,9 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
   }, [photo, token, loadNotes]);
 
   const submitNote = async () => {
-    if (!body.trim()) return;
+    if (!body.trim() || !guestName.trim()) return;
     const { error } = await supabase.rpc("add_guest_note_public", {
-      _token: token, _photo_id: photo.id, _name: guest.name, _email: guest.email, _body: body.trim(),
+      _token: token, _photo_id: photo.id, _name: guestName.trim(), _email: guest.email, _body: body.trim(),
     });
     if (error) { toast.error(error.message); return; }
     setBody(""); loadNotes(); onNotesChanged?.(); toast.success("Note added");
