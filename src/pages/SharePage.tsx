@@ -502,7 +502,7 @@ const SharePage = () => {
 
   const overallStatus = project?.overall_status ?? null;
   const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
-  const hasLatestExport = !!data?.latest_export;
+  
 
   // Latest day header data
   const latestDayPhotos = latestDayKey ? (allDayGroups[0]?.photos ?? []) : [];
