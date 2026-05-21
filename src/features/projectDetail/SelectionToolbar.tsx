@@ -99,7 +99,7 @@ export function SelectionToolbar({
                 </PopoverContent>
               </Popover>
             )}
-            {canEdit && days.length > 0 && (
+            {canEdit && (
               <Popover>
                 <PopoverTrigger asChild>
                   <Button size="sm" variant="secondary" className="bg-card/15 text-white hover:bg-card/25 border-0">
@@ -107,18 +107,41 @@ export function SelectionToolbar({
                     Move to day
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-1" align="end">
-                  <div className="max-h-64 overflow-y-auto">
-                    {days.map((d) => (
-                      <button
-                        key={d.key}
-                        className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
-                        onClick={() => onMoveToDay(d.key)}
-                      >
-                        {d.label}
-                      </button>
-                    ))}
+                <PopoverContent className="w-72 p-2" align="end">
+                  <div className="px-1 pb-2">
+                    <Label htmlFor="move-custom-date" className="text-xs text-muted-foreground">
+                      Pick any date
+                    </Label>
+                    <Input
+                      id="move-custom-date"
+                      type="date"
+                      max={new Date().toISOString().slice(0, 10)}
+                      className="mt-1 h-8"
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v) onMoveToDay(v);
+                      }}
+                    />
                   </div>
+                  {days.length > 0 && (
+                    <>
+                      <div className="my-1 h-px bg-border" />
+                      <p className="px-2 pt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                        Existing days
+                      </p>
+                      <div className="max-h-56 overflow-y-auto">
+                        {days.map((d) => (
+                          <button
+                            key={d.key}
+                            className="w-full rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                            onClick={() => onMoveToDay(d.key)}
+                          >
+                            {d.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </PopoverContent>
               </Popover>
             )}
