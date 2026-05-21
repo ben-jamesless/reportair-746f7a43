@@ -501,9 +501,17 @@ const SharePage = () => {
         <div className="mx-auto w-full px-6 py-6 2xl:px-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
-                {project?.name}
-              </h1>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={project?.name ?? "Project logo"}
+                  className="h-10 w-auto max-w-[280px] object-contain md:h-12"
+                />
+              ) : (
+                <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
+                  {project?.name}
+                </h1>
+              )}
               {subtitleBits.length > 0 && (
                 <p className="mt-1.5 text-sm" style={{ color: MUTED }}>
                   {subtitleBits.join(" · ")}
