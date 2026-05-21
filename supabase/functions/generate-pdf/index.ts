@@ -293,36 +293,49 @@ async function loadFontBytes(): Promise<{ pjs: Uint8Array | null; ir: Uint8Array
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsFor(req) });
 
-  // ============ AUTH GATE ============
-  // Step 1: Validate the caller has a live session.
-  const callerId = await getCallerUserId(req);
-  if (!callerId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401, headers: { ...corsFor(req), "Content-Type": "application/json" },
-    });
-  }
-
   let exportId: string | null = null;
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
   try {
     const body = await req.json();
     exportId = body.export_id;
+    const shareToken: string | null = typeof body?.share_token === "string" ? body.share_token : null;
     if (!exportId) return new Response(JSON.stringify({ error: "missing export_id" }), {
       status: 400, headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
 
-    // Step 2: Load the export row to get the project_id.
+    // Load the export row to get the project_id.
     const { data: exp, error: expErr } = await supabase.from("project_exports").select("*").eq("id", exportId).single();
     if (expErr || !exp) {
       return new Response(JSON.stringify({ error: "Export not found" }), {
         status: 404, headers: { ...corsFor(req), "Content-Type": "application/json" },
       });
     }
-
-    // Step 3: Confirm the caller owns or has editor access to the project this export belongs to.
     const projectId = exp.project_id as string;
-    const allowed = await callerCanExport(supabase, callerId, projectId);
+
+    // ============ AUTH GATE ============
+    // Two paths:
+    //  (a) Authenticated user with editor+ access (normal app flow).
+    //  (b) Valid share-link token whose project matches the export (public share flow).
+    let callerId: string | null = null;
+    let allowed = false;
+    if (shareToken) {
+      const { data: link } = await supabase.from("share_links")
+        .select("project_id, revoked_at, expires_at, created_by")
+        .eq("token", shareToken).maybeSingle();
+      if (link && !link.revoked_at && (!link.expires_at || new Date(link.expires_at as string) > new Date()) && link.project_id === projectId) {
+        callerId = (link.created_by as string | null) ?? "share";
+        allowed = true;
+      }
+    } else {
+      callerId = await getCallerUserId(req);
+      if (!callerId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsFor(req), "Content-Type": "application/json" },
+        });
+      }
+      allowed = await callerCanExport(supabase, callerId, projectId);
+    }
     if (!allowed) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsFor(req), "Content-Type": "application/json" },
@@ -330,7 +343,7 @@ Deno.serve(async (req) => {
     }
     // ============ END AUTH GATE ============
 
-    console.log(JSON.stringify({ fn: "generate-pdf", event: "start", export_id: exportId, caller: callerId, ts: new Date().toISOString() }));
+    console.log(JSON.stringify({ fn: "generate-pdf", event: "start", export_id: exportId, caller: callerId, via_share: !!shareToken, ts: new Date().toISOString() }));
 
     await supabase.from("project_exports").update({ status: "processing" }).eq("id", exportId);
 
