@@ -3,6 +3,9 @@ project_id = "asasikikrapixgznhmzl"
 [functions.share-photo-url]
 verify_jwt = false
 
+[functions.share-logo-url]
+verify_jwt = false
+
 [functions.share-export-url]
 verify_jwt = false
 
