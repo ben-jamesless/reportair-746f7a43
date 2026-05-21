@@ -1093,6 +1093,7 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
   const [url, setUrl] = useState<string | null>(null);
   const [notes, setNotes] = useState<{ id: string; guest_name: string; body: string; created_at: string }[]>([]);
   const [body, setBody] = useState("");
+  const [guestName, setGuestName] = useState(guest.name);
 
   const loadNotes = useCallback(async () => {
     if (!photo) return;
