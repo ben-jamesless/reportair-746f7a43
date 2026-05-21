@@ -136,7 +136,7 @@ const SharePage = () => {
   const [activeKey, setActiveKey] = useState<string>(ALL_DAYS); // ALL_DAYS | dateKey | __album_<id>
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [guest, setGuest] = useState<{ name: string; email: string }>({ name: "", email: "" });
-  const [downloading, setDownloading] = useState(false);
+  
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
@@ -336,31 +336,108 @@ const SharePage = () => {
     return m;
   }, [photos]);
 
-  const downloadLatestReport = async () => {
-    if (!token || downloading) return;
-    setDownloading(true);
+  // ============ Share-side PDF export (portrait only) ============
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<"single" | "range">("single");
+  const [exportFrom, setExportFrom] = useState<string | null>(null);
+  const [exportTo, setExportTo] = useState<string | null>(null);
+  const [exportStatus, setExportStatus] = useState<"idle" | "creating" | "processing" | "ready" | "failed">("idle");
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // Days available for export: derived from photos grouped by date.
+  const exportDaysAsc = useMemo(
+    () =>
+      [...allDayGroups]
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .map((g) => ({ key: isoDateKey(g.date), label: DATE_FMT.format(g.date), date: g.date })),
+    [allDayGroups],
+  );
+  const lastDay = exportDaysAsc[exportDaysAsc.length - 1] ?? null;
+
+  // Seed range pickers when dialog opens
+  useEffect(() => {
+    if (!exportOpen) return;
+    if (exportDaysAsc.length > 0) {
+      setExportFrom(exportDaysAsc[0].key);
+      setExportTo(exportDaysAsc[exportDaysAsc.length - 1].key);
+    }
+    setExportStatus("idle");
+    setExportError(null);
+    setExportMode("single");
+  }, [exportOpen, exportDaysAsc]);
+
+  const downloadFromUrl = async (url: string, filename = "site-story.pdf") => {
+    const fileRes = await fetch(url);
+    if (!fileRes.ok) throw new Error(`http ${fileRes.status}`);
+    const blob = await fileRes.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl; a.rel = "noopener"; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  };
+
+  const runShareExport = async () => {
+    if (!token) return;
+    if (exportMode === "range" && (!exportFrom || !exportTo)) {
+      toast.error("Pick a from and to date");
+      return;
+    }
+    if (exportMode === "single" && !lastDay) {
+      toast.error("No dated photos to export");
+      return;
+    }
+    setExportStatus("creating");
+    setExportError(null);
     try {
-      const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-export-url`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.url) { toast.error("Could not get download link"); return; }
-      const fileRes = await fetch(json.url);
-      if (!fileRes.ok) throw new Error(`http ${fileRes.status}`);
-      const blob = await fileRes.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl; a.rel = "noopener";
-      a.download = "site-story.pdf";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-    } catch {
-      toast.error("Download failed");
-    } finally {
-      setDownloading(false);
+      const body: Record<string, unknown> = { token, mode: exportMode };
+      if (exportMode === "single" && lastDay) {
+        body.day_key = lastDay.key;
+        body.day_label = lastDay.label;
+      } else if (exportMode === "range" && exportFrom && exportTo) {
+        const lo = exportFrom <= exportTo ? exportFrom : exportTo;
+        const hi = exportFrom <= exportTo ? exportTo : exportFrom;
+        body.date_from = lo;
+        body.date_to = hi;
+      }
+      const createRes = await fetch(
+        `https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-create-export`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+      );
+      const createJson = await createRes.json();
+      if (!createRes.ok || !createJson.export_id) {
+        throw new Error(createJson.error || "Could not start export");
+      }
+      const exportId: string = createJson.export_id;
+      setExportStatus("processing");
+
+      // Poll status
+      const started = Date.now();
+      while (Date.now() - started < 5 * 60 * 1000) {
+        await new Promise((r) => setTimeout(r, 2500));
+        const statusRes = await fetch(
+          `https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-export-url`,
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, export_id: exportId }) },
+        );
+        const sj = await statusRes.json();
+        if (sj.status === "ready" && sj.url) {
+          setExportStatus("ready");
+          await downloadFromUrl(sj.url);
+          setExportOpen(false);
+          return;
+        }
+        if (sj.status === "failed") {
+          throw new Error(sj.error_message || "Export failed");
+        }
+      }
+      throw new Error("Export timed out");
+    } catch (e) {
+      setExportStatus("failed");
+      setExportError(e instanceof Error ? e.message : "Export failed");
+      toast.error(e instanceof Error ? e.message : "Export failed");
     }
   };
+
 
   // Day-level scroll anchors (for ALL_DAYS view)
   const dayAnchorRefs = useRef<Map<string, HTMLElement | null>>(new Map());
@@ -425,7 +502,7 @@ const SharePage = () => {
 
   const overallStatus = project?.overall_status ?? null;
   const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
-  const hasLatestExport = !!data?.latest_export;
+  
 
   // Latest day header data
   const latestDayPhotos = latestDayKey ? (allDayGroups[0]?.photos ?? []) : [];
@@ -519,22 +596,103 @@ const SharePage = () => {
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <StatusPill statusKey={overallStatus} size="md" />
-              {hasLatestExport && (
+              {exportDaysAsc.length > 0 && (
                 <Button
                   size="sm"
-                  onClick={downloadLatestReport}
-                  disabled={downloading}
+                  onClick={() => setExportOpen(true)}
                   className="text-sm font-medium text-white hover:opacity-90"
                   style={{ backgroundColor: accent }}
                 >
-                  {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                  Download latest report
+                  <Download className="mr-2 h-4 w-4" />
+                  Export PDF
                 </Button>
               )}
             </div>
           </div>
         </div>
       </header>
+
+      {/* EXPORT PDF DIALOG */}
+      <Dialog open={exportOpen} onOpenChange={(o) => { if (exportStatus === "creating" || exportStatus === "processing") return; setExportOpen(o); }}>
+        <DialogContent className="max-w-lg">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold" style={{ color: NEAR_BLACK }}>Export PDF</h2>
+              <p className="text-sm" style={{ color: MUTED }}>Generate a portrait PDF report of this project.</p>
+            </div>
+
+            {/* Mode toggle */}
+            <div className="grid grid-cols-2 gap-2 rounded-md p-1" style={{ backgroundColor: SURFACE }}>
+              <button
+                type="button"
+                onClick={() => setExportMode("single")}
+                disabled={exportStatus === "creating" || exportStatus === "processing"}
+                className={cn("rounded px-3 py-2 text-sm font-medium transition", exportMode === "single" ? "bg-white shadow" : "")}
+                style={{ color: exportMode === "single" ? NEAR_BLACK : MUTED }}
+              >
+                Last day
+              </button>
+              <button
+                type="button"
+                onClick={() => setExportMode("range")}
+                disabled={exportStatus === "creating" || exportStatus === "processing"}
+                className={cn("rounded px-3 py-2 text-sm font-medium transition", exportMode === "range" ? "bg-white shadow" : "")}
+                style={{ color: exportMode === "range" ? NEAR_BLACK : MUTED }}
+              >
+                Select a range
+              </button>
+            </div>
+
+            {exportMode === "single" ? (
+              <div className="rounded-md border p-3 text-sm" style={{ borderColor: DIVIDER, backgroundColor: SURFACE, color: BODY }}>
+                <Calendar className="mr-2 inline h-4 w-4" style={{ color: accent }} />
+                {lastDay ? <>Scoped to <span className="font-medium">{lastDay.label}</span></> : "No dated photos yet"}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs" style={{ color: MUTED }}>From</Label>
+                  <Input
+                    type="date"
+                    value={exportFrom ?? ""}
+                    min={exportDaysAsc[0]?.key}
+                    max={exportTo ?? exportDaysAsc[exportDaysAsc.length - 1]?.key}
+                    onChange={(e) => setExportFrom(e.target.value || null)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs" style={{ color: MUTED }}>To</Label>
+                  <Input
+                    type="date"
+                    value={exportTo ?? ""}
+                    min={exportFrom ?? exportDaysAsc[0]?.key}
+                    max={exportDaysAsc[exportDaysAsc.length - 1]?.key}
+                    onChange={(e) => setExportTo(e.target.value || null)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {exportError && (
+              <p className="text-sm" style={{ color: "#C7382A" }}>{exportError}</p>
+            )}
+
+            <Button
+              onClick={runShareExport}
+              disabled={exportStatus === "creating" || exportStatus === "processing"}
+              className="w-full text-white hover:opacity-90"
+              style={{ backgroundColor: accent }}
+            >
+              {(exportStatus === "creating" || exportStatus === "processing") ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{exportStatus === "creating" ? "Starting…" : "Generating PDF…"}</>
+              ) : (
+                <><Download className="mr-2 h-4 w-4" />Generate PDF</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
 
       {/* THREE-COLUMN LAYOUT */}
       <div className="mx-auto w-full px-6 py-6 2xl:px-10">
