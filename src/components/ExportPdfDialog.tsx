@@ -114,7 +114,7 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
 };
 
-type Mode = "last" | "range";
+type Mode = "single" | "range" | "album";
 
 const fmtScope = (opts: Record<string, unknown> | null): string => {
   if (!opts) return "Export";
@@ -200,12 +200,23 @@ export const ExportPdfDialog = ({
     if (def.pro && !isPro) return false;
     return true;
   };
-  // Layout is always portrait. The previous editorial/grid options were removed
-  // per product direction — every export ships as portrait_v1.
-  const [layout] = useState<LayoutVariant>("portrait_v1");
-  const orientation: "portrait" | "landscape" = "portrait";
+  const [layout, setLayout] = useState<LayoutVariant>(() => {
+    if (typeof window === "undefined") return "portrait_v1";
+    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY(projectId)) as LayoutVariant | null;
+    if (isValidLayout(saved) && isSelectableLayout(saved)) return saved;
+    const rec = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
+    if (isValidLayout(rec) && isSelectableLayout(rec as LayoutVariant)) return rec as LayoutVariant;
+    return "portrait_v1";
+  });
+  // Guard: if a remembered layout becomes unavailable (Pro downgrade, or layout
+  // newly flagged coming-soon), fall back to portrait.
+  useEffect(() => {
+    if (!isSelectableLayout(layout)) setLayout("portrait_v1");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPro, layout]);
+  const orientation = LAYOUTS.find(l => l.value === layout)?.orientation ?? "portrait";
 
-  const initialMode: Mode = "last";
+  const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
   const [mode, setMode] = useState<Mode>(initialMode);
   const [rangeFrom, setRangeFrom] = useState<string | null>(null);
   const [rangeTo, setRangeTo] = useState<string | null>(null);
@@ -234,7 +245,7 @@ export const ExportPdfDialog = ({
       setSubmitting(false);
       setHistoryOpen(false);
     } else {
-      setMode("last");
+      setMode(lockMode === "single" || dayKey ? "single" : "single");
       if (daysAsc.length > 0) {
         setRangeFrom(daysAsc[0].key);
         setRangeTo(daysAsc[daysAsc.length - 1].key);
@@ -418,20 +429,20 @@ export const ExportPdfDialog = ({
 
 
   // Compute photos covered + cap for current selection
-  const { effectivePhotoCount, rangeDays, lastDay } = useMemo(() => {
-    const last = daysAsc.length > 0 ? daysAsc[daysAsc.length - 1] : null;
+  const { effectivePhotoCount, rangeDays } = useMemo(() => {
     if (mode === "range" && rangeFrom && rangeTo) {
       const lo = rangeFrom <= rangeTo ? rangeFrom : rangeTo;
       const hi = rangeFrom <= rangeTo ? rangeTo : rangeFrom;
       const inRange = daysAsc.filter((d) => d.key >= lo && d.key <= hi);
       const total = inRange.reduce((sum, d) => sum + d.photoCount, 0);
-      return { effectivePhotoCount: total, rangeDays: inRange, lastDay: last };
+      return { effectivePhotoCount: total, rangeDays: inRange };
     }
-    // Last day mode: scope to a specific day if passed in, otherwise the most recent day with photos.
-    if (dayKey) return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[], lastDay: last };
-    if (last) return { effectivePhotoCount: last.photoCount, rangeDays: [] as AvailableDay[], lastDay: last };
-    return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[], lastDay: last };
-  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount, dayKey]);
+    if (mode === "album" && selectedAlbumId) {
+      const a = albums.find((x) => x.id === selectedAlbumId);
+      return { effectivePhotoCount: a?.photoCount ?? 0, rangeDays: [] as AvailableDay[] };
+    }
+    return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[] };
+  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount, selectedAlbumId, albums]);
 
   const overCap = effectivePhotoCount > PHOTO_CAP;
 
@@ -441,8 +452,8 @@ export const ExportPdfDialog = ({
       toast.error("Pick a from and to date");
       return;
     }
-    if (mode === "last" && !dayKey && !lastDay) {
-      toast.error("No photos to export yet");
+    if (mode === "album" && !selectedAlbumId) {
+      toast.error("Pick an album to export");
       return;
     }
     setSubmitting(true);
@@ -456,12 +467,16 @@ export const ExportPdfDialog = ({
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LAYOUT_STORAGE_KEY(projectId), layout);
     }
-    if (mode === "last") {
-      options.day_key = dayKey ?? lastDay?.key ?? null;
-      options.day_label = dayLabel ?? lastDay?.label ?? null;
+    if (mode === "single") {
+      options.day_key = dayKey ?? null;
+      options.day_label = dayLabel ?? null;
     } else if (mode === "range") {
       options.date_from = lo;
       options.date_to = hi;
+    } else if (mode === "album") {
+      const album = albums.find((a) => a.id === selectedAlbumId);
+      options.album_id = selectedAlbumId;
+      options.album_label = album?.name ?? null;
     }
 
     const { data: row, error } = await supabase.from("project_exports").insert({
@@ -560,15 +575,19 @@ export const ExportPdfDialog = ({
   };
 
   const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");
-  const showModeToggle = !lockMode && daysAsc.length > 0;
+  const showModeToggle = !lockMode && (daysAsc.length > 0 || albums.length > 0);
   const titleText = mode === "range"
     ? "Export date range as PDF"
-    : dayKey ? "Export day as PDF" : "Export last day as PDF";
+    : mode === "album"
+      ? "Export album as PDF"
+      : dayKey ? "Export day as PDF" : "Export project as PDF";
 
   // History excludes the current in-progress row
   const historyRows = history.filter(
     (h) => !(currentExport && h.id === currentExport.id),
   );
+
+  const albumsDisabled = albums.length === 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -583,31 +602,45 @@ export const ExportPdfDialog = ({
           <DialogDescription>
             {mode === "range"
               ? "Photos are grouped by day, then by area within each day."
-              : dayKey
-                ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
-                : "Only photos from the most recent day will be included, grouped by area."}
+              : mode === "album"
+                ? "Photos in the selected album are grouped by date."
+                : dayKey
+                  ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
+                  : "Generate a branded PDF of your project. Photos are grouped by date."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
           {showModeToggle && (
             <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="last">Last day</TabsTrigger>
-                <TabsTrigger value="range" disabled={daysAsc.length === 0}>Select a range</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="single">Single day</TabsTrigger>
+                <TabsTrigger value="range" disabled={daysAsc.length === 0}>Date range</TabsTrigger>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={cn(albumsDisabled && "cursor-not-allowed")}>
+                        <TabsTrigger value="album" disabled={albumsDisabled} className="w-full">
+                          By album
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    {albumsDisabled && (
+                      <TooltipContent>No albums in this project.</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </TabsList>
             </Tabs>
           )}
 
-          {mode === "last" && (dayKey || lastDay) && (
+
+
+          {mode === "single" && dayKey && (
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="flex items-center gap-2 pt-4 text-sm">
                 <CalendarIcon className="h-4 w-4 text-primary" />
-                <span>
-                  Scoped to{" "}
-                  <span className="font-medium">{dayKey ? dayLabel : lastDay?.label}</span>
-                  {" "}· {effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"}
-                </span>
+                <span>Scoped to <span className="font-medium">{dayLabel}</span> · {photoCount} photo{photoCount === 1 ? "" : "s"}</span>
               </CardContent>
             </Card>
           )}
@@ -647,6 +680,34 @@ export const ExportPdfDialog = ({
             </Card>
           )}
 
+          {mode === "album" && (
+            <Card>
+              <CardContent className="space-y-3 pt-4 text-sm">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Album</Label>
+                  <Select
+                    value={selectedAlbumId ?? ""}
+                    onValueChange={(v) => setSelectedAlbumId(v)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Pick an album" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {albums.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.name} · {a.photoCount} photo{a.photoCount === 1 ? "" : "s"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"} in this album
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {overCap && (
             <Card className="border-destructive/40 bg-destructive/5">
               <CardContent className="flex gap-3 pt-4 text-sm">
@@ -655,17 +716,106 @@ export const ExportPdfDialog = ({
                   <p className="font-medium">Too many photos for a single export</p>
                   <p className="mt-1 text-muted-foreground">
                     {mode === "range"
-                      ? `This range covers ${effectivePhotoCount} photos across ${rangeDays.length} day${rangeDays.length === 1 ? "" : "s"}. The PDF export is capped at ${PHOTO_CAP}. Narrow the range before exporting.`
-                      : `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos before exporting.`}
+                      ? `This range covers ${effectivePhotoCount} photos across ${rangeDays.length} day${rangeDays.length === 1 ? "" : "s"}. The PDF export is capped at ${PHOTO_CAP}. Narrow the range or split into multiple albums before exporting.`
+                      : mode === "album"
+                        ? `This album contains ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Split into smaller albums or remove photos before exporting.`
+                        : dayKey
+                          ? `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos or split across more days before exporting.`
+                          : `This project has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Export day-by-day or a narrower date range, or remove photos before exporting.`}
                   </p>
                 </div>
               </CardContent>
             </Card>
           )}
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Layout</label>
+            <div className="grid grid-cols-3 gap-2">
+              {LAYOUTS.map((opt) => {
+                const selected = layout === opt.value;
+                // A tile is locked when it has no renderer yet (comingSoon) or
+                // the user's plan doesn't include the Pro tier it belongs to.
+                // We keep these two states visually distinct so a Pro upsell
+                // never reads as "this isn't built yet".
+                const planLocked = opt.pro && !isPro;
+                const locked = opt.comingSoon || planLocked;
+                const isRecommended = templateForProject && recommendedLayout === opt.value && !opt.comingSoon;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { if (!locked) setLayout(opt.value); }}
+                    aria-pressed={selected}
+                    aria-disabled={locked}
+                    title={
+                      opt.comingSoon
+                        ? `${opt.label} — coming soon`
+                        : planLocked
+                          ? `${opt.label} — Pro feature. Upgrade to unlock.`
+                          : opt.label
+                    }
+                    className={cn(
+                      // Slightly taller padding so the hint never crowds the
+                      // badge; relative so the badge can float top-right.
+                      "group relative flex h-full flex-col rounded-lg border px-3 pb-3 pt-3 text-left transition",
+                      selected
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                        : "border-border bg-card hover:border-muted-foreground/60 hover:bg-accent/40",
+                      locked && "cursor-not-allowed opacity-70 hover:border-border hover:bg-card",
+                    )}
+                  >
+                    {/* Top-right badge.
+                        - comingSoon  → muted "Coming soon" pill (gated layouts)
+                        - planLocked  → amber "PRO" pill with crown (upsell)
+                        - unlocked Pro→ crown-only chip in primary (earns the feature) */}
+                    <span className="absolute right-2 top-2 inline-flex items-center">
+                      {opt.comingSoon ? (
+                        <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Soon
+                        </span>
+                      ) : planLocked ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+                          <Crown className="h-3 w-3" />Pro
+                        </span>
+                      ) : opt.pro ? (
+                        <span
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary"
+                          aria-label="Pro feature"
+                        >
+                          <Crown className="h-3 w-3" />
+                        </span>
+                      ) : null}
+                    </span>
 
-          {/* Layout is locked to portrait — the horizontal variants are no longer offered. */}
+                    {/* Title gets full width — badge sits on top of it but is
+                        small enough that there's no real collision risk. */}
+                    <p className="pr-8 text-sm font-medium leading-tight">{opt.label}</p>
+                    <p className="mt-1 pr-8 text-xs leading-snug text-muted-foreground">{opt.hint}</p>
 
+                    {/* Recommended pill pinned to the bottom so it doesn't
+                        make the selected tile taller than its siblings. */}
+                    {isRecommended && (
+                      <span className="mt-2 inline-flex w-fit items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                        Recommended
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Helper line under the grid — explains the Pro crown without
+                forcing every tile to carry the word "Pro". Only shown when
+                at least one Pro tile is visible. */}
+            {LAYOUTS.some(l => l.pro) && (
+              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Crown className="h-3 w-3 text-primary" />
+                {isPro
+                  ? "Client deck and Production log are Pro layouts — included on your plan."
+                  : <>Client deck and Production log are Pro layouts. <a href="/billing" className="underline underline-offset-2 hover:text-foreground">Upgrade to unlock.</a></>
+                }
+              </p>
+            )}
+          </div>
 
           {isStudio && (
             <div className="space-y-2">
@@ -801,7 +951,7 @@ export const ExportPdfDialog = ({
               !!inProgress ||
               !canExportPdf ||
               (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0)) ||
-              (mode === "last" && effectivePhotoCount === 0)
+              (mode === "album" && (!selectedAlbumId || effectivePhotoCount === 0))
             }
           >
             {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
