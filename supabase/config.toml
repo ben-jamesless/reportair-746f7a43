@@ -9,6 +9,9 @@ verify_jwt = false
 [functions.share-export-url]
 verify_jwt = false
 
+[functions.share-create-export]
+verify_jwt = false
+
 [functions.stripe-webhook]
 verify_jwt = false
 
