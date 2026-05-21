@@ -125,6 +125,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
           .from("areas")
           .select("id, name, sort_order")
           .eq("project_id", projectId)
+          .is("deleted_at", null)
           .order("sort_order"),
         supabase
           .from("photos")
