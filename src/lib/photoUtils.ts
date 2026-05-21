@@ -64,11 +64,22 @@ type ExifRaw = {
   ImageHeight?: number;
 };
 
+// iOS Safari's Photos picker gives us a temp file named `tempImageXXXXXX.jpg`
+// with EXIF stripped AND lastModified == "now". Using lastModified as a
+// fallback in that case silently lands every photo on today's date, so we
+// detect the pattern and return null instead — the upload UI then asks for
+// a real date.
+const isIosTempFile = (file: File) => /^tempImage/i.test(file.name);
+
+export const isExifStrippedIosUpload = isIosTempFile;
+
 export async function parseExif(file: File): Promise<ExifData> {
+  const iosTemp = isIosTempFile(file);
   // Fallback: the file's own lastModified is closer to the capture date than
   // the DB upload time. Better than nothing when EXIF is stripped (screenshots,
-  // AirDropped/edited copies, some HEIC→JPEG conversions).
-  const lastMod = file.lastModified ? new Date(file.lastModified).toISOString() : null;
+  // AirDropped/edited copies, some HEIC→JPEG conversions) — but NOT for iOS
+  // temp files, where lastModified is just "right now".
+  const lastMod = !iosTemp && file.lastModified ? new Date(file.lastModified).toISOString() : null;
   try {
     const exifr = await loadExifr();
     const data = (await exifr.parse(file, { gps: true, tiff: true, exif: true })) as ExifRaw | null;
@@ -92,6 +103,7 @@ export async function parseExif(file: File): Promise<ExifData> {
     return { ...EMPTY_EXIF, captured_at: lastMod };
   }
 }
+
 
 export async function getImageDimensions(file: File): Promise<{ width: number; height: number } | null> {
   return new Promise((resolve) => {
