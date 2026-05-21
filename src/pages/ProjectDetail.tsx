@@ -598,7 +598,6 @@ const ProjectDetail = () => {
                 onSelectDayArea={selectDayArea}
                 onOpenDayExport={openDayExport}
                 onAddArea={addArea}
-                onAddArea={addArea}
                 onDeleteArea={async (ar) => {
                   await softDeleteArea(ar.id);
                   if (activeArea === ar.id) setActiveArea(null);
