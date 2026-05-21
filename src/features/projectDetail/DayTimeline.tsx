@@ -82,6 +82,7 @@ export function DayTimeline({
   onSelectDayArea,
   onOpenDayExport,
   onAddArea,
+  onDeleteArea,
   getAreaDayStatus,
   areaCountsForDay,
 }: Props) {
