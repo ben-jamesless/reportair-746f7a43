@@ -6,9 +6,10 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, Loader2, ImageIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Upload, Loader2, ImageIcon, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
-import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant } from "@/lib/photoUtils";
+import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant, isExifStrippedIosUpload } from "@/lib/photoUtils";
 import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
 
 type AreaOption = { id: string; name: string };
@@ -24,6 +25,13 @@ interface Props {
 
 const NO_AREA = "__no_area__";
 
+const todayYmd = () => {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+};
+
 export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger }: Props) => {
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +39,12 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
   const [selectedArea, setSelectedArea] = useState<string>(areaId ?? NO_AREA);
+  const [fallbackDate, setFallbackDate] = useState<string>(todayYmd());
+
+  // Any file whose name matches the iOS share-sheet temp pattern. EXIF is
+  // almost certainly gone, so we'll need a user-chosen date as a fallback.
+  const iosStrippedCount = (pendingFiles ?? []).filter(isExifStrippedIosUpload).length;
+  const needsFallbackDate = iosStrippedCount > 0;
 
   // Keep dropdown synced if context area changes between opens
   useEffect(() => { setSelectedArea(areaId ?? NO_AREA); }, [areaId]);
@@ -53,17 +67,24 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (!sizedList.length) return;
     setPendingFiles(sizedList);
     setSelectedArea(areaId ?? NO_AREA);
+    setFallbackDate(todayYmd());
   };
 
   const runUpload = async () => {
     if (!pendingFiles || !user) return;
     const list = pendingFiles;
     const targetArea = selectedArea === NO_AREA ? null : selectedArea;
+    // Fallback captured_at for iOS-stripped files. Use noon local time to
+    // avoid timezone slip pushing the day backwards.
+    const fallbackIso = needsFallbackDate
+      ? new Date(`${fallbackDate}T12:00:00`).toISOString()
+      : null;
     setPendingFiles(null);
     setBusy(true);
     setProgress({ done: 0, total: list.length });
     let failures = 0;
     const errors: string[] = [];
+    const insertedIds: string[] = [];
 
     for (const original of list) {
       let file = original;
@@ -72,12 +93,16 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           try {
             file = await convertHeicToJpeg(file);
           } catch (convErr) {
-            // Some HEIC variants can't be decoded in-browser — upload original; backfill will convert server-side.
             console.warn("HEIC conversion failed, uploading original", file.name, convErr);
           }
         }
 
         const exif = await parseExif(file);
+        // For iOS-stripped batches, if we have no real captured_at, use the
+        // user-supplied date so photos don't all land on "today".
+        if (!exif.captured_at && fallbackIso && isExifStrippedIosUpload(file)) {
+          exif.captured_at = fallbackIso;
+        }
         if (!exif.width || !exif.height) {
           const dims = await getImageDimensions(file);
           if (dims) { exif.width = dims.width; exif.height = dims.height; }
@@ -92,7 +117,6 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           .upload(key, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
 
-        // Generate and upload a smaller "report" variant for fast PDF exports.
         let reportKey: string | null = null;
         try {
           const variant = await makeReportVariant(file, 1600, 0.75);
@@ -105,7 +129,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           }
         } catch (e) { console.warn("Report variant failed", e); }
 
-        const { error: insErr } = await supabase.from("photos").insert({
+        const { data: inserted, error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
           area_id: targetArea,
@@ -116,12 +140,13 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           size_bytes: file.size,
           uploaded_by: user.id,
           ...exif,
-        } as never);
+        } as never).select("id").single();
         if (insErr) {
           await supabase.storage.from("photos").remove([key]);
           if (reportKey) await supabase.storage.from("photos").remove([reportKey]);
           throw insErr;
         }
+        if (inserted?.id) insertedIds.push(inserted.id);
       } catch (e: any) {
         failures++;
         const msg = e?.message || e?.error || (typeof e === "string" ? e : JSON.stringify(e));
@@ -130,6 +155,15 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
       } finally {
         setProgress((p) => ({ ...p, done: p.done + 1 }));
       }
+    }
+
+    // Fire-and-forget: server-side EXIF re-parse for every inserted photo.
+    // This is the automatic "back-up, back-up" date detection — runs even
+    // when the browser parser misses something, and silently no-ops when
+    // there's truly nothing to recover (e.g. iOS-stripped uploads).
+    for (const id of insertedIds) {
+      supabase.functions.invoke("photo-exif-extract", { body: { photo_id: id } })
+        .catch((err) => console.warn("photo-exif-extract failed", id, err));
     }
 
     setBusy(false);
@@ -203,6 +237,33 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
                 Applies to all {pendingFiles?.length ?? 0} photo{(pendingFiles?.length ?? 0) === 1 ? "" : "s"} in this batch.
               </p>
             </div>
+
+            {needsFallbackDate && (
+              <div className="rounded-md border border-amber-300/60 bg-amber-50 p-3 dark:border-amber-700/50 dark:bg-amber-950/30">
+                <div className="flex items-start gap-2">
+                  <CalendarClock className="mt-0.5 h-4 w-4 text-amber-700 dark:text-amber-300" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                      Capture date missing on {iosStrippedCount} photo{iosStrippedCount === 1 ? "" : "s"}
+                    </p>
+                    <p className="mt-0.5 text-xs text-amber-800/90 dark:text-amber-200/80">
+                      Your phone removed the original date from these photos before upload. Choose the day they were taken.
+                    </p>
+                    <div className="mt-2">
+                      <Label htmlFor="upload-fallback-date" className="text-xs">Photo date</Label>
+                      <Input
+                        id="upload-fallback-date"
+                        type="date"
+                        value={fallbackDate}
+                        max={todayYmd()}
+                        onChange={(e) => setFallbackDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
