@@ -9,7 +9,7 @@ import { InvitesManager } from "./InvitesManager";
 import { ShareLinksManager } from "./ShareLinksManager";
 import { ProjectEditForm } from "./ProjectEditForm";
 import { HeicBackfillButton } from "./HeicBackfillButton";
-import { PhotoDateBackfillButton } from "./PhotoDateBackfillButton";
+import { BulkSetCaptureDateCard } from "./BulkSetCaptureDateCard";
 import { CoverPhotoManager } from "./CoverPhotoManager";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
@@ -121,7 +121,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               extraSections={
                 <>
                   <HeicBackfillButton projectId={projectId} />
-                  <PhotoDateBackfillButton projectId={projectId} />
+                  <BulkSetCaptureDateCard projectId={projectId} />
                 </>
               }
             />
