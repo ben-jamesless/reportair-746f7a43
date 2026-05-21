@@ -571,19 +571,15 @@ export const ExportPdfDialog = ({
   };
 
   const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");
-  const showModeToggle = !lockMode && (daysAsc.length > 0 || albums.length > 0);
+  const showModeToggle = !lockMode && daysAsc.length > 0;
   const titleText = mode === "range"
     ? "Export date range as PDF"
-    : mode === "album"
-      ? "Export album as PDF"
-      : dayKey ? "Export day as PDF" : "Export project as PDF";
+    : dayKey ? "Export day as PDF" : "Export last day as PDF";
 
   // History excludes the current in-progress row
   const historyRows = history.filter(
     (h) => !(currentExport && h.id === currentExport.id),
   );
-
-  const albumsDisabled = albums.length === 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -598,45 +594,31 @@ export const ExportPdfDialog = ({
           <DialogDescription>
             {mode === "range"
               ? "Photos are grouped by day, then by area within each day."
-              : mode === "album"
-                ? "Photos in the selected album are grouped by date."
-                : dayKey
-                  ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
-                  : "Generate a branded PDF of your project. Photos are grouped by date."}
+              : dayKey
+                ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
+                : "Only photos from the most recent day will be included, grouped by area."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
           {showModeToggle && (
             <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="single">Single day</TabsTrigger>
-                <TabsTrigger value="range" disabled={daysAsc.length === 0}>Date range</TabsTrigger>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className={cn(albumsDisabled && "cursor-not-allowed")}>
-                        <TabsTrigger value="album" disabled={albumsDisabled} className="w-full">
-                          By album
-                        </TabsTrigger>
-                      </span>
-                    </TooltipTrigger>
-                    {albumsDisabled && (
-                      <TooltipContent>No albums in this project.</TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="last">Last day</TabsTrigger>
+                <TabsTrigger value="range" disabled={daysAsc.length === 0}>Select a range</TabsTrigger>
               </TabsList>
             </Tabs>
           )}
 
-
-
-          {mode === "single" && dayKey && (
+          {mode === "last" && (dayKey || lastDay) && (
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="flex items-center gap-2 pt-4 text-sm">
                 <CalendarIcon className="h-4 w-4 text-primary" />
-                <span>Scoped to <span className="font-medium">{dayLabel}</span> · {photoCount} photo{photoCount === 1 ? "" : "s"}</span>
+                <span>
+                  Scoped to{" "}
+                  <span className="font-medium">{dayKey ? dayLabel : lastDay?.label}</span>
+                  {" "}· {effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"}
+                </span>
               </CardContent>
             </Card>
           )}
@@ -676,34 +658,6 @@ export const ExportPdfDialog = ({
             </Card>
           )}
 
-          {mode === "album" && (
-            <Card>
-              <CardContent className="space-y-3 pt-4 text-sm">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Album</Label>
-                  <Select
-                    value={selectedAlbumId ?? ""}
-                    onValueChange={(v) => setSelectedAlbumId(v)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Pick an album" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {albums.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.name} · {a.photoCount} photo{a.photoCount === 1 ? "" : "s"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"} in this album
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {overCap && (
             <Card className="border-destructive/40 bg-destructive/5">
               <CardContent className="flex gap-3 pt-4 text-sm">
@@ -712,17 +666,14 @@ export const ExportPdfDialog = ({
                   <p className="font-medium">Too many photos for a single export</p>
                   <p className="mt-1 text-muted-foreground">
                     {mode === "range"
-                      ? `This range covers ${effectivePhotoCount} photos across ${rangeDays.length} day${rangeDays.length === 1 ? "" : "s"}. The PDF export is capped at ${PHOTO_CAP}. Narrow the range or split into multiple albums before exporting.`
-                      : mode === "album"
-                        ? `This album contains ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Split into smaller albums or remove photos before exporting.`
-                        : dayKey
-                          ? `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos or split across more days before exporting.`
-                          : `This project has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Export day-by-day or a narrower date range, or remove photos before exporting.`}
+                      ? `This range covers ${effectivePhotoCount} photos across ${rangeDays.length} day${rangeDays.length === 1 ? "" : "s"}. The PDF export is capped at ${PHOTO_CAP}. Narrow the range before exporting.`
+                      : `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos before exporting.`}
                   </p>
                 </div>
               </CardContent>
             </Card>
           )}
+
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Layout</label>
