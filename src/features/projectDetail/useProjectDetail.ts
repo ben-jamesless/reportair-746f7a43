@@ -405,6 +405,36 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     [projectId, areas, refetch]
   );
 
+  const softDeleteArea = useCallback(
+    async (id: string) => {
+      const { error } = await supabase
+        .from("areas")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      refetch();
+    },
+    [refetch]
+  );
+
+  const restoreArea = useCallback(
+    async (id: string) => {
+      const { error } = await supabase
+        .from("areas")
+        .update({ deleted_at: null })
+        .eq("id", id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      refetch();
+    },
+    [refetch]
+  );
+
   // ---- Photo bulk mutations ----
   const bulkAssignArea = useCallback(
     async (photoIds: string[], areaId: string | null) => {
