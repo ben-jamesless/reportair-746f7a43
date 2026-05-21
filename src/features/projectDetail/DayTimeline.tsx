@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ChevronDown, FileDown, ImagePlus, Layers, MapPinned } from "lucide-react";
+import { Calendar, ChevronDown, FileDown, ImagePlus, Layers, MapPinned, Trash2 } from "lucide-react";
 
 import { AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import type { LightboxPhoto } from "@/components/PhotoLightbox";
@@ -54,6 +54,7 @@ type Props = {
   onSelectDayArea: (dayKey: string, areaId: string | null) => void;
   onOpenDayExport: (e: React.MouseEvent, day: DayBucket) => void;
   onAddArea: (name: string) => Promise<void> | void;
+  onDeleteArea?: (area: Area) => Promise<void> | void;
 
   // Helpers from parent (kept here to avoid duplicating logic shared with other tabs)
   getAreaDayStatus: (areaId: string, dateKey: string) => AreaStatus;
@@ -81,6 +82,7 @@ export function DayTimeline({
   onSelectDayArea,
   onOpenDayExport,
   onAddArea,
+  onDeleteArea,
   getAreaDayStatus,
   areaCountsForDay,
 }: Props) {
@@ -367,19 +369,38 @@ export function DayTimeline({
             {areas.map((ar) => {
               const isActive = activeArea === ar.id;
               return (
-                <button
+                <div
                   key={ar.id}
-                  onClick={() => onSetActiveArea(isActive ? null : ar.id)}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 text-sm transition-colors py-[8px]",
-                    isActive ? "bg-[#D94F2A]/10 text-[#D94F2A] font-medium" : "text-foreground hover:bg-muted/40"
+                    "group relative flex w-full items-center rounded-lg transition-colors",
+                    isActive ? "bg-[#D94F2A]/10" : "hover:bg-muted/40"
                   )}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-sm bg-[#D4D1CA]" />
-                    {ar.name}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onSetActiveArea(isActive ? null : ar.id)}
+                    className={cn(
+                      "flex flex-1 min-w-0 items-center gap-2 px-3 py-[8px] text-left text-sm",
+                      isActive ? "text-[#D94F2A] font-medium" : "text-foreground"
+                    )}
+                  >
+                    <span className="w-2 h-2 rounded-sm bg-[#D4D1CA] shrink-0" />
+                    <span className="truncate">{ar.name}</span>
+                  </button>
+                  {canEdit && onDeleteArea && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void onDeleteArea(ar);
+                      }}
+                      aria-label={`Delete ${ar.name}`}
+                      className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-opacity hover:bg-muted hover:text-foreground focus:opacity-100 xl:opacity-0 xl:group-hover:opacity-100"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>

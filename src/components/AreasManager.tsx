@@ -4,16 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowDown, ArrowUp, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 export type Area = { id: string; project_id: string; name: string; sort_order: number };
 
@@ -28,13 +18,13 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("areas")
       .select("id, project_id, name, sort_order")
       .eq("project_id", projectId)
+      .is("deleted_at", null)
       .order("sort_order");
     setAreas((data ?? []) as Area[]);
   }, [projectId]);
@@ -67,15 +57,30 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
     onChanged?.();
   };
 
-  const remove = async (id: string) => {
-    const { error } = await supabase.from("areas").delete().eq("id", id);
+  const softDelete = async (area: Area) => {
+    const { error } = await supabase
+      .from("areas")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", area.id);
     if (error) { toast.error(error.message); return; }
-    setPendingDeleteId(null);
-    await load();
+    setAreas((cur) => cur.filter((a) => a.id !== area.id));
     onChanged?.();
+    toast(`Area "${area.name}" deleted`, {
+      duration: 5000,
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          const { error: e } = await supabase
+            .from("areas")
+            .update({ deleted_at: null })
+            .eq("id", area.id);
+          if (e) { toast.error(e.message); return; }
+          await load();
+          onChanged?.();
+        },
+      },
+    });
   };
-
-  const pendingDeleteArea = pendingDeleteId ? areas.find((a) => a.id === pendingDeleteId) ?? null : null;
 
   const move = async (idx: number, dir: -1 | 1) => {
     const j = idx + dir;
@@ -131,7 +136,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
                   <Button size="icon" variant="ghost" onClick={() => { setEditingId(a.id); setEditName(a.name); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setPendingDeleteId(a.id)}>
+                  <Button size="icon" variant="ghost" onClick={() => softDelete(a)} aria-label={`Delete ${a.name}`}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </>
@@ -140,28 +145,6 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
           ))}
         </ul>
       )}
-
-      <AlertDialog open={pendingDeleteId !== null} onOpenChange={(o) => !o && setPendingDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete {pendingDeleteArea ? `"${pendingDeleteArea.name}"` : "area"}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Deleting this area will unassign all photos currently tagged to it. They will appear under Unassigned. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => pendingDeleteId && remove(pendingDeleteId)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete area
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

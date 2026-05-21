@@ -47,6 +47,8 @@ export interface ProjectDetailState {
 
   // Area mutations
   addArea: (name: string) => Promise<void>;
+  softDeleteArea: (id: string) => Promise<void>;
+  restoreArea: (id: string) => Promise<void>;
 
   // Photo mutations (bulk)
   bulkAssignArea: (photoIds: string[], areaId: string | null) => Promise<void>;
@@ -125,6 +127,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
           .from("areas")
           .select("id, name, sort_order")
           .eq("project_id", projectId)
+          .is("deleted_at", null)
           .order("sort_order"),
         supabase
           .from("photos")
@@ -404,6 +407,36 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     [projectId, areas, refetch]
   );
 
+  const softDeleteArea = useCallback(
+    async (id: string) => {
+      const { error } = await supabase
+        .from("areas")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      refetch();
+    },
+    [refetch]
+  );
+
+  const restoreArea = useCallback(
+    async (id: string) => {
+      const { error } = await supabase
+        .from("areas")
+        .update({ deleted_at: null })
+        .eq("id", id);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      refetch();
+    },
+    [refetch]
+  );
+
   // ---- Photo bulk mutations ----
   const bulkAssignArea = useCallback(
     async (photoIds: string[], areaId: string | null) => {
@@ -566,6 +599,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     archiveProject,
     restoreProject,
     addArea,
+    softDeleteArea,
+    restoreArea,
     bulkAssignArea,
     bulkMoveToDay,
     bulkDelete,

@@ -349,7 +349,7 @@ Deno.serve(async (req) => {
       { data: photos },
     ] = await Promise.all([
       supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id, cover_photo_id, cover_asset_path").eq("id", projectId).single(),
-      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).order("sort_order"),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
       supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
       supabase.from("area_day_status").select("area_id, status").eq("project_id", projectId).eq("date", reportDateStr),
       supabase.from("area_day_notes").select("area_id, notes").eq("project_id", projectId).eq("date", reportDateStr),
