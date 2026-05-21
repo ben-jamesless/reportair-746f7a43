@@ -395,7 +395,7 @@ export function DayTimeline({
                         void onDeleteArea(ar);
                       }}
                       aria-label={`Delete ${ar.name}`}
-                      className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus:opacity-100 group-hover:opacity-100 xl:opacity-0"
+                      className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-opacity hover:bg-muted hover:text-foreground focus:opacity-100 xl:opacity-0 xl:group-hover:opacity-100"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
