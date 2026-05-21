@@ -54,6 +54,7 @@ type Props = {
   onSelectDayArea: (dayKey: string, areaId: string | null) => void;
   onOpenDayExport: (e: React.MouseEvent, day: DayBucket) => void;
   onAddArea: (name: string) => Promise<void> | void;
+  onDeleteArea?: (area: Area) => Promise<void> | void;
 
   // Helpers from parent (kept here to avoid duplicating logic shared with other tabs)
   getAreaDayStatus: (areaId: string, dateKey: string) => AreaStatus;
