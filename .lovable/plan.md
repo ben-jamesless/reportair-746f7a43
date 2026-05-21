@@ -1,44 +1,64 @@
-## Three fixes for the share-link page
 
-### 1. Show the project logo (replaces the project name when uploaded)
+## Why this is happening (root cause)
 
-The project already supports uploading a logo (stored at `projects.logo_path` in the private `export-assets` bucket, used by PDF export). The share-link RPC currently doesn't expose it, and the share page only renders the project name.
+All 20 of the affected photos in the database are named `tempImageXXXXXX.jpg` — the temp filename pattern iOS Safari uses when a user picks a photo from the Photos library on iPhone. In that path iOS:
 
-**Changes:**
+1. Decodes the HEIC (or original JPEG),
+2. Re-encodes a fresh JPEG for upload, and
+3. **Strips most EXIF metadata** (including `DateTimeOriginal`) before handing the file to Safari.
 
-- **DB migration — extend `resolve_share_link`** to add `logo_path` to the project allowlist returned in the payload.
-- **New RPC `get_share_logo_url(_token uuid)`** (SECURITY DEFINER, anon executable) that mirrors the existing `get_share_brand_colour` pattern: validates the token, looks up `projects.logo_path`, and returns a 1-hour signed URL via `storage.objects` / `extensions.crypto`. Returning a signed URL keeps the bucket private. *(Alt: if we don't want a new RPC, we can call an edge function — but matching the existing `get_share_brand_colour` RPC is the least new code.)*
-- **`src/pages/SharePage.tsx` header (lines 488–497):** after the brand-colour fetch, also call `get_share_logo_url`; store `logoUrl` in state.
-  - If `logoUrl` is set → render `<img src={logoUrl} alt={project.name} className="h-10 md:h-12 w-auto max-w-[280px] object-contain" />` **in place of** the `<h1>{project.name}</h1>`. Keep the subtitle line (`HKGC · Hong Kong Golf Club`) below the logo. Keep `document.title` driven by `project.name`.
-  - If no logo → unchanged (show the H1 text).
+Our client-side `parseExif()` then finds no date and falls back to `file.lastModified`, which for an iOS-generated temp file is "now" (the moment Safari created the temp). That's why every `captured_at` matches `created_at` to the millisecond.
 
-### 2. Status colours — align with the app
+The existing "Fix photo capture dates" button doesn't help because it re-runs the same browser EXIF parser on the *uploaded* bytes — and those bytes already have no EXIF. So it always reports "unchanged".
 
-The app's canonical palette (`src/lib/projectStatus.ts`, `src/components/AreaStatusPicker.tsx`):
+Crucially: photos uploaded from **desktop drag-drop** (where EXIF survives) do work correctly — the issue is specific to the iOS Photos picker path.
 
-| Status | Colour |
-|---|---|
-| On track | `#3A6EA5` (blue) |
-| Discuss / Requires discussion | `#D94F2A` (orange) |
-| Delayed (concern / behind_schedule) | `#C7382A` (red) |
-| Complete | `#3A7D44` (green) |
-| No status | `#9C9A93` (grey) |
+## The fix
 
-SharePage's `STATUS_META` (lines 71–80) is wrong — `on_track` is `#D94F2A` (orange) and `at_risk`/`requires_discussion` use `#FF8C00`. **Fix:** replace `STATUS_META` with the values above. Update labels to "On track" / "Discuss" / "Delayed" / "Complete" / "No status" to match the rest of the app.
+Two parts: (1) make capture-date detection automatic and as robust as possible, and (2) give users a clean recovery path when iOS has destroyed the date before we ever see it.
 
-This fixes the orange "On Track" pill in your screenshot (it'll become blue), and the day-row status pill on "Tuesday 19 May 2026".
+### 1. Automatic server-side EXIF re-parse on insert
 
-### 3. Fonts
+Add a Postgres trigger on `photos` that enqueues a background job (or directly invokes an edge function via `pg_net`) whenever a row is inserted. The edge function:
 
-Confirmed correct. The whole app — including `SharePage.tsx` — inherits `font-sans` = **Geist** (Tailwind config + `index.css`), self-hosted via `@font-face` in `index.html`. SharePage sets no font overrides, so headings, body, and pills all render in Geist. No change needed.
+- Downloads the stored object from the `photos` bucket.
+- Parses EXIF server-side using a Deno-compatible EXIF lib (e.g. `https://esm.sh/exifr`).
+- If it finds a real `DateTimeOriginal` / `CreateDate`, updates `captured_at` and the rest of the camera fields.
+- If it finds nothing, leaves `captured_at` alone (so we don't keep overwriting good data with `now()`).
+
+This means the existing manual "Run" button goes away — capture date is recovered automatically in the background within seconds of upload, with no user action. For desktop-uploaded photos this will work end-to-end. For iOS-stripped uploads it will (correctly) be a no-op.
+
+We will also remove the client-side `lastModified` fallback when the file looks like an iOS temp file (`/^tempImage/`), so that `captured_at` is left `NULL` rather than wrongly set to "now". This makes the "needs a date" state explicit instead of silently lying.
+
+### 2. iOS recovery UX (because EXIF is genuinely gone)
+
+In the upload dialog, when we detect any selected file is an iOS temp-named file *and* EXIF parsing returns no date, show one extra field:
+
+- "Photo date" date picker, defaulting to today, applied to the whole batch.
+- Helper text: "Your phone removed the original capture date from these photos. Choose the day they were taken."
+
+That date is written straight into `captured_at` at insert time. No more "everything lands in Today" surprise.
+
+For photos already in the database with the bug (the ~20 the user just uploaded), the existing settings panel grows a new control:
+
+- "Bulk-set capture date for photos missing a real date" → date picker + "Apply to N photos in this project".
+- Only targets rows where `captured_at = created_at` (within ~5 seconds) **and** `file_name LIKE 'tempImage%'`, so we don't clobber legitimate same-day uploads.
+
+### 3. Remove the now-redundant manual button
+
+Delete "Fix photo capture dates" from Project settings. The server trigger replaces it, and the bulk-date control above handles the iOS case the old button could never fix anyway.
 
 ## Out of scope
 
-- Team-level logo (Settings → branding). Per-project `logo_path` is what the user uploaded for this project and what PDF export already uses; sharing the same value gives one consistent brand.
-- Dark-mode tweaks on the share page (it forces a white background).
+- Building a native iOS app to bypass Safari's metadata stripping.
+- Forcing HEIC uploads from iOS (would let us read EXIF, but breaks the in-browser HEIC→JPEG flow on desktop Chrome/Firefox and exceeds the scope of "fix the dates").
+- Changing how `captured_at` is grouped in the timeline.
 
-## Verification
+## Technical notes
 
-- Upload a project logo via Project Settings → reload share link → logo appears in header instead of "Hong Kong Open"; remove logo → name returns.
-- On a project with overall status = On track, share link shows a blue pill matching the app.
-- PDF export still works (it reads `logo_path` independently).
+- New edge function `photo-exif-extract` (verify_jwt = false, called by trigger via `pg_net.http_post` with a shared-secret header).
+- Migration: trigger on `photos` AFTER INSERT → `pg_net` call; secret stored in Vault. Also adds an index on `(project_id, captured_at)` if not already present.
+- `src/lib/photoUtils.ts` `parseExif`: drop the `lastModified` fallback when `file.name` matches `/^tempImage/i`.
+- `src/components/PhotoUploader.tsx`: detect "EXIF-less iOS batch" in the confirm dialog; render date picker; pass chosen date into the insert.
+- `src/components/ProjectSettingsDialog.tsx` (Details tab): replace "Fix photo capture dates" card with "Set date for photos missing capture date" card.
+- Remove `src/components/PhotoDateBackfillButton.tsx` and its mount point.
