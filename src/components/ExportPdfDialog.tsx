@@ -452,8 +452,8 @@ export const ExportPdfDialog = ({
       toast.error("Pick a from and to date");
       return;
     }
-    if (mode === "album" && !selectedAlbumId) {
-      toast.error("Pick an album to export");
+    if (mode === "last" && !dayKey && !lastDay) {
+      toast.error("No photos to export yet");
       return;
     }
     setSubmitting(true);
@@ -467,16 +467,12 @@ export const ExportPdfDialog = ({
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LAYOUT_STORAGE_KEY(projectId), layout);
     }
-    if (mode === "single") {
-      options.day_key = dayKey ?? null;
-      options.day_label = dayLabel ?? null;
+    if (mode === "last") {
+      options.day_key = dayKey ?? lastDay?.key ?? null;
+      options.day_label = dayLabel ?? lastDay?.label ?? null;
     } else if (mode === "range") {
       options.date_from = lo;
       options.date_to = hi;
-    } else if (mode === "album") {
-      const album = albums.find((a) => a.id === selectedAlbumId);
-      options.album_id = selectedAlbumId;
-      options.album_label = album?.name ?? null;
     }
 
     const { data: row, error } = await supabase.from("project_exports").insert({
