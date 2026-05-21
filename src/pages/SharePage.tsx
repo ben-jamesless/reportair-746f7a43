@@ -420,9 +420,8 @@ const SharePage = () => {
     );
   }
 
-  if (!guest) {
-    return <GuestIdentityPrompt onSubmit={(g) => { localStorage.setItem(guestKey(token!), JSON.stringify(g)); setGuest(g); }} />;
-  }
+
+
 
   const overallStatus = project?.overall_status ?? null;
   const subtitleBits = [project?.client_name, project?.event_location, project?.event_type].filter(Boolean) as string[];
