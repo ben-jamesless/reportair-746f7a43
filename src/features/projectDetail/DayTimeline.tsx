@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, ChevronDown, FileDown, ImagePlus, Layers, MapPinned } from "lucide-react";
+import { Calendar, ChevronDown, FileDown, ImagePlus, Layers, MapPinned, Trash2 } from "lucide-react";
 
 import { AreaStatusDot, type AreaStatus } from "@/components/AreaStatusPicker";
 import type { LightboxPhoto } from "@/components/PhotoLightbox";
