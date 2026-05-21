@@ -79,6 +79,8 @@ const ProjectDetail = () => {
     archiveProject,
     restoreProject,
     addArea,
+    softDeleteArea,
+    restoreArea,
     bulkAssignArea: bulkAssignAreaIds,
     bulkMoveToDay: bulkMoveToDayIds,
     bulkDelete,
