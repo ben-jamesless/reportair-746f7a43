@@ -245,7 +245,7 @@ export const ExportPdfDialog = ({
       setSubmitting(false);
       setHistoryOpen(false);
     } else {
-      setMode(lockMode === "single" || dayKey ? "single" : "single");
+      setMode("last");
       if (daysAsc.length > 0) {
         setRangeFrom(daysAsc[0].key);
         setRangeTo(daysAsc[daysAsc.length - 1].key);
