@@ -200,21 +200,10 @@ export const ExportPdfDialog = ({
     if (def.pro && !isPro) return false;
     return true;
   };
-  const [layout, setLayout] = useState<LayoutVariant>(() => {
-    if (typeof window === "undefined") return "portrait_v1";
-    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY(projectId)) as LayoutVariant | null;
-    if (isValidLayout(saved) && isSelectableLayout(saved)) return saved;
-    const rec = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
-    if (isValidLayout(rec) && isSelectableLayout(rec as LayoutVariant)) return rec as LayoutVariant;
-    return "portrait_v1";
-  });
-  // Guard: if a remembered layout becomes unavailable (Pro downgrade, or layout
-  // newly flagged coming-soon), fall back to portrait.
-  useEffect(() => {
-    if (!isSelectableLayout(layout)) setLayout("portrait_v1");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPro, layout]);
-  const orientation = LAYOUTS.find(l => l.value === layout)?.orientation ?? "portrait";
+  // Layout is always portrait. The previous editorial/grid options were removed
+  // per product direction — every export ships as portrait_v1.
+  const [layout] = useState<LayoutVariant>("portrait_v1");
+  const orientation: "portrait" | "landscape" = "portrait";
 
   const initialMode: Mode = "last";
   const [mode, setMode] = useState<Mode>(initialMode);
