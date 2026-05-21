@@ -216,7 +216,7 @@ export const ExportPdfDialog = ({
   }, [isPro, layout]);
   const orientation = LAYOUTS.find(l => l.value === layout)?.orientation ?? "portrait";
 
-  const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
+  const initialMode: Mode = "last";
   const [mode, setMode] = useState<Mode>(initialMode);
   const [rangeFrom, setRangeFrom] = useState<string | null>(null);
   const [rangeTo, setRangeTo] = useState<string | null>(null);
