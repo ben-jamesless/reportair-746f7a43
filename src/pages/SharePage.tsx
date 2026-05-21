@@ -336,31 +336,108 @@ const SharePage = () => {
     return m;
   }, [photos]);
 
-  const downloadLatestReport = async () => {
-    if (!token || downloading) return;
-    setDownloading(true);
+  // ============ Share-side PDF export (portrait only) ============
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<"single" | "range">("single");
+  const [exportFrom, setExportFrom] = useState<string | null>(null);
+  const [exportTo, setExportTo] = useState<string | null>(null);
+  const [exportStatus, setExportStatus] = useState<"idle" | "creating" | "processing" | "ready" | "failed">("idle");
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // Days available for export: derived from photos grouped by date.
+  const exportDaysAsc = useMemo(
+    () =>
+      [...allDayGroups]
+        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .map((g) => ({ key: isoDateKey(g.date), label: DATE_FMT.format(g.date), date: g.date })),
+    [allDayGroups],
+  );
+  const lastDay = exportDaysAsc[exportDaysAsc.length - 1] ?? null;
+
+  // Seed range pickers when dialog opens
+  useEffect(() => {
+    if (!exportOpen) return;
+    if (exportDaysAsc.length > 0) {
+      setExportFrom(exportDaysAsc[0].key);
+      setExportTo(exportDaysAsc[exportDaysAsc.length - 1].key);
+    }
+    setExportStatus("idle");
+    setExportError(null);
+    setExportMode("single");
+  }, [exportOpen, exportDaysAsc]);
+
+  const downloadFromUrl = async (url: string, filename = "site-story.pdf") => {
+    const fileRes = await fetch(url);
+    if (!fileRes.ok) throw new Error(`http ${fileRes.status}`);
+    const blob = await fileRes.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl; a.rel = "noopener"; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  };
+
+  const runShareExport = async () => {
+    if (!token) return;
+    if (exportMode === "range" && (!exportFrom || !exportTo)) {
+      toast.error("Pick a from and to date");
+      return;
+    }
+    if (exportMode === "single" && !lastDay) {
+      toast.error("No dated photos to export");
+      return;
+    }
+    setExportStatus("creating");
+    setExportError(null);
     try {
-      const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-export-url`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-      const json = await res.json();
-      if (!res.ok || !json.url) { toast.error("Could not get download link"); return; }
-      const fileRes = await fetch(json.url);
-      if (!fileRes.ok) throw new Error(`http ${fileRes.status}`);
-      const blob = await fileRes.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl; a.rel = "noopener";
-      a.download = "site-story.pdf";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-    } catch {
-      toast.error("Download failed");
-    } finally {
-      setDownloading(false);
+      const body: Record<string, unknown> = { token, mode: exportMode };
+      if (exportMode === "single" && lastDay) {
+        body.day_key = lastDay.key;
+        body.day_label = lastDay.label;
+      } else if (exportMode === "range" && exportFrom && exportTo) {
+        const lo = exportFrom <= exportTo ? exportFrom : exportTo;
+        const hi = exportFrom <= exportTo ? exportTo : exportFrom;
+        body.date_from = lo;
+        body.date_to = hi;
+      }
+      const createRes = await fetch(
+        `https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-create-export`,
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+      );
+      const createJson = await createRes.json();
+      if (!createRes.ok || !createJson.export_id) {
+        throw new Error(createJson.error || "Could not start export");
+      }
+      const exportId: string = createJson.export_id;
+      setExportStatus("processing");
+
+      // Poll status
+      const started = Date.now();
+      while (Date.now() - started < 5 * 60 * 1000) {
+        await new Promise((r) => setTimeout(r, 2500));
+        const statusRes = await fetch(
+          `https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-export-url`,
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, export_id: exportId }) },
+        );
+        const sj = await statusRes.json();
+        if (sj.status === "ready" && sj.url) {
+          setExportStatus("ready");
+          await downloadFromUrl(sj.url);
+          setExportOpen(false);
+          return;
+        }
+        if (sj.status === "failed") {
+          throw new Error(sj.error_message || "Export failed");
+        }
+      }
+      throw new Error("Export timed out");
+    } catch (e) {
+      setExportStatus("failed");
+      setExportError(e instanceof Error ? e.message : "Export failed");
+      toast.error(e instanceof Error ? e.message : "Export failed");
     }
   };
+
 
   // Day-level scroll anchors (for ALL_DAYS view)
   const dayAnchorRefs = useRef<Map<string, HTMLElement | null>>(new Map());
