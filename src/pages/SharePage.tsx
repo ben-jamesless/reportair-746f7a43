@@ -140,6 +140,7 @@ const SharePage = () => {
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const accent = brandColour ?? TEAL;
 
   useEffect(() => {
