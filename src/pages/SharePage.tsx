@@ -192,6 +192,20 @@ const SharePage = () => {
       if (typeof bc === "string" && /^#[0-9a-fA-F]{6}$/.test(bc)) setBrandColour(bc);
       else setBrandColour(null);
     } catch { /* silent — fall back to default accent */ }
+    // Fetch project logo (signed URL via edge function so the private bucket stays private).
+    try {
+      const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-logo-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        setLogoUrl(typeof j?.url === "string" ? j.url : null);
+      } else {
+        setLogoUrl(null);
+      }
+    } catch { setLogoUrl(null); }
   };
 
   const loadFeedback = useCallback(async () => {
