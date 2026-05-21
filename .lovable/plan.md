@@ -1,75 +1,90 @@
-# Make BuildSlides crawlable by AI bots
+## Goal
 
-## Diagnosis
+Let users delete an area directly from the project sidebar (where they actually look at areas), with a 5-second **Undo** toast so a mis-click is recoverable. Photos previously tagged to the area fall back to "Unassigned" while deleted, and reappear under the area on undo.
 
-The site **is** public (`publish_visibility: public`, robots.txt allows `/`). The actual problem is that BuildSlides is a client-rendered React SPA. The HTML served at `https://www.buildslides.com/` is essentially:
+## UX
 
-```html
-<head>...meta tags...</head>
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
+In `src/features/projectDetail/DayTimeline.tsx` — the AREAS list at lines 367–384:
+
+- On hover (and always on touch), each area row shows a small trash icon on the right.
+- Click trash → row disappears immediately (optimistic), sonner toast appears: **"Area '{name}' deleted"** with an **Undo** action, auto-dismiss after 5s.
+- If the user was viewing that area (`activeArea === ar.id`), reset to "All areas".
+- After 5s with no undo → the soft delete becomes permanent from the user's perspective (the row stays gone; row remains in DB with `deleted_at` set, but is filtered out everywhere).
+- Undo → row reappears in original position, photos re-show under it.
+
+The existing modal-based delete in `AreasManager.tsx` (Project Settings) stays — but is also switched to the same soft-delete + undo flow for consistency. No more "type to confirm"; the undo toast is the safety net.
+
+## Technical changes
+
+### 1. Database — soft delete column
+
+Migration on `public.areas`:
+
+```sql
+ALTER TABLE public.areas ADD COLUMN deleted_at TIMESTAMPTZ;
+CREATE INDEX areas_project_active_idx ON public.areas (project_id) WHERE deleted_at IS NULL;
 ```
 
-Googlebot executes JS so it sees the rendered marketing page. **Perplexity, ChatGPT's browser, Claude's fetcher, and most LLM crawlers do NOT execute JS** — they see an empty body and report "not publicly accessible / behind a login wall."
+No FK / RLS changes needed — `photos.area_id` keeps pointing at the row, it's just filtered from queries.
 
-Lovable hosting doesn't support SSR, so the fix is to ship static, human/bot-readable marketing content directly inside `index.html`. Real users still get the React app (it mounts into `#root` and takes over the page); bots get real content to index.
+### 2. Query filters
 
-## What to build
+Every `from("areas").select(...)` call must add `.is("deleted_at", null)`. Files to update:
 
-Update `index.html` to include a `<noscript>`-style marketing fallback inside `<body>` that is rendered server-side as static HTML. React will replace `#root`'s contents on mount, so users never see it; crawlers do.
+- `src/features/projectDetail/useProjectDetail.ts` (the main areas load, ~line 125)
+- `src/components/AreasManager.tsx` (the load() function)
+- `src/pages/SharePage.tsx` (if it pulls areas)
+- Edge function `supabase/functions/generate-pdf/` if it joins areas
 
-### Content to inline (sourced from existing marketing components)
+And anywhere `photos` are grouped by area, treat photos whose `area_id` points to a soft-deleted area as **unassigned** (compute via "area exists in active list?" rather than just `area_id != null`). The grouping helpers in `useProjectDetail.ts` already key off the `areas` array, so once that array is filtered they'll just work — but verify the `areaCountsForDay` / `areaIdsForPhoto` paths.
 
-Pull copy from `src/components/marketing/` (`HeroSection`, `UseCasesSection`, `HowItWorksSection`, `PricingSection`, `FAQSection`) and flatten it into a single static block:
+### 3. Hook API — extend `useProjectDetail`
 
-1. **H1** + subheadline (hero)
-2. **Who it's for** (use cases: event-build crews, activations, exhibitions, conferences)
-3. **How it works** (3–4 steps, plain text)
-4. **Pricing tiers** (names, prices, key bullets)
-5. **FAQ** (questions + short answers — high value for LLM grounding)
-6. **Footer links** (pricing, sign in, contact, legal) as plain `<a>` tags so crawlers discover routes
+Add two callbacks alongside `addArea`:
 
-### Structure
+- `softDeleteArea(id)` → `update({ deleted_at: now() }).eq("id", id)`, then optimistic local state removal.
+- `restoreArea(id)` → `update({ deleted_at: null }).eq("id", id)`, then refetch / re-insert into local state at original `sort_order`.
 
-```text
-<body>
-  <div id="root">
-    <!-- Static crawlable marketing content -->
-    <header>...logo + nav links...</header>
-    <main>
-      <section><h1>...</h1><p>...</p></section>
-      <section><h2>Who it's for</h2>...</section>
-      <section><h2>How it works</h2>...</section>
-      <section><h2>Pricing</h2>...</section>
-      <section><h2>FAQ</h2>...</section>
-    </main>
-    <footer>...</footer>
-  </div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
+Expose both from the hook return and pass through `ProjectDetail.tsx` → `DayTimeline` (new prop `onDeleteArea`) and reuse in `AreasManager`.
+
+### 4. Sidebar row UI
+
+Modify the area `<button>` (DayTimeline.tsx lines 370–383) into a flex row with:
+
+- The existing label button (click = select area)
+- A trailing `<button>` with `<Trash2 className="h-3.5 w-3.5" />` from lucide-react, shown via `opacity-0 group-hover:opacity-100` on the parent + always visible on `sm:hidden` (touch).
+- `stopPropagation` on the trash click so it doesn't toggle selection.
+- Gated by `canEdit`.
+
+### 5. Toast with undo
+
+```ts
+const onDeleteArea = (ar: Area) => {
+  softDeleteArea(ar.id);
+  if (activeArea === ar.id) onSetActiveArea(null);
+  toast(`Area "${ar.name}" deleted`, {
+    action: { label: "Undo", onClick: () => restoreArea(ar.id) },
+    duration: 5000,
+  });
+};
 ```
 
-React's `createRoot(...).render(<App />)` clears `#root` before mounting, so end users never see the static block — only a brief flash at worst (mitigated by it being above-the-fold-shaped and styled minimally / hidden via a quick inline CSS rule like `#root > .static-fallback { display: none }` toggled by an inline script once JS runs; or simpler: rely on React's mount to replace it).
+(`sonner` is already used project-wide.)
 
-### Files
+### 6. AreasManager.tsx cleanup
 
-- `index.html` — add the static marketing block inside `#root`, plus a small `<style>` for readable typography (no Tailwind available here — use a tiny inline stylesheet).
+Replace the existing `AlertDialog`-based hard delete with the same soft-delete + undo toast. Remove `pendingDeleteId`, `pendingDeleteArea`, and the `<AlertDialog>` block. Keep the trash button.
 
-### Verification
+## Out of scope
 
-1. After deploy, run `curl -s https://www.buildslides.com/ | grep -i "report in 10 minutes"` — should return the H1 text.
-2. Ask Perplexity to re-analyze `www.buildslides.com` and confirm it now reads the content.
-3. Load the site in a normal browser — confirm the React app still renders identically (the static block should be replaced on mount, no visible flash beyond initial paint).
-4. Lighthouse / view-source to confirm no layout regressions.
+- A "Trash / recently deleted" UI to restore areas after the 5s window expires. (Possible follow-up — the `deleted_at` column makes it trivial.)
+- A scheduled job to hard-delete rows after N days.
+- Bulk multi-select delete.
 
-### Out of scope
+## Verification
 
-- Per-route prerendering (pricing page, etc.). The homepage carries 90% of the value for LLM grounding. We can extend later if needed.
-- Switching frameworks or adding SSR.
-
-## Confirm before I build
-
-- OK to inline the marketing copy (hero, use cases, how-it-works, pricing, FAQ) from the existing components into `index.html`? I'll keep the copy verbatim so it matches the rendered site.
-- Any pages besides `/` you want crawlable in this pass? (e.g. `/pricing` if it has a dedicated route — I'll check, but I don't think it does.)
+- Hover an area in the sidebar → trash appears → click → row vanishes, toast shows.
+- Click **Undo** within 5s → row returns at the same position, photos re-show.
+- Let toast expire → row stays gone, photos appear in "Unassigned", PDF export shows them as unassigned.
+- AreasManager in Project Settings behaves the same way.
+- Share links / public report views don't show deleted areas.
