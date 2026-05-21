@@ -812,7 +812,7 @@ export const ExportPdfDialog = ({
               !!inProgress ||
               !canExportPdf ||
               (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0)) ||
-              (mode === "album" && (!selectedAlbumId || effectivePhotoCount === 0))
+              (mode === "last" && effectivePhotoCount === 0)
             }
           >
             {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
