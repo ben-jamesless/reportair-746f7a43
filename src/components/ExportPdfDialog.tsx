@@ -114,7 +114,7 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
 };
 
-type Mode = "single" | "range" | "album";
+type Mode = "last" | "range";
 
 const fmtScope = (opts: Record<string, unknown> | null): string => {
   if (!opts) return "Export";
