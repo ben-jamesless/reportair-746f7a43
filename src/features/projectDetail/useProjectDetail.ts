@@ -47,6 +47,8 @@ export interface ProjectDetailState {
 
   // Area mutations
   addArea: (name: string) => Promise<void>;
+  softDeleteArea: (id: string) => Promise<void>;
+  restoreArea: (id: string) => Promise<void>;
 
   // Photo mutations (bulk)
   bulkAssignArea: (photoIds: string[], areaId: string | null) => Promise<void>;
