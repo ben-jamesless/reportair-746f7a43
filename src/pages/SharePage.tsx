@@ -612,6 +612,88 @@ const SharePage = () => {
         </div>
       </header>
 
+      {/* EXPORT PDF DIALOG */}
+      <Dialog open={exportOpen} onOpenChange={(o) => { if (exportStatus === "creating" || exportStatus === "processing") return; setExportOpen(o); }}>
+        <DialogContent className="max-w-lg">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold" style={{ color: NEAR_BLACK }}>Export PDF</h2>
+              <p className="text-sm" style={{ color: MUTED }}>Generate a portrait PDF report of this project.</p>
+            </div>
+
+            {/* Mode toggle */}
+            <div className="grid grid-cols-2 gap-2 rounded-md p-1" style={{ backgroundColor: SURFACE }}>
+              <button
+                type="button"
+                onClick={() => setExportMode("single")}
+                disabled={exportStatus === "creating" || exportStatus === "processing"}
+                className={cn("rounded px-3 py-2 text-sm font-medium transition", exportMode === "single" ? "bg-white shadow" : "")}
+                style={{ color: exportMode === "single" ? NEAR_BLACK : MUTED }}
+              >
+                Last day
+              </button>
+              <button
+                type="button"
+                onClick={() => setExportMode("range")}
+                disabled={exportStatus === "creating" || exportStatus === "processing"}
+                className={cn("rounded px-3 py-2 text-sm font-medium transition", exportMode === "range" ? "bg-white shadow" : "")}
+                style={{ color: exportMode === "range" ? NEAR_BLACK : MUTED }}
+              >
+                Select a range
+              </button>
+            </div>
+
+            {exportMode === "single" ? (
+              <div className="rounded-md border p-3 text-sm" style={{ borderColor: DIVIDER, backgroundColor: SURFACE, color: BODY }}>
+                <Calendar className="mr-2 inline h-4 w-4" style={{ color: accent }} />
+                {lastDay ? <>Scoped to <span className="font-medium">{lastDay.label}</span></> : "No dated photos yet"}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs" style={{ color: MUTED }}>From</Label>
+                  <Input
+                    type="date"
+                    value={exportFrom ?? ""}
+                    min={exportDaysAsc[0]?.key}
+                    max={exportTo ?? exportDaysAsc[exportDaysAsc.length - 1]?.key}
+                    onChange={(e) => setExportFrom(e.target.value || null)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs" style={{ color: MUTED }}>To</Label>
+                  <Input
+                    type="date"
+                    value={exportTo ?? ""}
+                    min={exportFrom ?? exportDaysAsc[0]?.key}
+                    max={exportDaysAsc[exportDaysAsc.length - 1]?.key}
+                    onChange={(e) => setExportTo(e.target.value || null)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {exportError && (
+              <p className="text-sm" style={{ color: "#C7382A" }}>{exportError}</p>
+            )}
+
+            <Button
+              onClick={runShareExport}
+              disabled={exportStatus === "creating" || exportStatus === "processing"}
+              className="w-full text-white hover:opacity-90"
+              style={{ backgroundColor: accent }}
+            >
+              {(exportStatus === "creating" || exportStatus === "processing") ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{exportStatus === "creating" ? "Starting…" : "Generating PDF…"}</>
+              ) : (
+                <><Download className="mr-2 h-4 w-4" />Generate PDF</>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
       {/* THREE-COLUMN LAYOUT */}
       <div className="mx-auto w-full px-6 py-6 2xl:px-10">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,4fr)_minmax(0,3fr)]">
