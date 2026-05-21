@@ -596,16 +596,15 @@ const SharePage = () => {
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <StatusPill statusKey={overallStatus} size="md" />
-              {hasLatestExport && (
+              {exportDaysAsc.length > 0 && (
                 <Button
                   size="sm"
-                  onClick={downloadLatestReport}
-                  disabled={downloading}
+                  onClick={() => setExportOpen(true)}
                   className="text-sm font-medium text-white hover:opacity-90"
                   style={{ backgroundColor: accent }}
                 >
-                  {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                  Download latest report
+                  <Download className="mr-2 h-4 w-4" />
+                  Export PDF
                 </Button>
               )}
             </div>
