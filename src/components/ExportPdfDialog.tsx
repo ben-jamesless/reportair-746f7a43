@@ -429,20 +429,20 @@ export const ExportPdfDialog = ({
 
 
   // Compute photos covered + cap for current selection
-  const { effectivePhotoCount, rangeDays } = useMemo(() => {
+  const { effectivePhotoCount, rangeDays, lastDay } = useMemo(() => {
+    const last = daysAsc.length > 0 ? daysAsc[daysAsc.length - 1] : null;
     if (mode === "range" && rangeFrom && rangeTo) {
       const lo = rangeFrom <= rangeTo ? rangeFrom : rangeTo;
       const hi = rangeFrom <= rangeTo ? rangeTo : rangeFrom;
       const inRange = daysAsc.filter((d) => d.key >= lo && d.key <= hi);
       const total = inRange.reduce((sum, d) => sum + d.photoCount, 0);
-      return { effectivePhotoCount: total, rangeDays: inRange };
+      return { effectivePhotoCount: total, rangeDays: inRange, lastDay: last };
     }
-    if (mode === "album" && selectedAlbumId) {
-      const a = albums.find((x) => x.id === selectedAlbumId);
-      return { effectivePhotoCount: a?.photoCount ?? 0, rangeDays: [] as AvailableDay[] };
-    }
-    return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[] };
-  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount, selectedAlbumId, albums]);
+    // Last day mode: scope to a specific day if passed in, otherwise the most recent day with photos.
+    if (dayKey) return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[], lastDay: last };
+    if (last) return { effectivePhotoCount: last.photoCount, rangeDays: [] as AvailableDay[], lastDay: last };
+    return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[], lastDay: last };
+  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount, dayKey]);
 
   const overCap = effectivePhotoCount > PHOTO_CAP;
 
