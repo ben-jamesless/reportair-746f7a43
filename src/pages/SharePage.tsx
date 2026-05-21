@@ -1164,8 +1164,9 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
               ))}
             </div>
             <div className="space-y-2 border-t pt-3">
-              <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder={`Leave a note as ${guest.name}…`} rows={3} maxLength={2000} />
-              <Button size="sm" className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={submitNote} disabled={!body.trim()}>Add note</Button>
+              <Input value={guestName} onChange={(e) => setGuestName(e.target.value)} placeholder="Your name" maxLength={80} />
+              <Textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Leave a note…" rows={3} maxLength={2000} />
+              <Button size="sm" className="w-full text-white" style={{ backgroundColor: TEAL }} onClick={submitNote} disabled={!body.trim() || !guestName.trim()}>Add note</Button>
             </div>
           </aside>
         </div>
