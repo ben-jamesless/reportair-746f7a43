@@ -598,6 +598,15 @@ const ProjectDetail = () => {
                 onSelectDayArea={selectDayArea}
                 onOpenDayExport={openDayExport}
                 onAddArea={addArea}
+                onAddArea={addArea}
+                onDeleteArea={async (ar) => {
+                  await softDeleteArea(ar.id);
+                  if (activeArea === ar.id) setActiveArea(null);
+                  toast(`Area "${ar.name}" deleted`, {
+                    duration: 5000,
+                    action: { label: "Undo", onClick: () => { void restoreArea(ar.id); } },
+                  });
+                }}
                 getAreaDayStatus={getAreaDayStatus}
                 areaCountsForDay={areaCountsForDay}
               />
