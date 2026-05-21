@@ -121,7 +121,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               extraSections={
                 <>
                   <HeicBackfillButton projectId={projectId} />
-                  <PhotoDateBackfillButton projectId={projectId} />
+                  <BulkSetCaptureDateCard projectId={projectId} />
                 </>
               }
             />
