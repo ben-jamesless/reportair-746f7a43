@@ -597,6 +597,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     archiveProject,
     restoreProject,
     addArea,
+    softDeleteArea,
+    restoreArea,
     bulkAssignArea,
     bulkMoveToDay,
     bulkDelete,
