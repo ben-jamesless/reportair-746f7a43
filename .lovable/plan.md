@@ -1,90 +1,44 @@
-## Goal
+## Three fixes for the share-link page
 
-Let users delete an area directly from the project sidebar (where they actually look at areas), with a 5-second **Undo** toast so a mis-click is recoverable. Photos previously tagged to the area fall back to "Unassigned" while deleted, and reappear under the area on undo.
+### 1. Show the project logo (replaces the project name when uploaded)
 
-## UX
+The project already supports uploading a logo (stored at `projects.logo_path` in the private `export-assets` bucket, used by PDF export). The share-link RPC currently doesn't expose it, and the share page only renders the project name.
 
-In `src/features/projectDetail/DayTimeline.tsx` — the AREAS list at lines 367–384:
+**Changes:**
 
-- On hover (and always on touch), each area row shows a small trash icon on the right.
-- Click trash → row disappears immediately (optimistic), sonner toast appears: **"Area '{name}' deleted"** with an **Undo** action, auto-dismiss after 5s.
-- If the user was viewing that area (`activeArea === ar.id`), reset to "All areas".
-- After 5s with no undo → the soft delete becomes permanent from the user's perspective (the row stays gone; row remains in DB with `deleted_at` set, but is filtered out everywhere).
-- Undo → row reappears in original position, photos re-show under it.
+- **DB migration — extend `resolve_share_link`** to add `logo_path` to the project allowlist returned in the payload.
+- **New RPC `get_share_logo_url(_token uuid)`** (SECURITY DEFINER, anon executable) that mirrors the existing `get_share_brand_colour` pattern: validates the token, looks up `projects.logo_path`, and returns a 1-hour signed URL via `storage.objects` / `extensions.crypto`. Returning a signed URL keeps the bucket private. *(Alt: if we don't want a new RPC, we can call an edge function — but matching the existing `get_share_brand_colour` RPC is the least new code.)*
+- **`src/pages/SharePage.tsx` header (lines 488–497):** after the brand-colour fetch, also call `get_share_logo_url`; store `logoUrl` in state.
+  - If `logoUrl` is set → render `<img src={logoUrl} alt={project.name} className="h-10 md:h-12 w-auto max-w-[280px] object-contain" />` **in place of** the `<h1>{project.name}</h1>`. Keep the subtitle line (`HKGC · Hong Kong Golf Club`) below the logo. Keep `document.title` driven by `project.name`.
+  - If no logo → unchanged (show the H1 text).
 
-The existing modal-based delete in `AreasManager.tsx` (Project Settings) stays — but is also switched to the same soft-delete + undo flow for consistency. No more "type to confirm"; the undo toast is the safety net.
+### 2. Status colours — align with the app
 
-## Technical changes
+The app's canonical palette (`src/lib/projectStatus.ts`, `src/components/AreaStatusPicker.tsx`):
 
-### 1. Database — soft delete column
+| Status | Colour |
+|---|---|
+| On track | `#3A6EA5` (blue) |
+| Discuss / Requires discussion | `#D94F2A` (orange) |
+| Delayed (concern / behind_schedule) | `#C7382A` (red) |
+| Complete | `#3A7D44` (green) |
+| No status | `#9C9A93` (grey) |
 
-Migration on `public.areas`:
+SharePage's `STATUS_META` (lines 71–80) is wrong — `on_track` is `#D94F2A` (orange) and `at_risk`/`requires_discussion` use `#FF8C00`. **Fix:** replace `STATUS_META` with the values above. Update labels to "On track" / "Discuss" / "Delayed" / "Complete" / "No status" to match the rest of the app.
 
-```sql
-ALTER TABLE public.areas ADD COLUMN deleted_at TIMESTAMPTZ;
-CREATE INDEX areas_project_active_idx ON public.areas (project_id) WHERE deleted_at IS NULL;
-```
+This fixes the orange "On Track" pill in your screenshot (it'll become blue), and the day-row status pill on "Tuesday 19 May 2026".
 
-No FK / RLS changes needed — `photos.area_id` keeps pointing at the row, it's just filtered from queries.
+### 3. Fonts
 
-### 2. Query filters
-
-Every `from("areas").select(...)` call must add `.is("deleted_at", null)`. Files to update:
-
-- `src/features/projectDetail/useProjectDetail.ts` (the main areas load, ~line 125)
-- `src/components/AreasManager.tsx` (the load() function)
-- `src/pages/SharePage.tsx` (if it pulls areas)
-- Edge function `supabase/functions/generate-pdf/` if it joins areas
-
-And anywhere `photos` are grouped by area, treat photos whose `area_id` points to a soft-deleted area as **unassigned** (compute via "area exists in active list?" rather than just `area_id != null`). The grouping helpers in `useProjectDetail.ts` already key off the `areas` array, so once that array is filtered they'll just work — but verify the `areaCountsForDay` / `areaIdsForPhoto` paths.
-
-### 3. Hook API — extend `useProjectDetail`
-
-Add two callbacks alongside `addArea`:
-
-- `softDeleteArea(id)` → `update({ deleted_at: now() }).eq("id", id)`, then optimistic local state removal.
-- `restoreArea(id)` → `update({ deleted_at: null }).eq("id", id)`, then refetch / re-insert into local state at original `sort_order`.
-
-Expose both from the hook return and pass through `ProjectDetail.tsx` → `DayTimeline` (new prop `onDeleteArea`) and reuse in `AreasManager`.
-
-### 4. Sidebar row UI
-
-Modify the area `<button>` (DayTimeline.tsx lines 370–383) into a flex row with:
-
-- The existing label button (click = select area)
-- A trailing `<button>` with `<Trash2 className="h-3.5 w-3.5" />` from lucide-react, shown via `opacity-0 group-hover:opacity-100` on the parent + always visible on `sm:hidden` (touch).
-- `stopPropagation` on the trash click so it doesn't toggle selection.
-- Gated by `canEdit`.
-
-### 5. Toast with undo
-
-```ts
-const onDeleteArea = (ar: Area) => {
-  softDeleteArea(ar.id);
-  if (activeArea === ar.id) onSetActiveArea(null);
-  toast(`Area "${ar.name}" deleted`, {
-    action: { label: "Undo", onClick: () => restoreArea(ar.id) },
-    duration: 5000,
-  });
-};
-```
-
-(`sonner` is already used project-wide.)
-
-### 6. AreasManager.tsx cleanup
-
-Replace the existing `AlertDialog`-based hard delete with the same soft-delete + undo toast. Remove `pendingDeleteId`, `pendingDeleteArea`, and the `<AlertDialog>` block. Keep the trash button.
+Confirmed correct. The whole app — including `SharePage.tsx` — inherits `font-sans` = **Geist** (Tailwind config + `index.css`), self-hosted via `@font-face` in `index.html`. SharePage sets no font overrides, so headings, body, and pills all render in Geist. No change needed.
 
 ## Out of scope
 
-- A "Trash / recently deleted" UI to restore areas after the 5s window expires. (Possible follow-up — the `deleted_at` column makes it trivial.)
-- A scheduled job to hard-delete rows after N days.
-- Bulk multi-select delete.
+- Team-level logo (Settings → branding). Per-project `logo_path` is what the user uploaded for this project and what PDF export already uses; sharing the same value gives one consistent brand.
+- Dark-mode tweaks on the share page (it forces a white background).
 
 ## Verification
 
-- Hover an area in the sidebar → trash appears → click → row vanishes, toast shows.
-- Click **Undo** within 5s → row returns at the same position, photos re-show.
-- Let toast expire → row stays gone, photos appear in "Unassigned", PDF export shows them as unassigned.
-- AreasManager in Project Settings behaves the same way.
-- Share links / public report views don't show deleted areas.
+- Upload a project logo via Project Settings → reload share link → logo appears in header instead of "Hong Kong Open"; remove logo → name returns.
+- On a project with overall status = On track, share link shows a blue pill matching the app.
+- PDF export still works (it reads `logo_path` independently).

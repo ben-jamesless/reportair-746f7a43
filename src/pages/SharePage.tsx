@@ -69,14 +69,14 @@ const SURFACE = "#F5F7FA"; // FOG
 
 // Status meta — pill backgrounds & dot colors
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On Track", bg: "#D94F2A" },
-  at_risk: { label: "At Risk", bg: "#FF8C00" },
-  requires_discussion: { label: "Requires Discussion", bg: "#FF8C00" },
-  delayed: { label: "Delayed", bg: "#FF3B30" },
-  concern: { label: "Delayed", bg: "#FF3B30" },
-  behind_schedule: { label: "Delayed", bg: "#FF3B30" },
-  complete: { label: "Complete", bg: "#1DB87A" },
-  no_status: { label: "No status", bg: "#7A8FA8" },
+  on_track: { label: "On track", bg: "#3A6EA5" },
+  at_risk: { label: "Discuss", bg: "#D94F2A" },
+  requires_discussion: { label: "Discuss", bg: "#D94F2A" },
+  delayed: { label: "Delayed", bg: "#C7382A" },
+  concern: { label: "Delayed", bg: "#C7382A" },
+  behind_schedule: { label: "Delayed", bg: "#C7382A" },
+  complete: { label: "Complete", bg: "#3A7D44" },
+  no_status: { label: "No status", bg: "#9C9A93" },
 };
 
 const StatusPill = ({ statusKey, size = "sm" }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
@@ -140,6 +140,7 @@ const SharePage = () => {
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const accent = brandColour ?? TEAL;
 
   useEffect(() => {
@@ -191,6 +192,20 @@ const SharePage = () => {
       if (typeof bc === "string" && /^#[0-9a-fA-F]{6}$/.test(bc)) setBrandColour(bc);
       else setBrandColour(null);
     } catch { /* silent — fall back to default accent */ }
+    // Fetch project logo (signed URL via edge function so the private bucket stays private).
+    try {
+      const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-logo-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        setLogoUrl(typeof j?.url === "string" ? j.url : null);
+      } else {
+        setLogoUrl(null);
+      }
+    } catch { setLogoUrl(null); }
   };
 
   const loadFeedback = useCallback(async () => {
@@ -486,9 +501,17 @@ const SharePage = () => {
         <div className="mx-auto w-full px-6 py-6 2xl:px-10">
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
-                {project?.name}
-              </h1>
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={project?.name ?? "Project logo"}
+                  className="h-10 w-auto max-w-[280px] object-contain md:h-12"
+                />
+              ) : (
+                <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
+                  {project?.name}
+                </h1>
+              )}
               {subtitleBits.length > 0 && (
                 <p className="mt-1.5 text-sm" style={{ color: MUTED }}>
                   {subtitleBits.join(" · ")}
