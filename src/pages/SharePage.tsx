@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare } from "lucide-react";
+import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -59,25 +59,30 @@ type Resolved = {
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
-// BuildSlides design tokens
-const TEAL = "#D94F2A"; // SKY — kept variable name for compat
-const NEAR_BLACK = "#0F1724"; // INK
-const BODY = "#3D4F66"; // SLATE
-const MUTED = "#7A8FA8"; // MIST
-const DIVIDER = "#D0D9E8"; // BORDER
-const SURFACE = "#F5F7FA"; // FOG
+// BuildSlides share-page design tokens — themed via CSS variables on root wrapper.
+// Switch between light/dark by toggling --bg, --surface, --ink, --body, --muted, --border on the root.
+const TEAL = "#c84b2f"; // BuildSlides red-orange accent (used as fallback when brand colour absent)
+const NEAR_BLACK = "var(--ink)";
+const BODY = "var(--body)";
+const MUTED = "var(--muted)";
+const DIVIDER = "var(--border)";
+const SURFACE = "var(--surface-2)";
 
 // Status meta — pill backgrounds & dot colors
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On track", bg: "#3A6EA5" },
-  at_risk: { label: "Discuss", bg: "#D94F2A" },
-  requires_discussion: { label: "Discuss", bg: "#D94F2A" },
-  delayed: { label: "Delayed", bg: "#C7382A" },
-  concern: { label: "Delayed", bg: "#C7382A" },
-  behind_schedule: { label: "Delayed", bg: "#C7382A" },
-  complete: { label: "Complete", bg: "#3A7D44" },
+  on_track: { label: "On track", bg: "#437a22" },
+  at_risk: { label: "Delayed", bg: "#d19900" },
+  requires_discussion: { label: "Discuss", bg: "#d19900" },
+  delayed: { label: "Delayed", bg: "#d19900" },
+  concern: { label: "Delayed", bg: "#d19900" },
+  behind_schedule: { label: "Delayed", bg: "#d19900" },
+  complete: { label: "Complete", bg: "#006494" },
   no_status: { label: "No status", bg: "#9C9A93" },
 };
+
+// Fixed 6-colour palette for area dots
+const AREA_PALETTE = ["#437a22", "#006494", "#da7101", "#7a39bb", "#01696f", "#a13544"];
+const colourForArea = (id: string, idx: number) => AREA_PALETTE[idx % AREA_PALETTE.length];
 
 const StatusPill = ({ statusKey, size = "sm" }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
   if (!statusKey) return null;
@@ -141,7 +146,18 @@ const SharePage = () => {
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
   const accent = brandColour ?? TEAL;
+
+  // Load Inter font once
+  useEffect(() => {
+    if (document.getElementById("share-inter-font")) return;
+    const l = document.createElement("link");
+    l.id = "share-inter-font";
+    l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
+    document.head.appendChild(l);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -570,47 +586,93 @@ const SharePage = () => {
     </div>
   );
 
+  // Theme tokens — applied as CSS variables on the root so all inline styles using var(--*) re-theme automatically.
+  const themeVars = dark
+    ? {
+        ["--bg" as string]: "#171614",
+        ["--surface" as string]: "#1f1d1a",
+        ["--surface-2" as string]: "#252320",
+        ["--ink" as string]: "#f5f3ee",
+        ["--body" as string]: "#c9c5bd",
+        ["--muted" as string]: "#8a8478",
+        ["--border" as string]: "rgba(255,255,255,0.12)",
+      }
+    : {
+        ["--bg" as string]: "#f7f6f2",
+        ["--surface" as string]: "#ffffff",
+        ["--surface-2" as string]: "#f1efe9",
+        ["--ink" as string]: "#171614",
+        ["--body" as string]: "#3a3733",
+        ["--muted" as string]: "#7a756d",
+        ["--border" as string]: "rgba(0,0,0,0.10)",
+      };
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: BODY }}>
-      {/* HEADER */}
-      <header className="border-b" style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}>
-        <div className="mx-auto w-full px-6 py-6 2xl:px-10">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+    <div
+      data-theme={dark ? "dark" : "light"}
+      className="min-h-screen"
+      style={{
+        ...(themeVars as React.CSSProperties),
+        backgroundColor: "var(--bg)",
+        color: BODY,
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      }}
+    >
+      {/* HEADER — sticky 64px */}
+      <header
+        className="sticky top-0 z-30 h-16 border-b backdrop-blur-md transition-shadow"
+        style={{
+          borderColor: DIVIDER,
+          backgroundColor: dark ? "rgba(23,22,20,0.85)" : "rgba(247,246,242,0.85)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+        }}
+      >
+        <div className="mx-auto flex h-full w-full max-w-[1600px] items-center justify-between gap-4 px-5 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt={project?.name ?? "Project logo"}
+                className="h-8 w-auto max-w-[140px] shrink-0 object-contain"
+              />
+            )}
             <div className="min-w-0">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={project?.name ?? "Project logo"}
-                  className="h-10 w-auto max-w-[280px] object-contain md:h-12"
-                />
-              ) : (
-                <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
-                  {project?.name}
-                </h1>
-              )}
-              {subtitleBits.length > 0 && (
-                <p className="mt-1.5 text-sm" style={{ color: MUTED }}>
-                  {subtitleBits.join(" · ")}
+              <h1 className="truncate text-[15px] font-semibold leading-tight" style={{ color: NEAR_BLACK }}>
+                {project?.name}
+              </h1>
+              {project?.event_location && (
+                <p className="truncate text-xs leading-tight" style={{ color: MUTED }}>
+                  {project.event_location}
                 </p>
               )}
             </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <StatusPill statusKey={overallStatus} size="md" />
-              {exportDaysAsc.length > 0 && (
-                <Button
-                  size="sm"
-                  onClick={() => setExportOpen(true)}
-                  className="text-sm font-medium text-white hover:opacity-90"
-                  style={{ backgroundColor: accent }}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export PDF
-                </Button>
-              )}
-            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <StatusPill statusKey={overallStatus} size="md" />
+            {exportDaysAsc.length > 0 && (
+              <Button
+                size="sm"
+                onClick={() => setExportOpen(true)}
+                className="h-9 rounded-full px-4 text-sm font-medium text-white hover:opacity-90"
+                style={{ backgroundColor: accent }}
+              >
+                <Download className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Export PDF</span>
+              </Button>
+            )}
+            <button
+              type="button"
+              aria-label="Toggle dark mode"
+              onClick={() => setDark((d) => !d)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-[var(--surface-2)]"
+              style={{ borderColor: DIVIDER, color: NEAR_BLACK }}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
           </div>
         </div>
       </header>
+
 
       {/* EXPORT PDF DIALOG */}
       <Dialog open={exportOpen} onOpenChange={(o) => { if (exportStatus === "creating" || exportStatus === "processing") return; setExportOpen(o); }}>
@@ -695,10 +757,11 @@ const SharePage = () => {
 
 
       {/* THREE-COLUMN LAYOUT */}
-      <div className="mx-auto w-full px-6 py-6 2xl:px-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,4fr)_minmax(0,3fr)]">
-          {/* LEFT: Date navigation */}
-          <aside className="hidden lg:block space-y-1">
+      <div className="mx-auto w-full max-w-[1600px] px-5 py-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_320px]">
+          {/* LEFT: Date + area filters (sticky) */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-20 space-y-1">
             <button
               onClick={() => setActiveKey(ALL_DAYS)}
               className={cn(
@@ -804,7 +867,9 @@ const SharePage = () => {
                 })}
               </>
             )}
+            </div>
           </aside>
+
 
           {/* CENTRE: Day feed */}
           <section className="min-w-0">
@@ -1284,8 +1349,20 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
     setBody(""); loadNotes(); onNotesChanged?.(); toast.success("Note added");
   };
 
-  const prev = () => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); };
-  const next = () => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); };
+  const prev = useCallback(() => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); }, [i, photos.length, onIndexChange]);
+  const next = useCallback(() => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); }, [i, photos.length, onIndexChange]);
+
+  // Keyboard navigation: arrows + Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+      else if (e.key === "Escape") { onClose(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prev, next, onClose]);
+
 
   if (!photo) return null;
   return (
