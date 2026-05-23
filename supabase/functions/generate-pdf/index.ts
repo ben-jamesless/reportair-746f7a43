@@ -933,7 +933,7 @@ Deno.serve(async (req) => {
       p.drawLine({ start: { x: 18 * MM, y: 19 * MM }, end: { x: W - 18 * MM, y: 19 * MM }, thickness: 0.4, color: COLOR.BORDER });
       const left = `${eventNameForFooter} · ${reportDateLabel}`;
       const center = `Page ${pageNum} of ${totalPages}`;
-      const right = whiteLabelPdf && companyName
+      const right = !effectiveBranding && companyName
         ? `${reportNumber} · ${companyName}`
         : `${reportNumber} · Daily Report`;
       const fSize = 7;
