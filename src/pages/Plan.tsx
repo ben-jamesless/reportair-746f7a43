@@ -225,7 +225,7 @@ export default function Plan() {
                 )}
               >
                 {loading === p.key && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Start free trial
+                Start your first build.
               </Button>
             </div>
           ))}
