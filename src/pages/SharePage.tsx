@@ -666,20 +666,21 @@ const SharePage = () => {
 
       {/* HEADER — sticky 64px */}
       <header
-        className="sticky top-0 z-30 h-16 border-b backdrop-blur-md transition-shadow"
+        className="sticky top-0 z-30 border-b backdrop-blur-md transition-shadow"
         style={{
           borderColor: DIVIDER,
           backgroundColor: dark ? "rgba(23,22,20,0.85)" : "rgba(247,246,242,0.85)",
           boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
         }}
       >
-        <div className="mx-auto flex h-full w-full max-w-[1600px] items-center justify-between gap-4 px-5 lg:px-8">
+        {/* Row 1: logo + project name — always visible */}
+        <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between gap-3 px-4 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             {logoUrl && (
               <img
                 src={logoUrl}
                 alt={project?.name ?? "Project logo"}
-                className="h-8 w-auto max-w-[140px] shrink-0 object-contain"
+                className="h-8 w-auto max-w-[120px] shrink-0 object-contain"
               />
             )}
             <div className="min-w-0">
@@ -693,7 +694,9 @@ const SharePage = () => {
               )}
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+
+          {/* On desktop: keep actions in row 1 */}
+          <div className="hidden sm:flex shrink-0 items-center gap-2 sm:gap-3">
             <StatusPill statusKey={overallStatus} size="md" />
             {exportDaysAsc.length > 0 && (
               <Button
@@ -703,7 +706,7 @@ const SharePage = () => {
                 style={{ backgroundColor: accent }}
               >
                 <Download className="mr-1.5 h-4 w-4" />
-                <span className="hidden sm:inline">Export PDF</span>
+                <span>Export PDF</span>
               </Button>
             )}
             <button
@@ -717,7 +720,37 @@ const SharePage = () => {
             </button>
           </div>
         </div>
+
+        {/* Row 2: actions — mobile only */}
+        <div
+          className="sm:hidden flex items-center gap-2 px-4 py-2"
+          style={{ borderTop: `1px solid ${DIVIDER}` }}
+        >
+          <StatusPill statusKey={overallStatus} size="md" />
+          <div className="flex-1" />
+          {exportDaysAsc.length > 0 && (
+            <Button
+              size="sm"
+              onClick={() => setExportOpen(true)}
+              className="h-8 rounded-full px-3 text-xs font-medium text-white hover:opacity-90"
+              style={{ backgroundColor: accent }}
+            >
+              <Download className="mr-1 h-3.5 w-3.5" />
+              Export PDF
+            </Button>
+          )}
+          <button
+            type="button"
+            aria-label="Toggle dark mode"
+            onClick={() => setDark((d) => !d)}
+            className="flex h-8 w-8 items-center justify-center rounded-full border transition-colors"
+            style={{ borderColor: DIVIDER, color: NEAR_BLACK }}
+          >
+            {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+        </div>
       </header>
+
 
 
       {/* EXPORT PDF DIALOG */}
