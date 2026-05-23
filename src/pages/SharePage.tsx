@@ -997,9 +997,10 @@ const SharePage = () => {
                     >
                       {/* Day header strip — full width, flush; collapsible at all breakpoints */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none [&::-webkit-details-marker]:hidden"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
                         style={{
-                          backgroundColor: "#ffffff",
+                          backgroundColor: dark ? "rgba(31,29,26,0.92)" : "rgba(241,239,233,0.92)",
+                          borderTop: `1px solid ${DIVIDER}`,
                           borderBottom: `1px solid ${DIVIDER}`,
                         }}
                       >
