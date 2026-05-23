@@ -105,7 +105,8 @@ serve(async (req) => {
       });
     }
     for (const t of ownedTeams ?? []) {
-      const { error: delTeamErr } = await service.rpc("admin_delete_team", { _team_id: t.id });
+      // Call via userClient so auth.uid() inside is_platform_admin() resolves to the caller.
+      const { error: delTeamErr } = await userClient.rpc("admin_delete_team", { _team_id: t.id });
       if (delTeamErr) {
         return new Response(JSON.stringify({ error: `Delete team: ${delTeamErr.message}` }), {
           status: 500, headers: { ...cors, "Content-Type": "application/json" },
