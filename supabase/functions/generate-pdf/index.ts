@@ -456,7 +456,6 @@ Deno.serve(async (req) => {
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
     pdfDoc.setTitle("BuildSlides Daily Report");
-    pdfDoc.setAuthor("BuildSlides");
 
     const fontBytes = await loadFontBytes();
     let pjsFont: PDFFont, irFont: PDFFont;
@@ -469,7 +468,6 @@ Deno.serve(async (req) => {
     }
 
     // Event logo: prefer per-export override, fall back to the project's saved default logo.
-    // Only embed logo if the team is on team or enterprise plan.
     let eventLogoImage: PDFImage | null = null;
     const { data: teamData } = await supabase
       .from("teams")
@@ -477,17 +475,43 @@ Deno.serve(async (req) => {
       .eq("id", (proj as { team_id: string }).team_id)
       .maybeSingle();
     const teamPlan = (teamData as { plan?: string } | null)?.plan ?? "free";
-    const canUseLogo = teamPlan === "studio";
+
+    // ── PDF access gate ──────────────────────────────────────────────────────
+    // Free & Solo plans cannot export PDFs.
+    const PDF_EXPORT_PLANS = ["pro", "team", "studio", "enterprise"];
+    if (!PDF_EXPORT_PLANS.includes(teamPlan)) {
+      if (exportId) await fail(supabase, exportId, "PDF export not available on this plan");
+      return new Response(
+        JSON.stringify({ error: "PDF export is not available on your current plan. Upgrade to Crew or Studio to export PDFs." }),
+        { status: 403, headers: { ...corsFor(req), "Content-Type": "application/json" } },
+      );
+    }
+
+    // ── Branding flags ───────────────────────────────────────────────────────
+    // Crew (pro/team): client logo shown alongside BuildSlides wordmark.
+    // Studio (studio/enterprise): BuildSlides suppressed entirely (full white-label).
+    const LOGO_PLANS        = ["pro", "team", "studio", "enterprise"];
+    const WHITE_LABEL_PLANS = ["studio", "enterprise"];
+    const canUseLogo              = LOGO_PLANS.includes(teamPlan);
+    const showBuildSlidesBranding = !WHITE_LABEL_PLANS.includes(teamPlan);
+
+    // Client may pass show_buildslides_branding from usePlan() as override.
+    const clientBrandingFlag = (body as { show_buildslides_branding?: unknown })?.show_buildslides_branding;
+    const effectiveBranding  =
+      typeof clientBrandingFlag === "boolean" ? clientBrandingFlag : showBuildSlidesBranding;
+
+    pdfDoc.setAuthor(effectiveBranding ? "BuildSlides" : ((teamData as { name?: string | null } | null)?.name ?? "BuildSlides"));
+
     const brandColour: string | null = canUseLogo
       ? ((teamData as { brand_colour?: string | null } | null)?.brand_colour ?? null)
       : null;
+    // White-label PDF: only when canUseLogo AND team has white_label_pdf enabled.
     const whiteLabelPdf: boolean = canUseLogo
       ? ((teamData as { white_label_pdf?: boolean } | null)?.white_label_pdf ?? false)
       : false;
-    // Company name for white-label footer — use the team name (no company_name on profiles).
-    const companyName: string | null = whiteLabelPdf
-      ? ((teamData as { name?: string | null } | null)?.name ?? null)
-      : null;
+    // Company name (used for footer when BuildSlides branding is suppressed).
+    const companyName: string | null =
+      (teamData as { name?: string | null } | null)?.name ?? null;
     const effectiveLogoPath: string | null = canUseLogo
       ? ((exp.logo_path as string | null) || ((proj as { logo_path?: string | null }).logo_path ?? null))
       : null;
