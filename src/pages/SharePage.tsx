@@ -1167,13 +1167,13 @@ const SharePage = () => {
 
                         {hasUnassigned && (
                           <article
-                            className="py-4 pl-4"
+                            className="py-7 pl-4"
                             style={{ borderLeft: `3px solid ${DIVIDER}` }}
                           >
                             <header className="mb-3">
                               <h3
-                                className="text-lg font-bold uppercase tracking-wide"
-                                style={{ color: NEAR_BLACK, letterSpacing: "0.02em" }}
+                                className="text-base font-bold"
+                                style={{ color: NEAR_BLACK }}
                               >
                                 Unassigned
                               </h3>
