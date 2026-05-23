@@ -51,12 +51,11 @@ const About = () => {
               job had never actually been solved
             </p>
             <p>
-              There is plenty of software for what happens <em>before</em> a build — planning,
-              scheduling, run-of-show, supplier management. And there is plenty of software for
-              what happens <em>after</em> — debriefs, financial reconciliation, archival
-              galleries. But during the build itself, when clients are most anxious and the team
-              is most stretched, reporting still meant WhatsApp threads, screenshots, and
-              hand-built PowerPoints.
+              There's plenty of software for what happens <em>before</em> a build — planning,
+              scheduling, run-of-show, supplier management — and plenty for what comes{" "}
+              <em>after</em>: debriefs, reconciliation, archival galleries. But during the build
+              itself, when clients are most anxious and the team most stretched, reporting still
+              meant WhatsApp threads, screenshots, and hand-built PowerPoints.
             </p>
             <p>
               BuildSlides is the tool we wished existed: a single place where the team uploads
