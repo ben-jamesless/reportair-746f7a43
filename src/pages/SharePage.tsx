@@ -1279,6 +1279,12 @@ const SharePage = () => {
           onNotesChanged={loadFeedback}
         />
       )}
+
+      <ShareBrandingFooter
+        teamPlan={data?.team_plan ?? "free"}
+        teamLogoUrl={logoUrl}
+        teamName={data?.team_name ?? null}
+      />
     </div>
   );
 };
