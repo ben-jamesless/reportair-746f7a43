@@ -655,7 +655,7 @@ const SharePage = () => {
   return (
     <div
       data-theme={dark ? "dark" : "light"}
-      className="min-h-screen"
+      className="min-h-screen pb-12"
       style={{
         ...(themeVars as React.CSSProperties),
         backgroundColor: "var(--bg)",
@@ -663,6 +663,7 @@ const SharePage = () => {
         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
       }}
     >
+
       {/* HEADER — sticky 64px */}
       <header
         className="sticky top-0 z-30 h-16 border-b backdrop-blur-md transition-shadow"
@@ -1286,8 +1287,8 @@ const SharePage = () => {
         teamPlan={data?.team_plan ?? "free"}
         teamLogoUrl={logoUrl}
         teamName={data?.team_name ?? null}
-        hideBranding={!!data?.hide_buildslides_branding}
       />
+
 
     </div>
   );
