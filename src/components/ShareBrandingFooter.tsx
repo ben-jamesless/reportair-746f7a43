@@ -1,18 +1,20 @@
-// Share page branding footer — shown for Free, Solo, and Crew plans.
-// Studio returns null (fully white-label).
+// Share page branding footer.
+// Hidden only when a Studio team has uploaded their logo AND enabled
+// "Remove BuildSlides branding" in Team Settings.
 //
-// Free / Solo:  "Built by BuildSlides" + lockup SVG
-// Crew (pro):   "Built by [Team Name] · Powered by BuildSlides"
+// Free / Solo / Studio (default):  "Built by BuildSlides" + lockup SVG
+// Crew (pro):                       "Built by [Team Name] · Powered by BuildSlides"
 
 interface Props {
   teamPlan: string;
   teamLogoUrl?: string | null;
   teamName?: string | null;
+  hideBranding?: boolean;
 }
 
-export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName }: Props) {
-  // Studio: no branding at all
-  if (teamPlan === "studio" || teamPlan === "enterprise") return null;
+export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBranding }: Props) {
+  if (hideBranding) return null;
+
 
   const isCrew = teamPlan === "pro" || teamPlan === "team";
 
