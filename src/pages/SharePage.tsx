@@ -1072,8 +1072,8 @@ const SharePage = () => {
                         </div>
                       </summary>
                       {weather[dateKey] && (
-                        <div className="px-4 py-2 text-xs" style={{ color: MUTED, borderBottom: `1px solid ${DIVIDER}` }}>
-                          {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
+                        <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+                          <WeatherBadge w={weather[dateKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
                         </div>
                       )}
                       {dayNotesMap.get(dateKey) && (
