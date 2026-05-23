@@ -531,6 +531,8 @@ const ProjectDetail = () => {
         effectiveView={effectiveView}
         setViewOverride={setViewOverride}
         canEdit={canEdit}
+        isOwner={isOwner}
+        canUseShareLink={canUseShareLink}
         uploader={
           canEdit ? (
             <ErrorBoundary label="uploader-mobile">
@@ -548,6 +550,8 @@ const ProjectDetail = () => {
         onOpenActivity={() => setActiveTab("activity")}
         onOpenDetails={() => setActiveTab("details")}
         onOpenFeedback={() => setFeedbackSheetOpen(true)}
+        onOpenShareSettings={() => setShareSettingsOpen(true)}
+        onArchive={archiveProject}
         onLoadAll={loadAll}
       />
 
