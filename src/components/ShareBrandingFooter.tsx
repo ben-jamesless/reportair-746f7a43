@@ -20,31 +20,25 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
   const isCrew = teamPlan === "pro" || teamPlan === "team";
 
   return (
-    <footer
-      className="mt-16 border-t"
-      style={{ borderColor: "var(--border, #E5E3DF)" }}
-    >
+    <footer className="mt-16" style={{ background: "#0F1724" }}>
       <div
-        className="flex items-center justify-center gap-2 py-5 text-xs"
-        style={{ color: "var(--muted-foreground, #7A7974)" }}
+        className="flex items-center justify-center gap-2 py-6 text-xs"
+        style={{ color: "rgba(237,241,247,.6)" }}
       >
         {isCrew && teamName ? (
           <>
             <span>Built by</span>
-            <span className="font-semibold" style={{ color: "var(--foreground, #0F1724)" }}>
-              {teamName}
-            </span>
+            <span className="font-semibold text-white">{teamName}</span>
             <span style={{ opacity: 0.35 }}>·</span>
             <span>Powered by</span>
             <a
               href="https://buildslides.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
-              style={{ opacity: 0.7, color: "var(--foreground, #0F1724)" }}
+              className="inline-flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"
             >
-              <img src="/n.svg" alt="" className="h-4 w-4" />
-              <span className="font-semibold tracking-tight">BuildSlides</span>
+              <img src="/favicon.svg" alt="" className="h-4 w-4" />
+              <span className="font-display font-black tracking-tight">BuildSlides</span>
             </a>
           </>
         ) : (
@@ -54,16 +48,15 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
               href="https://buildslides.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
-              style={{ opacity: 0.7, color: "var(--foreground, #0F1724)" }}
+              className="inline-flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"
             >
-              <img src="/n.svg" alt="" className="h-4 w-4" />
-              <span className="font-semibold tracking-tight">BuildSlides</span>
+              <img src="/favicon.svg" alt="" className="h-4 w-4" />
+              <span className="font-display font-black tracking-tight">BuildSlides</span>
             </a>
-
           </>
         )}
       </div>
     </footer>
   );
 }
+
