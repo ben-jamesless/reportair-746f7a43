@@ -74,7 +74,7 @@ function infoBox(content: string, borderColor = "#D94F2A", bg = "#F4F1EA"): stri
 
 const PLAN_PRICES: Record<string, string> = { solo: "HK$128", pro: "HK$298", studio: "HK$688" };
 const PLAN_FEATURES: Record<string, string[][]> = {
-  solo:   [["1 active event","Unlimited PDF exports"],["1 team member","14-day free trial"]],
+  solo:   [["1 active event","Unlimited PDF exports"],["1 team member","7-day free trial"]],
   pro:    [["5 active events","Share & client links"],["5 team members","Password-protected links"],["Unlimited PDF exports","Project invites"]],
   studio: [["Unlimited events","Share & client links"],["Unlimited members","Custom logo on PDF"],["Unlimited PDF exports","White-label header"],["Priority support","Onboarding call"]],
 };
@@ -173,7 +173,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       subject: `Your BuildSlides trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
       html: baseWrapper(strip, `
         <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Make the most of BuildSlides</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your 14-day free trial of the <strong style="color:#0F1417;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1417;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your 7-day free trial of the <strong style="color:#0F1417;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1417;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
         <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#0F1417;">After that, you&rsquo;ll move to the Solo plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
         <table cellpadding="0" cellspacing="0" style="width:100%;background:#F4F1EA;border-radius:10px;margin-bottom:28px;">
           <tr><td style="padding:20px 24px;">
