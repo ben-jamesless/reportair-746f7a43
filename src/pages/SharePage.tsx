@@ -1130,8 +1130,8 @@ const SharePage = () => {
                               >
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
                                   <h3
-                                    className="text-lg font-bold uppercase tracking-wide"
-                                    style={{ color: NEAR_BLACK, letterSpacing: "0.02em" }}
+                                    className="text-base font-bold"
+                                    style={{ color: NEAR_BLACK }}
                                   >
                                     {ar.name}
                                   </h3>
