@@ -24,8 +24,11 @@ export function useProjectUpdateDays(projectId: string | null) {
 
     fetchCount();
 
+    // Use a unique channel name per mount to avoid Supabase rejecting
+    // .on() calls on an already-subscribed channel when the effect re-runs.
+    const channelName = `update-days-${projectId}-${Date.now()}`;
     const channel = supabase
-      .channel(`update-days-${projectId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "photos", filter: `project_id=eq.${projectId}` },
