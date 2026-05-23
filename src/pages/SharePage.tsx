@@ -1137,7 +1137,7 @@ const SharePage = () => {
                             <header className="mb-3">
                               <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>Unassigned</h3>
                             </header>
-                            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                               {byArea.get("__noarea__")!.map((p) => (
                                 <SharePhotoThumb
                                   key={p.id}
