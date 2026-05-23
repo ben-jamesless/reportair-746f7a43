@@ -1286,7 +1286,9 @@ const SharePage = () => {
         teamPlan={data?.team_plan ?? "free"}
         teamLogoUrl={logoUrl}
         teamName={data?.team_name ?? null}
+        hideBranding={!!data?.hide_buildslides_branding}
       />
+
     </div>
   );
 };
