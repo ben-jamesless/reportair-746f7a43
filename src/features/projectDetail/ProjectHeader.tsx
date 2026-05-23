@@ -193,179 +193,140 @@ export function ProjectHeader({
       <div className="sticky top-10 z-30 bg-card border-b border-border -mx-4 sm:-mx-6 lg:-mx-8 px-6 pt-5 pb-0">
         {/* Breadcrumb moved into AppShell for consistency across pages */}
 
-        {/* Title + actions: stacked on tablet (md→lg), inline on desktop (lg+) */}
-        <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
-          {/* Row 1: title block + (tablet-only) kebab */}
-          <div className="flex items-start gap-4">
-            <div className="min-w-0 flex-1">
-              {project.event_type && (
-                <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1 my-[5px]">
-                  {project.event_type}
-                </p>
-              )}
-              <div className="flex items-center gap-3 flex-wrap my-[5px]">
-                <h1 className="text-2xl md:text-3xl lg:text-2xl font-bold text-foreground leading-tight my-[5px]">{project.name}</h1>
-                {canEdit ? (
-                  <Select
-                    value={project.overall_status ?? "no_status"}
-                    onValueChange={(v) => onSaveProjectStatus(v as ProjectStatus)}
-                  >
-                    <SelectTrigger className={cn(
-                      "h-6 px-2.5 rounded-full text-xs font-semibold border w-auto gap-1.5",
-                      projectStatusMeta(project.overall_status).pillClass
-                    )}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROJECT_STATUSES.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
-                          <span className="flex items-center gap-2">
-                            <span aria-hidden className={cn("inline-block size-2 rounded-full", s.dotClass)} />
-                            <span>{s.label}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <span className={cn("text-xs px-2.5 py-0.5 rounded-full border font-semibold", projectStatusMeta(project.overall_status).pillClass)}>
-                    {projectStatusMeta(project.overall_status).label}
-                  </span>
-                )}
-              </div>
-              <div className="mt-1 text-sm text-muted-foreground gap-[10px] hidden sm:flex items-center justify-start my-[5px] w-full flex-wrap">
-                {project.event_location && (
-                  <>
-                    <MapPin className="w-3.5 h-3.5 shrink-0" />
-                    <span>{project.event_location}</span>
-                  </>
-                )}
-                {project.event_date && (
-                  <>
-                    {project.event_location && <span className="text-[#D4D1CA]">·</span>}
-                    <CalendarDays className="w-3.5 h-3.5 shrink-0" />
-                    <span>{new Date(project.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
-                  </>
-                )}
-                {project.client_name && (
-                  <>
-                    <span className="text-[#D4D1CA]">·</span>
-                    <span>{project.client_name}</span>
-                  </>
-                )}
-              </div>
-            </div>
-            {/* Kebab shown on tablet (md-lg) inline with title */}
-            <div className="hidden md:block lg:hidden shrink-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
-                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {canEdit && (
-                    <>
-                      <DropdownMenuItem onSelect={onOpenSettings}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit event details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={onOpenShareSettings}>
-                        <Share2 className="mr-2 h-4 w-4" /> Share links
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {isOwner && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onSelect={onArchive}
-                      >
-                        <Archive className="mr-2 h-4 w-4" /> Archive event
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+        {/* ── Row 1: Title + status pill ── */}
+        <div className="flex items-center gap-3 flex-wrap mb-1">
+          {project.event_type && (
+            <p className="w-full text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-0.5">
+              {project.event_type}
+            </p>
+          )}
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
+            {project.name}
+          </h1>
+          {canEdit ? (
+            <Select
+              value={project.overall_status ?? "no_status"}
+              onValueChange={(v) => onSaveProjectStatus(v as ProjectStatus)}
+            >
+              <SelectTrigger className={cn(
+                "h-6 px-2.5 rounded-full text-xs font-semibold border w-auto gap-1.5",
+                projectStatusMeta(project.overall_status).pillClass
+              )}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PROJECT_STATUSES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-2">
+                      <span aria-hidden className={cn("inline-block size-2 rounded-full", s.dotClass)} />
+                      <span>{s.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <span className={cn("text-xs px-2.5 py-0.5 rounded-full border font-semibold", projectStatusMeta(project.overall_status).pillClass)}>
+              {projectStatusMeta(project.overall_status).label}
+            </span>
+          )}
+        </div>
+
+        {/* ── Row 2: Metadata + actions on same line ── */}
+        <div className="mb-3 flex items-center justify-between gap-3 flex-wrap">
+          {/* Metadata: location · date · client */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+            {project.event_location && (
+              <>
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span>{project.event_location}</span>
+              </>
+            )}
+            {project.event_date && (
+              <>
+                {project.event_location && <span className="text-[#D4D1CA]">·</span>}
+                <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+                <span>{new Date(project.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
+              </>
+            )}
+            {project.client_name && (
+              <>
+                <span className="text-[#D4D1CA]">·</span>
+                <span>{project.client_name}</span>
+              </>
+            )}
           </div>
 
-          {/* Row 2: action buttons. Full-width split on tablet, auto on desktop. */}
-          <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto lg:shrink-0">
+          {/* Actions: Feedback · Share link · Export PDF · Upload · kebab */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={onOpenFeedback}
               aria-label="Feedback"
-              className="flex flex-1 lg:flex-none items-center justify-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors"
+              className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors"
             >
-              <MessageSquare width={16} height={16} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+              <MessageSquare width={16} height={16} strokeWidth={1.8} />
               <span className="hidden sm:inline">Feedback</span>
             </button>
-            <div className="hidden sm:flex flex-1 lg:flex-none [&_button]:w-full lg:[&_button]:w-auto [&_button]:justify-center">
-              <ShareButton canUseShareLink={canUseShareLink} />
-            </div>
+            <ShareButton canUseShareLink={canUseShareLink} />
             <button
               onClick={onOpenExport}
               disabled={photoCount === 0}
-              className="hidden sm:flex flex-1 lg:flex-none items-center justify-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors disabled:opacity-40"
+              className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors disabled:opacity-40"
             >
               <Download className="w-3.5 h-3.5" />
               Export PDF
             </button>
             {canEdit && (
-              <div className="hidden sm:flex flex-1 lg:flex-none [&_button]:w-full lg:[&_button]:w-auto [&_button]:justify-center">
-                <ErrorBoundary label="uploader-header">
-                  <PhotoUploader
-                    projectId={project.id}
-                    albumId={uploadAlbumId}
-                    areaId={uploadAreaId}
-                    areas={areas}
-                    onUploaded={onUploaded}
-                    trigger={
-                      <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
-                        <ImagePlus className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Upload photos</span>
-                        <span className="sm:hidden">Upload</span>
-                      </button>
-                    }
-                  />
-                </ErrorBoundary>
-              </div>
+              <ErrorBoundary label="uploader-header">
+                <PhotoUploader
+                  projectId={project.id}
+                  albumId={uploadAlbumId}
+                  areaId={uploadAreaId}
+                  areas={areas}
+                  onUploaded={onUploaded}
+                  trigger={
+                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
+                      <ImagePlus className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Upload photos</span>
+                      <span className="sm:hidden">Upload</span>
+                    </button>
+                  }
+                />
+              </ErrorBoundary>
             )}
-            {/* Kebab on desktop only (tablet kebab is on title row) */}
-            <div className="hidden lg:block">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
-                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {canEdit && (
-                    <>
-                      <DropdownMenuItem onSelect={onOpenSettings}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit event details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={onOpenShareSettings}>
-                        <Share2 className="mr-2 h-4 w-4" /> Share links
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {isOwner && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onSelect={onArchive}
-                      >
-                        <Archive className="mr-2 h-4 w-4" /> Archive event
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
+                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canEdit && (
+                  <>
+                    <DropdownMenuItem onSelect={onOpenSettings}>
+                      <Pencil className="mr-2 h-4 w-4" /> Edit event details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={onOpenShareSettings}>
+                      <Share2 className="mr-2 h-4 w-4" /> Share links
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isOwner && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={onArchive}
+                    >
+                      <Archive className="mr-2 h-4 w-4" /> Archive event
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
 
         {/* Horizontal tab bar */}
         <TabBar
