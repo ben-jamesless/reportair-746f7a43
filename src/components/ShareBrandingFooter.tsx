@@ -2,10 +2,11 @@ interface Props {
   teamPlan: string;
   teamLogoUrl?: string | null;
   teamName?: string | null;
+  hideBranding?: boolean;
 }
 
-export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName }: Props) {
-  if (teamPlan === "studio" || teamPlan === "enterprise") return null;
+export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBranding }: Props) {
+  if (hideBranding) return null;
 
   const isCrew = teamPlan === "pro" || teamPlan === "team";
 
