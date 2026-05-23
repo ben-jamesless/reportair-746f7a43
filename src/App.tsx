@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ChunkLoadBoundary } from "@/components/ChunkLoadBoundary";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
+const About = lazy(() => import("./pages/About.tsx"));
 
 // Heavy / less-frequently-visited routes are loaded on demand to keep the
 // initial JS bundle small for landing & auth flows.
@@ -55,6 +56,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
+                <Route path="/about" element={<ErrorBoundary label="page"><About /></ErrorBoundary>} />
                 <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
                 <Route path="/reset-password" element={<ErrorBoundary label="page"><ResetPassword /></ErrorBoundary>} />
                 <Route path="/onboarding" element={<ErrorBoundary label="page"><ProtectedRoute><Onboarding /></ProtectedRoute></ErrorBoundary>} />

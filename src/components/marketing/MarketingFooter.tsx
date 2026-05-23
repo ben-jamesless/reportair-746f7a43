@@ -31,9 +31,10 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
 
           {/* Nav */}
           <nav className="flex flex-col gap-2 text-sm" style={{ color: link }} aria-label="Footer">
-            <a href="#how-it-works" className="transition-colors hover:text-white">How it works</a>
-            <a href="#faq" className="transition-colors hover:text-white">FAQ</a>
-            <a href="#pricing" className="transition-colors hover:text-white">Pricing</a>
+            <a href="/#how-it-works" className="transition-colors hover:text-white">How it works</a>
+            <a href="/#faq" className="transition-colors hover:text-white">FAQ</a>
+            <a href="/#pricing" className="transition-colors hover:text-white">Pricing</a>
+            <a href="/about" className="transition-colors hover:text-white">About</a>
             <button type="button" onClick={() => onOpenLegal("terms")} className="text-left transition-colors hover:text-white">T&Cs</button>
             <button type="button" onClick={() => onOpenLegal("privacy")} className="text-left transition-colors hover:text-white">Privacy</button>
           </nav>
