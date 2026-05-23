@@ -1,0 +1,1 @@
+REVOKE SELECT (stripe_customer_id, stripe_subscription_id) ON public.teams FROM authenticated, anon;
