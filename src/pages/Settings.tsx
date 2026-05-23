@@ -317,8 +317,9 @@ export default function SettingsPage() {
                       <div>
                         <Label>Remove BuildSlides branding</Label>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Your logo will replace the BuildSlides mark on all exported PDFs.
+                          Your logo replaces the BuildSlides mark on exported PDFs, and the "Built by BuildSlides" footer is hidden on share pages.
                         </p>
+
                       </div>
                       <TooltipProvider delayDuration={200}>
                         <Tooltip>
