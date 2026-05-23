@@ -954,6 +954,7 @@ Deno.serve(async (req) => {
         accentColour: brandColour,
         whiteLabelPdf,
         companyName,
+        showBuildSlidesBranding: effectiveBranding,
       });
     } else if (templateKey === "grid_landscape_v1") {
       await renderGridLandscapeV1({
@@ -966,6 +967,7 @@ Deno.serve(async (req) => {
         accentColour: brandColour,
         whiteLabelPdf,
         companyName,
+        showBuildSlidesBranding: effectiveBranding,
       });
     }
 
