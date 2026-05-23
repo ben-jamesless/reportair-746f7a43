@@ -195,7 +195,7 @@ export function ProjectHeader({
 
         {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             {project.event_type && (
               <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1 my-[5px]">
                 {project.event_type}
