@@ -14,8 +14,10 @@ import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 const SYNC_TIMEOUT_MS = 30000;
 
 const PLAN_LABELS: Record<string, string> = {
-  solo: "Solo",
-  pro: "Pro",
+  free:   "Free",
+  solo:   "Solo",
+  pro:    "Crew",
+  team:   "Crew",
   studio: "Studio",
 };
 
@@ -46,16 +48,17 @@ const COMPARE_PLANS: ComparePlan[] = [
     footnote: "Annual price ~HK$1,229. Monthly price HK$128, billed monthly.",
     heading: "Key Features:",
     features: [
-      "1 active event",
-      "Unlimited PDF exports",
-      "Standard report templates",
-      "Email support",
-      "14-day free trial",
+      "1 active build",
+      "Unlimited build days",
+      "Unlimited photo uploads",
+      "Live share link",
+      "BuildSlides branded",
+      "7-day free trial",
     ],
   },
   {
     key: "pro",
-    name: "Pro",
+    name: "Crew",
     monthly: "HK$298",
     annualMonthly: "HK$238",
     monthlyRaw: "HK$298/month",
@@ -65,31 +68,33 @@ const COMPARE_PLANS: ComparePlan[] = [
     footnote: "Annual price ~HK$2,860. Monthly price HK$298, billed monthly.",
     heading: "Everything in Solo, and:",
     features: [
-      "5 active events",
-      "Share & client links",
+      "5 active builds",
+      "5 team members",
+      "PDF export",
       "Password-protected links",
-      "Project folders",
-      "External project invites",
-      "Priority email support",
+      "Your logo + BuildSlides on PDF",
+      "Project folders & invites",
+      "7-day free trial",
     ],
   },
   {
     key: "studio",
     name: "Studio",
-    monthly: "HK$688",
-    annualMonthly: "HK$550",
-    monthlyRaw: "HK$688/month",
-    annualRaw: "HK$6,604/year",
+    monthly: "Get in touch",
+    annualMonthly: "Get in touch",
+    monthlyRaw: "Custom pricing",
+    annualRaw: "Custom pricing",
     includes: "Unlimited Users",
     extraUser: "No per-seat charges",
-    footnote: "Annual price ~HK$6,604. Monthly price HK$688, billed monthly.",
-    heading: "Everything in Pro, and:",
+    footnote: "Custom pricing — contact us for a quote.",
+    heading: "Everything in Crew, and:",
     features: [
-      "Unlimited active events",
-      "Custom logo on PDF",
+      "Unlimited active builds",
+      "PDF export — fully white-label",
+      "Your logo only, no BuildSlides",
       "White-label report header",
-      "Onboarding call",
-      "Priority support",
+      "Custom domain (coming soon)",
+      "Priority support + onboarding call",
     ],
   },
 ];
@@ -281,6 +286,11 @@ const Billing = () => {
               {statusBadge}
             </div>
             <p className="text-sm text-muted-foreground mt-1">{renewalLine}</p>
+            {plan === "free" && (
+              <p className="text-xs text-muted-foreground mt-1">
+                You've used your free tier — upgrade to Solo or Crew to keep adding updates.
+              </p>
+            )}
           </div>
           {isSubscribed && (
             <Button
@@ -359,7 +369,9 @@ const Billing = () => {
                 <div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{price}</span>
-                    <span className="text-sm text-muted-foreground">*/month</span>
+                    {price !== "Get in touch" && (
+                      <span className="text-sm text-muted-foreground">*/month</span>
+                    )}
                   </div>
                 </div>
 
@@ -373,11 +385,19 @@ const Billing = () => {
 
                 <Button
                   className="w-full font-semibold bg-primary text-primary-foreground hover:bg-primary-hover"
-                  onClick={() => handleChoosePlan(p.key)}
-                  disabled={!!checkoutLoading}
+                  onClick={() => {
+                    if (p.key === "studio") {
+                      window.open("mailto:hello@buildslides.co?subject=BuildSlides%20Studio%20Enquiry", "_blank");
+                      return;
+                    }
+                    handleChoosePlan(p.key);
+                  }}
+                  disabled={p.key !== "studio" && !!checkoutLoading}
                 >
                   {checkoutLoading === p.key
                     ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : p.key === "studio"
+                    ? "Get in touch"
                     : isCurrent && isSubscribed ? "Manage Plan" : "Choose Plan"}
                 </Button>
 
