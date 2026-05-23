@@ -1,7 +1,8 @@
-// Branding tiers derived from team plan:
-//   "free" | "solo"  → BuildSlides wordmark only
-//   "pro"  (Crew)    → Team logo (if set) + BuildSlides wordmark
-//   "studio"         → Nothing (returns null)
+// Share page branding footer — shown for Free, Solo, and Crew plans.
+// Studio returns null (fully white-label).
+//
+// Free / Solo:  "Built by BuildSlides" + lockup SVG
+// Crew (pro):   "Built by [Team Name] · Powered by BuildSlides"
 
 interface Props {
   teamPlan: string;
@@ -10,40 +11,63 @@ interface Props {
 }
 
 export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName }: Props) {
+  // Studio: no branding at all
   if (teamPlan === "studio" || teamPlan === "enterprise") return null;
 
-  const showTeamLogo = (teamPlan === "pro" || teamPlan === "team") && !!teamLogoUrl;
+  const isCrew = teamPlan === "pro" || teamPlan === "team";
 
   return (
     <footer
-      className="mt-12 flex items-center justify-center gap-4 border-t py-6"
-      style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+      className="mt-16 border-t"
+      style={{ borderColor: "var(--border, #E5E3DF)" }}
     >
-      {showTeamLogo && (
-        <>
-          <img
-            src={teamLogoUrl!}
-            alt={teamName ?? ""}
-            className="h-6 w-auto object-contain opacity-80"
-          />
-          <span style={{ color: "var(--border)" }}>·</span>
-        </>
-      )}
-
-      <a
-        href="https://buildslides.com"
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-1.5 text-xs font-medium opacity-60 transition-opacity hover:opacity-100"
-        style={{ color: "var(--muted)" }}
+      <div
+        className="flex items-center justify-center gap-2 py-5 text-xs"
+        style={{ color: "var(--muted-foreground, #7A7974)" }}
       >
-        Powered by
-        <img
-          src="/brand/buildslides-lockup.svg"
-          alt="BuildSlides"
-          className="h-4 w-auto"
-        />
-      </a>
+        {isCrew && teamName ? (
+          <>
+            <span>Built by</span>
+            <span className="font-semibold" style={{ color: "var(--foreground, #0F1724)" }}>
+              {teamName}
+            </span>
+            <span style={{ opacity: 0.35 }}>·</span>
+            <span>Powered by</span>
+            <a
+              href="https://buildslides.com"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-opacity hover:opacity-100"
+              style={{ opacity: 0.55 }}
+            >
+              <img
+                src="/brand/buildslides-lockup.svg"
+                alt="BuildSlides"
+                className="h-3.5 w-auto"
+                style={{ display: "inline-block", verticalAlign: "middle" }}
+              />
+            </a>
+          </>
+        ) : (
+          <>
+            <span>Built by</span>
+            <a
+              href="https://buildslides.com"
+              target="_blank"
+              rel="noreferrer"
+              className="transition-opacity hover:opacity-100"
+              style={{ opacity: 0.6 }}
+            >
+              <img
+                src="/brand/buildslides-lockup.svg"
+                alt="BuildSlides"
+                className="h-3.5 w-auto"
+                style={{ display: "inline-block", verticalAlign: "middle" }}
+              />
+            </a>
+          </>
+        )}
+      </div>
     </footer>
   );
 }
