@@ -464,7 +464,7 @@ const SharePage = () => {
 
 
   // Day-level scroll anchors (for ALL_DAYS view)
-  const dayAnchorRefs = useRef<Map<string, HTMLElement | null>>(new Map());
+  const dayAnchorRefs = useRef<Map<string, HTMLDetailsElement | null>>(new Map());
   const handleSelectDay = (key: string) => {
     setActiveKey(key);
     if (key !== ALL_DAYS && !isAlbumKey(key)) {
