@@ -12,7 +12,7 @@ import {
   Pencil,
   Share2,
 } from "lucide-react";
-import { toast } from "sonner";
+
 
 import { Button } from "@/components/ui/button";
 import {
@@ -195,7 +195,7 @@ export function ProjectHeader({
 
         {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             {project.event_type && (
               <p className="text-xs font-semibold tracking-widest uppercase text-muted-foreground mb-1 my-[5px]">
                 {project.event_type}
@@ -258,9 +258,10 @@ export function ProjectHeader({
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={onOpenFeedback}
+              aria-label="Feedback"
               className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors"
             >
-              <MessageSquare className="w-3.5 h-3.5" />
+              <MessageSquare width={16} height={16} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
               <span className="hidden sm:inline">Feedback</span>
             </button>
             <div className="hidden sm:block">
@@ -275,71 +276,57 @@ export function ProjectHeader({
               Export PDF
             </button>
             {canEdit && (
-              <ErrorBoundary label="uploader-header">
-                <PhotoUploader
-                  projectId={project.id}
-                  albumId={uploadAlbumId}
-                  areaId={uploadAreaId}
-                  areas={areas}
-                  onUploaded={onUploaded}
-                  trigger={
-                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
-                      <ImagePlus className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Upload photos</span>
-                      <span className="sm:hidden">Upload</span>
-                    </button>
-                  }
-                />
-              </ErrorBoundary>
+              <div className="hidden md:block">
+                <ErrorBoundary label="uploader-header">
+                  <PhotoUploader
+                    projectId={project.id}
+                    albumId={uploadAlbumId}
+                    areaId={uploadAreaId}
+                    areas={areas}
+                    onUploaded={onUploaded}
+                    trigger={
+                      <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
+                        <ImagePlus className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Upload photos</span>
+                        <span className="sm:hidden">Upload</span>
+                      </button>
+                    }
+                  />
+                </ErrorBoundary>
+              </div>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
-                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {/* Mobile-only quick actions (hidden ≥sm where buttons are visible) */}
-                <DropdownMenuItem className="sm:hidden" onSelect={onOpenFeedback}>
-                  <MessageSquare className="mr-2 h-4 w-4" /> Feedback
-                </DropdownMenuItem>
-                <DropdownMenuItem className="sm:hidden" onSelect={() => {
-                  if (canUseShareLink) window.dispatchEvent(new CustomEvent("open-share-settings"));
-                  else toast.message("Share links are a Pro feature");
-                }}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share link
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="sm:hidden"
-                  disabled={photoCount === 0}
-                  onSelect={onOpenExport}
-                >
-                  <Download className="mr-2 h-4 w-4" /> Export PDF
-                </DropdownMenuItem>
-                {canEdit && <DropdownMenuSeparator className="sm:hidden" />}
-                {canEdit && (
-                  <>
-                    <DropdownMenuItem onSelect={onOpenSettings}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit event details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={onOpenShareSettings}>
-                      <Share2 className="mr-2 h-4 w-4" /> Share links
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {isOwner && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onSelect={onArchive}
-                    >
-                      <Archive className="mr-2 h-4 w-4" /> Archive event
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden md:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
+                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canEdit && (
+                    <>
+                      <DropdownMenuItem onSelect={onOpenSettings}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit event details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={onOpenShareSettings}>
+                        <Share2 className="mr-2 h-4 w-4" /> Share links
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isOwner && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={onArchive}
+                      >
+                        <Archive className="mr-2 h-4 w-4" /> Archive event
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 

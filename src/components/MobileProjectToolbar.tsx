@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { FileText, LayoutGrid, MoreHorizontal, FileDown, Activity, Info, Settings as SettingsIcon, MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { MoreHorizontal, FileDown, Activity, Info, Settings as SettingsIcon, MessageSquare, Share2, Archive } from "lucide-react";
+import { toast } from "sonner";
 import { ProjectSettingsDialog } from "./ProjectSettingsDialog";
 import type { ProjectStatus } from "@/lib/projectStatus";
 
@@ -27,10 +27,14 @@ interface MobileProjectToolbarProps {
   setViewOverride: (v: ProjectView) => void;
   uploader: React.ReactNode;
   canEdit?: boolean;
+  isOwner?: boolean;
+  canUseShareLink?: boolean;
   onOpenExport: () => void;
   onOpenActivity: () => void;
   onOpenDetails: () => void;
   onOpenFeedback: () => void;
+  onOpenShareSettings?: () => void;
+  onArchive?: () => void;
   onLoadAll: () => void;
 }
 
@@ -42,10 +46,14 @@ export const MobileProjectToolbar = ({
   setViewOverride,
   uploader,
   canEdit = true,
+  isOwner = false,
+  canUseShareLink = false,
   onOpenExport,
   onOpenActivity,
   onOpenDetails,
   onOpenFeedback,
+  onOpenShareSettings,
+  onArchive,
   onLoadAll,
 }: MobileProjectToolbarProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -64,43 +72,6 @@ export const MobileProjectToolbar = ({
     <div className="mb-4 md:hidden">
 
       <div className="flex items-center gap-2">
-        {/* Report / Gallery toggle */}
-        <div
-          className="inline-flex shrink-0 rounded-md border bg-background p-0.5"
-          role="radiogroup"
-          aria-label="Project view"
-        >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={effectiveView === "report"}
-            onClick={() => setViewOverride("report")}
-            aria-label="Report view"
-            className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded transition-colors",
-              effectiveView === "report"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-secondary",
-            )}
-          >
-            <FileText className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={effectiveView === "gallery"}
-            onClick={() => setViewOverride("gallery")}
-            aria-label="Gallery view"
-            className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded transition-colors",
-              effectiveView === "gallery"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-secondary",
-            )}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-        </div>
 
         {/* Upload — flex-1 centre (hidden for viewers) */}
         {canEdit ? (
@@ -153,6 +124,18 @@ export const MobileProjectToolbar = ({
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
+                onClick={() => runAfterClose(() => {
+                  if (canUseShareLink && onOpenShareSettings) onOpenShareSettings();
+                  else if (canUseShareLink) window.dispatchEvent(new CustomEvent("open-share-settings"));
+                  else toast.message("Share links are a Pro feature");
+                })}
+              >
+                <Share2 className="mr-3 h-4 w-4" />
+                Share link
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-12 justify-start text-base"
                 onClick={() => runAfterClose(onOpenActivity)}
               >
                 <Activity className="mr-3 h-4 w-4" />
@@ -166,6 +149,16 @@ export const MobileProjectToolbar = ({
                 <Info className="mr-3 h-4 w-4" />
                 Details
               </Button>
+              {isOwner && onArchive && (
+                <Button
+                  variant="ghost"
+                  className="h-12 justify-start text-base text-destructive hover:text-destructive"
+                  onClick={() => runAfterClose(onArchive)}
+                >
+                  <Archive className="mr-3 h-4 w-4" />
+                  Archive event
+                </Button>
+              )}
             </div>
             <SheetClose className="sr-only">Close</SheetClose>
           </SheetContent>
