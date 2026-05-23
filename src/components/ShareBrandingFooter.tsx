@@ -46,7 +46,7 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
               <img
                 src="/brand/buildslides-lockup.svg"
                 alt="BuildSlides"
-                className="h-3.5 w-auto"
+                className="h-[15px] w-auto"
                 style={{ display: "inline-block", verticalAlign: "middle" }}
               />
             </a>
@@ -64,7 +64,7 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
               <img
                 src="/brand/buildslides-lockup.svg"
                 alt="BuildSlides"
-                className="h-3.5 w-auto"
+                className="h-[15px] w-auto"
                 style={{ display: "inline-block", verticalAlign: "middle" }}
               />
             </a>
