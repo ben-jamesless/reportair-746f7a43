@@ -42,7 +42,7 @@ export function MarketingHeader() {
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
           >
-            Sign up
+            Start your first build
           </Link>
           <button
             type="button"
