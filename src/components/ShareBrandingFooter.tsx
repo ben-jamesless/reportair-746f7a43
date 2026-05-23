@@ -1,6 +1,3 @@
-import { BrandMark } from "@/components/marketing/brand";
-import { display } from "@/components/marketing/brand-tokens";
-
 interface Props {
   teamPlan: string;
   teamLogoUrl?: string | null;
@@ -22,8 +19,8 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
       onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
       onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
     >
-      <BrandMark size={16} onDark />
-      <span style={{ ...display, color: "#F4F1EA", fontWeight: 700, fontSize: "13px", letterSpacing: "-0.01em" }}>
+      <img src="/favicon.svg" alt="" style={{ width: "18px", height: "18px", display: "block" }} />
+      <span style={{ color: "#F4F1EA", fontWeight: 700, fontSize: "13px", letterSpacing: "-0.01em" }}>
         BuildSlides
       </span>
     </a>
