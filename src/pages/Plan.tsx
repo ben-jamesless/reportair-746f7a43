@@ -314,7 +314,7 @@ export default function Plan() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Paid plans include a 7-day free trial. Cancel any time.
+          Paid plans include a 14-day free trial. Cancel any time.
         </p>
       </div>
     </OnboardingLayout>
