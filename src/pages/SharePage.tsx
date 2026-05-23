@@ -146,7 +146,18 @@ const SharePage = () => {
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
   const accent = brandColour ?? TEAL;
+
+  // Load Inter font once
+  useEffect(() => {
+    if (document.getElementById("share-inter-font")) return;
+    const l = document.createElement("link");
+    l.id = "share-inter-font";
+    l.rel = "stylesheet";
+    l.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
+    document.head.appendChild(l);
+  }, []);
 
   useEffect(() => {
     if (!token) return;
