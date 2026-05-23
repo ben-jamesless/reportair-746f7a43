@@ -59,6 +59,8 @@ type Resolved = {
   team_plan?: string | null;
   team_name?: string | null;
   team_logo_path?: string | null;
+  hide_buildslides_branding?: boolean | null;
+
 };
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
