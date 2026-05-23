@@ -1050,6 +1050,38 @@ const SharePage = () => {
                           <RichNotes text={dayNotesMap.get(dateKey)!} />
                         </div>
                       )}
+                      {(() => {
+                        const dn = dayNoteByDate.get(dateKey);
+                        const sections: { label: string; text: string | null | undefined }[] = [
+                          { label: "Today's objectives", text: dn?.today_objectives },
+                          { label: "Today's achievements", text: dn?.today_achievements },
+                          { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
+                          { label: "Open issues", text: dn?.open_issues },
+                        ].filter((s) => s.text && s.text.trim());
+                        if (sections.length === 0) return null;
+                        return (
+                          <div
+                            className="mx-4 my-3 rounded-lg border p-4"
+                            style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+                          >
+                            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                              Daily report
+                            </p>
+                            <ul className="mt-3 space-y-4">
+                              {sections.map((s) => (
+                                <li key={s.label}>
+                                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                                    {s.label}
+                                  </p>
+                                  <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
+                                    <RichNotes text={s.text!} />
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })()}
 
                       {/* Area blocks — flush, no cards */}
                       <div>
