@@ -124,6 +124,18 @@ export const MobileProjectToolbar = ({
               <Button
                 variant="ghost"
                 className="h-12 justify-start text-base"
+                onClick={() => runAfterClose(() => {
+                  if (canUseShareLink && onOpenShareSettings) onOpenShareSettings();
+                  else if (canUseShareLink) window.dispatchEvent(new CustomEvent("open-share-settings"));
+                  else toast.message("Share links are a Pro feature");
+                })}
+              >
+                <Share2 className="mr-3 h-4 w-4" />
+                Share link
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-12 justify-start text-base"
                 onClick={() => runAfterClose(onOpenActivity)}
               >
                 <Activity className="mr-3 h-4 w-4" />
@@ -137,6 +149,16 @@ export const MobileProjectToolbar = ({
                 <Info className="mr-3 h-4 w-4" />
                 Details
               </Button>
+              {isOwner && onArchive && (
+                <Button
+                  variant="ghost"
+                  className="h-12 justify-start text-base text-destructive hover:text-destructive"
+                  onClick={() => runAfterClose(onArchive)}
+                >
+                  <Archive className="mr-3 h-4 w-4" />
+                  Archive event
+                </Button>
+              )}
             </div>
             <SheetClose className="sr-only">Close</SheetClose>
           </SheetContent>
