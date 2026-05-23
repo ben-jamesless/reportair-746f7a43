@@ -1129,9 +1129,20 @@ const SharePage = () => {
                                 style={{ borderLeft: `3px solid ${accent}` }}
                               >
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
-                                  <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>{ar.name}</h3>
+                                  <h3
+                                    className="text-lg font-bold uppercase tracking-wide"
+                                    style={{ color: NEAR_BLACK, letterSpacing: "0.02em" }}
+                                  >
+                                    {ar.name}
+                                  </h3>
                                   {sKey && <StatusPill statusKey={sKey} />}
                                 </header>
+
+                                {note && (
+                                  <div className="mb-3 text-sm leading-relaxed" style={{ color: BODY }}>
+                                    <RichNotes text={note} />
+                                  </div>
+                                )}
 
                                 {areaPhotos.length > 0 && (
                                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -1144,12 +1155,6 @@ const SharePage = () => {
                                         onClick={() => setLightboxIndex(indexById.get(p.id) ?? 0)}
                                       />
                                     ))}
-                                  </div>
-                                )}
-
-                                {note && (
-                                  <div className="mt-3 text-sm" style={{ color: BODY }}>
-                                    <RichNotes text={note} />
                                   </div>
                                 )}
                               </article>
@@ -1166,7 +1171,12 @@ const SharePage = () => {
                             style={{ borderLeft: `3px solid ${DIVIDER}` }}
                           >
                             <header className="mb-3">
-                              <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>Unassigned</h3>
+                              <h3
+                                className="text-lg font-bold uppercase tracking-wide"
+                                style={{ color: NEAR_BLACK, letterSpacing: "0.02em" }}
+                              >
+                                Unassigned
+                              </h3>
                             </header>
                             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                               {byArea.get("__noarea__")!.map((p) => (
