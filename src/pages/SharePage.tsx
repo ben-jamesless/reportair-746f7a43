@@ -983,25 +983,30 @@ const SharePage = () => {
                   const hasUnassigned = byArea.has("__noarea__");
                   const totalBlocks = orderedAreas.length + (hasUnassigned ? 1 : 0);
 
+                  const accentBar = dominantDayStatus
+                    ? STATUS_META[dominantDayStatus]?.bg ?? DIVIDER
+                    : DIVIDER;
+
                   return (
                     <details
                       key={group.key}
                       ref={(el) => {
                         dayAnchorRefs.current.set(dateKey, el);
-                        if (el && !isMobile && el.dataset.init !== "1") {
-                          el.open = true;
+                        if (el && el.dataset.init !== "1") {
+                          el.open = !isMobile && allDaysExpanded;
                           el.dataset.init = "1";
                         }
                       }}
                       className="group/day"
                     >
-                      {/* Day header strip — full width, flush; collapsible at all breakpoints */}
+                      {/* Day header — transparent band with status accent bar on the left */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 py-3 pl-4 pr-4 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
                         style={{
-                          backgroundColor: dark ? "rgba(31,29,26,0.92)" : "rgba(241,239,233,0.92)",
+                          backgroundColor: dark ? "rgba(23,22,20,0.78)" : "rgba(247,246,242,0.78)",
                           borderTop: `1px solid ${DIVIDER}`,
                           borderBottom: `1px solid ${DIVIDER}`,
+                          borderLeft: `3px solid ${accentBar}`,
                         }}
                       >
                         <div className="flex items-baseline gap-3 min-w-0">
