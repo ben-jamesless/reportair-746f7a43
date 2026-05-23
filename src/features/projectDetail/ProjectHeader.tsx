@@ -295,7 +295,7 @@ export function ProjectHeader({
                 </ErrorBoundary>
               </div>
             )}
-            <div className="hidden md:block">
+            <div className="hidden sm:block">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
