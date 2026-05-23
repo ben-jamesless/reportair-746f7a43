@@ -276,22 +276,24 @@ export function ProjectHeader({
               Export PDF
             </button>
             {canEdit && (
-              <ErrorBoundary label="uploader-header">
-                <PhotoUploader
-                  projectId={project.id}
-                  albumId={uploadAlbumId}
-                  areaId={uploadAreaId}
-                  areas={areas}
-                  onUploaded={onUploaded}
-                  trigger={
-                    <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
-                      <ImagePlus className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Upload photos</span>
-                      <span className="sm:hidden">Upload</span>
-                    </button>
-                  }
-                />
-              </ErrorBoundary>
+              <div className="hidden md:block">
+                <ErrorBoundary label="uploader-header">
+                  <PhotoUploader
+                    projectId={project.id}
+                    albumId={uploadAlbumId}
+                    areaId={uploadAreaId}
+                    areas={areas}
+                    onUploaded={onUploaded}
+                    trigger={
+                      <button className="flex items-center gap-1.5 px-3 h-8 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90 transition-colors">
+                        <ImagePlus className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Upload photos</span>
+                        <span className="sm:hidden">Upload</span>
+                      </button>
+                    }
+                  />
+                </ErrorBoundary>
+              </div>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
