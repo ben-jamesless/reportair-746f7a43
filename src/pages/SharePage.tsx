@@ -771,7 +771,21 @@ const SharePage = () => {
           <aside className="hidden lg:block">
             <div className="sticky top-20 space-y-1">
             <button
-              onClick={() => setActiveKey(ALL_DAYS)}
+              onClick={() => {
+                if (activeKey === ALL_DAYS) {
+                  // Already on All days — toggle expand/collapse of every day section
+                  const next = !allDaysExpanded;
+                  setAllDaysExpanded(next);
+                  dayAnchorRefs.current.forEach((el) => { if (el) el.open = next; });
+                } else {
+                  setActiveKey(ALL_DAYS);
+                  setAllDaysExpanded(true);
+                  // Ensure freshly rendered sections open
+                  requestAnimationFrame(() => {
+                    dayAnchorRefs.current.forEach((el) => { if (el) el.open = true; });
+                  });
+                }
+              }}
               className={cn(
                 "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
               )}
