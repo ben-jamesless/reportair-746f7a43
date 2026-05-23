@@ -431,7 +431,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     // Header: wordmark left, day label right
     const stripTop = H - MT;
     const logoY = stripTop - 16;
-    drawWordmark(page, ML, logoY, font, 10, true, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage);
+    drawWordmark(page, ML, logoY, font, 10, true, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage, showBuildSlidesBranding);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 9);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 9, font: body, color: effectiveAccent });
