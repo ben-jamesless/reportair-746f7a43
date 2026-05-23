@@ -53,10 +53,10 @@ const PLANS: {
       "Unlimited photo uploads",
       "Live share link",
       "BuildSlides branded",
-      "14-day free trial",
+      "7-day free trial",
     ],
     action: { type: "checkout", plan: "solo" },
-    cta: "Start 14-day free trial",
+    cta: "Start 7-day free trial",
   },
   {
     key: "crew",
@@ -73,19 +73,19 @@ const PLANS: {
       "PDF export",
       "Your logo + BuildSlides",
       "Project folders & invites",
-      "14-day free trial",
+      "7-day free trial",
     ],
     recommended: true,
     action: { type: "checkout", plan: "pro" },
-    cta: "Start 14-day free trial",
+    cta: "Start 7-day free trial",
   },
   {
     key: "studio",
     name: "Studio",
-    monthly: "HK$1,188",
-    annualMonthly: "HK$950",
-    annualBilled: "HK$11,400 billed annually",
-    description: "For agencies, large contractors, venues.",
+    monthly: "Get in touch",
+    annualMonthly: "Get in touch",
+    annualBilled: "Custom pricing",
+    description: "For agencies and large organisations.",
     features: [
       "Unlimited active builds",
       "Unlimited team members",
@@ -94,10 +94,9 @@ const PLANS: {
       "Your logo only — no BuildSlides",
       "White-label report header",
       "Priority support + onboarding call",
-      "14-day free trial",
     ],
-    action: { type: "checkout", plan: "studio" },
-    cta: "Start 14-day free trial",
+    action: { type: "contact", href: "mailto:hello@buildslides.co" },
+    cta: "Get in touch",
   },
 ];
 
@@ -314,7 +313,7 @@ export default function Plan() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Paid plans include a 14-day free trial. Cancel any time.
+          Paid plans include a 7-day free trial. Cancel any time.
         </p>
       </div>
     </OnboardingLayout>
