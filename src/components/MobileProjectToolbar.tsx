@@ -27,10 +27,14 @@ interface MobileProjectToolbarProps {
   setViewOverride: (v: ProjectView) => void;
   uploader: React.ReactNode;
   canEdit?: boolean;
+  isOwner?: boolean;
+  canUseShareLink?: boolean;
   onOpenExport: () => void;
   onOpenActivity: () => void;
   onOpenDetails: () => void;
   onOpenFeedback: () => void;
+  onOpenShareSettings?: () => void;
+  onArchive?: () => void;
   onLoadAll: () => void;
 }
 
@@ -42,10 +46,14 @@ export const MobileProjectToolbar = ({
   setViewOverride,
   uploader,
   canEdit = true,
+  isOwner = false,
+  canUseShareLink = false,
   onOpenExport,
   onOpenActivity,
   onOpenDetails,
   onOpenFeedback,
+  onOpenShareSettings,
+  onArchive,
   onLoadAll,
 }: MobileProjectToolbarProps) => {
   const [sheetOpen, setSheetOpen] = useState(false);
