@@ -463,7 +463,11 @@ export const ExportPdfDialog = ({
     const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
     const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
 
-    const options: Record<string, unknown> = { sections, orientation, quality, template: layout };
+    const options: Record<string, unknown> = {
+      sections, orientation, quality, template: layout,
+      show_buildslides_branding: showBuildSlidesBranding,
+      allow_custom_logo: canUseCustomLogo,
+    };
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LAYOUT_STORAGE_KEY(projectId), layout);
     }
