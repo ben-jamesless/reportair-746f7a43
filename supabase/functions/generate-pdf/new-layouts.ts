@@ -288,7 +288,12 @@ function drawFaviconTile(
   return size;
 }
 
-/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width. */
+/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width.
+ *  Branding rules:
+ *   - whiteLabelPdf + logoImage → client logo (+ secondary BS wordmark if showBuildSlidesBranding)
+ *   - else showBuildSlidesBranding → BuildSlides wordmark
+ *   - else → nothing drawn, returns 0
+ */
 function drawWordmark(
   page: PDFPage,
   x: number, y: number,
@@ -300,14 +305,29 @@ function drawWordmark(
   companyName?: string | null,
   whiteLabelPdf?: boolean,
   brandMarkImage?: PDFImage | null,
+  showBuildSlidesBranding: boolean = true,
 ): number {
   if (whiteLabelPdf && logoImage) {
     const maxH = markSize * 1.4;
     const scale = Math.min(maxH / logoImage.height, 120 / logoImage.width);
     const lw = logoImage.width * scale, lh = logoImage.height * scale;
     page.drawImage(logoImage, { x, y: y - lh * 0.1, width: lw, height: lh });
+    if (showBuildSlidesBranding) {
+      // Crew: secondary BuildSlides mark to the right of client logo.
+      const sx = x + lw + 8;
+      const secMark = markSize * 0.75;
+      drawFaviconTile(page, sx, y - secMark * 0.18, secMark, brandMarkImage);
+      const secFont = fontSize * 0.85;
+      page.drawText("BuildSlides", {
+        x: sx + secMark + 4,
+        y: y + (secMark - secFont) * 0.25 - secMark * 0.18,
+        size: secFont, font,
+        color: darkBg ? C.WHITE : C.MUTED,
+      });
+    }
     return lw;
   }
+  if (!showBuildSlidesBranding) return 0;
   const tileSize = markSize;
   drawFaviconTile(page, x, y - tileSize * 0.18, tileSize, brandMarkImage);
   const gap = tileSize + 6;
