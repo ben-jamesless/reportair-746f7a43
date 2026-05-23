@@ -1436,15 +1436,8 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
             <Button size="icon" variant="secondary" onClick={onClose} className="absolute right-3 top-3 rounded-full opacity-90 md:hidden"><X className="h-5 w-5" /></Button>
           </div>
           <aside className="flex max-h-[80vh] flex-col gap-3 overflow-y-auto border-l bg-card p-5">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
-              {photo.caption ? (
-                <p className="mt-1 text-sm">{photo.caption}</p>
-              ) : (
-                <p className="mt-1 text-sm italic text-muted-foreground">No caption</p>
-              )}
-            </div>
             <div className="space-y-2">
+
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Notes</p>
               {notes.length === 0 && <p className="text-sm text-muted-foreground">No notes yet.</p>}
               {notes.map((n) => (
