@@ -55,6 +55,9 @@ type Resolved = {
   area_day_notes?: AreaDayNote[];
   photos?: SharePhoto[];
   latest_export?: LatestExport | null;
+  team_plan?: string | null;
+  team_name?: string | null;
+  team_logo_path?: string | null;
 };
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
