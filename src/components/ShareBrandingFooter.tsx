@@ -1,3 +1,6 @@
+import { BrandMark } from "@/components/marketing/brand";
+import { display } from "@/components/marketing/brand-tokens";
+
 interface Props {
   teamPlan: string;
   teamLogoUrl?: string | null;
@@ -9,6 +12,22 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
   if (hideBranding) return null;
 
   const isCrew = teamPlan === "pro" || teamPlan === "team";
+
+  const BuildSlidesLockup = () => (
+    <a
+      href="https://buildslides.com"
+      target="_blank"
+      rel="noreferrer"
+      style={{ display: "inline-flex", alignItems: "center", gap: "6px", opacity: 0.85, transition: "opacity 150ms" }}
+      onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+      onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
+    >
+      <BrandMark size={16} onDark />
+      <span style={{ ...display, color: "#F4F1EA", fontWeight: 700, fontSize: "13px", letterSpacing: "-0.01em" }}>
+        BuildSlides
+      </span>
+    </a>
+  );
 
   return (
     <footer
@@ -39,38 +58,12 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
             <span style={{ color: "#ffffff", fontWeight: 600 }}>{teamName}</span>
             <span style={{ opacity: 0.3, margin: "0 2px" }}>·</span>
             <span>Powered by</span>
-            <a
-              href="https://buildslides.com"
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", opacity: 0.75, transition: "opacity 150ms" }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.75")}
-            >
-              <img
-                src="/brand/buildslides-lockup-on-dark.svg"
-                alt="BuildSlides"
-                style={{ height: "14px", width: "auto" }}
-              />
-            </a>
+            <BuildSlidesLockup />
           </>
         ) : (
           <>
             <span>Built by</span>
-            <a
-              href="https://buildslides.com"
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", opacity: 0.75, transition: "opacity 150ms" }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.75")}
-            >
-              <img
-                src="/brand/buildslides-lockup-on-dark.svg"
-                alt="BuildSlides"
-                style={{ height: "14px", width: "auto" }}
-              />
-            </a>
+            <BuildSlidesLockup />
           </>
         )}
       </div>
