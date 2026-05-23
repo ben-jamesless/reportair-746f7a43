@@ -668,7 +668,8 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 
 export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
-          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName } = p;
+          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName,
+          showBuildSlidesBranding = true } = p;
 
   const W = 841.89, H = 595.28;   // landscape
   const HEADER_H = 40;
