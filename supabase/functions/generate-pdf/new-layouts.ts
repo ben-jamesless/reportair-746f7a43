@@ -378,7 +378,8 @@ export type NewLayoutParams = {
 
 export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<void> {
   const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
-          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName } = p;
+          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName,
+          showBuildSlidesBranding = true } = p;
 
   const W = 595.28, H = 841.89;
   const ML = 42, MR = 42, MT = 42;
