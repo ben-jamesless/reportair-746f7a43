@@ -12,7 +12,7 @@ import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { ShareBrandingFooter } from "@/components/ShareBrandingFooter";
 
 type SharePhoto = {
   id: string; storage_path: string; file_name: string; caption: string | null;
