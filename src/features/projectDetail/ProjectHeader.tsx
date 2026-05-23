@@ -258,9 +258,10 @@ export function ProjectHeader({
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               onClick={onOpenFeedback}
+              aria-label="Feedback"
               className="flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-card text-sm text-foreground font-medium hover:bg-muted/40 transition-colors"
             >
-              <MessageSquare className="w-3.5 h-3.5" />
+              <MessageSquare width={16} height={16} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
               <span className="hidden sm:inline">Feedback</span>
             </button>
             <div className="hidden sm:block">
