@@ -1349,8 +1349,20 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
     setBody(""); loadNotes(); onNotesChanged?.(); toast.success("Note added");
   };
 
-  const prev = () => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); };
-  const next = () => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); };
+  const prev = useCallback(() => { const ni = (i - 1 + photos.length) % photos.length; setI(ni); onIndexChange(ni); }, [i, photos.length, onIndexChange]);
+  const next = useCallback(() => { const ni = (i + 1) % photos.length; setI(ni); onIndexChange(ni); }, [i, photos.length, onIndexChange]);
+
+  // Keyboard navigation: arrows + Escape
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+      else if (e.key === "Escape") { onClose(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prev, next, onClose]);
+
 
   if (!photo) return null;
   return (
