@@ -69,13 +69,13 @@ export const MobileProjectToolbar = ({
   };
 
   return (
-    <div className="mb-4 md:hidden">
+    <div className="mb-4 sm:hidden">
 
       <div className="flex items-center gap-2">
 
-        {/* Upload — flex-1 centre (hidden for viewers) */}
+        {/* Upload — fills remaining width (hidden for viewers) */}
         {canEdit ? (
-          <div className="flex flex-1 justify-center [&_button]:h-9 [&_button]:w-full [&_button]:max-w-[200px]">
+          <div className="flex flex-1 [&_button]:h-9 [&_button]:w-full">
             {uploader}
           </div>
         ) : (
