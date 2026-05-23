@@ -684,7 +684,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   // ── Shared header ──────────────────────────────────────────────────────────
   function drawHeader(page: PDFPage) {
     fillRect(page, 0, H - HEADER_H, W, HEADER_H, C.INK);
-    drawWordmark(page, 20, H - HEADER_H + 10, font, 10, true, 14, logoImage, companyName, whiteLabelPdf, brandMarkImage);
+    drawWordmark(page, 20, H - HEADER_H + 10, font, 10, true, 14, logoImage, companyName, whiteLabelPdf, brandMarkImage, showBuildSlidesBranding);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 11);
     page.drawText(dayLbl, { x: W - 20 - dw, y: H - HEADER_H + 14, size: 11, font: body, color: effectiveAccent });
