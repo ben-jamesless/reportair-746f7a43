@@ -399,7 +399,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
   function drawAreaHeader(page: PDFPage): number {
     const stripTop = H - MT;
     const logoY = stripTop - 16;
-    drawWordmark(page, ML, logoY, font, 10, false, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage);
+    drawWordmark(page, ML, logoY, font, 10, false, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage, showBuildSlidesBranding);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 8);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 8, font: body, color: effectiveAccent });
