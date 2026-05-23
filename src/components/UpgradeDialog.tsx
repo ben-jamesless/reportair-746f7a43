@@ -18,7 +18,7 @@ const PLANS = [
     features: [
       "1 active event",
       "Unlimited PDF exports",
-      "14-day free trial",
+      "7-day free trial",
     ],
   },
   {
@@ -36,7 +36,7 @@ const PLANS = [
       "Password-protected links",
       "Project folders",
       "Project invites",
-      "14-day free trial",
+      "7-day free trial",
     ],
     recommended: true,
   },
@@ -56,7 +56,7 @@ const PLANS = [
       "White-label report header",
       "Priority support",
       "Onboarding call",
-      "14-day free trial",
+      "7-day free trial",
     ],
   },
 ];
@@ -107,7 +107,7 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
         <DialogHeader>
           <DialogTitle className="text-xl">Upgrade your plan</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            14-day free trial on all plans. Cancel anytime.
+            7-day free trial on all plans. Cancel anytime.
           </p>
         </DialogHeader>
 
@@ -182,7 +182,7 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
               >
                 {loading === plan.key
                   ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : "Start 14-day free trial →"}
+                  : "Start 7-day free trial →"}
               </Button>
             </div>
           ))}

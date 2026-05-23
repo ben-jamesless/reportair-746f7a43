@@ -122,7 +122,7 @@ serve(async (req) => {
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
-      trial_period_days: 14,
+      trial_period_days: 7,
       metadata: { supabase_team_id: team.id },
     },
     success_url: success_url ?? `${baseOrigin}/billing?checkout=success`,
