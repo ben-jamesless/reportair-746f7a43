@@ -187,6 +187,10 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  if (isUpdateDayLimitReached) {
+    return <FreePlanUploadGate projectId={projectId} shareToken={shareToken} />;
+  }
+
   return (
     <>
       <input
