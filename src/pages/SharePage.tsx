@@ -59,25 +59,30 @@ type Resolved = {
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
-// BuildSlides design tokens
-const TEAL = "#D94F2A"; // SKY — kept variable name for compat
-const NEAR_BLACK = "#0F1724"; // INK
-const BODY = "#3D4F66"; // SLATE
-const MUTED = "#7A8FA8"; // MIST
-const DIVIDER = "#D0D9E8"; // BORDER
-const SURFACE = "#F5F7FA"; // FOG
+// BuildSlides share-page design tokens — themed via CSS variables on root wrapper.
+// Switch between light/dark by toggling --bg, --surface, --ink, --body, --muted, --border on the root.
+const TEAL = "#c84b2f"; // BuildSlides red-orange accent (used as fallback when brand colour absent)
+const NEAR_BLACK = "var(--ink)";
+const BODY = "var(--body)";
+const MUTED = "var(--muted)";
+const DIVIDER = "var(--border)";
+const SURFACE = "var(--surface-2)";
 
 // Status meta — pill backgrounds & dot colors
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On track", bg: "#3A6EA5" },
-  at_risk: { label: "Discuss", bg: "#D94F2A" },
-  requires_discussion: { label: "Discuss", bg: "#D94F2A" },
-  delayed: { label: "Delayed", bg: "#C7382A" },
-  concern: { label: "Delayed", bg: "#C7382A" },
-  behind_schedule: { label: "Delayed", bg: "#C7382A" },
-  complete: { label: "Complete", bg: "#3A7D44" },
+  on_track: { label: "On track", bg: "#437a22" },
+  at_risk: { label: "Delayed", bg: "#d19900" },
+  requires_discussion: { label: "Discuss", bg: "#d19900" },
+  delayed: { label: "Delayed", bg: "#d19900" },
+  concern: { label: "Delayed", bg: "#d19900" },
+  behind_schedule: { label: "Delayed", bg: "#d19900" },
+  complete: { label: "Complete", bg: "#006494" },
   no_status: { label: "No status", bg: "#9C9A93" },
 };
+
+// Fixed 6-colour palette for area dots
+const AREA_PALETTE = ["#437a22", "#006494", "#da7101", "#7a39bb", "#01696f", "#a13544"];
+const colourForArea = (id: string, idx: number) => AREA_PALETTE[idx % AREA_PALETTE.length];
 
 const StatusPill = ({ statusKey, size = "sm" }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
   if (!statusKey) return null;
