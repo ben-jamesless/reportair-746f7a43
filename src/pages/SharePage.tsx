@@ -867,7 +867,9 @@ const SharePage = () => {
                 })}
               </>
             )}
+            </div>
           </aside>
+
 
           {/* CENTRE: Day feed */}
           <section className="min-w-0">
