@@ -64,43 +64,6 @@ export const MobileProjectToolbar = ({
     <div className="mb-4 md:hidden">
 
       <div className="flex items-center gap-2">
-        {/* Report / Gallery toggle */}
-        <div
-          className="inline-flex shrink-0 rounded-md border bg-background p-0.5"
-          role="radiogroup"
-          aria-label="Project view"
-        >
-          <button
-            type="button"
-            role="radio"
-            aria-checked={effectiveView === "report"}
-            onClick={() => setViewOverride("report")}
-            aria-label="Report view"
-            className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded transition-colors",
-              effectiveView === "report"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-secondary",
-            )}
-          >
-            <FileText className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={effectiveView === "gallery"}
-            onClick={() => setViewOverride("gallery")}
-            aria-label="Gallery view"
-            className={cn(
-              "inline-flex h-8 w-8 items-center justify-center rounded transition-colors",
-              effectiveView === "gallery"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-secondary",
-            )}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
-        </div>
 
         {/* Upload — flex-1 centre (hidden for viewers) */}
         {canEdit ? (
