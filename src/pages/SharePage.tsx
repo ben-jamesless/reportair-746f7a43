@@ -146,6 +146,7 @@ const SharePage = () => {
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [activeKey, setActiveKey] = useState<string>(ALL_DAYS); // ALL_DAYS | dateKey | __album_<id>
+  const [allDaysExpanded, setAllDaysExpanded] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [guest, setGuest] = useState<{ name: string; email: string }>({ name: "", email: "" });
   
@@ -463,7 +464,7 @@ const SharePage = () => {
 
 
   // Day-level scroll anchors (for ALL_DAYS view)
-  const dayAnchorRefs = useRef<Map<string, HTMLElement | null>>(new Map());
+  const dayAnchorRefs = useRef<Map<string, HTMLDetailsElement | null>>(new Map());
   const handleSelectDay = (key: string) => {
     setActiveKey(key);
     if (key !== ALL_DAYS && !isAlbumKey(key)) {
@@ -770,7 +771,21 @@ const SharePage = () => {
           <aside className="hidden lg:block">
             <div className="sticky top-20 space-y-1">
             <button
-              onClick={() => setActiveKey(ALL_DAYS)}
+              onClick={() => {
+                if (activeKey === ALL_DAYS) {
+                  // Already on All days — toggle expand/collapse of every day section
+                  const next = !allDaysExpanded;
+                  setAllDaysExpanded(next);
+                  dayAnchorRefs.current.forEach((el) => { if (el) el.open = next; });
+                } else {
+                  setActiveKey(ALL_DAYS);
+                  setAllDaysExpanded(true);
+                  // Ensure freshly rendered sections open
+                  requestAnimationFrame(() => {
+                    dayAnchorRefs.current.forEach((el) => { if (el) el.open = true; });
+                  });
+                }
+              }}
               className={cn(
                 "flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
               )}
@@ -983,25 +998,30 @@ const SharePage = () => {
                   const hasUnassigned = byArea.has("__noarea__");
                   const totalBlocks = orderedAreas.length + (hasUnassigned ? 1 : 0);
 
+                  const accentBar = dominantDayStatus
+                    ? STATUS_META[dominantDayStatus]?.bg ?? DIVIDER
+                    : DIVIDER;
+
                   return (
                     <details
                       key={group.key}
                       ref={(el) => {
                         dayAnchorRefs.current.set(dateKey, el);
-                        if (el && !isMobile && el.dataset.init !== "1") {
-                          el.open = true;
+                        if (el && el.dataset.init !== "1") {
+                          el.open = !isMobile && allDaysExpanded;
                           el.dataset.init = "1";
                         }
                       }}
                       className="group/day"
                     >
-                      {/* Day header strip — full width, flush; collapsible at all breakpoints */}
+                      {/* Day header — transparent band with status accent bar on the left */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 py-3 pl-4 pr-4 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
                         style={{
-                          backgroundColor: dark ? "rgba(31,29,26,0.92)" : "rgba(241,239,233,0.92)",
+                          backgroundColor: dark ? "rgba(23,22,20,0.78)" : "rgba(247,246,242,0.78)",
                           borderTop: `1px solid ${DIVIDER}`,
                           borderBottom: `1px solid ${DIVIDER}`,
+                          borderLeft: `3px solid ${accentBar}`,
                         }}
                       >
                         <div className="flex items-baseline gap-3 min-w-0">
