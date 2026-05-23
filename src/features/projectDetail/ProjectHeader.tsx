@@ -295,54 +295,38 @@ export function ProjectHeader({
                 </ErrorBoundary>
               </div>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
-                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {/* Mobile-only quick actions (hidden ≥sm where buttons are visible) */}
-                <DropdownMenuItem className="sm:hidden" onSelect={onOpenFeedback}>
-                  <MessageSquare className="mr-2 h-4 w-4" /> Feedback
-                </DropdownMenuItem>
-                <DropdownMenuItem className="sm:hidden" onSelect={() => {
-                  if (canUseShareLink) window.dispatchEvent(new CustomEvent("open-share-settings"));
-                  else toast.message("Share links are a Pro feature");
-                }}>
-                  <Share2 className="mr-2 h-4 w-4" /> Share link
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="sm:hidden"
-                  disabled={photoCount === 0}
-                  onSelect={onOpenExport}
-                >
-                  <Download className="mr-2 h-4 w-4" /> Export PDF
-                </DropdownMenuItem>
-                {canEdit && <DropdownMenuSeparator className="sm:hidden" />}
-                {canEdit && (
-                  <>
-                    <DropdownMenuItem onSelect={onOpenSettings}>
-                      <Pencil className="mr-2 h-4 w-4" /> Edit event details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={onOpenShareSettings}>
-                      <Share2 className="mr-2 h-4 w-4" /> Share links
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {isOwner && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onSelect={onArchive}
-                    >
-                      <Archive className="mr-2 h-4 w-4" /> Archive event
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden md:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="w-8 h-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40">
+                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {canEdit && (
+                    <>
+                      <DropdownMenuItem onSelect={onOpenSettings}>
+                        <Pencil className="mr-2 h-4 w-4" /> Edit event details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={onOpenShareSettings}>
+                        <Share2 className="mr-2 h-4 w-4" /> Share links
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isOwner && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={onArchive}
+                      >
+                        <Archive className="mr-2 h-4 w-4" /> Archive event
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
