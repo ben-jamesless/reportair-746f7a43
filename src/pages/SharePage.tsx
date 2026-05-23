@@ -1050,6 +1050,38 @@ const SharePage = () => {
                           <RichNotes text={dayNotesMap.get(dateKey)!} />
                         </div>
                       )}
+                      {(() => {
+                        const dn = dayNoteByDate.get(dateKey);
+                        const sections: { label: string; text: string | null | undefined }[] = [
+                          { label: "Today's objectives", text: dn?.today_objectives },
+                          { label: "Today's achievements", text: dn?.today_achievements },
+                          { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
+                          { label: "Open issues", text: dn?.open_issues },
+                        ].filter((s) => s.text && s.text.trim());
+                        if (sections.length === 0) return null;
+                        return (
+                          <div
+                            className="mx-4 my-3 rounded-lg border p-4"
+                            style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
+                          >
+                            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                              Daily report
+                            </p>
+                            <ul className="mt-3 space-y-4">
+                              {sections.map((s) => (
+                                <li key={s.label}>
+                                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                                    {s.label}
+                                  </p>
+                                  <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
+                                    <RichNotes text={s.text!} />
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })()}
 
                       {/* Area blocks — flush, no cards */}
                       <div>
@@ -1071,7 +1103,8 @@ const SharePage = () => {
                                 </header>
 
                                 {areaPhotos.length > 0 && (
-                                  <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+
                                     {areaPhotos.map((p) => (
                                       <SharePhotoThumb
                                         key={p.id}
@@ -1104,7 +1137,7 @@ const SharePage = () => {
                             <header className="mb-3">
                               <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>Unassigned</h3>
                             </header>
-                            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                               {byArea.get("__noarea__")!.map((p) => (
                                 <SharePhotoThumb
                                   key={p.id}
@@ -1313,17 +1346,12 @@ const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: Shar
     <button
       onClick={onClick}
       className="group relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-[#f3f4f6]"
-      title={photo.caption || undefined}
     >
-      {url ? <img src={url} alt={photo.caption || ""} className="h-full w-full object-cover" loading="lazy" /> : null}
-      {photo.caption && (
-        <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-          {photo.caption}
-        </span>
-      )}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" /> : null}
     </button>
   );
 };
+
 
 const SharePhotoMiniThumb = ({ token, photo }: { token: string; photo: SharePhoto }) => {
   const url = useShareSignedUrl(token, photo.id);
@@ -1408,15 +1436,8 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
             <Button size="icon" variant="secondary" onClick={onClose} className="absolute right-3 top-3 rounded-full opacity-90 md:hidden"><X className="h-5 w-5" /></Button>
           </div>
           <aside className="flex max-h-[80vh] flex-col gap-3 overflow-y-auto border-l bg-card p-5">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Photo</p>
-              {photo.caption ? (
-                <p className="mt-1 text-sm">{photo.caption}</p>
-              ) : (
-                <p className="mt-1 text-sm italic text-muted-foreground">No caption</p>
-              )}
-            </div>
             <div className="space-y-2">
+
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Notes</p>
               {notes.length === 0 && <p className="text-sm text-muted-foreground">No notes yet.</p>}
               {notes.map((n) => (
