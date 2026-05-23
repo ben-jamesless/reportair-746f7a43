@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon } from "lucide-react";
+import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -117,6 +117,37 @@ const StatusDot = ({ statusKey }: { statusKey: string | null | undefined }) => {
     />
   );
 };
+
+type Wx = { tmin: number; tmax: number; condition: string; wind: number };
+const weatherIconFor = (condition: string) => {
+  const c = condition.toLowerCase();
+  if (c.includes("thunder")) return CloudLightning;
+  if (c.includes("snow")) return CloudSnow;
+  if (c.includes("drizzle")) return CloudDrizzle;
+  if (c.includes("rain")) return CloudRain;
+  if (c.includes("fog")) return CloudFog;
+  if (c.includes("overcast") || c.includes("cloud")) return Cloud;
+  if (c.includes("clear")) return Sun;
+  return Cloud;
+};
+const WeatherBadge = ({ w, muted, divider, body }: { w: Wx; muted: string; divider: string; body: string }) => {
+  const Icon = weatherIconFor(w.condition);
+  return (
+    <span
+      className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium"
+      style={{ borderColor: divider, color: body }}
+    >
+      <Icon className="h-3.5 w-3.5" style={{ color: muted }} />
+      <span>{w.tmin}°–{w.tmax}°C</span>
+      <span style={{ color: muted }}>·</span>
+      <span style={{ color: muted }}>{w.condition}</span>
+      <span style={{ color: muted }}>·</span>
+      <Wind className="h-3 w-3" style={{ color: muted }} />
+      <span style={{ color: muted }}>{w.wind} km/h</span>
+    </span>
+  );
+};
+
 
 const isoDateKey = (d: Date) => {
   const y = d.getFullYear();
@@ -558,9 +589,9 @@ const SharePage = () => {
               <StatusPill statusKey={overallStatus} />
             </div>
             {weather[latestDayKey] && (
-              <p className="mt-3 text-xs" style={{ color: MUTED }}>
-                {weather[latestDayKey].tmin}°C – {weather[latestDayKey].tmax}°C · {weather[latestDayKey].condition} · {weather[latestDayKey].wind} km/h wind
-              </p>
+              <div className="mt-3">
+                <WeatherBadge w={weather[latestDayKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
+              </div>
             )}
             {hasAny ? (
               <ul className="mt-5 space-y-5">
@@ -1041,8 +1072,8 @@ const SharePage = () => {
                         </div>
                       </summary>
                       {weather[dateKey] && (
-                        <div className="px-4 py-2 text-xs" style={{ color: MUTED, borderBottom: `1px solid ${DIVIDER}` }}>
-                          {weather[dateKey].tmin}°C – {weather[dateKey].tmax}°C · {weather[dateKey].condition} · {weather[dateKey].wind} km/h wind
+                        <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
+                          <WeatherBadge w={weather[dateKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
                         </div>
                       )}
                       {dayNotesMap.get(dateKey) && (
