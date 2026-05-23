@@ -16,6 +16,7 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
   if (hideBranding) return null;
 
 
+
   const isCrew = teamPlan === "pro" || teamPlan === "team";
 
   return (
