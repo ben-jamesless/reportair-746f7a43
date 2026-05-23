@@ -24,6 +24,8 @@ interface Props {
   areas?: AreaOption[];
   onUploaded?: () => void;
   trigger?: React.ReactNode;
+  /** Optional share token for the "View your live report" link in the Free-plan gate. */
+  shareToken?: string | null;
 }
 
 const NO_AREA = "__no_area__";
@@ -35,8 +37,14 @@ const todayYmd = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger }: Props) => {
+export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger, shareToken = null }: Props) => {
   const { user } = useAuth();
+  const { limits } = usePlan();
+  const { dayCount, loading: daysLoading } = useProjectUpdateDays(
+    limits.maxUpdateDays !== -1 ? projectId : null
+  );
+  const isUpdateDayLimitReached =
+    limits.maxUpdateDays !== -1 && !daysLoading && dayCount >= limits.maxUpdateDays;
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
