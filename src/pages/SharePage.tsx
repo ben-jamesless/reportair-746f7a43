@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ShareBrandingFooter } from "@/components/ShareBrandingFooter";
 
 type SharePhoto = {
   id: string; storage_path: string; file_name: string; caption: string | null;
@@ -55,6 +56,9 @@ type Resolved = {
   area_day_notes?: AreaDayNote[];
   photos?: SharePhoto[];
   latest_export?: LatestExport | null;
+  team_plan?: string | null;
+  team_name?: string | null;
+  team_logo_path?: string | null;
 };
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
@@ -1275,6 +1279,12 @@ const SharePage = () => {
           onNotesChanged={loadFeedback}
         />
       )}
+
+      <ShareBrandingFooter
+        teamPlan={data?.team_plan ?? "free"}
+        teamLogoUrl={logoUrl}
+        teamName={data?.team_name ?? null}
+      />
     </div>
   );
 };

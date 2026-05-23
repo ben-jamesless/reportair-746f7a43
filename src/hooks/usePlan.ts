@@ -3,111 +3,143 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 // ── Plan types ────────────────────────────────────────────────────────────────
-export type PlanName = "solo" | "pro" | "studio";
+export type PlanName = "free" | "solo" | "pro" | "studio";
 
 export interface PlanLimits {
-  maxProjects:     number;   // -1 = unlimited
-  maxMembers:      number;   // -1 = unlimited
-  maxExportsMonth: number;   // -1 = unlimited (all plans now unlimited)
-  shareLinks:      boolean;
-  shareLinkEmail:  boolean;
-  passwordLinks:   boolean;
-  customLogo:      boolean;
-  whiteLabelHeader:boolean;
-  projectFolders:  boolean;
-  planIncludesInvites: boolean;  // external project invites
+  maxProjects:            number;   // -1 = unlimited
+  maxMembers:             number;   // -1 = unlimited
+  maxUpdateDays:          number;   // max distinct photo-upload dates per project; -1 = unlimited
+  maxExportsMonth:        number;   // -1 = unlimited (kept for future use, all paid plans unlimited)
+  pdfExport:              boolean;  // can generate/download PDF exports
+  shareLinks:             boolean;  // can create share links
+  shareLinkEmail:         boolean;  // can send share link by email
+  passwordLinks:          boolean;  // can password-protect share links
+  showBuildSlidesBranding:boolean;  // BuildSlides wordmark shown on share pages & PDFs
+  allowCustomLogo:        boolean;  // can upload their own team/client logo
+  whiteLabelFull:         boolean;  // removes ALL BuildSlides branding (Studio only)
+  projectFolders:         boolean;
+  planIncludesInvites:    boolean;  // external project invites
 }
 
 const LIMITS: Record<PlanName, PlanLimits> = {
+  free: {
+    maxProjects:             1,
+    maxMembers:              1,
+    maxUpdateDays:           3,    // 3 distinct photo-upload dates per project
+    maxExportsMonth:         0,
+    pdfExport:               false,
+    shareLinks:              true, // core value — share link always on
+    shareLinkEmail:          false,
+    passwordLinks:           false,
+    showBuildSlidesBranding: true,
+    allowCustomLogo:         false,
+    whiteLabelFull:          false,
+    projectFolders:          false,
+    planIncludesInvites:     false,
+  },
   solo: {
-    maxProjects:      1,
-    maxMembers:       1,
-    maxExportsMonth:  -1,  // unlimited
-    shareLinks:       false,
-    shareLinkEmail:   false,
-    passwordLinks:    false,
-    customLogo:       false,
-    whiteLabelHeader: false,
-    projectFolders:   false,
-    planIncludesInvites: false,
+    maxProjects:             1,
+    maxMembers:              1,
+    maxUpdateDays:           -1,   // unlimited
+    maxExportsMonth:         -1,
+    pdfExport:               false,
+    shareLinks:              true,
+    shareLinkEmail:          false,
+    passwordLinks:           false,
+    showBuildSlidesBranding: true,
+    allowCustomLogo:         false,
+    whiteLabelFull:          false,
+    projectFolders:          false,
+    planIncludesInvites:     false,
   },
   pro: {
-    maxProjects:      5,
-    maxMembers:       5,
-    maxExportsMonth:  -1,
-    shareLinks:       true,
-    shareLinkEmail:   true,
-    passwordLinks:    true,
-    customLogo:       false,
-    whiteLabelHeader: false,
-    projectFolders:   true,
-    planIncludesInvites: true,
+    maxProjects:             5,
+    maxMembers:              5,
+    maxUpdateDays:           -1,
+    maxExportsMonth:         -1,
+    pdfExport:               true,
+    shareLinks:              true,
+    shareLinkEmail:          true,
+    passwordLinks:           true,
+    showBuildSlidesBranding: true,  // BuildSlides shown alongside client logo
+    allowCustomLogo:         true,
+    whiteLabelFull:          false,
+    projectFolders:          true,
+    planIncludesInvites:     true,
   },
   studio: {
-    maxProjects:      -1,
-    maxMembers:       -1,
-    maxExportsMonth:  -1,
-    shareLinks:       true,
-    shareLinkEmail:   true,
-    passwordLinks:    true,
-    customLogo:       true,
-    whiteLabelHeader: true,
-    projectFolders:   true,
-    planIncludesInvites: true,
+    maxProjects:             -1,
+    maxMembers:              -1,
+    maxUpdateDays:           -1,
+    maxExportsMonth:         -1,
+    pdfExport:               true,
+    shareLinks:              true,
+    shareLinkEmail:          true,
+    passwordLinks:           true,
+    showBuildSlidesBranding: false, // BuildSlides removed entirely
+    allowCustomLogo:         true,
+    whiteLabelFull:          true,
+    projectFolders:          true,
+    planIncludesInvites:     true,
   },
 };
 
-// ── Legacy plan name normaliser (handles rows not yet migrated) ───────────────
+// ── Legacy plan name normaliser ───────────────────────────────────────────────
+// "free" now stays as "free" — it is a real plan, not a fallback.
 function normalisePlan(raw: string | null | undefined): PlanName {
   switch (raw) {
-    case "pro":        return "pro";
-    case "team":       return "pro";       // legacy → new pro
-    case "studio":     return "studio";
-    case "enterprise": return "studio";    // legacy → studio
+    case "free":       return "free";
     case "solo":       return "solo";
-    case "free":
-    default:           return "solo";      // legacy free → solo
+    case "pro":        return "pro";
+    case "team":       return "pro";        // legacy → pro
+    case "studio":     return "studio";
+    case "enterprise": return "studio";     // legacy → studio
+    default:           return "free";       // any unknown → free (most restrictive)
   }
 }
 
 interface PlanState {
-  plan:             PlanName;
-  limits:           PlanLimits;
-  teamId:           string | null;
-  projectCount:     number;
-  memberCount:      number;
-  exportsThisMonth: number;
-  subscriptionStatus: string | null;
-  trialEndsAt:      string | null;
-  currentPeriodEnd: string | null;
-  loading:          boolean;
-  canCreateProject: boolean;
-  canInviteMember:  boolean;
-  canExportPdf:     boolean;
-  canUseShareLink:  boolean;
-  canUseShareLinkEmail: boolean;
-  canUsePasswordLinks: boolean;
-  canUseCustomLogo: boolean;
-  canUseWhiteLabel: boolean;
-  canUseFolders:    boolean;
-  planIncludesInvites: boolean;
-  refetch?:         () => void;
+  plan:                     PlanName;
+  limits:                   PlanLimits;
+  teamId:                   string | null;
+  projectCount:             number;
+  memberCount:              number;
+  exportsThisMonth:         number;
+  subscriptionStatus:       string | null;
+  trialEndsAt:              string | null;
+  currentPeriodEnd:         string | null;
+  loading:                  boolean;
+  canCreateProject:         boolean;
+  canInviteMember:          boolean;
+  canExportPdf:             boolean;
+  canUseShareLink:          boolean;
+  canUseShareLinkEmail:     boolean;
+  canUsePasswordLinks:      boolean;
+  canUseCustomLogo:         boolean;
+  canUseWhiteLabel:         boolean;
+  canUseFolders:            boolean;
+  planIncludesInvites:      boolean;
+  showBuildSlidesBranding:  boolean;
+  isFree:                   boolean;
+  refetch?:                 () => void;
 }
 
 export const usePlan = (): PlanState => {
   const { user } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [state, setState] = useState<Omit<PlanState, "refetch">>({
-    plan: "solo", limits: LIMITS.solo, teamId: null,
+    plan: "free", limits: LIMITS.free, teamId: null,
     projectCount: 0, memberCount: 0, exportsThisMonth: 0,
     subscriptionStatus: null, trialEndsAt: null, currentPeriodEnd: null,
     loading: true,
     canCreateProject: false, canInviteMember: false,
-    canExportPdf: true,   // all plans — unlimited
-    canUseShareLink: false, canUseShareLinkEmail: false,
-    canUsePasswordLinks: false, canUseCustomLogo: false,
-    canUseWhiteLabel: false, canUseFolders: false,
-    planIncludesInvites: false,
+    canExportPdf: false,
+    canUseShareLink: true,
+    canUseShareLinkEmail: false, canUsePasswordLinks: false,
+    canUseCustomLogo: false, canUseWhiteLabel: false,
+    canUseFolders: false, planIncludesInvites: false,
+    showBuildSlidesBranding: true,
+    isFree: true,
   });
 
   useEffect(() => {
@@ -127,11 +159,8 @@ export const usePlan = (): PlanState => {
 
       const planName = normalisePlan(team?.plan);
       const limits   = LIMITS[planName];
-
-      // Only events on teams the user belongs to (and not archived) count toward
-      // the plan quota. Invited-only events on other teams are excluded.
       const projectCount = typeof ownedCount === "number" ? ownedCount : 0;
-      const memberCount  = members?.length  ?? 1;
+      const memberCount  = members?.length ?? 1;
 
       setState({
         plan:             planName,
@@ -146,14 +175,16 @@ export const usePlan = (): PlanState => {
         loading:          false,
         canCreateProject: limits.maxProjects === -1 || projectCount < limits.maxProjects,
         canInviteMember:  limits.maxMembers  === -1 || memberCount  < limits.maxMembers,
-        canExportPdf:     true,   // unlimited on all plans
+        canExportPdf:     limits.pdfExport,
         canUseShareLink:  limits.shareLinks,
         canUseShareLinkEmail: limits.shareLinkEmail,
         canUsePasswordLinks:  limits.passwordLinks,
-        canUseCustomLogo: limits.customLogo,
-        canUseWhiteLabel: limits.whiteLabelHeader,
+        canUseCustomLogo: limits.allowCustomLogo,
+        canUseWhiteLabel: limits.whiteLabelFull,
         canUseFolders:    limits.projectFolders,
         planIncludesInvites: limits.planIncludesInvites,
+        showBuildSlidesBranding: limits.showBuildSlidesBranding,
+        isFree:           planName === "free",
       });
     })();
     return () => { cancelled = true; };

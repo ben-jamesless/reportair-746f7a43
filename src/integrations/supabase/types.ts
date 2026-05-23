@@ -1286,6 +1286,10 @@ export type Database = {
         Returns: number
       }
       get_invite_email: { Args: { _token: string }; Returns: string }
+      get_project_update_day_count: {
+        Args: { _project_id: string }
+        Returns: number
+      }
       get_share_brand_colour: { Args: { _token: string }; Returns: string }
       get_share_export_url: { Args: { _token: string }; Returns: string }
       get_share_logo_path: { Args: { _token: string }; Returns: string }

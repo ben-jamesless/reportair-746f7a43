@@ -10,27 +10,51 @@ type Plan = {
   annualBilled: string;
   features: string[];
   cta: string;
+  ctaLink: string;
   featured: boolean;
   flag?: string;
 };
 
 const PRICING = {
-  title: "Simple pricing for event teams.",
-  sub: "Start with one event, then scale across your builds, activations, and client reports.",
+  title: "Build reports your client will actually open.",
+  sub: "Every plan includes the essentials: create a project, update it with photos, share it in minutes.",
   plans: [
     {
+      name: "Free",
+      best: "Try it — no card needed",
+      monthlyPrice: "HK$0",
+      annualMonthly: "HK$0",
+      annualBilled: "Always free",
+      features: [
+        "1 active build",
+        "3 build-day reports",
+        "Unlimited photo uploads",
+        "Live share link",
+        "BuildSlides branded",
+      ],
+      cta: "Start for free",
+      ctaLink: "/auth?tab=signup",
+      featured: false,
+      flag: undefined,
+    },
+    {
       name: "Solo",
-      best: "For solo operators running events",
+      best: "For solo operators",
       monthlyPrice: "HK$128",
       annualMonthly: "HK$102",
       annualBilled: "HK$1,229 billed annually",
       features: [
-        "1 active event",
-        "Unlimited PDF exports",
+        "1 active build",
+        "Unlimited build days",
+        "Unlimited photo uploads",
+        "Live share link",
+        "BuildSlides branded",
         "14-day free trial",
       ],
       cta: "Start your first build.",
+      ctaLink: "/auth?tab=signup",
       featured: false,
+      flag: undefined,
     },
     {
       name: "Crew",
@@ -39,38 +63,43 @@ const PRICING = {
       annualMonthly: "HK$238",
       annualBilled: "HK$2,860 billed annually",
       features: [
-        "5 active events",
+        "5 active builds",
         "5 team members",
-        "Unlimited PDF exports",
-        "Share & client links",
+        "Unlimited photo uploads",
+        "Live share link",
         "Password-protected links",
-        "Project folders",
-        "Project invites",
+        "PDF export",
+        "Your logo + BuildSlides",
+        "Project folders & invites",
         "14-day free trial",
       ],
       cta: "Start your first build.",
+      ctaLink: "/auth?tab=signup",
       featured: true,
       flag: "Most teams start here",
     },
     {
       name: "Studio",
       best: "For agencies and large organisations",
-      monthlyPrice: "HK$688",
-      annualMonthly: "HK$550",
-      annualBilled: "HK$6,604 billed annually",
+      monthlyPrice: "Get in touch",
+      annualMonthly: "Get in touch",
+      annualBilled: "Custom pricing",
       features: [
-        "Unlimited events",
+        "Unlimited active builds",
         "Unlimited team members",
-        "Unlimited PDF exports",
-        "Share & client links",
-        "Custom logo on PDF",
+        "Unlimited photo uploads",
+        "Live share link",
+        "Password-protected links",
+        "PDF export",
+        "Your logo only — no BuildSlides",
         "White-label report header",
-        "Priority support",
-        "Onboarding call",
-        "14-day free trial",
+        "Custom domain (coming soon)",
+        "Priority support + onboarding call",
       ],
-      cta: "Start your first build.",
+      cta: "Get in touch",
+      ctaLink: "mailto:hello@buildslides.co",
       featured: false,
+      flag: undefined,
     },
   ] as Plan[],
 };
@@ -82,8 +111,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-// Three-tier pricing grid with a monthly / annual toggle. Owns its own
-// billing-period state since nothing outside the section needs it.
 export function PricingSection() {
   const [annual, setAnnual] = useState(false);
 
@@ -121,10 +148,17 @@ export function PricingSection() {
           </span>
         </div>
 
-        <div className="grid items-stretch gap-7 md:grid-cols-3 lg:gap-8">
+        <div className="grid items-stretch gap-7 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           {PRICING.plans.map((p) => {
             const isFeatured = p.featured;
+            const isCustom = p.monthlyPrice === "Get in touch";
             const price = annual ? p.annualMonthly : p.monthlyPrice;
+            const isExternal = p.ctaLink.startsWith("mailto:") || p.ctaLink.startsWith("http");
+            const ctaStyle = isFeatured
+              ? { background: BRAND.sky, color: "#fff" }
+              : { background: "rgba(255,255,255,0.06)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.12)" };
+            const ctaClass =
+              "block w-full rounded-full px-5 py-3 text-center text-[0.95rem] font-semibold transition-colors";
             return (
               <article
                 key={p.name}
@@ -157,13 +191,28 @@ export function PricingSection() {
                   <h3 className="text-xl font-bold" style={{ ...display, color: "#FFFFFF" }}>{p.name}</h3>
                   <p className="mt-1 text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>{p.best}</p>
                 </header>
-                <div className="mb-1 flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold" style={{ ...display, color: "#FFFFFF" }}>{price}</span>
-                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>/month</span>
-                </div>
-                <p className="mb-5 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
-                  {annual ? p.annualBilled : "Billed monthly"}
-                </p>
+
+                {isCustom ? (
+                  <div className="mb-5">
+                    <span className="text-2xl font-extrabold" style={{ ...display, color: "#FFFFFF" }}>
+                      Get in touch
+                    </span>
+                    <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                      Custom pricing for your team
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-1 flex items-baseline gap-2">
+                      <span className="text-3xl font-extrabold" style={{ ...display, color: "#FFFFFF" }}>{price}</span>
+                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>/month</span>
+                    </div>
+                    <p className="mb-5 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
+                      {annual ? p.annualBilled : "Billed monthly"}
+                    </p>
+                  </>
+                )}
+
                 <ul className="mb-7 flex-1 space-y-2.5 text-[0.95rem]" style={{ color: "rgba(255,255,255,0.7)" }}>
                   {p.features.map((f) => (
                     <li key={f} className="flex items-start gap-2.5">
@@ -172,23 +221,28 @@ export function PricingSection() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  to="/auth?tab=signup"
-                  className="block w-full rounded-full px-5 py-3 text-center text-[0.95rem] font-semibold transition-colors"
-                  style={
-                    isFeatured
-                      ? { background: BRAND.sky, color: "#fff" }
-                      : { background: "rgba(255,255,255,0.06)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.12)" }
-                  }
-                  onMouseEnter={(e) => {
-                    if (isFeatured) e.currentTarget.style.background = BRAND.deepSky;
-                  }}
-                  onMouseLeave={(e) => {
-                    if (isFeatured) e.currentTarget.style.background = BRAND.sky;
-                  }}
-                >
-                  {p.cta}
-                </Link>
+
+                {isExternal ? (
+                  <a
+                    href={p.ctaLink}
+                    className={ctaClass}
+                    style={ctaStyle}
+                    onMouseEnter={(e) => { if (isFeatured) e.currentTarget.style.background = BRAND.deepSky; }}
+                    onMouseLeave={(e) => { if (isFeatured) e.currentTarget.style.background = BRAND.sky; }}
+                  >
+                    {p.cta}
+                  </a>
+                ) : (
+                  <Link
+                    to={p.ctaLink}
+                    className={ctaClass}
+                    style={ctaStyle}
+                    onMouseEnter={(e) => { if (isFeatured) e.currentTarget.style.background = BRAND.deepSky; }}
+                    onMouseLeave={(e) => { if (isFeatured) e.currentTarget.style.background = BRAND.sky; }}
+                  >
+                    {p.cta}
+                  </Link>
+                )}
               </article>
             );
           })}

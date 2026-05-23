@@ -150,7 +150,7 @@ export const ExportPdfDialog = ({
   open: controlledOpen,
   onOpenChange,
 }: Props) => {
-  const { canExportPdf, exportsThisMonth, limits, plan } = usePlan();
+  const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = usePlan();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
@@ -463,7 +463,11 @@ export const ExportPdfDialog = ({
     const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
     const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
 
-    const options: Record<string, unknown> = { sections, orientation, quality, template: layout };
+    const options: Record<string, unknown> = {
+      sections, orientation, quality, template: layout,
+      show_buildslides_branding: showBuildSlidesBranding,
+      allow_custom_logo: canUseCustomLogo,
+    };
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LAYOUT_STORAGE_KEY(projectId), layout);
     }
