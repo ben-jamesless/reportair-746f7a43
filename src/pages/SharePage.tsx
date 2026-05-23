@@ -1103,7 +1103,8 @@ const SharePage = () => {
                                 </header>
 
                                 {areaPhotos.length > 0 && (
-                                  <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+                                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+
                                     {areaPhotos.map((p) => (
                                       <SharePhotoThumb
                                         key={p.id}
