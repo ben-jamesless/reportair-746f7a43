@@ -11,6 +11,9 @@ import { Upload, Loader2, ImageIcon, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant, isExifStrippedIosUpload } from "@/lib/photoUtils";
 import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
+import { usePlan } from "@/hooks/usePlan";
+import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
+import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 
 type AreaOption = { id: string; name: string };
 
