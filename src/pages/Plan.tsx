@@ -9,40 +9,94 @@ import { cn } from "@/lib/utils";
 import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 
 type PlanKey = "solo" | "pro" | "studio";
+type PlanAction = { type: "checkout"; plan: PlanKey } | { type: "free" } | { type: "contact"; href: string };
 
 const PLANS: {
-  key: PlanKey;
+  key: string;
   name: string;
   monthly: string;
   annualMonthly: string;
+  annualBilled: string;
   description: string;
   features: string[];
   recommended?: boolean;
+  action: PlanAction;
+  cta: string;
 }[] = [
+  {
+    key: "free",
+    name: "Free",
+    monthly: "HK$0",
+    annualMonthly: "HK$0",
+    annualBilled: "Always free",
+    description: "Try it — no card needed.",
+    features: [
+      "1 active build",
+      "3 build-day reports",
+      "Unlimited photo uploads",
+      "Live share link",
+      "BuildSlides branded",
+    ],
+    action: { type: "free" },
+    cta: "Start for free",
+  },
   {
     key: "solo",
     name: "Solo",
     monthly: "HK$128",
     annualMonthly: "HK$102",
-    description: "For solo operators running events.",
-    features: ["1 active event", "Unlimited PDF exports", "14-day free trial"],
+    annualBilled: "HK$1,229 billed annually",
+    description: "For solo operators.",
+    features: [
+      "1 active build",
+      "Unlimited build days",
+      "Unlimited photo uploads",
+      "Live share link",
+      "BuildSlides branded",
+      "7-day free trial",
+    ],
+    action: { type: "checkout", plan: "solo" },
+    cta: "Start 7-day free trial",
   },
   {
-    key: "pro",
-    name: "Pro",
+    key: "crew",
+    name: "Crew",
     monthly: "HK$298",
     annualMonthly: "HK$238",
+    annualBilled: "HK$2,860 billed annually",
     description: "For growing event teams.",
-    features: ["5 active events", "5 team members", "Share & client links", "Project folders", "14-day free trial"],
+    features: [
+      "5 active builds",
+      "5 team members",
+      "Unlimited photo uploads",
+      "Password-protected links",
+      "PDF export",
+      "Your logo + BuildSlides",
+      "Project folders & invites",
+      "7-day free trial",
+    ],
     recommended: true,
+    action: { type: "checkout", plan: "pro" },
+    cta: "Start 7-day free trial",
   },
   {
     key: "studio",
     name: "Studio",
-    monthly: "HK$688",
-    annualMonthly: "HK$550",
+    monthly: "Get in touch",
+    annualMonthly: "Get in touch",
+    annualBilled: "Custom pricing",
     description: "For agencies and large organisations.",
-    features: ["Unlimited events", "Unlimited members", "Custom logo on PDF", "White-label header", "14-day free trial"],
+    features: [
+      "Unlimited active builds",
+      "Unlimited team members",
+      "Password-protected links",
+      "PDF export",
+      "Your logo only — no BuildSlides",
+      "White-label report header",
+      "Priority support + onboarding call",
+    ],
+    action: { type: "contact", href: "mailto:hello@buildslides.co" },
+    cta: "Get in touch",
   },
 ];
 
