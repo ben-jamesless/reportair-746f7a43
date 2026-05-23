@@ -586,47 +586,93 @@ const SharePage = () => {
     </div>
   );
 
+  // Theme tokens — applied as CSS variables on the root so all inline styles using var(--*) re-theme automatically.
+  const themeVars = dark
+    ? {
+        ["--bg" as string]: "#171614",
+        ["--surface" as string]: "#1f1d1a",
+        ["--surface-2" as string]: "#252320",
+        ["--ink" as string]: "#f5f3ee",
+        ["--body" as string]: "#c9c5bd",
+        ["--muted" as string]: "#8a8478",
+        ["--border" as string]: "rgba(255,255,255,0.12)",
+      }
+    : {
+        ["--bg" as string]: "#f7f6f2",
+        ["--surface" as string]: "#ffffff",
+        ["--surface-2" as string]: "#f1efe9",
+        ["--ink" as string]: "#171614",
+        ["--body" as string]: "#3a3733",
+        ["--muted" as string]: "#7a756d",
+        ["--border" as string]: "rgba(0,0,0,0.10)",
+      };
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#ffffff", color: BODY }}>
-      {/* HEADER */}
-      <header className="border-b" style={{ borderColor: DIVIDER, backgroundColor: "#ffffff" }}>
-        <div className="mx-auto w-full px-6 py-6 2xl:px-10">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+    <div
+      data-theme={dark ? "dark" : "light"}
+      className="min-h-screen"
+      style={{
+        ...(themeVars as React.CSSProperties),
+        backgroundColor: "var(--bg)",
+        color: BODY,
+        fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      }}
+    >
+      {/* HEADER — sticky 64px */}
+      <header
+        className="sticky top-0 z-30 h-16 border-b backdrop-blur-md transition-shadow"
+        style={{
+          borderColor: DIVIDER,
+          backgroundColor: dark ? "rgba(23,22,20,0.85)" : "rgba(247,246,242,0.85)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+        }}
+      >
+        <div className="mx-auto flex h-full w-full max-w-[1600px] items-center justify-between gap-4 px-5 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt={project?.name ?? "Project logo"}
+                className="h-8 w-auto max-w-[140px] shrink-0 object-contain"
+              />
+            )}
             <div className="min-w-0">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt={project?.name ?? "Project logo"}
-                  className="h-10 w-auto max-w-[280px] object-contain md:h-12"
-                />
-              ) : (
-                <h1 className="text-2xl font-bold tracking-tight md:text-3xl" style={{ color: NEAR_BLACK }}>
-                  {project?.name}
-                </h1>
-              )}
-              {subtitleBits.length > 0 && (
-                <p className="mt-1.5 text-sm" style={{ color: MUTED }}>
-                  {subtitleBits.join(" · ")}
+              <h1 className="truncate text-[15px] font-semibold leading-tight" style={{ color: NEAR_BLACK }}>
+                {project?.name}
+              </h1>
+              {project?.event_location && (
+                <p className="truncate text-xs leading-tight" style={{ color: MUTED }}>
+                  {project.event_location}
                 </p>
               )}
             </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <StatusPill statusKey={overallStatus} size="md" />
-              {exportDaysAsc.length > 0 && (
-                <Button
-                  size="sm"
-                  onClick={() => setExportOpen(true)}
-                  className="text-sm font-medium text-white hover:opacity-90"
-                  style={{ backgroundColor: accent }}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export PDF
-                </Button>
-              )}
-            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <StatusPill statusKey={overallStatus} size="md" />
+            {exportDaysAsc.length > 0 && (
+              <Button
+                size="sm"
+                onClick={() => setExportOpen(true)}
+                className="h-9 rounded-full px-4 text-sm font-medium text-white hover:opacity-90"
+                style={{ backgroundColor: accent }}
+              >
+                <Download className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Export PDF</span>
+              </Button>
+            )}
+            <button
+              type="button"
+              aria-label="Toggle dark mode"
+              onClick={() => setDark((d) => !d)}
+              className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-[var(--surface-2)]"
+              style={{ borderColor: DIVIDER, color: NEAR_BLACK }}
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
           </div>
         </div>
       </header>
+
 
       {/* EXPORT PDF DIALOG */}
       <Dialog open={exportOpen} onOpenChange={(o) => { if (exportStatus === "creating" || exportStatus === "processing") return; setExportOpen(o); }}>
