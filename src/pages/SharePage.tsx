@@ -1171,7 +1171,12 @@ const SharePage = () => {
                             style={{ borderLeft: `3px solid ${DIVIDER}` }}
                           >
                             <header className="mb-3">
-                              <h3 className="text-sm font-medium" style={{ color: NEAR_BLACK }}>Unassigned</h3>
+                              <h3
+                                className="text-lg font-bold uppercase tracking-wide"
+                                style={{ color: NEAR_BLACK, letterSpacing: "0.02em" }}
+                              >
+                                Unassigned
+                              </h3>
                             </header>
                             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                               {byArea.get("__noarea__")!.map((p) => (
