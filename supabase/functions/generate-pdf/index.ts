@@ -636,7 +636,7 @@ Deno.serve(async (req) => {
     const totalPages = 1 + areaData.length;
     // Studio: custom accent overrides COLOR.SKY (the portrait template's accent).
     const effectiveAccent = brandColour && /^#[0-9a-fA-F]{6}$/.test(brandColour) ? HEX(brandColour) : COLOR.SKY;
-    // Studio white-label: skip the BuildSlides wordmark and stamp the team logo instead.
+    // Branding header: Studio (no BS branding) → logo only; Crew → logo + wordmark; else wordmark.
     const drawBrandHeader = (page: PDFPage, x: number, y: number, fontSize: number) => {
       if (whiteLabelPdf && eventLogoImage) {
         const maxH = fontSize * 1.6 * 1.2;
@@ -644,9 +644,14 @@ Deno.serve(async (req) => {
         const scale = Math.min(maxH / img.height, 120 / img.width);
         const lw = img.width * scale, lh = img.height * scale;
         page.drawImage(img, { x, y: y - lh * 0.15, width: lw, height: lh });
-      } else {
+        if (effectiveBranding) {
+          // Crew: secondary BuildSlides wordmark to the right of client logo.
+          drawWordmark(page, x + lw + 10, y, fontSize * 0.85, pjsFont, brandMarkImage);
+        }
+      } else if (effectiveBranding) {
         drawWordmark(page, x, y, fontSize, pjsFont, brandMarkImage);
       }
+      // Studio + no logo: render nothing.
     };
 
     // ===== Cover page =====
