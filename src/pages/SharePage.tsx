@@ -68,15 +68,22 @@ const MUTED = "var(--muted)";
 const DIVIDER = "var(--border)";
 const SURFACE = "var(--surface-2)";
 
-// Status meta — pill backgrounds & dot colors
+// Status meta — pill backgrounds & dot colors. Aligned with BuildSlides v5
+// brand palette (see src/lib/projectStatus.ts) so the share page matches the
+// rest of the app.
+//   ON TRACK  #3A6EA5 (blue)
+//   DISCUSS   #D94F2A (orange)
+//   DELAYED   #C7382A (red)
+//   COMPLETE  #3A7D44 (green)
+//   NONE      #9C9A93 (grey)
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On track", bg: "#437a22" },
-  at_risk: { label: "Delayed", bg: "#d19900" },
-  requires_discussion: { label: "Discuss", bg: "#d19900" },
-  delayed: { label: "Delayed", bg: "#d19900" },
-  concern: { label: "Delayed", bg: "#d19900" },
-  behind_schedule: { label: "Delayed", bg: "#d19900" },
-  complete: { label: "Complete", bg: "#006494" },
+  on_track: { label: "On track", bg: "#3A6EA5" },
+  requires_discussion: { label: "Discuss", bg: "#D94F2A" },
+  at_risk: { label: "Delayed", bg: "#C7382A" },
+  delayed: { label: "Delayed", bg: "#C7382A" },
+  concern: { label: "Delayed", bg: "#C7382A" },
+  behind_schedule: { label: "Delayed", bg: "#C7382A" },
+  complete: { label: "Complete", bg: "#3A7D44" },
   no_status: { label: "No status", bg: "#9C9A93" },
 };
 
@@ -990,9 +997,10 @@ const SharePage = () => {
                     >
                       {/* Day header strip — full width, flush; collapsible at all breakpoints */}
                       <summary
-                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none [&::-webkit-details-marker]:hidden"
+                        className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 px-4 py-3 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
                         style={{
-                          backgroundColor: "#ffffff",
+                          backgroundColor: dark ? "rgba(31,29,26,0.92)" : "rgba(241,239,233,0.92)",
+                          borderTop: `1px solid ${DIVIDER}`,
                           borderBottom: `1px solid ${DIVIDER}`,
                         }}
                       >
