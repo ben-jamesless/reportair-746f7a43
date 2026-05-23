@@ -118,6 +118,37 @@ const StatusDot = ({ statusKey }: { statusKey: string | null | undefined }) => {
   );
 };
 
+type Wx = { tmin: number; tmax: number; condition: string; wind: number };
+const weatherIconFor = (condition: string) => {
+  const c = condition.toLowerCase();
+  if (c.includes("thunder")) return CloudLightning;
+  if (c.includes("snow")) return CloudSnow;
+  if (c.includes("drizzle")) return CloudDrizzle;
+  if (c.includes("rain")) return CloudRain;
+  if (c.includes("fog")) return CloudFog;
+  if (c.includes("overcast") || c.includes("cloud")) return Cloud;
+  if (c.includes("clear")) return Sun;
+  return Cloud;
+};
+const WeatherBadge = ({ w, muted, divider, body }: { w: Wx; muted: string; divider: string; body: string }) => {
+  const Icon = weatherIconFor(w.condition);
+  return (
+    <span
+      className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium"
+      style={{ borderColor: divider, color: body }}
+    >
+      <Icon className="h-3.5 w-3.5" style={{ color: muted }} />
+      <span>{w.tmin}°–{w.tmax}°C</span>
+      <span style={{ color: muted }}>·</span>
+      <span style={{ color: muted }}>{w.condition}</span>
+      <span style={{ color: muted }}>·</span>
+      <Wind className="h-3 w-3" style={{ color: muted }} />
+      <span style={{ color: muted }}>{w.wind} km/h</span>
+    </span>
+  );
+};
+
+
 const isoDateKey = (d: Date) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
