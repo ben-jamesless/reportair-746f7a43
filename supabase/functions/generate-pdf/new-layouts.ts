@@ -288,7 +288,12 @@ function drawFaviconTile(
   return size;
 }
 
-/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width. */
+/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width.
+ *  Branding rules:
+ *   - whiteLabelPdf + logoImage → client logo (+ secondary BS wordmark if showBuildSlidesBranding)
+ *   - else showBuildSlidesBranding → BuildSlides wordmark
+ *   - else → nothing drawn, returns 0
+ */
 function drawWordmark(
   page: PDFPage,
   x: number, y: number,
@@ -300,14 +305,29 @@ function drawWordmark(
   companyName?: string | null,
   whiteLabelPdf?: boolean,
   brandMarkImage?: PDFImage | null,
+  showBuildSlidesBranding: boolean = true,
 ): number {
   if (whiteLabelPdf && logoImage) {
     const maxH = markSize * 1.4;
     const scale = Math.min(maxH / logoImage.height, 120 / logoImage.width);
     const lw = logoImage.width * scale, lh = logoImage.height * scale;
     page.drawImage(logoImage, { x, y: y - lh * 0.1, width: lw, height: lh });
+    if (showBuildSlidesBranding) {
+      // Crew: secondary BuildSlides mark to the right of client logo.
+      const sx = x + lw + 8;
+      const secMark = markSize * 0.75;
+      drawFaviconTile(page, sx, y - secMark * 0.18, secMark, brandMarkImage);
+      const secFont = fontSize * 0.85;
+      page.drawText("BuildSlides", {
+        x: sx + secMark + 4,
+        y: y + (secMark - secFont) * 0.25 - secMark * 0.18,
+        size: secFont, font,
+        color: darkBg ? C.WHITE : C.MUTED,
+      });
+    }
     return lw;
   }
+  if (!showBuildSlidesBranding) return 0;
   const tileSize = markSize;
   drawFaviconTile(page, x, y - tileSize * 0.18, tileSize, brandMarkImage);
   const gap = tileSize + 6;
@@ -348,6 +368,7 @@ export type NewLayoutParams = {
   accentColour?: string | null;
   whiteLabelPdf?: boolean;
   companyName?: string | null;
+  showBuildSlidesBranding?: boolean;
 };
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -357,7 +378,8 @@ export type NewLayoutParams = {
 
 export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<void> {
   const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
-          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName } = p;
+          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName,
+          showBuildSlidesBranding = true } = p;
 
   const W = 595.28, H = 841.89;
   const ML = 42, MR = 42, MT = 42;
@@ -377,7 +399,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
   function drawAreaHeader(page: PDFPage): number {
     const stripTop = H - MT;
     const logoY = stripTop - 16;
-    drawWordmark(page, ML, logoY, font, 10, false, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage);
+    drawWordmark(page, ML, logoY, font, 10, false, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage, showBuildSlidesBranding);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 8);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 8, font: body, color: effectiveAccent });
@@ -409,7 +431,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
     // Header: wordmark left, day label right
     const stripTop = H - MT;
     const logoY = stripTop - 16;
-    drawWordmark(page, ML, logoY, font, 10, true, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage);
+    drawWordmark(page, ML, logoY, font, 10, true, 13, logoImage, companyName, whiteLabelPdf, brandMarkImage, showBuildSlidesBranding);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 9);
     page.drawText(dayLbl, { x: W - MR - dw, y: logoY + 2, size: 9, font: body, color: effectiveAccent });
@@ -646,7 +668,8 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 
 export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
-          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName } = p;
+          logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName,
+          showBuildSlidesBranding = true } = p;
 
   const W = 841.89, H = 595.28;   // landscape
   const HEADER_H = 40;
@@ -661,7 +684,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
   // ── Shared header ──────────────────────────────────────────────────────────
   function drawHeader(page: PDFPage) {
     fillRect(page, 0, H - HEADER_H, W, HEADER_H, C.INK);
-    drawWordmark(page, 20, H - HEADER_H + 10, font, 10, true, 14, logoImage, companyName, whiteLabelPdf, brandMarkImage);
+    drawWordmark(page, 20, H - HEADER_H + 10, font, 10, true, 14, logoImage, companyName, whiteLabelPdf, brandMarkImage, showBuildSlidesBranding);
     const dayLbl = buildDayLabel.toUpperCase();
     const dw = body.widthOfTextAtSize(dayLbl, 11);
     page.drawText(dayLbl, { x: W - 20 - dw, y: H - HEADER_H + 14, size: 11, font: body, color: effectiveAccent });
