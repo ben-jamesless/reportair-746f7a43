@@ -1,44 +1,56 @@
-// Share page branding footer.
-// Hidden only when a Studio team has uploaded their logo AND enabled
-// "Remove BuildSlides branding" in Team Settings.
-//
-// Free / Solo / Studio (default):  "Built by BuildSlides" + lockup SVG
-// Crew (pro):                       "Built by [Team Name] · Powered by BuildSlides"
-
 interface Props {
   teamPlan: string;
   teamLogoUrl?: string | null;
   teamName?: string | null;
-  hideBranding?: boolean;
 }
 
-export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBranding }: Props) {
-  if (hideBranding) return null;
-
-
+export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName }: Props) {
+  if (teamPlan === "studio" || teamPlan === "enterprise") return null;
 
   const isCrew = teamPlan === "pro" || teamPlan === "team";
 
   return (
-    <footer className="mt-16" style={{ background: "#0F1724" }}>
+    <footer
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 40,
+        background: "#0F1724",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
       <div
-        className="flex items-center justify-center gap-2 py-6 text-xs"
-        style={{ color: "rgba(237,241,247,.6)" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "10px 16px",
+          fontSize: "12px",
+          color: "rgba(255,255,255,0.55)",
+        }}
       >
         {isCrew && teamName ? (
           <>
             <span>Built by</span>
-            <span className="font-semibold text-white">{teamName}</span>
-            <span style={{ opacity: 0.35 }}>·</span>
+            <span style={{ color: "#ffffff", fontWeight: 600 }}>{teamName}</span>
+            <span style={{ opacity: 0.3, margin: "0 2px" }}>·</span>
             <span>Powered by</span>
             <a
               href="https://buildslides.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"
+              style={{ display: "inline-flex", alignItems: "center", opacity: 0.75, transition: "opacity 150ms" }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.75")}
             >
-              <img src="/favicon.svg" alt="" className="h-4 w-4" />
-              <span className="font-display font-black tracking-tight">BuildSlides</span>
+              <img
+                src="/brand/buildslides-lockup-on-dark.svg"
+                alt="BuildSlides"
+                style={{ height: "14px", width: "auto" }}
+              />
             </a>
           </>
         ) : (
@@ -48,10 +60,15 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
               href="https://buildslides.com"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-white/80 transition-colors hover:text-white"
+              style={{ display: "inline-flex", alignItems: "center", opacity: 0.75, transition: "opacity 150ms" }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.75")}
             >
-              <img src="/favicon.svg" alt="" className="h-4 w-4" />
-              <span className="font-display font-black tracking-tight">BuildSlides</span>
+              <img
+                src="/brand/buildslides-lockup-on-dark.svg"
+                alt="BuildSlides"
+                style={{ height: "14px", width: "auto" }}
+              />
             </a>
           </>
         )}
@@ -59,4 +76,3 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
     </footer>
   );
 }
-
