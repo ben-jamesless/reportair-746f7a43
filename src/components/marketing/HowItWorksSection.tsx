@@ -619,7 +619,7 @@ const ExportPanel = ({ onRestart }: { onRestart: () => void }) => (
               <rect x="11" y="19" width="60" height="50" rx="6" stroke="#FBE6DE" strokeWidth="4.4" />
               <rect x="27" y="35" width="60" height="50" rx="6" stroke="#D94F2A" strokeWidth="6.8" />
             </svg>
-            <span className="display" style={{ fontSize: 9, fontWeight: 800, color: "#fff", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+            <span className="display" style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
               BuildSlides
             </span>
           </div>
