@@ -58,10 +58,10 @@ const About = () => {
               meant WhatsApp threads, screenshots, and hand-built PowerPoints.
             </p>
             <p>
-              BuildSlides is the tool we wished existed: a single place where the team uploads
-              photos as they work, the system organises them by day, area, and status, and the
-              client gets a clean, branded report — either as a live share link or as a polished
-              PDF — without anyone having to stay up making slides.
+              BuildSlides is the tool we wished existed. The team uploads photos as they work,
+              the system organises them by day, area, and status, and the client gets a clean,
+              branded report — live share link or polished PDF — without anyone staying up
+              making slides
             </p>
             <p>
               It is built by people who have lived the problem, for people who are still living
