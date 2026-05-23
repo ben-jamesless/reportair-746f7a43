@@ -44,11 +44,11 @@ const About = () => {
             style={{ color: "rgba(237,241,247,.8)", lineHeight: 1.7 }}
           >
             <p>
-              BuildSlides was created by an Operations Director with 15 years of experience
-              running large-scale event builds. After a decade and a half of late nights chasing
-              photos from crew on-site, then stitching them into decks at midnight so clients
-              could see progress the next morning, one thing became obvious: the reporting part
-              of the job had never really been solved.
+              BuildSlides was built by an Operations Director who spent 15 years running
+              large-scale event builds. Late nights chasing photos from on-site crew.
+              Stitching them into decks at midnight. Sending them by morning so the client could
+              see progress. After all of that, one thing was obvious: the reporting part of the
+              job had never actually been solved
             </p>
             <p>
               There is plenty of software for what happens <em>before</em> a build — planning,
