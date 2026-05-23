@@ -34,7 +34,7 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
         left: 0,
         right: 0,
         zIndex: 40,
-        background: "#0F1724",
+        background: "#0F1417",
         borderTop: "1px solid rgba(255,255,255,0.08)",
       }}
     >
