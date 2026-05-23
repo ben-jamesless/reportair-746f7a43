@@ -368,6 +368,7 @@ export type NewLayoutParams = {
   accentColour?: string | null;
   whiteLabelPdf?: boolean;
   companyName?: string | null;
+  showBuildSlidesBranding?: boolean;
 };
 
 // ════════════════════════════════════════════════════════════════════════════
