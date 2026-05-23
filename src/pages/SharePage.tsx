@@ -1346,17 +1346,12 @@ const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: Shar
     <button
       onClick={onClick}
       className="group relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-[#f3f4f6]"
-      title={photo.caption || undefined}
     >
-      {url ? <img src={url} alt={photo.caption || ""} className="h-full w-full object-cover" loading="lazy" /> : null}
-      {photo.caption && (
-        <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-left text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-          {photo.caption}
-        </span>
-      )}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" /> : null}
     </button>
   );
 };
+
 
 const SharePhotoMiniThumb = ({ token, photo }: { token: string; photo: SharePhoto }) => {
   const url = useShareSignedUrl(token, photo.id);
