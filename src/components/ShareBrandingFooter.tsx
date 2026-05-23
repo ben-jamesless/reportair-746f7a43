@@ -40,15 +40,11 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
               href="https://buildslides.com"
               target="_blank"
               rel="noreferrer"
-              className="transition-opacity hover:opacity-100"
-              style={{ opacity: 0.55 }}
+              className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
+              style={{ opacity: 0.7, color: "var(--foreground, #0F1724)" }}
             >
-              <img
-                src="/brand/buildslides-lockup.svg"
-                alt="BuildSlides"
-                className="h-[15px] w-auto"
-                style={{ display: "inline-block", verticalAlign: "middle" }}
-              />
+              <img src="/n.svg" alt="" className="h-4 w-4" />
+              <span className="font-semibold tracking-tight">BuildSlides</span>
             </a>
           </>
         ) : (
@@ -58,16 +54,13 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
               href="https://buildslides.com"
               target="_blank"
               rel="noreferrer"
-              className="transition-opacity hover:opacity-100"
-              style={{ opacity: 0.6 }}
+              className="inline-flex items-center gap-1.5 transition-opacity hover:opacity-100"
+              style={{ opacity: 0.7, color: "var(--foreground, #0F1724)" }}
             >
-              <img
-                src="/brand/buildslides-lockup.svg"
-                alt="BuildSlides"
-                className="h-[15px] w-auto"
-                style={{ display: "inline-block", verticalAlign: "middle" }}
-              />
+              <img src="/n.svg" alt="" className="h-4 w-4" />
+              <span className="font-semibold tracking-tight">BuildSlides</span>
             </a>
+
           </>
         )}
       </div>
