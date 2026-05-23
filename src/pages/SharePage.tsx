@@ -1035,9 +1035,52 @@ const SharePage = () => {
                 </span>
                 <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" style={{ color: MUTED }} />
               </summary>
-              <div className="px-2 pb-2">
-                {latestUpdatePanel}
+              <div className="px-4 pb-4 pt-1">
+                {latestDayKey ? (() => {
+                  const dn = dayNoteByDate.get(latestDayKey);
+                  const sections: { label: string; text: string | null | undefined }[] = [
+                    { label: "Today's objectives", text: dn?.today_objectives },
+                    { label: "Today's achievements", text: dn?.today_achievements },
+                    { label: "Tomorrow's objectives", text: dn?.tomorrow_objectives },
+                    { label: "Open issues", text: dn?.open_issues },
+                  ];
+                  const hasAny = sections.some((s) => s.text && s.text.trim());
+                  return (
+                    <>
+                      <div className="mb-3">
+                        <StatusPill statusKey={overallStatus} />
+                      </div>
+                      {weather[latestDayKey] && (
+                        <div className="mb-4">
+                          <WeatherBadge w={weather[latestDayKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
+                        </div>
+                      )}
+                      {hasAny ? (
+                        <ul className="space-y-4">
+                          {sections.map((s) => {
+                            if (!s.text || !s.text.trim()) return null;
+                            return (
+                              <li key={s.label}>
+                                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                                  {s.label}
+                                </p>
+                                <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
+                                  <RichNotes text={s.text} />
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : (
+                        <p className="text-sm italic" style={{ color: MUTED }}>No daily summary yet.</p>
+                      )}
+                    </>
+                  );
+                })() : (
+                  <p className="text-sm italic" style={{ color: MUTED }}>No updates yet.</p>
+                )}
               </div>
+
             </details>
 
             {visibleGroups.length === 0 ? (
