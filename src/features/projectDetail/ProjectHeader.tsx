@@ -276,7 +276,7 @@ export function ProjectHeader({
               Export PDF
             </button>
             {canEdit && (
-              <div className="hidden md:block">
+              <div className="hidden sm:block">
                 <ErrorBoundary label="uploader-header">
                   <PhotoUploader
                     projectId={project.id}
