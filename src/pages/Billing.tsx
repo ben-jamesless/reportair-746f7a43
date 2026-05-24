@@ -237,10 +237,11 @@ const Billing = () => {
   };
 
   const handleChoosePlan = async (planKey: string) => {
-    if (planKey === plan && (subscriptionStatus === "active" || subscriptionStatus === "trialing")) {
+    if (planKey === plan && subscriptionStatus === "active") {
       handleManage();
       return;
     }
+
     setCheckoutLoading(planKey);
     try {
       const { data: { session } } = await supabase.auth.getSession();
