@@ -56,7 +56,7 @@ const PLANS: {
       "7-day free trial",
     ],
     action: { type: "checkout", plan: "solo" },
-    cta: "Start 7-day free trial",
+    cta: "Start 7-day free trial. No card until day 8.",
   },
   {
     key: "crew",
@@ -77,7 +77,7 @@ const PLANS: {
     ],
     recommended: true,
     action: { type: "checkout", plan: "pro" },
-    cta: "Start 7-day free trial",
+    cta: "Start 7-day free trial. No card until day 8.",
   },
   {
     key: "studio",

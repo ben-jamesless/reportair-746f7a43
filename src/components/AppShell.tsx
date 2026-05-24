@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppSidebar } from "./AppSidebar";
 import { TrialBanner } from "./TrialBanner";
+import { PaymentFailedBanner } from "./PaymentFailedBanner";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ChevronRight, Menu } from "lucide-react";
@@ -59,7 +60,9 @@ export const AppShell = ({ crumbs, children, fluid = true }: Props) => {
 
       <div className={cn("flex flex-col transition-[padding] duration-200", collapsed ? "md:pl-16" : "md:pl-56")}>
         {/* Trial banner — sticky at top of main content */}
+        <PaymentFailedBanner />
         <TrialBanner />
+
 
         {/* Breadcrumbs */}
         {crumbs && crumbs.length > 0 && (

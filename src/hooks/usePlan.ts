@@ -108,6 +108,7 @@ interface PlanState {
   subscriptionStatus:       string | null;
   trialEndsAt:              string | null;
   currentPeriodEnd:         string | null;
+  paymentFailedAt:          string | null;
   loading:                  boolean;
   canCreateProject:         boolean;
   canInviteMember:          boolean;
@@ -130,7 +131,7 @@ export const usePlan = (): PlanState => {
   const [state, setState] = useState<Omit<PlanState, "refetch">>({
     plan: "free", limits: LIMITS.free, teamId: null,
     projectCount: 0, memberCount: 0, exportsThisMonth: 0,
-    subscriptionStatus: null, trialEndsAt: null, currentPeriodEnd: null,
+    subscriptionStatus: null, trialEndsAt: null, currentPeriodEnd: null, paymentFailedAt: null,
     loading: true,
     canCreateProject: false, canInviteMember: false,
     canExportPdf: false,
@@ -149,7 +150,7 @@ export const usePlan = (): PlanState => {
 
       const [{ data: team }, { data: ownedCount }, { data: members }] = await Promise.all([
         supabase.from("teams").select(
-          "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at"
+          "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at, payment_failed_at"
         ).eq("billing_owner_user_id", user.id).maybeSingle(),
         supabase.rpc("my_owned_projects_count"),
         supabase.from("team_members").select("id"),
@@ -172,6 +173,7 @@ export const usePlan = (): PlanState => {
         subscriptionStatus: team?.subscription_status ?? null,
         trialEndsAt:      team?.trial_ends_at ?? null,
         currentPeriodEnd: team?.current_period_end ?? null,
+        paymentFailedAt:  (team as { payment_failed_at?: string | null })?.payment_failed_at ?? null,
         loading:          false,
         canCreateProject: limits.maxProjects === -1 || projectCount < limits.maxProjects,
         canInviteMember:  limits.maxMembers  === -1 || memberCount  < limits.maxMembers,

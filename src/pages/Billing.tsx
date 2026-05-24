@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
+import { CancelSubscriptionDialog } from "@/components/CancelSubscriptionDialog";
 import { usePlan } from "@/hooks/usePlan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -107,6 +108,7 @@ const Billing = () => {
   } = usePlan();
 
   const [upgradeOpen, setUpgradeOpen]     = useState(false);
+  const [cancelOpen, setCancelOpen]       = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [annual, setAnnual]               = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
@@ -288,21 +290,32 @@ const Billing = () => {
             <p className="text-sm text-muted-foreground mt-1">{renewalLine}</p>
             {plan === "free" && (
               <p className="text-xs text-muted-foreground mt-1">
-                You've used your free tier — upgrade to Solo or Crew to keep adding updates.
+                Your 3 build days are up. Keep the build going — upgrade to Solo.
               </p>
             )}
           </div>
           {isSubscribed && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleManage}
-              disabled={portalLoading}
-            >
-              {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Manage billing <ArrowUpRight className="h-3.5 w-3.5 ml-1" /></>}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManage}
+                disabled={portalLoading}
+              >
+                {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Manage billing <ArrowUpRight className="h-3.5 w-3.5 ml-1" /></>}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCancelOpen(true)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </Button>
+            </div>
           )}
         </div>
+
 
         {isPastDue && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -440,6 +453,7 @@ const Billing = () => {
         onOpenChange={setUpgradeOpen}
         currentPlan={plan}
       />
+      <CancelSubscriptionDialog open={cancelOpen} onOpenChange={setCancelOpen} />
     </AppShell>
   );
 };
