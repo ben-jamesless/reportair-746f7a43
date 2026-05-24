@@ -131,7 +131,7 @@ export const usePlan = (): PlanState => {
   const [state, setState] = useState<Omit<PlanState, "refetch">>({
     plan: "free", limits: LIMITS.free, teamId: null,
     projectCount: 0, memberCount: 0, exportsThisMonth: 0,
-    subscriptionStatus: null, trialEndsAt: null, currentPeriodEnd: null,
+    subscriptionStatus: null, trialEndsAt: null, currentPeriodEnd: null, paymentFailedAt: null,
     loading: true,
     canCreateProject: false, canInviteMember: false,
     canExportPdf: false,
