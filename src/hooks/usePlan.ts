@@ -150,7 +150,7 @@ export const usePlan = (): PlanState => {
 
       const [{ data: team }, { data: ownedCount }, { data: members }] = await Promise.all([
         supabase.from("teams").select(
-          "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at"
+          "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at, payment_failed_at"
         ).eq("billing_owner_user_id", user.id).maybeSingle(),
         supabase.rpc("my_owned_projects_count"),
         supabase.from("team_members").select("id"),
