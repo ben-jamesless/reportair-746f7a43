@@ -61,6 +61,17 @@ const PLANS = [
   },
 ];
 
+const getFunctionErrorMessage = async (error: unknown, fallback: string) => {
+  try {
+    const ctx = (error as { context?: Response } | null)?.context;
+    if (ctx && typeof ctx.clone === "function") {
+      const body = await ctx.clone().json();
+      if (body?.error) return String(body.error);
+    }
+  } catch { /* ignore */ }
+  return error instanceof Error ? error.message : fallback;
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -87,8 +98,9 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
         "Checkout"
       );
       if (error || !data?.url) {
+        const description = await getFunctionErrorMessage(error, NETWORK_HELP);
         toast.error("Could not start checkout", {
-          description: error?.message ?? NETWORK_HELP,
+          description,
         });
         setLoading(null);
         return;
