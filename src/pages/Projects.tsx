@@ -195,11 +195,16 @@ const Projects = () => {
       if (user.email) {
         const { data: inv } = await supabase
           .from("project_invites")
-          .select("token")
+          .select("id, project_id")
           .is("accepted_at", null)
           .ilike("email", user.email)
           .order("created_at", { ascending: false });
-        setPendingInvites({ count: inv?.length ?? 0, firstToken: inv?.[0]?.token ?? null });
+        let firstToken: string | null = null;
+        if (inv && inv.length > 0) {
+          const { data: tok } = await supabase.rpc("get_my_pending_invite_token", { _project_id: inv[0].project_id });
+          firstToken = (tok as string | null) ?? null;
+        }
+        setPendingInvites({ count: inv?.length ?? 0, firstToken });
       }
     } catch (err) {
       console.error(err);
