@@ -26,7 +26,7 @@ export function useProjectUpdateDays(projectId: string | null) {
 
     // Use a unique channel name per mount to avoid Supabase rejecting
     // .on() calls on an already-subscribed channel when the effect re-runs.
-    const channelName = `update-days-${projectId}-${Date.now()}`;
+    const channelName = `update-days-${projectId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
       .channel(channelName)
       .on(
