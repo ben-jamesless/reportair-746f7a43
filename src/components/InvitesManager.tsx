@@ -26,7 +26,7 @@ type Invite = {
   id: string;
   email: string;
   role: ProjectRole;
-  token: string;
+  
   accepted_at: string | null;
   accepted_by: string | null;
   created_at: string;
@@ -80,7 +80,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   const load = useCallback(async () => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
-      supabase.from("project_invites").select("id,email,role,token,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
+      supabase.from("project_invites").select("id,email,role,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
       supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
     ]);
@@ -187,9 +187,11 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     load();
   };
 
-  const copyInviteLink = (token: string) => {
+  const copyInviteLink = async (inviteId: string) => {
+    const { data: token, error } = await supabase.rpc("get_invite_token", { _invite_id: inviteId });
+    if (error || !token) { toast.error("Could not load invite link"); return; }
     const url = `${window.location.origin}/invite/${token}`;
-    navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(url);
     toast.success("Invite link copied");
   };
 
@@ -370,7 +372,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               <Badge variant="outline" className="capitalize">{inv.role}</Badge>
               {canManage && (
                 <>
-                  <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.token)} title="Copy invite link">
+                  <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.id)} title="Copy invite link">
                     <Copy className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => sendInviteEmail(inv.id)} title="Resend invite email">

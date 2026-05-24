@@ -918,6 +918,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           expires_at: string | null
+          has_password: boolean | null
           id: string
           label: string | null
           last_accessed_at: string | null
@@ -931,6 +932,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
+          has_password?: boolean | null
           id?: string
           label?: string | null
           last_accessed_at?: string | null
@@ -944,6 +946,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
+          has_password?: boolean | null
           id?: string
           label?: string | null
           last_accessed_at?: string | null
@@ -1292,6 +1295,11 @@ export type Database = {
         Returns: number
       }
       get_invite_email: { Args: { _token: string }; Returns: string }
+      get_invite_token: { Args: { _invite_id: string }; Returns: string }
+      get_my_pending_invite_token: {
+        Args: { _project_id: string }
+        Returns: string
+      }
       get_project_update_day_count: {
         Args: { _project_id: string }
         Returns: number

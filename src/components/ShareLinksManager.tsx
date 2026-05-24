@@ -14,7 +14,7 @@ type ShareLink = {
   id: string;
   token: string;
   label: string | null;
-  password_hash: string | null;
+  has_password: boolean;
   expires_at: string | null;
   revoked_at: string | null;
   view_count: number;
@@ -38,7 +38,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("share_links")
-      .select("id,token,label,password_hash,expires_at,revoked_at,view_count,last_accessed_at,created_at")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false });
     setLinks((data ?? []) as ShareLink[]);
@@ -183,7 +183,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{link.label || "Untitled link"}</span>
                       <Badge variant={isActive ? "default" : "secondary"}>{status}</Badge>
-                      {link.password_hash && <Badge variant="outline">Password</Badge>}
+                      {link.has_password && <Badge variant="outline">Password</Badge>}
                     </div>
                     <div className="mt-1 truncate font-mono text-xs text-muted-foreground">/s/{link.token}</div>
                   </div>
