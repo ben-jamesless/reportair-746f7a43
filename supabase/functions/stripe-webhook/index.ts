@@ -52,51 +52,67 @@ serve(async (req) => {
 
   console.log(JSON.stringify({ fn: "stripe-webhook", event: event.type, id: event.id }));
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    if (session.mode !== "subscription") return new Response("ok");
-
-    const sub    = await stripe.subscriptions.retrieve(session.subscription as string);
+  async function provisionFromSubscription(sub: Stripe.Subscription, isNew: boolean) {
     const teamId = sub.metadata?.supabase_team_id;
-    if (!teamId) return new Response("ok");
-
+    if (!teamId) return null;
     const priceId = sub.items.data[0]?.price?.id;
     const plan    = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
 
-    await service.from("teams").update({
+    const update: Record<string, unknown> = {
       plan,
       stripe_subscription_id: sub.id,
       subscription_status:    sub.status,
       billing_interval:       sub.items.data[0]?.price?.recurring?.interval ?? null,
       current_period_end:     new Date(sub.current_period_end * 1000).toISOString(),
       trial_ends_at:          sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-    }).eq("id", teamId);
+    };
 
-    const owner = await getBillingOwner(service, teamId);
+    if (isNew) {
+      const { data: existing } = await service
+        .from("teams").select("grandfathered_until").eq("id", teamId).maybeSingle();
+      if (!existing?.grandfathered_until) {
+        const gfUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+        update.grandfathered_until = gfUntil;
+        if (sub.customer) {
+          try {
+            await stripe.customers.update(sub.customer as string, {
+              metadata: { grandfathered: "true", grandfathered_until: gfUntil },
+            });
+          } catch (e) {
+            console.error(JSON.stringify({ fn: "stripe-webhook", warn: "customer metadata update failed", detail: String(e) }));
+          }
+        }
+      }
+    }
+
+    await service.from("teams").update(update).eq("id", teamId);
+    return { teamId, plan };
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.mode !== "subscription") return new Response("ok");
+    const sub    = await stripe.subscriptions.retrieve(session.subscription as string);
+    const result = await provisionFromSubscription(sub, true);
+    if (!result) return new Response("ok");
+    const owner = await getBillingOwner(service, result.teamId);
     if (owner) {
       await sendTransactionalEmail({
         to: owner.email,
         template: "upgrade",
-        data: { name: owner.name, plan, renewalDate: fmtDate(sub.current_period_end) },
+        data: { name: owner.name, plan: result.plan, renewalDate: fmtDate(sub.current_period_end) },
       });
     }
   }
 
+  else if (event.type === "customer.subscription.created") {
+    const sub = event.data.object as Stripe.Subscription;
+    await provisionFromSubscription(sub, true);
+  }
+
   else if (event.type === "customer.subscription.updated") {
-    const sub    = event.data.object as Stripe.Subscription;
-    const teamId = sub.metadata?.supabase_team_id;
-    if (!teamId) return new Response("ok");
-
-    const priceId = sub.items.data[0]?.price?.id;
-    const plan    = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
-
-    await service.from("teams").update({
-      plan,
-      subscription_status:  sub.status,
-      billing_interval:     sub.items.data[0]?.price?.recurring?.interval ?? null,
-      current_period_end:   new Date(sub.current_period_end * 1000).toISOString(),
-      trial_ends_at:        sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-    }).eq("id", teamId);
+    const sub = event.data.object as Stripe.Subscription;
+    await provisionFromSubscription(sub, false);
   }
 
   else if (event.type === "customer.subscription.deleted") {
