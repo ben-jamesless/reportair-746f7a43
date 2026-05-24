@@ -76,7 +76,7 @@ const COMPARE_PLANS: ComparePlan[] = [
     monthlyRaw: "HK$298/month",
     annualRaw: "HK$2,860/year",
     includes: "Includes 5 Users",
-    extraUser: "HK$58 / additional user / month",
+    extraUser: "Up to 5 users included. Need more? Get in touch.",
     footnote: "Annual price ~HK$2,860. Monthly price HK$298, billed monthly.",
     heading: "Everything in Solo, and:",
     features: [
