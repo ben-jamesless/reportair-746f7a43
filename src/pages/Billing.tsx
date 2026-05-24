@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
+import { CancelSubscriptionDialog } from "@/components/CancelSubscriptionDialog";
 import { usePlan } from "@/hooks/usePlan";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
