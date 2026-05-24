@@ -453,6 +453,7 @@ const Billing = () => {
         onOpenChange={setUpgradeOpen}
         currentPlan={plan}
       />
+      <CancelSubscriptionDialog open={cancelOpen} onOpenChange={setCancelOpen} />
     </AppShell>
   );
 };
