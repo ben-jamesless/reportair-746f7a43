@@ -187,9 +187,11 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     load();
   };
 
-  const copyInviteLink = (token: string) => {
+  const copyInviteLink = async (inviteId: string) => {
+    const { data: token, error } = await supabase.rpc("get_invite_token", { _invite_id: inviteId });
+    if (error || !token) { toast.error("Could not load invite link"); return; }
     const url = `${window.location.origin}/invite/${token}`;
-    navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(url);
     toast.success("Invite link copied");
   };
 
