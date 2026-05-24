@@ -1021,10 +1021,12 @@ export type Database = {
           current_period_end: string | null
           exports_reset_at: string
           exports_this_month: number
+          grandfathered_until: string | null
           id: string
           industry: string | null
           logo_path: string | null
           name: string
+          payment_failed_at: string | null
           plan: string
           region: string | null
           slug: string | null
@@ -1046,10 +1048,12 @@ export type Database = {
           current_period_end?: string | null
           exports_reset_at?: string
           exports_this_month?: number
+          grandfathered_until?: string | null
           id?: string
           industry?: string | null
           logo_path?: string | null
           name: string
+          payment_failed_at?: string | null
           plan?: string
           region?: string | null
           slug?: string | null
@@ -1071,10 +1075,12 @@ export type Database = {
           current_period_end?: string | null
           exports_reset_at?: string
           exports_this_month?: number
+          grandfathered_until?: string | null
           id?: string
           industry?: string | null
           logo_path?: string | null
           name?: string
+          payment_failed_at?: string | null
           plan?: string
           region?: string | null
           slug?: string | null
