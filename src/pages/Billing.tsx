@@ -202,18 +202,31 @@ const Billing = () => {
       );
       if (error || !data?.url) {
         let description = error?.message ?? NETWORK_HELP;
-        // FunctionsHttpError exposes the raw Response on `context`; try to read the JSON body.
+        let noCustomer = false;
         try {
           const ctx = (error as { context?: Response } | null)?.context;
-          if (ctx && typeof ctx.json === "function") {
+          if (ctx && typeof ctx.clone === "function") {
             const body = await ctx.clone().json();
-            if (body?.error) description = body.error;
+            if (body?.error) {
+              description = body.error;
+              if (/no stripe customer/i.test(body.error)) noCustomer = true;
+            }
           }
         } catch { /* ignore */ }
+
+        // Trial without a Stripe customer yet — send to checkout for current plan instead.
+        if (noCustomer && (plan === "solo" || plan === "pro")) {
+          setPortalLoading(false);
+          toast.info("Let's set up your payment method to manage billing.");
+          handleChoosePlan(plan);
+          return;
+        }
+
         toast.error("Could not open billing portal", { description });
         setPortalLoading(false);
         return;
       }
+
 
       window.location.href = data.url;
     } catch (err) {
