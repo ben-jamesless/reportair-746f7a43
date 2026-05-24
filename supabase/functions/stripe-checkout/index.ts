@@ -67,6 +67,11 @@ serve(async (req) => {
       status: 400, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
+  if (plan === "studio") {
+    return new Response(JSON.stringify({ error: "Studio is a custom plan — please contact sales." }), {
+      status: 400, headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
   const priceKey = interval === "annual" ? `${plan}_annual` : plan;
 
   const priceId  = PRICE_IDS[priceKey];
