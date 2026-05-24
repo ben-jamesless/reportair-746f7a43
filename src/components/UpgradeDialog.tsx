@@ -105,9 +105,9 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl overflow-y-auto max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl">Upgrade your plan</DialogTitle>
+          <DialogTitle className="text-xl">Your 3 build days are up</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            7-day free trial on all plans. Cancel anytime.
+            Keep the build going — upgrade to Solo. Start 7-day free trial. No card until day 8.
           </p>
         </DialogHeader>
 
