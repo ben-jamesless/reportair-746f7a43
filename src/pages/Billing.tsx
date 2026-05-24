@@ -108,6 +108,7 @@ const Billing = () => {
   } = usePlan();
 
   const [upgradeOpen, setUpgradeOpen]     = useState(false);
+  const [cancelOpen, setCancelOpen]       = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [annual, setAnnual]               = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
