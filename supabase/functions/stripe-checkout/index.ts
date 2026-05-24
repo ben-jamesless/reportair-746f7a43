@@ -64,7 +64,13 @@ serve(async (req) => {
   // plan: "solo" | "pro" | "studio"
   // interval: "monthly" (default) | "annual"
   const { plan, interval = "monthly", success_url, cancel_url } = await req.json();
+  if (plan === "free") {
+    return new Response(JSON.stringify({ error: "Free plan does not require checkout." }), {
+      status: 400, headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
   const priceKey = interval === "annual" ? `${plan}_annual` : plan;
+
   const priceId  = PRICE_IDS[priceKey];
   if (!priceId) return new Response(JSON.stringify({ error: "Invalid plan or interval" }), {
     status: 400, headers: { ...cors, "Content-Type": "application/json" },
