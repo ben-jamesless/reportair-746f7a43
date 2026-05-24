@@ -1335,14 +1335,23 @@ export type Database = {
           user_id: string
         }[]
       }
-      has_project_role: {
-        Args: {
-          _project_id: string
-          _roles: Database["public"]["Enums"]["project_role"][]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_project_role:
+        | {
+            Args: {
+              _project_id: string
+              _role: Database["public"]["Enums"]["project_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _project_id: string
+              _roles: Database["public"]["Enums"]["project_role"][]
+              _user_id: string
+            }
+            Returns: boolean
+          }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
