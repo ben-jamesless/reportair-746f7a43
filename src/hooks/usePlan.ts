@@ -173,6 +173,7 @@ export const usePlan = (): PlanState => {
         subscriptionStatus: team?.subscription_status ?? null,
         trialEndsAt:      team?.trial_ends_at ?? null,
         currentPeriodEnd: team?.current_period_end ?? null,
+        paymentFailedAt:  (team as { payment_failed_at?: string | null })?.payment_failed_at ?? null,
         loading:          false,
         canCreateProject: limits.maxProjects === -1 || projectCount < limits.maxProjects,
         canInviteMember:  limits.maxMembers  === -1 || memberCount  < limits.maxMembers,
