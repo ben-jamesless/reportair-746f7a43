@@ -1,6 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14?target=deno";
+
+class StripeRequestError extends Error {
+  code?: string;
+  status?: number;
+
+  constructor(message: string, code?: string, status?: number) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
+}
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
@@ -41,6 +51,30 @@ function checkoutConfigError(err: unknown, priceEnvName?: string, secretKey?: st
       : `Stripe configuration mismatch: STRIPE_SECRET_KEY is ${mode} mode, but the selected price belongs to the other mode.`;
   }
   return message;
+}
+
+async function stripeRequest(secretKey: string, method: "GET" | "POST", path: string, params?: Record<string, string | number | undefined>) {
+  const url = new URL(`https://api.stripe.com/v1${path}`);
+  const init: RequestInit = {
+    method,
+    headers: { Authorization: `Basic ${btoa(`${secretKey}:`)}` },
+  };
+
+  if (method === "POST") {
+    const body = new URLSearchParams();
+    Object.entries(params ?? {}).forEach(([key, value]) => {
+      if (value !== undefined) body.append(key, String(value));
+    });
+    init.headers = { ...init.headers, "Content-Type": "application/x-www-form-urlencoded" };
+    init.body = body;
+  }
+
+  const response = await fetch(url, init);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new StripeRequestError(data?.error?.message ?? "Stripe request failed", data?.error?.code, response.status);
+  }
+  return data;
 }
 
 // ── Price IDs ─────────────────────────────────────────────────────────────────
