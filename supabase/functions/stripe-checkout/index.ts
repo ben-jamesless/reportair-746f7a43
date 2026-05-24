@@ -25,14 +25,12 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "202
 // Set these environment variables in Supabase Dashboard → Edge Functions → Secrets
 // STRIPE_PRICE_SOLO_MONTHLY, STRIPE_PRICE_SOLO_ANNUAL
 // STRIPE_PRICE_PRO_MONTHLY,  STRIPE_PRICE_PRO_ANNUAL
-// STRIPE_PRICE_STUDIO_MONTHLY, STRIPE_PRICE_STUDIO_ANNUAL
+// Studio is custom/contact-sales — no Stripe price, handled outside checkout.
 const PRICE_IDS: Record<string, string> = {
-  solo:          Deno.env.get("STRIPE_PRICE_SOLO_MONTHLY")   ?? "",
-  solo_annual:   Deno.env.get("STRIPE_PRICE_SOLO_ANNUAL")    ?? "",
-  pro:           Deno.env.get("STRIPE_PRICE_PRO_MONTHLY")    ?? "",
-  pro_annual:    Deno.env.get("STRIPE_PRICE_PRO_ANNUAL")     ?? "",
-  studio:        Deno.env.get("STRIPE_PRICE_STUDIO_MONTHLY") ?? "",
-  studio_annual: Deno.env.get("STRIPE_PRICE_STUDIO_ANNUAL")  ?? "",
+  solo:        Deno.env.get("STRIPE_PRICE_SOLO_MONTHLY") ?? "",
+  solo_annual: Deno.env.get("STRIPE_PRICE_SOLO_ANNUAL")  ?? "",
+  pro:         Deno.env.get("STRIPE_PRICE_PRO_MONTHLY")  ?? "",
+  pro_annual:  Deno.env.get("STRIPE_PRICE_PRO_ANNUAL")   ?? "",
 };
 
 async function getCallerUserId(req: Request): Promise<string | null> {
@@ -66,6 +64,11 @@ serve(async (req) => {
   const { plan, interval = "monthly", success_url, cancel_url } = await req.json();
   if (plan === "free") {
     return new Response(JSON.stringify({ error: "Free plan does not require checkout." }), {
+      status: 400, headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+  if (plan === "studio") {
+    return new Response(JSON.stringify({ error: "Studio is a custom plan — please contact sales." }), {
       status: 400, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
