@@ -183,7 +183,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{link.label || "Untitled link"}</span>
                       <Badge variant={isActive ? "default" : "secondary"}>{status}</Badge>
-                      {link.password_hash && <Badge variant="outline">Password</Badge>}
+                      {link.has_password && <Badge variant="outline">Password</Badge>}
                     </div>
                     <div className="mt-1 truncate font-mono text-xs text-muted-foreground">/s/{link.token}</div>
                   </div>
