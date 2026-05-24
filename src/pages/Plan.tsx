@@ -147,27 +147,25 @@ export default function Plan() {
         navigate("/projects", { replace: true });
         return;
       }
-      // Find the team this user owns (created during onboarding)
+      // Find the team this user owns (created during onboarding) and set it to Free.
+      // Free plan does NOT trigger Stripe checkout or a trial.
       const { data: team } = await supabase
         .from("teams")
-        .select("id, trial_ends_at, subscription_status")
+        .select("id")
         .eq("billing_owner_user_id", user.id)
         .maybeSingle();
 
       if (team) {
-        const trialEnds = team.trial_ends_at
-          ? team.trial_ends_at
-          : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
         const { error: updErr } = await supabase
           .from("teams")
           .update({
-            plan: "solo",
-            subscription_status: "trialing",
-            trial_ends_at: trialEnds,
+            plan: "free",
+            subscription_status: null,
+            trial_ends_at: null,
           })
           .eq("id", team.id);
         if (updErr) {
-          toast.error("Could not start trial", { description: updErr.message });
+          toast.error("Could not select Free plan", { description: updErr.message });
           setSkipping(false);
           return;
         }
@@ -181,10 +179,11 @@ export default function Plan() {
       navigate("/projects", { replace: true });
     } catch (err) {
       setSkipping(false);
-      const msg = err instanceof Error ? err.message : "Could not start trial";
+      const msg = err instanceof Error ? err.message : "Could not select Free plan";
       toast.error(msg);
     }
   };
+
 
   // Auto-launch checkout if signup metadata included a plan choice
   useEffect(() => {
