@@ -7,6 +7,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
+import { PlanGuard } from "@/components/PlanGuard";
+
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ChunkLoadBoundary } from "@/components/ChunkLoadBoundary";
 import Index from "./pages/Index.tsx";
