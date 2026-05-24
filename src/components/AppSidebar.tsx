@@ -296,7 +296,11 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
 
           {/* ── Bottom nav (Team / Billing / Settings) ── */}
           <nav className="space-y-0.5 px-2 lg:px-3">
-            {bottomNavItems.map((item) => {
+            {bottomNavItems.filter((item) => {
+              if (item.href === "/team" && plan !== "pro" && plan !== "studio") return false;
+              return true;
+            }).map((item) => {
+
               const active = isActive(item.href);
               const Icon = item.icon;
               return (
