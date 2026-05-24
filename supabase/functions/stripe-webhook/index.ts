@@ -124,9 +124,9 @@ serve(async (req) => {
     const oldPlan  = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
     const endDate  = fmtDate(sub.current_period_end);
 
-    // Cancel → downgrade to solo (no free plan)
+    // Cancel → downgrade to free (data preserved)
     await service.from("teams").update({
-      plan:                   "solo",
+      plan:                   "free",
       stripe_subscription_id: null,
       subscription_status:    "canceled",
       billing_interval:       null,
@@ -153,7 +153,10 @@ serve(async (req) => {
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return new Response("ok");
 
-    await service.from("teams").update({ subscription_status: "past_due" }).eq("id", teamId);
+    await service.from("teams").update({
+      subscription_status: "past_due",
+      payment_failed_at:   new Date().toISOString(),
+    }).eq("id", teamId);
 
     const owner = await getBillingOwner(service, teamId);
     if (owner) {
@@ -163,6 +166,20 @@ serve(async (req) => {
         data: { name: owner.name, plan: PRICE_TO_PLAN[sub.items.data[0]?.price?.id ?? ""] ?? "" },
       });
     }
+  }
+
+  else if (event.type === "invoice.payment_succeeded") {
+    const invoice = event.data.object as Stripe.Invoice;
+    const subId   = invoice.subscription as string | null;
+    if (!subId) return new Response("ok");
+    const sub    = await stripe.subscriptions.retrieve(subId);
+    const teamId = sub.metadata?.supabase_team_id;
+    if (!teamId) return new Response("ok");
+
+    await service.from("teams").update({
+      subscription_status: sub.status,
+      payment_failed_at:   null,
+    }).eq("id", teamId);
   }
 
   else if (event.type === "customer.subscription.trial_will_end") {
