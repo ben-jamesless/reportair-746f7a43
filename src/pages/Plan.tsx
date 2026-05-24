@@ -11,6 +11,17 @@ import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 type PlanKey = "solo" | "pro" | "studio";
 type PlanAction = { type: "checkout"; plan: PlanKey } | { type: "free" } | { type: "contact"; href: string };
 
+const getFunctionErrorMessage = async (error: unknown, fallback: string) => {
+  try {
+    const ctx = (error as { context?: Response } | null)?.context;
+    if (ctx && typeof ctx.clone === "function") {
+      const body = await ctx.clone().json();
+      if (body?.error) return String(body.error);
+    }
+  } catch { /* ignore */ }
+  return error instanceof Error ? error.message : fallback;
+};
+
 const PLANS: {
   key: string;
   name: string;
@@ -120,8 +131,9 @@ export default function Plan() {
         "Checkout"
       );
       if (error || !data?.url) {
+        const description = await getFunctionErrorMessage(error, NETWORK_HELP);
         toast.error("Could not start checkout", {
-          description: error?.message ?? NETWORK_HELP,
+          description,
         });
         setLoading(null);
         return;
