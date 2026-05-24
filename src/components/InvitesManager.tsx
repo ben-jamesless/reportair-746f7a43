@@ -80,7 +80,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   const load = useCallback(async () => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
-      supabase.from("project_invites").select("id,email,role,token,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
+      supabase.from("project_invites").select("id,email,role,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
       supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
     ]);
