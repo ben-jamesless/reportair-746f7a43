@@ -14,7 +14,7 @@ type ShareLink = {
   id: string;
   token: string;
   label: string | null;
-  password_hash: string | null;
+  has_password: boolean;
   expires_at: string | null;
   revoked_at: string | null;
   view_count: number;
