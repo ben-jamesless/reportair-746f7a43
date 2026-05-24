@@ -119,16 +119,8 @@ export const NotificationsSection = ({ compactLabel = false, onNavigate }: Props
       const { data: { user: cur } } = await supabase.auth.getUser();
       const email = cur?.email;
       if (email) {
-        const { data: inv } = await supabase
-          .from("project_invites")
-          .select("token")
-          .eq("project_id", n.project_id)
-          .ilike("email", email)
-          .is("accepted_at", null)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (inv?.token) { navigate(`/invite/${inv.token}`); return; }
+        const { data: tok } = await supabase.rpc("get_my_pending_invite_token", { _project_id: n.project_id });
+        if (tok) { navigate(`/invite/${tok as string}`); return; }
       }
       navigate(`/projects/${n.project_id}`);
       return;
