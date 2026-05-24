@@ -110,7 +110,6 @@ serve(async (req) => {
 
   const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
   if (!stripeSecretKey) return json(cors, { error: "Missing Stripe secret key configuration." }, 500);
-  const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-04-10" });
 
   const service = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -138,7 +137,7 @@ serve(async (req) => {
   if (!priceId) return json(cors, { error: "Invalid plan or interval" }, 400);
 
   try {
-    await stripe.prices.retrieve(priceId);
+    await stripeRequest(stripeSecretKey, "GET", `/prices/${priceId}`);
   } catch (err) {
     return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey) }, 400);
   }
@@ -157,10 +156,10 @@ serve(async (req) => {
   let customerId = team.stripe_customer_id;
   if (customerId) {
     try {
-      const existing = await stripe.customers.retrieve(customerId);
+      const existing = await stripeRequest(stripeSecretKey, "GET", `/customers/${customerId}`);
       if ((existing as any).deleted) customerId = null;
     } catch (err: any) {
-      if (err?.code === "resource_missing") {
+      if (err?.code === "resource_missing" || /No such customer/i.test(err?.message ?? "")) {
         console.log(JSON.stringify({ fn: "stripe-checkout", info: "customer_not_in_current_mode", customerId }));
         customerId = null;
       } else {
@@ -169,10 +168,10 @@ serve(async (req) => {
     }
   }
   if (!customerId) {
-    const customer = await stripe.customers.create({
+    const customer = await stripeRequest(stripeSecretKey, "POST", "/customers", {
       email,
-      name: team.name,
-      metadata: { supabase_team_id: team.id },
+      name: team.name ?? undefined,
+      "metadata[supabase_team_id]": team.id,
     });
     customerId = customer.id;
     await service.from("teams").update({ stripe_customer_id: customerId }).eq("id", team.id);
@@ -190,14 +189,13 @@ serve(async (req) => {
 
   let session;
   try {
-    session = await stripe.checkout.sessions.create({
+    session = await stripeRequest(stripeSecretKey, "POST", "/checkout/sessions", {
       customer: customerId,
       mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 7,
-        metadata: { supabase_team_id: team.id },
-      },
+      "line_items[0][price]": priceId,
+      "line_items[0][quantity]": 1,
+      "subscription_data[trial_period_days]": 7,
+      "subscription_data[metadata][supabase_team_id]": team.id,
       success_url: success_url ?? `${baseOrigin}/billing?checkout=success`,
       cancel_url:  cancel_url  ?? `${baseOrigin}/billing?checkout=cancelled`,
     });
