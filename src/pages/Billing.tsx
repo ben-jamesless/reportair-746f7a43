@@ -288,7 +288,7 @@ const Billing = () => {
             <p className="text-sm text-muted-foreground mt-1">{renewalLine}</p>
             {plan === "free" && (
               <p className="text-xs text-muted-foreground mt-1">
-                You've used your free tier — upgrade to Solo or Crew to keep adding updates.
+                Your 3 build days are up. Keep the build going — upgrade to Solo.
               </p>
             )}
           </div>
