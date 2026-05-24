@@ -182,7 +182,7 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
               >
                 {loading === plan.key
                   ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : "Start 7-day free trial →"}
+                  : "Start 7-day free trial. No card until day 8. →"}
               </Button>
             </div>
           ))}
