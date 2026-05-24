@@ -19,7 +19,29 @@ function corsFor(req: Request): Record<string, string> {
   };
 }
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2024-04-10" });
+function json(cors: Record<string, string>, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
+}
+
+function stripeMode(secretKey: string) {
+  if (secretKey.startsWith("sk_test_")) return "test";
+  if (secretKey.startsWith("sk_live_")) return "live";
+  return "unknown";
+}
+
+function checkoutConfigError(err: unknown, priceEnvName?: string, secretKey?: string) {
+  const message = err instanceof Error ? err.message : String(err);
+  const mode = secretKey ? stripeMode(secretKey) : "unknown";
+  if (/similar object exists in (live|test) mode/i.test(message) || /No such price/i.test(message)) {
+    return priceEnvName
+      ? `Stripe configuration mismatch: STRIPE_SECRET_KEY is ${mode} mode, but ${priceEnvName} points to a price from the other mode. Update ${priceEnvName} to a ${mode}-mode Stripe price ID.`
+      : `Stripe configuration mismatch: STRIPE_SECRET_KEY is ${mode} mode, but the selected price belongs to the other mode.`;
+  }
+  return message;
+}
 
 // ── Price IDs ─────────────────────────────────────────────────────────────────
 // Set these environment variables in Supabase Dashboard → Edge Functions → Secrets
@@ -50,9 +72,11 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
   const callerId = await getCallerUserId(req);
-  if (!callerId) return new Response(JSON.stringify({ error: "Unauthorized" }), {
-    status: 401, headers: { ...cors, "Content-Type": "application/json" },
-  });
+  if (!callerId) return json(cors, { error: "Unauthorized" }, 401);
+
+  const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+  if (!stripeSecretKey) return json(cors, { error: "Missing Stripe secret key configuration." }, 500);
+  const stripe = new Stripe(stripeSecretKey, { apiVersion: "2024-04-10" });
 
   const service = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -63,21 +87,27 @@ serve(async (req) => {
   // interval: "monthly" (default) | "annual"
   const { plan, interval = "monthly", success_url, cancel_url } = await req.json();
   if (plan === "free") {
-    return new Response(JSON.stringify({ error: "Free plan does not require checkout." }), {
-      status: 400, headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return json(cors, { error: "Free plan does not require checkout." }, 400);
   }
   if (plan === "studio") {
-    return new Response(JSON.stringify({ error: "Studio is a custom plan — please contact sales." }), {
-      status: 400, headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return json(cors, { error: "Studio is a custom plan — please contact sales." }, 400);
   }
   const priceKey = interval === "annual" ? `${plan}_annual` : plan;
+  const priceEnvNames: Record<string, string> = {
+    solo: "STRIPE_PRICE_SOLO_MONTHLY",
+    solo_annual: "STRIPE_PRICE_SOLO_ANNUAL",
+    pro: "STRIPE_PRICE_PRO_MONTHLY",
+    pro_annual: "STRIPE_PRICE_PRO_ANNUAL",
+  };
 
   const priceId  = PRICE_IDS[priceKey];
-  if (!priceId) return new Response(JSON.stringify({ error: "Invalid plan or interval" }), {
-    status: 400, headers: { ...cors, "Content-Type": "application/json" },
-  });
+  if (!priceId) return json(cors, { error: "Invalid plan or interval" }, 400);
+
+  try {
+    await stripe.prices.retrieve(priceId);
+  } catch (err) {
+    return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey) }, 400);
+  }
 
   const { data: team } = await service
     .from("teams")
@@ -85,9 +115,7 @@ serve(async (req) => {
     .eq("billing_owner_user_id", callerId)
     .maybeSingle();
 
-  if (!team) return new Response(JSON.stringify({ error: "No billing team found" }), {
-    status: 403, headers: { ...cors, "Content-Type": "application/json" },
-  });
+  if (!team) return json(cors, { error: "No billing team found" }, 403);
 
   const { data: { user } } = await service.auth.admin.getUserById(callerId);
   const email = user?.email ?? undefined;
@@ -126,19 +154,22 @@ serve(async (req) => {
     ? appUrl.split("/").slice(0, 3).join("/")
     : "https://www.buildslides.com";
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      trial_period_days: 7,
-      metadata: { supabase_team_id: team.id },
-    },
-    success_url: success_url ?? `${baseOrigin}/billing?checkout=success`,
-    cancel_url:  cancel_url  ?? `${baseOrigin}/billing?checkout=cancelled`,
-  });
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: { supabase_team_id: team.id },
+      },
+      success_url: success_url ?? `${baseOrigin}/billing?checkout=success`,
+      cancel_url:  cancel_url  ?? `${baseOrigin}/billing?checkout=cancelled`,
+    });
+  } catch (err) {
+    return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey) }, 400);
+  }
 
-  return new Response(JSON.stringify({ url: session.url }), {
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
+  return json(cors, { url: session.url });
 });

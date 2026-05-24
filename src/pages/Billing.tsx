@@ -14,6 +14,17 @@ import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 
 const SYNC_TIMEOUT_MS = 30000;
 
+const getFunctionErrorMessage = async (error: unknown, fallback: string) => {
+  try {
+    const ctx = (error as { context?: Response } | null)?.context;
+    if (ctx && typeof ctx.clone === "function") {
+      const body = await ctx.clone().json();
+      if (body?.error) return String(body.error);
+    }
+  } catch { /* ignore */ }
+  return error instanceof Error ? error.message : fallback;
+};
+
 const PLAN_LABELS: Record<string, string> = {
   free:   "Free",
   solo:   "Solo",
@@ -254,8 +265,9 @@ const Billing = () => {
         "Checkout"
       );
       if (error || !data?.url) {
+        const description = await getFunctionErrorMessage(error, NETWORK_HELP);
         toast.error("Could not start checkout", {
-          description: error?.message ?? NETWORK_HELP,
+          description,
         });
         setCheckoutLoading(null);
         return;
