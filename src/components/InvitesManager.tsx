@@ -372,7 +372,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               <Badge variant="outline" className="capitalize">{inv.role}</Badge>
               {canManage && (
                 <>
-                  <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.token)} title="Copy invite link">
+                  <Button variant="ghost" size="icon" onClick={() => copyInviteLink(inv.id)} title="Copy invite link">
                     <Copy className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => sendInviteEmail(inv.id)} title="Resend invite email">
