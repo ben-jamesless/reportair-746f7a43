@@ -201,12 +201,20 @@ const Billing = () => {
         "Billing portal"
       );
       if (error || !data?.url) {
-        toast.error("Could not open billing portal", {
-          description: error?.message ?? NETWORK_HELP,
-        });
+        let description = error?.message ?? NETWORK_HELP;
+        // FunctionsHttpError exposes the raw Response on `context`; try to read the JSON body.
+        try {
+          const ctx = (error as { context?: Response } | null)?.context;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.clone().json();
+            if (body?.error) description = body.error;
+          }
+        } catch { /* ignore */ }
+        toast.error("Could not open billing portal", { description });
         setPortalLoading(false);
         return;
       }
+
       window.location.href = data.url;
     } catch (err) {
       setPortalLoading(false);
