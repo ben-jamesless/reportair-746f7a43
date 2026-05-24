@@ -61,9 +61,9 @@ const PLANS: {
   {
     key: "crew",
     name: "Crew",
-    monthly: "HK$498",
-    annualMonthly: "HK$398",
-    annualBilled: "HK$4,776 billed annually",
+    monthly: "HK$298",
+    annualMonthly: "HK$238",
+    annualBilled: "HK$2,860 billed annually",
     description: "For growing event teams.",
     features: [
       "5 active builds",
