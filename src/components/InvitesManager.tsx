@@ -26,7 +26,7 @@ type Invite = {
   id: string;
   email: string;
   role: ProjectRole;
-  token: string;
+  
   accepted_at: string | null;
   accepted_by: string | null;
   created_at: string;
