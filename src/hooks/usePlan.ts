@@ -108,6 +108,7 @@ interface PlanState {
   subscriptionStatus:       string | null;
   trialEndsAt:              string | null;
   currentPeriodEnd:         string | null;
+  paymentFailedAt:          string | null;
   loading:                  boolean;
   canCreateProject:         boolean;
   canInviteMember:          boolean;
