@@ -38,7 +38,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
   const load = useCallback(async () => {
     const { data } = await supabase
       .from("share_links")
-      .select("id,token,label,password_hash,expires_at,revoked_at,view_count,last_accessed_at,created_at")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false });
     setLinks((data ?? []) as ShareLink[]);
