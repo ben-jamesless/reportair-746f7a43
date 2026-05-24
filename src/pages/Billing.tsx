@@ -295,16 +295,27 @@ const Billing = () => {
             )}
           </div>
           {isSubscribed && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleManage}
-              disabled={portalLoading}
-            >
-              {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Manage billing <ArrowUpRight className="h-3.5 w-3.5 ml-1" /></>}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManage}
+                disabled={portalLoading}
+              >
+                {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Manage billing <ArrowUpRight className="h-3.5 w-3.5 ml-1" /></>}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCancelOpen(true)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </Button>
+            </div>
           )}
         </div>
+
 
         {isPastDue && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
