@@ -43,12 +43,16 @@ function stripeMode(secretKey: string) {
   return "unknown";
 }
 
-function checkoutConfigError(err: unknown, priceEnvName?: string, secretKey?: string) {
+function safeSuffix(value: string) {
+  return value ? value.slice(-6) : "missing";
+}
+
+function checkoutConfigError(err: unknown, priceEnvName?: string, secretKey?: string, interval?: string) {
   const message = err instanceof Error ? err.message : String(err);
   const mode = secretKey ? stripeMode(secretKey) : "unknown";
   if (/similar object exists in (live|test) mode/i.test(message) || /No such price/i.test(message)) {
     return priceEnvName
-      ? `Stripe configuration mismatch: STRIPE_SECRET_KEY is ${mode} mode, but ${priceEnvName} points to a price from the other mode. Update ${priceEnvName} to a ${mode}-mode Stripe price ID.`
+      ? `Stripe configuration mismatch: checkout is using ${interval ?? "selected"} billing and STRIPE_SECRET_KEY is ${mode} mode, but ${priceEnvName} points to a price from the other mode. Update ${priceEnvName} to a ${mode}-mode Stripe price ID.`
       : `Stripe configuration mismatch: STRIPE_SECRET_KEY is ${mode} mode, but the selected price belongs to the other mode.`;
   }
   return message;
@@ -137,10 +141,20 @@ serve(async (req) => {
   const priceId  = PRICE_IDS[priceKey];
   if (!priceId) return json(cors, { error: "Invalid plan or interval" }, 400);
 
+  console.log(JSON.stringify({
+    fn: "stripe-checkout",
+    step: "price_config",
+    plan,
+    interval,
+    priceEnv: priceEnvNames[priceKey],
+    stripeMode: stripeMode(stripeSecretKey),
+    priceSuffix: safeSuffix(priceId),
+  }));
+
   try {
     await stripeRequest(stripeSecretKey, "GET", `/prices/${priceId}`);
   } catch (err) {
-    return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey) }, 400);
+    return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey, interval) }, 400);
   }
 
   const { data: team } = await service
@@ -201,7 +215,7 @@ serve(async (req) => {
       cancel_url:  cancel_url  ?? `${baseOrigin}/billing?checkout=cancelled`,
     });
   } catch (err) {
-    return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey) }, 400);
+    return json(cors, { error: checkoutConfigError(err, priceEnvNames[priceKey], stripeSecretKey, interval) }, 400);
   }
 
   return json(cors, { url: session.url });
