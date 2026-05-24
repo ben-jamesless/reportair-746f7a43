@@ -59,9 +59,9 @@ const PRICING = {
     {
       name: "Crew",
       best: "For growing event teams",
-      monthlyPrice: "HK$498",
-      annualMonthly: "HK$398",
-      annualBilled: "HK$4,776 billed annually",
+      monthlyPrice: "HK$298",
+      annualMonthly: "HK$238",
+      annualBilled: "HK$2,860 billed annually",
       features: [
         "5 active builds",
         "5 team members",
