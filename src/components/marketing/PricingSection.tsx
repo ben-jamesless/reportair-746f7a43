@@ -81,9 +81,9 @@ const PRICING = {
     {
       name: "Studio",
       best: "For agencies, large contractors, venues",
-      monthlyPrice: "HK$1,188",
-      annualMonthly: "HK$950",
-      annualBilled: "HK$11,400 billed annually",
+      monthlyPrice: "Get in touch",
+      annualMonthly: "Get in touch",
+      annualBilled: "Custom pricing",
       features: [
         "Unlimited active builds",
         "Unlimited team members",
