@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Copy, Eye, Link2, Trash2, Plus, Loader2, Crown } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { usePlan } from "@/hooks/usePlan";
+import { event as gaEvent } from "@/lib/analytics";
 
 type ShareLink = {
   id: string;
@@ -77,6 +78,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
     setCreating(false);
     if (error) { toast.error(error.message); return; }
     setLabel(""); setPassword(""); setExpiresAt(""); setShowForm(false);
+    gaEvent("share_report", { method: "link" });
     toast.success("Share link created");
     load();
   };

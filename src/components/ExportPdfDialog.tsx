@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { event as gaEvent } from "@/lib/analytics";
 import {
   EVENT_TEMPLATE_DEFS,
   RECOMMENDED_LAYOUT_KEY,
@@ -494,6 +495,10 @@ export const ExportPdfDialog = ({
     if (error || !row) { setSubmitting(false); toast.error(error?.message ?? "Failed"); return; }
 
     setCurrentExport(row as ExportRow);
+    gaEvent("generate_report", {
+      photo_count: (row as ExportRow).photo_count ?? null,
+    });
+    gaEvent("export_project", { format: "pdf" });
     supabase.functions.invoke("generate-pdf", { body: { export_id: row.id } }).catch(() => { /* polling will catch failure */ });
     setSubmitting(false);
   };
