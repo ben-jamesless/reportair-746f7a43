@@ -11,6 +11,8 @@ import { PlanGuard } from "@/components/PlanGuard";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ChunkLoadBoundary } from "@/components/ChunkLoadBoundary";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { RouteAnalytics } from "@/components/RouteAnalytics";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 const About = lazy(() => import("./pages/About.tsx"));
