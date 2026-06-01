@@ -14,6 +14,7 @@ import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } 
 import { usePlan } from "@/hooks/usePlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
+import { event as gaEvent } from "@/lib/analytics";
 
 type AreaOption = { id: string; name: string };
 
@@ -94,6 +95,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     setBusy(true);
     setProgress({ done: 0, total: list.length });
     let failures = 0;
+    let gpsDetectedCount = 0;
     const errors: string[] = [];
     const insertedIds: string[] = [];
 
@@ -158,6 +160,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           throw insErr;
         }
         if (inserted?.id) insertedIds.push(inserted.id);
+        if (exif.gps_lat != null && exif.gps_lng != null) gpsDetectedCount++;
       } catch (e: any) {
         failures++;
         const msg = e?.message || e?.error || (typeof e === "string" ? e : JSON.stringify(e));
@@ -183,6 +186,18 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (failures === 0) toast.success(`Uploaded ${list.length} photo${list.length > 1 ? "s" : ""}`);
     else if (failures < list.length) toast.warning(`Uploaded ${list.length - failures} of ${list.length} (${failures} failed)`, { description: firstErr });
     else toast.error("All uploads failed", { description: firstErr ?? "Check console for details", duration: 10000 });
+    const successful = insertedIds.length;
+    if (successful > 0) {
+      const zoneName = targetArea
+        ? areas.find((a) => a.id === targetArea)?.name ?? null
+        : null;
+      gaEvent("upload_photos", {
+        count: successful,
+        zone: zoneName,
+        has_gps: gpsDetectedCount > 0,
+        unassigned_count: targetArea == null ? successful : 0,
+      });
+    }
     onUploaded?.();
     if (inputRef.current) inputRef.current.value = "";
   };
