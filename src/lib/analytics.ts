@@ -12,7 +12,7 @@ declare global {
   }
 }
 
-export const GA_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined) ?? "";
+export const GA_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined) || "G-68MGP78M5X";
 const IS_PROD = import.meta.env.PROD;
 const CONSENT_KEY = "analytics_consent";
 
