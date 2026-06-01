@@ -90,6 +90,7 @@ const App = () => (
             </ErrorBoundary>
           </Suspense>
           </ChunkLoadBoundary>
+          <CookieConsentBanner />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
