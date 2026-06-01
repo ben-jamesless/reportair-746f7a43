@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { OnboardingLayout } from "@/components/OnboardingLayout";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { event as gaEvent } from "@/lib/analytics";
 
 const GoogleIcon = () => (
   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -77,6 +78,7 @@ const Auth = () => {
       );
       setBusy(false);
       if (error) return toast.error(error.message, { description: NETWORK_HELP });
+      gaEvent("sign_up", { method: "email" });
       if (data.session) {
         navigate("/onboarding", { replace: true });
       } else {
@@ -116,7 +118,10 @@ const Auth = () => {
         NETWORK_TIMEOUT_MS,
         "Google sign-in"
       );
-      if (result.redirected) return;
+      if (result.redirected) {
+        gaEvent("sign_up", { method: "google" });
+        return;
+      }
       if (result.error) {
         setBusy(false);
         const msg = result.error instanceof Error ? result.error.message : String(result.error);

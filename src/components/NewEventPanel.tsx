@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Crown, Mail, X, Check, FileText, Tent, Store, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { event as gaEvent } from "@/lib/analytics";
 import {
   EVENT_TEMPLATE_DEFS,
   RECOMMENDED_LAYOUT_KEY,
@@ -152,6 +153,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
       }
     }
     setBusy(false);
+    gaEvent("create_event", { type: eventType || template || "blank" });
     toast.success("Event created");
     onCreated?.();
     handleOpenChange(false);
