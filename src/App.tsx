@@ -54,6 +54,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <RouteAnalytics />
           <ChunkLoadBoundary>
           <Suspense fallback={<RouteFallback />}>
             <ErrorBoundary label="page">
