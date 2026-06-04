@@ -1,6 +1,6 @@
 {
-  "name": "BuildSlides",
-  "short_name": "BuildSlides",
+  "name": "BuildFolder",
+  "short_name": "BuildFolder",
   "description": "The record temporary builds deserve.",
   "start_url": "/",
   "display": "standalone",
