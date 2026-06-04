@@ -118,8 +118,8 @@ export function PricingSection() {
   return (
     <section id="pricing" className="py-[34px] sm:py-[48px] md:py-[95px]" style={{ background: "#0F1417" }}>
       <div className="mx-auto max-w-[1320px] px-5 sm:px-8">
-        <header className="mx-auto mb-8 max-w-2xl text-center">
-          <h2 className="text-2xl font-extrabold sm:text-4xl" style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}>
+        <header className="mx-auto mb-10 max-w-3xl text-center">
+          <h2 className="font-extrabold" style={{ ...display, color: "#FFFFFF", lineHeight: 1.08, letterSpacing: "-0.02em", fontSize: "clamp(32px, 4vw, 44px)" }}>
             {PRICING.title}
           </h2>
           <p className="mt-3 text-base" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -127,26 +127,45 @@ export function PricingSection() {
           </p>
         </header>
 
-        <div className="mb-10 flex items-center justify-center gap-3">
-          <span className={`text-sm font-medium ${!annual ? "text-white" : "text-white/50"}`}>Monthly</span>
-          <button
-            type="button"
-            onClick={() => setAnnual((a) => !a)}
-            className="relative h-6 w-11 rounded-full transition-colors"
-            style={{ background: annual ? BRAND.sky : "rgba(255,255,255,0.18)" }}
-            aria-label="Toggle annual billing"
+        <div className="mb-12 flex justify-center">
+          <div
+            className="inline-flex items-center gap-1 rounded-full p-1.5"
+            style={{ background: "#0F1417", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 12px 28px -12px rgba(15,20,23,0.35)" }}
           >
-            <span
-              className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform"
-              style={{ transform: annual ? "translateX(20px)" : "translateX(0)" }}
-            />
-          </button>
-          <span className={`text-sm font-medium ${annual ? "text-white" : "text-white/50"}`}>
-            Annual
-            <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold" style={{ background: "rgba(29,184,122,0.15)", color: "#1DB87A" }}>
-              Save 20%
-            </span>
-          </span>
+            <button
+              type="button"
+              onClick={() => setAnnual(false)}
+              className="rounded-full px-5 py-2 text-sm font-semibold transition-colors"
+              style={{
+                background: !annual ? BRAND.sky : "transparent",
+                color: !annual ? "#fff" : "rgba(255,255,255,0.65)",
+                boxShadow: !annual ? "0 6px 16px -6px rgba(217,79,42,0.55)" : "none",
+              }}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setAnnual(true)}
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-colors"
+              style={{
+                background: annual ? BRAND.sky : "transparent",
+                color: annual ? "#fff" : "rgba(255,255,255,0.65)",
+                boxShadow: annual ? "0 6px 16px -6px rgba(217,79,42,0.55)" : "none",
+              }}
+            >
+              Annual
+              <span
+                className="rounded-full px-2 py-0.5 text-[11px] font-bold"
+                style={{
+                  background: annual ? "rgba(255,255,255,0.2)" : "rgba(29,184,122,0.18)",
+                  color: annual ? "#fff" : "#1DB87A",
+                }}
+              >
+                Save 20%
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="grid items-stretch gap-7 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">

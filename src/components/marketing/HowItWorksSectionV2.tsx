@@ -73,42 +73,30 @@ const HowItWorksSectionV2 = () => {
           background: #FFFFFF;
           border: 1px solid var(--line);
           border-radius: 20px;
-          padding: 40px 44px;
+          padding: 48px 52px;
           position: relative;
+          box-shadow:
+            0 1px 0 rgba(15,20,23,0.04),
+            0 18px 40px -20px rgba(15,20,23,0.18),
+            0 6px 14px -8px rgba(15,20,23,0.10);
         }
-        /* corner brackets removed per request */
         .hiw2-row.reverse .hiw2-copy { order: 2; }
         .hiw2-row.reverse .hiw2-visual { order: 1; }
 
-        .hiw2-num {
-          display: inline-flex; align-items: baseline; gap: 10px;
-          font-family: 'Geist Mono', ui-monospace, monospace;
-          font-size: 13px; font-weight: 600;
-          color: var(--accent);
-          letter-spacing: 0.12em; text-transform: uppercase;
-          margin-bottom: 14px;
-        }
-        .hiw2-num .big {
-          font-family: 'Geist', system-ui, sans-serif;
-          font-size: 28px; font-weight: 900;
-          color: var(--ink); letter-spacing: -0.02em;
-        }
-        .hiw2-num .brk { color: var(--accent); font-weight: 700; }
-
         .hiw2-h3 {
-          font-size: 26px; font-weight: 800; line-height: 1.18;
-          letter-spacing: -0.018em; color: var(--ink); margin: 0 0 12px;
+          font-size: 32px; font-weight: 800; line-height: 1.15;
+          letter-spacing: -0.018em; color: var(--ink); margin: 0 0 16px;
         }
         .hiw2-body {
-          font-size: 15.5px; line-height: 1.6;
-          color: var(--mute); margin: 0 0 20px;
-          max-width: 460px;
+          font-size: 18px; line-height: 1.6;
+          color: var(--mute); margin: 0 0 24px;
+          max-width: 500px;
         }
         .hiw2-pills { display: flex; flex-wrap: wrap; gap: 8px; }
         .hiw2-pill {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12px; font-weight: 600;
-          padding: 5px 11px; border-radius: 100px;
+          font-size: 13.5px; font-weight: 600;
+          padding: 6px 13px; border-radius: 100px;
           background: var(--paper-2); color: var(--ink);
           border: 1px solid var(--line);
         }
@@ -228,12 +216,6 @@ const HowItWorksSectionV2 = () => {
           {STEPS.map((s, i) => (
             <div key={s.n} className={`hiw2-row${i % 2 === 1 ? " reverse" : ""}`}>
               <div className="hiw2-copy">
-                <div className="hiw2-num">
-                  <span className="brk">[</span>
-                  <span className="big">{s.n}</span>
-                  <span className="brk">]</span>
-                  <span>{s.label}</span>
-                </div>
                 <h3 className="hiw2-h3">{s.title}</h3>
                 <p className="hiw2-body">{s.body}</p>
                 <div className="hiw2-pills">

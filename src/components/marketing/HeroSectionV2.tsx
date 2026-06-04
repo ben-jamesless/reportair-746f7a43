@@ -83,7 +83,11 @@ const HeroSectionV2 = () => {
           border-radius: 22px 22px 0 0;
           background: transparent;
           border: none;
-          box-shadow: 0 30px 80px rgba(15,20,23,0.10);
+          box-shadow:
+            -24px 0 60px -20px rgba(15,20,23,0.18),
+            24px 0 60px -20px rgba(15,20,23,0.18),
+            0 -20px 50px -20px rgba(15,20,23,0.18),
+            0 30px 80px rgba(15,20,23,0.10);
           overflow: hidden;
           max-height: 560px;
           -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 100%);
@@ -104,35 +108,35 @@ const HeroSectionV2 = () => {
           text-align: left;
         }
 
-        /* sidebar */
+        /* sidebar — dark */
         .bf-hero-v2 .side {
-          background: var(--paper);
+          background: #0F1417;
           padding: 20px 16px 20px 18px;
-          border-right: 1px solid var(--line);
+          border-right: 1px solid rgba(255,255,255,0.08);
           display: flex; flex-direction: column; gap: 14px;
         }
         .bf-hero-v2 .side-brand { padding: 4px 4px 6px; }
         .bf-hero-v2 .side-label {
           font-family: var(--font-mono);
           font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-          color: var(--mute); padding: 2px 4px;
+          color: rgba(255,255,255,0.55); padding: 2px 4px;
         }
         .bf-hero-v2 .side-list { display: flex; flex-direction: column; gap: 4px; }
         .bf-hero-v2 .side-row {
           display: grid; grid-template-columns: 38px 1fr auto;
           align-items: center; gap: 10px;
-          padding: 8px 10px; border-radius: 10px; color: var(--ink);
+          padding: 8px 10px; border-radius: 10px; color: #fff;
         }
         .bf-hero-v2 .side-row .chip {
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           width: 38px; height: 38px; border-radius: 8px;
-          background: #fff; border: 1px solid var(--line);
+          background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
           font-family: var(--font-mono); line-height: 1;
         }
-        .bf-hero-v2 .side-row .chip .d { font-size: 14px; font-weight: 700; color: var(--ink); }
-        .bf-hero-v2 .side-row .chip .m { font-size: 8px; letter-spacing: 0.12em; color: var(--mute); margin-top: 2px; }
-        .bf-hero-v2 .side-row .lbl { font-size: 13px; font-weight: 600; color: var(--ink); }
-        .bf-hero-v2 .side-row .cnt { font-size: 12px; color: var(--mute); font-family: var(--font-mono); }
+        .bf-hero-v2 .side-row .chip .d { font-size: 14px; font-weight: 700; color: #fff; }
+        .bf-hero-v2 .side-row .chip .m { font-size: 8px; letter-spacing: 0.12em; color: rgba(255,255,255,0.55); margin-top: 2px; }
+        .bf-hero-v2 .side-row .lbl { font-size: 13px; font-weight: 600; color: #fff; }
+        .bf-hero-v2 .side-row .cnt { font-size: 12px; color: rgba(255,255,255,0.55); font-family: var(--font-mono); }
         .bf-hero-v2 .side-row.active { background: var(--accent); }
         .bf-hero-v2 .side-row.active .chip { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.3); }
         .bf-hero-v2 .side-row.active .chip .d,
@@ -253,7 +257,7 @@ const HeroSectionV2 = () => {
         <div className="dash-wrap" aria-hidden="true">
           <div className="dash">
             <aside className="side">
-              <div className="side-brand"><BuildFolderLockup size={16} /></div>
+              <div className="side-brand"><BuildFolderLockup size={16} onDark /></div>
               <div className="side-label">Daily Log</div>
               <div className="side-list">
                 {[
