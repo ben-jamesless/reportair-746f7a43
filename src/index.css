@@ -242,6 +242,14 @@
     color: hsl(var(--muted-foreground));
   }
 
+  /* Paper grid — continuous warm paper canvas with subtle dot pattern */
+  .bs-paper-grid {
+    background-color: #FAF7F0;
+    background-image: radial-gradient(circle, #D9D4C5 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+  }
+
   /* BuildFolder icon sizing */
   .bs-icon { width: 14px; height: 14px; flex-shrink: 0; display: inline-block; vertical-align: -2px; color: currentColor; }
   .bs-icon-sm { width: 12px; height: 12px; }
