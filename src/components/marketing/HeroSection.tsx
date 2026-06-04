@@ -1,328 +1,315 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { BuildFolderLockup } from "@/components/brand/BuildFolderLockup";
 
 /**
  * BuildFolder hero section — responsive (desktop / tablet / mobile).
- * Self-contained: scoped styles + animations + horizontal/vertical SVG swap.
+ * Self-contained: scoped styles + animations.
+ * Right side renders a realistic product dashboard mock.
  */
 const HeroSection = () => {
-  useEffect(() => {
-    const isVertical = () => window.innerWidth < 1024;
-    const apply = () => {
-      const v = isVertical();
-      const set = (sel: string, show: boolean) => {
-        const el = document.querySelector<HTMLElement>(sel);
-        if (el) el.style.display = show ? "" : "none";
-      };
-      set(".ra-hero .lines-h", !v);
-      set(".ra-hero .lines-v", v);
-      set(".ra-hero .out-h", !v);
-      set(".ra-hero .out-v", v);
-    };
-    apply();
-    window.addEventListener("resize", apply);
-    return () => window.removeEventListener("resize", apply);
-  }, []);
-
   return (
-    <section className="ra-hero">
+    <section className="bf-hero">
       <style>{`
-        .ra-hero {
-          --sky: #D94F2A;
-          --sky-soft: #FBE6DE;
-          --ink: #0F1724;
-          --slate: #3D4F66;
-          --mist: #7A8FA8;
-          --cloud: #EDF1F7;
-          --fog: #F5F7FA;
-          --border: #D0D9E8;
-          --green: #1DB87A;
-          --green-bg: #E8F8F1;
-          --amber: #FF8C00;
-          --amber-bg: #FFF4E5;
+        .bf-hero {
+          --ink: #0F1417;
+          --ink-2: #1A2025;
+          --paper: #F4F1EA;
+          --paper-2: #ECE8DE;
+          --paper-3: #E4DFD2;
+          --accent: #D94F2A;
+          --accent-soft: rgba(217,79,42,0.12);
+          --mute: #6B6B66;
+          --line: rgba(15,20,23,0.10);
+          --line-2: rgba(15,20,23,0.06);
+          --green: #3A7D44;
+          --green-bg: #E4F0E6;
+          --blue: #3A6EA5;
+          --blue-bg: #E2ECF5;
+          --red: #C7382A;
+          --red-bg: #F7E1DE;
           --font-display: 'Geist', system-ui, sans-serif;
-          --font-body: 'Geist', system-ui, sans-serif;
-          background: #0F1417;
-          font-family: var(--font-body);
+          --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+          background: var(--ink);
+          font-family: var(--font-display);
           display: block;
           width: 100%;
           position: relative;
+          overflow: hidden;
         }
-        .ra-hero * { box-sizing: border-box; }
+        .bf-hero * { box-sizing: border-box; }
 
-        .ra-hero .hero-inner {
-          display: flex;
+        .bf-hero .hero-inner {
+          display: grid;
+          grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
           align-items: center;
-          padding: 64px 48px 80px;
-          gap: 48px;
-          max-width: 1280px;
+          gap: 56px;
+          max-width: 1320px;
           margin: 0 auto;
-          width: 100%;
+          padding: 72px 48px 88px;
           position: relative;
         }
-        .ra-hero .hero-inner::before {
+        .bf-hero .hero-inner::before {
           content: '';
           position: absolute;
-          top: 40%;
-          left: 38%;
-          transform: translate(-50%, -50%);
-          width: 600px; height: 400px;
-          background: radial-gradient(ellipse, rgba(217,79,42,0.08) 0%, transparent 70%);
+          inset: 0;
+          background:
+            radial-gradient(60% 60% at 20% 30%, rgba(217,79,42,0.10), transparent 60%),
+            radial-gradient(50% 50% at 90% 80%, rgba(217,79,42,0.08), transparent 60%);
           pointer-events: none;
         }
 
-        .ra-hero .hero-copy { flex: 0 0 420px; position: relative; z-index: 2; }
-        .ra-hero .eyebrow {
-          font-family: 'Geist Mono', ui-monospace, monospace;
-          font-size: 11px; font-weight: 500;
-          letter-spacing: 0.18em; text-transform: uppercase;
+        /* ---------- LEFT: COPY ---------- */
+        .bf-hero .hero-copy { position: relative; z-index: 2; }
+        .bf-hero .eyebrow {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
           color: rgba(244,241,234,0.65);
-          margin-bottom: 20px;
+          margin: 0 0 22px;
         }
-        .ra-hero .headline {
-          font-family: var(--font-display);
-          font-size: 52px; font-weight: 900;
-          line-height: 1.05; letter-spacing: -0.02em; color: #fff;
-          margin-bottom: 24px;
+        .bf-hero .headline {
+          font-size: clamp(40px, 5vw, 60px);
+          font-weight: 900;
+          line-height: 1.04;
+          letter-spacing: -0.025em;
+          color: #fff;
+          margin: 0 0 24px;
         }
-        .ra-hero .headline .accent { color: var(--sky); }
-        .ra-hero .subline {
-          font-size: 16px; line-height: 1.65;
-          color: rgba(255,255,255,0.5);
-          margin-bottom: 40px; max-width: 360px;
+        .bf-hero .headline .accent { color: var(--accent); }
+        .bf-hero .subline {
+          font-size: 17px;
+          line-height: 1.55;
+          color: rgba(255,255,255,0.55);
+          margin: 0 0 36px;
+          max-width: 440px;
         }
-        .ra-hero .cta-row { display: flex; gap: 14px; align-items: center; }
-        .ra-hero .btn-primary {
-          background: var(--sky); color: #fff;
-          font-family: var(--font-display);
+        .bf-hero .cta-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+        .bf-hero .btn-primary {
+          background: var(--accent); color: #fff;
           font-size: 15px; font-weight: 600;
-          padding: 13px 28px; border-radius: 100px;
-          border: none; cursor: pointer;
-          text-decoration: none; display: inline-block;
+          padding: 13px 26px; border-radius: 100px;
+          border: none; text-decoration: none;
+          transition: background 0.15s;
         }
-        .ra-hero .btn-primary:hover { background: #B53D1F; }
-        .ra-hero .btn-secondary {
-          color: rgba(255,255,255,0.65);
-          font-family: var(--font-display);
+        .bf-hero .btn-primary:hover { background: #B53D1F; }
+        .bf-hero .btn-secondary {
+          color: rgba(255,255,255,0.7);
           font-size: 15px; font-weight: 500;
-          text-decoration: none; display: inline-flex;
-          align-items: center; gap: 6px;
-          border: 1px solid rgba(255,255,255,0.15);
-          padding: 12px 24px; border-radius: 100px;
+          text-decoration: none;
+          border: 1px solid rgba(255,255,255,0.18);
+          padding: 12px 22px; border-radius: 100px;
           transition: border-color 0.2s, color 0.2s;
         }
-        .ra-hero .btn-secondary:hover { border-color: rgba(255,255,255,0.35); color: #fff; }
+        .bf-hero .btn-secondary:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
 
-        .ra-hero .hero-graphic {
-          flex: 1; display: flex;
-          align-items: center; justify-content: center;
-          position: relative; z-index: 2; min-width: 0;
+        /* ---------- RIGHT: DASHBOARD MOCK ---------- */
+        .bf-hero .dash-wrap {
+          position: relative;
+          z-index: 2;
+          min-width: 0;
+          padding: 18px;
+          border-radius: 28px;
+          background: linear-gradient(155deg, rgba(244,241,234,0.10) 0%, rgba(244,241,234,0.02) 100%);
+          border: 1px solid rgba(244,241,234,0.10);
+          box-shadow: 0 30px 80px rgba(0,0,0,0.45);
         }
-        .ra-hero .stage {
-          width: 100%; max-width: 680px;
-          background: linear-gradient(145deg, #1A2025 0%, #1A2025 50%, #1A2025 100%);
-          border-radius: 24px;
-          border: 1px solid rgba(217,79,42,0.18);
-          padding: 44px 36px;
-          display: flex; align-items: center; justify-content: center;
-          position: relative; overflow: hidden;
-        }
-        .ra-hero .stage::before {
-          content: '';
-          position: absolute; top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          width: 280px; height: 280px;
-          background: radial-gradient(circle, rgba(217,79,42,0.13) 0%, transparent 70%);
-          pointer-events: none; border-radius: 50%;
+        .bf-hero .dash {
+          background: var(--paper);
+          border-radius: 18px;
+          overflow: hidden;
+          display: grid;
+          grid-template-columns: 220px 1fr;
+          color: var(--ink);
+          min-height: 600px;
+          box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 0 0 1px rgba(15,20,23,0.04);
         }
 
-        .ra-hero .inputs { display: flex; flex-direction: column; gap: 10px; flex: 0 0 auto; }
-        .ra-hero .chip {
-          display: flex; align-items: center; gap: 10px;
-          padding: 9px 14px 9px 9px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 12px; width: 172px;
-          opacity: 0; transform: translateX(-20px);
-          animation: ra-chipIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards;
+        /* sidebar */
+        .bf-hero .side {
+          background: var(--paper);
+          padding: 18px 14px 18px 16px;
+          border-right: 1px solid var(--line);
+          display: flex; flex-direction: column; gap: 14px;
         }
-        .ra-hero .chip:nth-child(1) { animation-delay: 0.1s; }
-        .ra-hero .chip:nth-child(2) { animation-delay: 0.25s; }
-        .ra-hero .chip:nth-child(3) { animation-delay: 0.4s; }
-        .ra-hero .chip:nth-child(4) { animation-delay: 0.55s; }
-        .ra-hero .chip:nth-child(5) { animation-delay: 0.7s; }
-        @keyframes ra-chipIn { to { opacity: 1; transform: translateX(0); } }
+        .bf-hero .side-brand { padding: 4px 4px 6px; }
+        .bf-hero .side-label {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: var(--mute);
+          padding: 2px 4px;
+        }
+        .bf-hero .side-list { display: flex; flex-direction: column; gap: 4px; }
+        .bf-hero .side-row {
+          display: grid;
+          grid-template-columns: 38px 1fr auto;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 10px;
+          border-radius: 10px;
+          color: var(--ink);
+        }
+        .bf-hero .side-row .chip {
+          display: flex; flex-direction: column; align-items: center;
+          justify-content: center;
+          width: 38px; height: 38px; border-radius: 8px;
+          background: #fff;
+          border: 1px solid var(--line);
+          font-family: var(--font-mono); line-height: 1;
+        }
+        .bf-hero .side-row .chip .d { font-size: 14px; font-weight: 700; color: var(--ink); }
+        .bf-hero .side-row .chip .m { font-size: 8px; letter-spacing: 0.12em; color: var(--mute); margin-top: 2px; }
+        .bf-hero .side-row .lbl { font-size: 13px; font-weight: 600; color: var(--ink); }
+        .bf-hero .side-row .cnt { font-size: 12px; color: var(--mute); font-family: var(--font-mono); }
+        .bf-hero .side-row.active { background: var(--accent); }
+        .bf-hero .side-row.active .chip { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.25); }
+        .bf-hero .side-row.active .chip .d,
+        .bf-hero .side-row.active .chip .m,
+        .bf-hero .side-row.active .lbl,
+        .bf-hero .side-row.active .cnt { color: #fff; }
 
-        .ra-hero .chip-icon {
-          width: 34px; height: 34px; border-radius: 8px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-        .ra-hero .chip-icon.wa  { background: rgba(37,211,102,0.13); }
-        .ra-hero .chip-icon.ph  { background: rgba(255,140,0,0.12); }
-        .ra-hero .chip-icon.xl  { background: rgba(33,163,80,0.14); }
-        .ra-hero .chip-icon.ppt { background: rgba(209,52,52,0.13); }
-        .ra-hero .chip-icon.em  { background: rgba(217,79,42,0.14); }
-        .ra-hero .chip-label {
+        /* main */
+        .bf-hero .main { padding: 20px 22px 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+        .bf-hero .main-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .bf-hero .title-row { display: flex; align-items: center; gap: 12px; }
+        .bf-hero .title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+        .bf-hero .pill {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 11px; font-weight: 600;
+          padding: 4px 10px; border-radius: 100px;
           font-family: var(--font-display);
+        }
+        .bf-hero .pill::before {
+          content: ''; width: 6px; height: 6px; border-radius: 50%;
+          background: currentColor;
+        }
+        .bf-hero .pill.green { color: var(--green); background: var(--green-bg); }
+        .bf-hero .pill.blue  { color: var(--blue);  background: var(--blue-bg);  }
+        .bf-hero .pill.red   { color: var(--red);   background: var(--red-bg);   }
+
+        .bf-hero .meta {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          color: var(--mute);
+          letter-spacing: 0.04em;
+          margin-top: 4px;
+        }
+        .bf-hero .head-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .bf-hero .head-btn {
+          display: inline-flex; align-items: center; gap: 6px;
           font-size: 12px; font-weight: 600;
-          color: #C8D8EC; white-space: nowrap;
+          padding: 8px 12px; border-radius: 10px;
+          border: 1px solid var(--line);
+          background: #fff; color: var(--ink);
+        }
+        .bf-hero .head-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .bf-hero .tabs {
+          display: flex; gap: 22px;
+          border-bottom: 1px solid var(--line);
+          padding-bottom: 0;
+        }
+        .bf-hero .tab {
+          font-size: 13px; font-weight: 600;
+          color: var(--mute);
+          padding: 8px 0;
+          border-bottom: 2px solid transparent;
+          margin-bottom: -1px;
+        }
+        .bf-hero .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .bf-hero .date-sub { font-size: 14px; font-weight: 700; color: var(--ink); }
+
+        .bf-hero .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .bf-hero .card {
+          background: #fff;
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          padding: 12px 14px;
+        }
+        .bf-hero .card-label {
+          font-family: var(--font-mono);
+          font-size: 9px;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--mute);
+          margin-bottom: 8px;
+        }
+        .bf-hero .card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+        .bf-hero .card li {
+          font-size: 12.5px; line-height: 1.4; color: var(--ink);
+          padding-left: 14px; position: relative;
+        }
+        .bf-hero .card li::before {
+          content: '•'; color: var(--accent); position: absolute;
+          left: 0; top: 0; font-size: 14px; line-height: 1.2;
         }
 
-        .ra-hero .lines-svg { flex: 0 0 88px; height: 272px; overflow: visible; }
-        .ra-hero .flow-line { stroke-dasharray: 220; stroke-dashoffset: 220; animation: ra-drawLine 0.5s cubic-bezier(0.4,0,0.2,1) forwards; }
-        .ra-hero .flow-line:nth-of-type(1) { animation-delay: 0.3s; }
-        .ra-hero .flow-line:nth-of-type(2) { animation-delay: 0.45s; }
-        .ra-hero .flow-line:nth-of-type(3) { animation-delay: 0.6s; }
-        .ra-hero .flow-line:nth-of-type(4) { animation-delay: 0.75s; }
-        .ra-hero .flow-line:nth-of-type(5) { animation-delay: 0.9s; }
-        @keyframes ra-drawLine { to { stroke-dashoffset: 0; } }
-
-        .ra-hero .node-wrap { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; }
-        .ra-hero .node {
-          width: 96px; height: 96px;
-          display: flex; align-items: center; justify-content: center;
-          opacity: 0; transform: scale(0.7);
-          filter: drop-shadow(0 8px 40px rgba(217,79,42,0.35));
-          animation: ra-nodeIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.85s forwards,
-                     ra-nodePulse 2.8s ease-in-out 1.6s infinite;
-        }
-        @keyframes ra-nodeIn { to { opacity: 1; transform: scale(1); } }
-        @keyframes ra-nodePulse {
-          0%, 100% { filter: drop-shadow(0 8px 40px rgba(217,79,42,0.35)); }
-          50%      { filter: drop-shadow(0 8px 56px rgba(217,79,42,0.55)); }
-        }
-        .ra-hero .node img { width: 100%; height: 100%; display: block; }
-
-        .ra-hero .out-line-svg { flex: 0 0 60px; height: 32px; overflow: visible; }
-        .ra-hero .out-line { stroke-dasharray: 120; stroke-dashoffset: 120; animation: ra-drawLine 0.45s cubic-bezier(0.4,0,0.2,1) 1.3s forwards; }
-
-        .ra-hero .report-card {
-          background: #fff; border-radius: 14px; overflow: hidden;
-          width: 256px; flex-shrink: 0; color: var(--ink);
-          opacity: 0; transform: translateX(24px);
-          box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07);
-          animation: ra-cardIn 0.6s cubic-bezier(0.16,1,0.3,1) 1.5s forwards;
-        }
-        @keyframes ra-cardIn { to { opacity: 1; transform: translateX(0); } }
-
-        .ra-hero .rc-header {
-          background: var(--ink); padding: 10px 14px;
+        .bf-hero .status-list { display: flex; flex-direction: column; gap: 8px; }
+        .bf-hero .status-row {
           display: flex; align-items: center; justify-content: space-between;
+          gap: 12px;
+          background: #fff;
+          border: 1px solid var(--line);
+          border-left: 4px solid var(--line);
+          border-radius: 8px;
+          padding: 10px 14px;
         }
-        .ra-hero .rc-logo { display: flex; align-items: center; gap: 6px; }
-        .ra-hero .rc-logo svg { width: 18px; height: 18px; }
-        .ra-hero .rc-logo-text {
-          font-family: var(--font-display);
-          font-size: 10px; font-weight: 700;
-          letter-spacing: 0.08em; color: #fff; text-transform: uppercase;
-        }
-        .ra-hero .rc-dr { font-size: 9px; color: #3A5070; }
+        .bf-hero .status-row.red   { border-left-color: var(--red); }
+        .bf-hero .status-row.blue  { border-left-color: var(--blue); }
+        .bf-hero .status-row.green { border-left-color: var(--green); }
+        .bf-hero .status-row .sr-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+        .bf-hero .status-row .sr-desc  { font-size: 12px; color: var(--mute); margin-top: 2px; }
 
-        .ra-hero .rc-meta {
-          background: var(--cloud); padding: 8px 14px;
-          display: flex; align-items: center; justify-content: space-between;
-          border-bottom: 1px solid var(--border);
-        }
-        .ra-hero .rc-event { font-family: var(--font-display); font-size: 10px; font-weight: 700; color: var(--ink); }
-        .ra-hero .rc-day { font-size: 9px; color: var(--mist); }
-
-        .ra-hero .rc-status-row {
-          padding: 7px 14px; display: flex; align-items: center; justify-content: space-between;
-          border-bottom: 1px solid var(--border);
-        }
-        .ra-hero .rc-status-label {
-          font-size: 8px; font-weight: 600; letter-spacing: 0.07em;
-          text-transform: uppercase; color: var(--mist);
-        }
-        .ra-hero .pill { font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 100px; }
-        .ra-hero .pill-green { color: var(--green); background: var(--green-bg); }
-        .ra-hero .pill-amber { color: var(--amber); background: var(--amber-bg); }
-
-        .ra-hero .rc-th {
-          display: grid; grid-template-columns: 1fr 76px 32px;
-          padding: 4px 14px; font-size: 8px; font-weight: 600;
-          letter-spacing: 0.08em; text-transform: uppercase;
-          color: var(--mist); background: var(--fog);
-          border-bottom: 1px solid var(--border);
-        }
-        .ra-hero .rc-row {
-          display: grid; grid-template-columns: 1fr 76px 32px;
-          padding: 6px 14px; align-items: center;
-          border-bottom: 1px solid var(--fog);
-          position: relative; opacity: 0; transform: translateY(4px);
-          animation: ra-rowIn 0.35s ease forwards;
-        }
-        .ra-hero .rc-row:nth-of-type(1) { animation-delay: 1.75s; }
-        .ra-hero .rc-row:nth-of-type(2) { animation-delay: 1.9s; }
-        .ra-hero .rc-row:nth-of-type(3) { animation-delay: 2.05s; }
-        .ra-hero .rc-row::before {
-          content: ''; position: absolute;
-          left: 0; top: 4px; bottom: 4px; width: 3px; border-radius: 0 2px 2px 0;
-        }
-        .ra-hero .rc-row.green::before { background: var(--green); }
-        .ra-hero .rc-row.amber::before { background: var(--amber); }
-        .ra-hero .rc-row .area-name {
-          font-family: var(--font-display); font-weight: 600;
-          font-size: 10px; color: var(--ink); padding-left: 4px;
-        }
-        .ra-hero .rc-row .photos { font-size: 10px; color: var(--slate); text-align: center; }
-        .ra-hero .pill-sm { font-size: 8px; font-weight: 600; padding: 2px 6px; border-radius: 100px; }
-
-        .ra-hero .rc-footer {
-          padding: 8px 14px; background: var(--fog);
-          display: flex; align-items: center; gap: 5px;
-          opacity: 0; animation: ra-rowIn 0.4s ease 2.2s forwards;
-        }
-        .ra-hero .rc-footer-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sky); }
-        .ra-hero .rc-footer-text { font-size: 9px; color: var(--sky); font-weight: 500; }
-        @keyframes ra-rowIn { to { opacity: 1; transform: translateY(0); } }
-
-        /* Tablet */
-        @media (min-width: 768px) and (max-width: 1023px) {
-          .ra-hero .hero-inner { padding: 20px 32px 28px; gap: 28px; align-items: center; }
-          .ra-hero .hero-copy { flex: 0 0 280px; }
-          .ra-hero .headline { font-size: 34px; }
-          .ra-hero .subline { font-size: 13px; margin-bottom: 28px; }
-          .ra-hero .btn-primary, .ra-hero .btn-secondary { font-size: 13px; padding: 10px 18px; }
-          .ra-hero .stage { flex-direction: column; padding: 28px 24px; border-radius: 18px; align-items: center; flex: 1; min-width: 0; }
-          .ra-hero .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
-          .ra-hero .chip:last-child { grid-column: 1 / -1; }
-          .ra-hero .chip { width: 100%; padding: 9px 12px 9px 9px; transform: none; animation: ra-fadeIn 0.5s ease forwards; }
-          .ra-hero .chip-icon { width: 30px; height: 30px; }
-          .ra-hero .chip-icon svg { width: 16px; height: 16px; }
-          .ra-hero .lines-svg { flex: none; width: 100%; max-width: 320px; height: 64px; display: block; }
-          .ra-hero .node { width: 72px; height: 72px; }
-          .ra-hero .out-line-svg { flex: none; width: 32px; height: 48px; display: block; }
-          .ra-hero .report-card { width: 100%; max-width: none; }
-        }
-
-        /* Mobile */
-        @media (max-width: 767px) {
-          .ra-hero .hero-inner {
-            flex-direction: column; align-items: stretch;
-            padding: 20px 20px 28px; gap: 36px; text-align: center;
+        /* ---------- TABLET ---------- */
+        @media (max-width: 1023px) {
+          .bf-hero .hero-inner {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            padding: 48px 32px 56px;
+            text-align: left;
           }
-          .ra-hero .hero-inner::before { display: none; }
-          .ra-hero .hero-copy { flex: none; width: 100%; }
-          .ra-hero .eyebrow { font-size: 10px; }
-          .ra-hero .headline { font-size: 36px; line-height: 1.1; }
-          .ra-hero .subline { font-size: 14px; max-width: 100%; margin-left: auto; margin-right: auto; }
-          .ra-hero .cta-row { justify-content: center; flex-wrap: wrap; }
-          .ra-hero .hero-graphic { width: 100%; }
-          .ra-hero .stage { flex-direction: column; padding: 28px 16px; border-radius: 20px; align-items: center; }
-          .ra-hero .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
-          .ra-hero .chip:last-child { grid-column: 1 / -1; }
-          .ra-hero .chip { width: 100%; padding: 10px 14px 10px 10px; transform: none; animation: ra-fadeIn 0.5s ease forwards; }
-          .ra-hero .chip-icon { width: 28px; height: 28px; border-radius: 7px; }
-          .ra-hero .chip-icon svg { width: 15px; height: 15px; }
-          .ra-hero .chip-label { font-size: 12px; }
-          .ra-hero .lines-svg { flex: none; width: 100%; max-width: 300px; height: 64px; display: block; }
-          .ra-hero .node { width: 72px; height: 72px; }
-          .ra-hero .out-line-svg { flex: none; width: 32px; height: 52px; display: block; }
-          .ra-hero .report-card { width: 100%; max-width: 340px; border-radius: 14px; }
+          .bf-hero .subline { max-width: 100%; }
         }
-        @keyframes ra-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ---------- MOBILE ---------- */
+        @media (max-width: 767px) {
+          .bf-hero .hero-inner { padding: 36px 18px 48px; gap: 32px; }
+          .bf-hero .headline { font-size: 36px; }
+          .bf-hero .dash-wrap { padding: 10px; border-radius: 20px; }
+          .bf-hero .dash { grid-template-columns: 1fr; min-height: 0; }
+          .bf-hero .side {
+            border-right: none;
+            border-bottom: 1px solid var(--line);
+            padding: 14px;
+            gap: 10px;
+          }
+          .bf-hero .side-list {
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 8px;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+          }
+          .bf-hero .side-list::-webkit-scrollbar { display: none; }
+          .bf-hero .side-row {
+            grid-template-columns: auto auto auto;
+            flex-shrink: 0;
+            padding: 6px 10px;
+          }
+          .bf-hero .side-row .lbl { font-size: 12px; }
+          .bf-hero .main { padding: 16px; gap: 14px; }
+          .bf-hero .main-head { flex-direction: column; align-items: flex-start; }
+          .bf-hero .head-actions { width: 100%; flex-wrap: wrap; }
+          .bf-hero .head-btn { font-size: 11.5px; padding: 7px 10px; }
+          .bf-hero .title { font-size: 18px; }
+          .bf-hero .tabs { gap: 16px; overflow-x: auto; scrollbar-width: none; }
+          .bf-hero .tabs::-webkit-scrollbar { display: none; }
+          .bf-hero .card-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
 
       <div className="hero-inner">
@@ -333,7 +320,7 @@ const HeroSection = () => {
             Client-ready event build reports in <span className="accent">10 minutes.</span>
           </h1>
           <p className="subline">
-            Capture and sort site photos. Export a polished PDF or client-safe link in minutes.
+            Capture and sort event site photos. Export a client-safe link or polished PDF in minutes.
           </p>
           <div className="cta-row">
             <Link className="btn-primary" to="/auth">Start your first build</Link>
@@ -350,145 +337,125 @@ const HeroSection = () => {
           </div>
         </div>
 
-        {/* RIGHT: GRAPHIC */}
-        <div className="hero-graphic">
-          <div className="stage">
-            {/* INPUT CHIPS */}
-            <div className="inputs">
-              <div className="chip">
-                <div className="chip-icon wa">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#25D366" opacity="0.9" />
-                    <path d="M17.5 14.3c-.3-.1-1.6-.8-1.8-.9-.3-.1-.5-.1-.7.1-.2.2-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5.1-.2 0-.4-.1-.5-.1-.2-.6-1.6-.9-2.1-.2-.5-.5-.4-.7-.4h-.6c-.2 0-.5.1-.8.4C8 7.7 7 8.7 7 10.1s1 2.7 1.2 2.9c.2.2 2 3.1 5 4.2.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.1-1.4-.1-.2-.3-.2-.5-.3z" fill="#fff" />
-                  </svg>
-                </div>
-                <span className="chip-label">WhatsApp</span>
+        {/* RIGHT: DASHBOARD MOCK */}
+        <div className="dash-wrap" aria-hidden="true">
+          <div className="dash">
+            {/* SIDEBAR */}
+            <aside className="side">
+              <div className="side-brand">
+                <BuildFolderLockup size={16} />
               </div>
-              <div className="chip">
-                <div className="chip-icon ph">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect width="24" height="24" rx="5" fill="rgba(255,140,0,0.15)" />
-                    <rect x="3" y="6" width="18" height="13" rx="2" stroke="#FF8C00" strokeWidth="1.5" />
-                    <circle cx="8.5" cy="11" r="2" fill="#FF8C00" opacity="0.7" />
-                    <path d="M3 16l4-4 3 3 3-4 5 5" stroke="#FF8C00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span className="chip-label">Photos</span>
+              <div className="side-label">Daily Log</div>
+              <div className="side-list">
+                {[
+                  { d: "30", m: "OCT", label: "Thu 30 Oct", count: 5, active: true },
+                  { d: "28", m: "OCT", label: "Tue 28 Oct", count: 12 },
+                  { d: "24", m: "OCT", label: "Fri 24 Oct", count: 8 },
+                  { d: "13", m: "OCT", label: "Mon 13 Oct", count: 16 },
+                  { d: "07", m: "OCT", label: "Tue 7 Oct", count: 15 },
+                  { d: "02", m: "OCT", label: "Thu 2 Oct", count: 8 },
+                  { d: "28", m: "SEP", label: "Sun 28 Sep", count: 9 },
+                ].map((r) => (
+                  <div key={r.label} className={`side-row${r.active ? " active" : ""}`}>
+                    <div className="chip">
+                      <span className="d">{r.d}</span>
+                      <span className="m">{r.m}</span>
+                    </div>
+                    <span className="lbl">{r.label}</span>
+                    <span className="cnt">{r.count}</span>
+                  </div>
+                ))}
               </div>
-              <div className="chip">
-                <div className="chip-icon xl">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect width="24" height="24" rx="5" fill="rgba(33,163,80,0.15)" />
-                    <path d="M13 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9l-6-6z" stroke="#21A350" strokeWidth="1.5" strokeLinejoin="round" />
-                    <path d="M13 3v6h6" stroke="#21A350" strokeWidth="1.5" strokeLinecap="round" />
-                    <path d="M9 13l2 2 4-4" stroke="#21A350" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span className="chip-label">Excel</span>
-              </div>
-              <div className="chip">
-                <div className="chip-icon ppt">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect width="24" height="24" rx="5" fill="rgba(209,52,52,0.15)" />
-                    <path d="M13 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9l-6-6z" stroke="#D13434" strokeWidth="1.5" strokeLinejoin="round" />
-                    <path d="M13 3v6h6" stroke="#D13434" strokeWidth="1.5" strokeLinecap="round" />
-                    <rect x="8" y="13" width="5" height="4" rx="1" stroke="#D13434" strokeWidth="1.3" />
-                    <path d="M13 15h2" stroke="#D13434" strokeWidth="1.3" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <span className="chip-label">PowerPoint</span>
-              </div>
-              <div className="chip">
-                <div className="chip-icon em">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <rect width="24" height="24" rx="5" fill="rgba(217,79,42,0.15)" />
-                    <rect x="3" y="6" width="18" height="13" rx="2" stroke="#D94F2A" strokeWidth="1.5" />
-                    <path d="M3 9l9 6 9-6" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <span className="chip-label">Email</span>
-              </div>
-            </div>
+            </aside>
 
-            {/* Funnel — horizontal (desktop) */}
-            <svg className="lines-svg lines-h" viewBox="0 0 88 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path className="flow-line" d="M0 26  C44 26  44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path className="flow-line" d="M0 88  C44 88  44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M0 150 L88 150" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
-              <path className="flow-line" d="M0 212 C44 212 44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M0 274 C44 274 44 150 88 150" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path d="M80 146 L88 150 L80 154" stroke="#D94F2A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
-            </svg>
-
-            {/* Funnel — vertical (tablet/mobile) */}
-            <svg className="lines-svg lines-v" viewBox="0 0 276 72" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "none" }}>
-              <path className="flow-line" d="M26 0  C26 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path className="flow-line" d="M82 0  C82 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M138 0 L138 72" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
-              <path className="flow-line" d="M194 0 C194 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
-              <path className="flow-line" d="M250 0 C250 36 138 36 138 72" stroke="#D94F2A" strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
-              <path d="M134 64 L138 72 L142 64" stroke="#D94F2A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
-            </svg>
-
-            {/* Centre node */}
-            <div className="node-wrap">
-              <div className="node">
-                <img src="/favicon.svg" alt="" style={{ width: 56, height: 56 }} />
-              </div>
-            </div>
-
-            {/* Output line — horizontal */}
-            <svg className="out-line-svg out-h" viewBox="0 0 60 32" fill="none">
-              <line className="out-line" x1="2" y1="16" x2="52" y2="16" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" />
-              <path d="M44 10 L54 16 L44 22" fill="none" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-
-            {/* Output line — vertical */}
-            <svg className="out-line-svg out-v" viewBox="0 0 32 52" fill="none" style={{ display: "none" }}>
-              <line className="out-line" x1="16" y1="2" x2="16" y2="44" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" />
-              <path d="M10 36 L16 46 L22 36" fill="none" stroke="#D94F2A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-
-            {/* Report card */}
-            <div className="report-card">
-              <div className="rc-header">
-                <div className="rc-logo">
-                  <img src="/favicon.svg" alt="" style={{ width: 18, height: 18, display: "block" }} />
-                  <span className="rc-logo-text">BuildFolder</span>
+            {/* MAIN */}
+            <div className="main">
+              <div className="main-head">
+                <div>
+                  <div className="title-row">
+                    <span className="title">Hong Kong Open</span>
+                    <span className="pill green">Complete</span>
+                  </div>
+                  <div className="meta">Fanling · 20 Oct 2026 · HKGC</div>
                 </div>
-                <span className="rc-dr">No. DR-002</span>
+                <div className="head-actions">
+                  <button type="button" className="head-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+                    Share link
+                  </button>
+                  <button type="button" className="head-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export PDF
+                  </button>
+                  <button type="button" className="head-btn primary">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Upload photos
+                  </button>
+                </div>
               </div>
-              <div className="rc-meta">
-                <div className="rc-event">Northstar Festival · Day 3</div>
-                <div className="rc-day">Tue 12 May 2026</div>
+
+              <div className="tabs">
+                <span className="tab active">Updates</span>
+                <span className="tab">Gallery</span>
+                <span className="tab">Activity</span>
+                <span className="tab">Settings</span>
               </div>
-              <div className="rc-status-row">
-                <span className="rc-status-label">Overall Status</span>
-                <span className="pill pill-green">On Track</span>
+
+              <div className="date-sub">Thursday, 30 October 2025</div>
+
+              <div className="card-grid">
+                <div className="card">
+                  <div className="card-label">Today's Objectives</div>
+                  <ul>
+                    <li>Final media-centre furniture set</li>
+                    <li>Touch-ups on hospitality glazing</li>
+                  </ul>
+                </div>
+                <div className="card">
+                  <div className="card-label">Today's Achievements</div>
+                  <ul>
+                    <li>Hospitality ready for Pro-Am</li>
+                    <li>Furniture &amp; touch-ups to go for media centre</li>
+                    <li>TV all ready</li>
+                  </ul>
+                </div>
+                <div className="card">
+                  <div className="card-label">Tomorrow's Objectives</div>
+                  <ul>
+                    <li>Finish media centre fit-out</li>
+                    <li>Walk-through with client</li>
+                  </ul>
+                </div>
+                <div className="card">
+                  <div className="card-label">Open Issues / Risks</div>
+                  <ul>
+                    <li>Branding stuck at the border — a day behind before finishing</li>
+                  </ul>
+                </div>
               </div>
-              <div className="rc-th">
-                <span>Area</span>
-                <span>Status</span>
-                <span>Photos</span>
-              </div>
-              <div className="rc-row green">
-                <span className="area-name">Main Stage</span>
-                <span className="pill-sm pill-green">On Track</span>
-                <span className="photos">12</span>
-              </div>
-              <div className="rc-row amber">
-                <span className="area-name">VIP Tent</span>
-                <span className="pill-sm pill-amber">Discussion</span>
-                <span className="photos">5</span>
-              </div>
-              <div className="rc-row green">
-                <span className="area-name">Power & AV</span>
-                <span className="pill-sm pill-green">Complete</span>
-                <span className="photos">8</span>
-              </div>
-              <div className="rc-footer">
-                <div className="rc-footer-dot" />
-                <span className="rc-footer-text">PDF ready · Share link active</span>
+
+              <div className="status-list">
+                <div className="status-row red">
+                  <div>
+                    <div className="sr-title">18th Hospitality</div>
+                    <div className="sr-desc">Finished and ready for Pro-Am</div>
+                  </div>
+                  <span className="pill red">Delayed</span>
+                </div>
+                <div className="status-row blue">
+                  <div>
+                    <div className="sr-title">Media Centre</div>
+                    <div className="sr-desc">Almost finished, final furniture to put in place</div>
+                  </div>
+                  <span className="pill blue">On track</span>
+                </div>
+                <div className="status-row green">
+                  <div>
+                    <div className="sr-title">Spectator Village</div>
+                    <div className="sr-desc">Looking good. Final touches but ready for spectators tomorrow</div>
+                  </div>
+                  <span className="pill green">Complete</span>
+                </div>
               </div>
             </div>
           </div>
