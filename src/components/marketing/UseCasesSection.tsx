@@ -327,7 +327,7 @@ export default function UseCasesSection() {
                 fontSize: 28,
                 fontWeight: 800,
                 letterSpacing: "-0.02em",
-                color: "#fff",
+                color: "#0F1417",
                 margin: "0 0 12px 0",
               }}
             >
@@ -337,7 +337,7 @@ export default function UseCasesSection() {
               style={{
                 ...body,
                 fontSize: 15,
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(15,20,23,0.65)",
                 lineHeight: 1.65,
                 margin: "0 0 24px 0",
               }}
