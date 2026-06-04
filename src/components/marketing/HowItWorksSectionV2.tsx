@@ -2,6 +2,9 @@
  * "Build to report. Three steps." — two-column, three-row layout (V2 draft).
  * Light/paper version that sits over the .bs-paper-grid background.
  */
+import galleryImage from "@/assets/feature-01-gallery.png.asset.json";
+import reportLinkImage from "@/assets/feature-03-report-link.png.asset.json";
+
 const STEPS = [
   {
     n: "01",
