@@ -44,8 +44,8 @@ const PreviewHomeV2 = () => {
       <WhyWeBuiltV2 />
       <div className="keep-dark-wrap"><UseCasesSection /></div>
       <TimeSavedSection />
-      <div id="faq"><FAQSection /></div>
-      <PricingSection />
+      <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
+      <PricingOnPaper><PricingSection /></PricingOnPaper>
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
     </div>
