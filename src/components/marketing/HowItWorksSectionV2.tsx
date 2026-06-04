@@ -171,9 +171,11 @@ const HowItWorksSectionV2 = () => {
         .hiw2-status.blue  { color: #2A5FA0; background: #E2ECF5; }
         .hiw2-status.red   { color: #A52A1C; background: #F7E1DE; }
 
-        /* Image-only visuals (gallery / report link) */
-        .hiw2-visual.image { padding: 0; background: #fff; }
-        .hiw2-visual.image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* Image-only visuals (gallery / report link) — no box */
+        .hiw2-visual.image {
+          padding: 0; background: transparent; border: none; aspect-ratio: auto;
+        }
+        .hiw2-visual.image img { width: 100%; height: auto; object-fit: contain; display: block; }
 
 
         /* Visual 3 — share/export card */
