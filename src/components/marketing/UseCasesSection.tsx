@@ -230,7 +230,7 @@ export default function UseCasesSection() {
   const accent = current.accent;
 
   return (
-    <section className="py-[86px] max-md:py-[43px]" style={{ background: "#0F1417", overflow: "hidden" }}>
+    <section className="py-[86px] max-md:py-[43px]" style={{ background: "transparent", overflow: "hidden" }}>
       <style>{`
         @keyframes uc-fadeUp {
           from { opacity: 0; transform: translateY(10px); }
