@@ -292,9 +292,9 @@ export default function UseCasesSection() {
                   fontWeight: 600,
                   padding: "8px 18px",
                   borderRadius: 100,
-                  border: `1px solid ${isActive ? "transparent" : "rgba(255,255,255,0.12)"}`,
+                  border: `1px solid ${isActive ? "transparent" : "rgba(15,20,23,0.18)"}`,
                   background: isActive ? u.accent : "transparent",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  color: isActive ? "#fff" : "rgba(15,20,23,0.65)",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
