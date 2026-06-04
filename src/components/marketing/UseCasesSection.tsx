@@ -317,8 +317,11 @@ export default function UseCasesSection() {
             minHeight: 380,
           }}
         >
-          {/* Left column */}
-          <div>
+          {/* Left column — mock report card */}
+          <div
+            className="uc-card"
+            style={{
+              background: "linear-gradient(160deg, rgba(15,26,52,0.95), rgba(10,18,38,0.98))",
 
             <h3
               style={{
