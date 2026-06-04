@@ -66,7 +66,9 @@ const PaperWrap = ({ children }: { children: React.ReactNode }) => (
       .paper-wrap [style*="color: #fff"],
       .paper-wrap [style*="color:#fff"],
       .paper-wrap [style*="color: #FFFFFF"],
-      .paper-wrap [style*="color:#FFFFFF"] { color: #0F1417 !important; }
+      .paper-wrap [style*="color:#FFFFFF"],
+      .paper-wrap [style*="color: #ffffff"],
+      .paper-wrap [style*="color:#ffffff"] { color: #0F1417 !important; }
 
       .paper-wrap [style*="color: rgba(255,255,255,0.7)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.65)"],
