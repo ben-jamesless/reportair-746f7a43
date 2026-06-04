@@ -214,6 +214,9 @@ const HeroSectionV2 = () => {
         @media (max-width: 1023px) {
           .bf-hero-v2 .hero-inner { padding: 72px 24px 88px; }
           .bf-hero-v2 .hero-copy { margin-bottom: 48px; }
+          .bf-hero-v2 .dash { grid-template-columns: 200px minmax(0, 1fr); }
+          .bf-hero-v2 .main { padding: 18px 18px 20px; }
+          .bf-hero-v2 .head-actions { justify-content: flex-start; }
         }
 
         /* ---------- MOBILE ---------- */
