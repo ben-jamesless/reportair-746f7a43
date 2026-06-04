@@ -160,6 +160,21 @@ const HowItWorksSectionV2 = () => {
         .hiw2-sort-chip .m { font-size: 8px; color: var(--mute); letter-spacing: 0.1em; margin-top: 2px; }
         .hiw2-sort-row .lbl { font-size: 13px; font-weight: 600; color: var(--ink); flex: 1; }
         .hiw2-sort-row .cnt { font-size: 11px; color: var(--mute); font-family: 'Geist Mono', ui-monospace, monospace; }
+        .hiw2-status {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-family: 'Geist Mono', ui-monospace, monospace;
+          font-size: 11px; font-weight: 700;
+          padding: 4px 10px; border-radius: 100px; white-space: nowrap;
+        }
+        .hiw2-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .hiw2-status.green { color: #1E8A5A; background: #E4F5EC; }
+        .hiw2-status.blue  { color: #2A5FA0; background: #E2ECF5; }
+        .hiw2-status.red   { color: #A52A1C; background: #F7E1DE; }
+
+        /* Image-only visuals (gallery / report link) */
+        .hiw2-visual.image { padding: 0; background: #fff; }
+        .hiw2-visual.image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 
         /* Visual 3 — share/export card */
         .hiw2-share {
