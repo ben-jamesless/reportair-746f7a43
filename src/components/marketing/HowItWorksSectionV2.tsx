@@ -40,12 +40,12 @@ const HowItWorksSectionV2 = () => {
           --line-strong: #D9D4C5;
           font-family: 'Geist', system-ui, sans-serif;
           color: var(--ink);
-          padding: 96px 48px 112px;
+          padding: 128px 48px 144px;
         }
         .hiw2 * { box-sizing: border-box; }
         .hiw2-inner { max-width: 1200px; margin: 0 auto; }
 
-        .hiw2-head { text-align: center; margin: 0 auto 64px; max-width: 640px; }
+        .hiw2-head { text-align: center; margin: 0 auto 88px; max-width: 640px; }
         .hiw2-eyebrow {
           font-family: 'Geist Mono', ui-monospace, monospace;
           font-size: 11px; font-weight: 500;
@@ -64,7 +64,7 @@ const HowItWorksSectionV2 = () => {
           color: var(--mute); margin: 0;
         }
 
-        .hiw2-steps { display: flex; flex-direction: column; gap: 32px; }
+        .hiw2-steps { display: flex; flex-direction: column; gap: 72px; }
         .hiw2-row {
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
