@@ -62,21 +62,31 @@ const PaperWrap = ({ children }: { children: React.ReactNode }) => (
     <style>{`
       .paper-wrap > section { background: transparent !important; }
 
-      /* white text → ink */
+      /* white text → ink (browsers normalize inline color to rgb(...)) */
       .paper-wrap [style*="color: #fff"],
       .paper-wrap [style*="color:#fff"],
       .paper-wrap [style*="color: #FFFFFF"],
       .paper-wrap [style*="color:#FFFFFF"],
       .paper-wrap [style*="color: #ffffff"],
-      .paper-wrap [style*="color:#ffffff"] { color: #0F1417 !important; }
+      .paper-wrap [style*="color:#ffffff"],
+      .paper-wrap [style*="color: rgb(255, 255, 255)"],
+      .paper-wrap [style*="color: rgb(255,255,255)"] { color: #0F1417 !important; }
 
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.7)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.7)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.65)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.65)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.6)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.6)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.55)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.55)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.5)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.5)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.45)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.45)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.4)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.4)"],
+      .paper-wrap [style*="color: rgba(255, 255, 255, 0.35)"],
       .paper-wrap [style*="color: rgba(255,255,255,0.35)"] { color: #6B6B66 !important; }
 
       /* Subtle white-fill cards become paper cards */
