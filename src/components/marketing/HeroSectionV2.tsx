@@ -348,7 +348,7 @@ const HeroSectionV2 = () => {
                     <div className="sr-title">Media Centre</div>
                     <div className="sr-desc">Furniture and AV outstanding</div>
                   </div>
-                  <span className="pill red">At risk</span>
+                  <span className="pill red">Delay</span>
                 </div>
                 <div className="status-row blue">
                   <div>

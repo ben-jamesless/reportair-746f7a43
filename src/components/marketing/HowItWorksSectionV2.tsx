@@ -251,7 +251,7 @@ const HowItWorksSectionV2 = () => {
                     {[
                       { d: "30", m: "OCT", label: "Hospitality",    status: "On track", tone: "blue"  },
                       { d: "30", m: "OCT", label: "Media Centre",   status: "Complete", tone: "green" },
-                      { d: "30", m: "OCT", label: "Main Stage",     status: "Delayed",  tone: "red"   },
+                      { d: "30", m: "OCT", label: "Main Stage",     status: "Delay",    tone: "red"   },
                       { d: "28", m: "OCT", label: "Broadcast / TV", status: "On track", tone: "blue"  },
                     ].map((r) => (
                       <div key={r.label + r.status} className="hiw2-sort-row">
