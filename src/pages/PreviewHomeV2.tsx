@@ -42,8 +42,8 @@ const PreviewHomeV2 = () => {
       <LogosStripV2 />
       <HowItWorksSectionV2 />
       <WhyWeBuiltV2 />
-      <div className="keep-dark-wrap"><TimeSavedSection /></div>
-      <PaperWrap><UseCasesSection /></PaperWrap>
+      <div className="keep-dark-wrap"><PaperWrap><UseCasesSection /></PaperWrap></div>
+      <TimeSavedSection />
       <PaperWrap><div id="faq"><FAQSection /></div></PaperWrap>
       <PaperWrap><PricingSection /></PaperWrap>
       <MarketingFooter onOpenLegal={setLegalPanel} />
