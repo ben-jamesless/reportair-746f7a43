@@ -1,5 +1,5 @@
 // new-layouts.ts
-// Two new PDF layout renderers for BuildSlides.
+// Two new PDF layout renderers for BuildFolder.
 //
 //   renderEditorialPortraitV1  — "Editorial" A4 portrait
 //     Dark charcoal cover, DM Sans display title, ON TRACK pill under title,
@@ -288,10 +288,10 @@ function drawFaviconTile(
   return size;
 }
 
-/** Draw BuildSlides wordmark (tile + text). No trailing period. Returns width.
+/** Draw BuildFolder wordmark (tile + text). No trailing period. Returns width.
  *  Branding rules:
  *   - whiteLabelPdf + logoImage → client logo (+ secondary BS wordmark if showBuildSlidesBranding)
- *   - else showBuildSlidesBranding → BuildSlides wordmark
+ *   - else showBuildSlidesBranding → BuildFolder wordmark
  *   - else → nothing drawn, returns 0
  */
 function drawWordmark(
@@ -313,12 +313,12 @@ function drawWordmark(
     const lw = logoImage.width * scale, lh = logoImage.height * scale;
     page.drawImage(logoImage, { x, y: y - lh * 0.1, width: lw, height: lh });
     if (showBuildSlidesBranding) {
-      // Crew: secondary BuildSlides mark to the right of client logo.
+      // Crew: secondary BuildFolder mark to the right of client logo.
       const sx = x + lw + 8;
       const secMark = markSize * 0.75;
       drawFaviconTile(page, sx, y - secMark * 0.18, secMark, brandMarkImage);
       const secFont = fontSize * 0.85;
-      page.drawText("BuildSlides", {
+      page.drawText("BuildFolder", {
         x: sx + secMark + 4,
         y: y + (secMark - secFont) * 0.25 - secMark * 0.18,
         size: secFont, font,
@@ -333,7 +333,7 @@ function drawWordmark(
   const gap = tileSize + 6;
   const textColor = darkBg ? C.WHITE : C.INK;
   const textY = y + (tileSize - fontSize) * 0.25 - tileSize * 0.18;
-  const label = companyName || "BuildSlides";
+  const label = companyName || "BuildFolder";
   page.drawText(label, { x: x + gap, y: textY, size: fontSize, font, color: textColor });
   const tw = font.widthOfTextAtSize(label, fontSize);
   return gap + tw;

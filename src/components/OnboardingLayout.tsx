@@ -17,9 +17,9 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
         style={{ background: "#0F1417" }}
       >
         <div className="relative z-10">
-          <Link to="/" aria-label="BuildSlides home" className="flex items-center gap-2">
+          <Link to="/" aria-label="BuildFolder home" className="flex items-center gap-2">
             <img src="/favicon.svg" alt="" className="h-8 w-8" />
-            <span className="font-display font-black tracking-tight text-base text-white">BuildSlides</span>
+            <span className="font-display font-black tracking-tight text-base text-white">BuildFolder</span>
           </Link>
         </div>
 
@@ -37,7 +37,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
 
         <div className="relative z-10 bg-[#D94F2A]/10 border border-[#D94F2A]/25 rounded-2xl p-5 backdrop-blur-sm">
           <p className="text-white/80 text-sm italic leading-relaxed mb-3">
-            "BuildSlides cut our post-event reporting time by 60%. Our clients love the live progress links."
+            "BuildFolder cut our post-event reporting time by 60%. Our clients love the live progress links."
           </p>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[#D94F2A]/30 flex items-center justify-center text-white text-xs font-bold">

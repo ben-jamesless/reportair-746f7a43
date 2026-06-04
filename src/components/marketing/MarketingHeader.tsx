@@ -16,9 +16,9 @@ export function MarketingHeader() {
     >
       <div className="absolute inset-x-0 top-0 h-[3px]" style={{ background: BRAND.sky }} />
       <div className="mx-auto flex max-w-[1360px] items-center justify-between px-5 py-3.5 sm:px-6">
-        <Link to="/" aria-label="BuildSlides home" className="flex items-center gap-2">
+        <Link to="/" aria-label="BuildFolder home" className="flex items-center gap-2">
           <img src="/favicon.svg" alt="" className="h-8 w-8" />
-          <span className="font-display font-black tracking-tight text-base" style={{ color: BRAND.ink }}>BuildSlides</span>
+          <span className="font-display font-black tracking-tight text-base" style={{ color: BRAND.ink }}>BuildFolder</span>
         </Link>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
           <a href="/#how-it-works" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>How it works</a>

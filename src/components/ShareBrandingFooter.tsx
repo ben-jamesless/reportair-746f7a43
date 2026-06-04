@@ -21,7 +21,7 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
     >
       <img src="/favicon.svg" alt="" style={{ width: "18px", height: "18px", display: "block" }} />
       <span style={{ color: "#F4F1EA", fontWeight: 700, fontSize: "13px", letterSpacing: "-0.01em" }}>
-        BuildSlides
+        BuildFolder
       </span>
     </a>
   );

@@ -10,7 +10,7 @@ const faqs = [
   {
     question: "Can I brand the PDF with our logo and colours?",
     answer:
-      "Yes. Drop in your logo and your brand colour and every export comes out with your cover page, header, and footer. White-label PDFs (no BuildSlides watermark) are included on the Studio tier.",
+      "Yes. Drop in your logo and your brand colour and every export comes out with your cover page, header, and footer. White-label PDFs (no BuildFolder watermark) are included on the Studio tier.",
   },
   {
     question: "What does the PDF look like?",
@@ -20,7 +20,7 @@ const faqs = [
   {
     question: "How is this different from a shared Google Drive?",
     answer:
-      "Drive is a bucket. BuildSlides is a workflow — auto-tagging, structured reports, branded export, audit history. The deck-build step disappears.",
+      "Drive is a bucket. BuildFolder is a workflow — auto-tagging, structured reports, branded export, audit history. The deck-build step disappears.",
   },
   {
     question: "When can I use it?",

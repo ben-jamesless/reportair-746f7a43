@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * BuildSlides hero section — responsive (desktop / tablet / mobile).
+ * BuildFolder hero section — responsive (desktop / tablet / mobile).
  * Self-contained: scoped styles + animations + horizontal/vertical SVG swap.
  */
 const HeroSection = () => {
@@ -454,7 +454,7 @@ const HeroSection = () => {
               <div className="rc-header">
                 <div className="rc-logo">
                   <img src="/favicon.svg" alt="" style={{ width: 18, height: 18, display: "block" }} />
-                  <span className="rc-logo-text">BuildSlides</span>
+                  <span className="rc-logo-text">BuildFolder</span>
                 </div>
                 <span className="rc-dr">No. DR-002</span>
               </div>

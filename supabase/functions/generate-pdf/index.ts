@@ -1,5 +1,5 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
-// Layout: BuildSlides V3 daily report — 1 cover page + 1 page per area.
+// Layout: BuildFolder V3 daily report — 1 cover page + 1 page per area.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
@@ -9,7 +9,7 @@ function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
   const fallback = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
   const allow =
-    /^https:\/\/([a-z0-9-]+\.)*buildslides\.com$/i.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)*buildfolder\.com$/i.test(origin) ||
     /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i.test(origin) ||
     /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i.test(origin) ||
     /^http:\/\/localhost(:\d+)?$/i.test(origin)
@@ -79,7 +79,7 @@ const HEX = (h: string) => {
   return rgb(parseInt(m[1], 16) / 255, parseInt(m[2], 16) / 255, parseInt(m[3], 16) / 255);
 };
 const COLOR = {
-  // Brand orange (kept SKY key name for internal compat — value is BuildSlides accent)
+  // Brand orange (kept SKY key name for internal compat — value is BuildFolder accent)
   SKY: HEX("#D94F2A"),
   SKY_SOFT: HEX("#FBE6DE"),
   INK: HEX("#0F1417"),
@@ -93,7 +93,7 @@ const COLOR = {
   WHITE: rgb(1, 1, 1),
   CAPTION_BAR: HEX("#F5F5F5"),
   // ============ Horizontal-template tokens (landscape decks/logs) ============
-  // These mirror the BuildSlides V1 horizontal mock — see
+  // These mirror the BuildFolder V1 horizontal mock — see
   // BuildSlides_Report_Templates_Horizontal_v1.pdf.
   PAPER: HEX("#F3EFE6"),       // Client deck page surface (warm cream)
   RULE: HEX("#E5E1D6"),        // Hairline rules on PAPER
@@ -252,7 +252,7 @@ function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjs
   const iconSize = fontSize * 1.6;
   drawLogomark(page, x, y - iconSize * 0.15, iconSize, brandMarkImage);
   const gap = iconSize * 0.35;
-  const text = "BuildSlides";
+  const text = "BuildFolder";
   page.drawText(text, { x: x + iconSize + gap, y, size: fontSize, font: pjsFont, color: COLOR.INK });
 }
 
@@ -455,7 +455,7 @@ Deno.serve(async (req) => {
     // ============ Build PDF ============
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
-    pdfDoc.setTitle("BuildSlides Daily Report");
+    pdfDoc.setTitle("BuildFolder Daily Report");
 
     const fontBytes = await loadFontBytes();
     let pjsFont: PDFFont, irFont: PDFFont;
@@ -488,8 +488,8 @@ Deno.serve(async (req) => {
     }
 
     // ── Branding flags ───────────────────────────────────────────────────────
-    // Crew (pro/team): client logo shown alongside BuildSlides wordmark.
-    // Studio (studio/enterprise): BuildSlides suppressed entirely (full white-label).
+    // Crew (pro/team): client logo shown alongside BuildFolder wordmark.
+    // Studio (studio/enterprise): BuildFolder suppressed entirely (full white-label).
     const LOGO_PLANS        = ["pro", "team", "studio", "enterprise"];
     const WHITE_LABEL_PLANS = ["studio", "enterprise"];
     const canUseLogo              = LOGO_PLANS.includes(teamPlan);
@@ -500,7 +500,7 @@ Deno.serve(async (req) => {
     const effectiveBranding  =
       typeof clientBrandingFlag === "boolean" ? clientBrandingFlag : showBuildSlidesBranding;
 
-    pdfDoc.setAuthor(effectiveBranding ? "BuildSlides" : ((teamData as { name?: string | null } | null)?.name ?? "BuildSlides"));
+    pdfDoc.setAuthor(effectiveBranding ? "BuildFolder" : ((teamData as { name?: string | null } | null)?.name ?? "BuildFolder"));
 
     const brandColour: string | null = canUseLogo
       ? ((teamData as { brand_colour?: string | null } | null)?.brand_colour ?? null)
@@ -509,7 +509,7 @@ Deno.serve(async (req) => {
     const whiteLabelPdf: boolean = canUseLogo
       ? ((teamData as { white_label_pdf?: boolean } | null)?.white_label_pdf ?? false)
       : false;
-    // Company name (used for footer when BuildSlides branding is suppressed).
+    // Company name (used for footer when BuildFolder branding is suppressed).
     const companyName: string | null =
       (teamData as { name?: string | null } | null)?.name ?? null;
     const effectiveLogoPath: string | null = canUseLogo
@@ -529,7 +529,7 @@ Deno.serve(async (req) => {
     // Custom cover image is fetched after photoUrlFor is declared (below).
     let coverImage: PDFImage | null = null;
 
-    // BuildSlides v5 brand mark — fetch favicon-96.png from origin and embed.
+    // BuildFolder v5 brand mark — fetch favicon-96.png from origin and embed.
     // Used by the new-layouts renderers via drawFaviconTile for pixel-perfect
     // favicon-style mark in PDF headers. Fails silently — layouts fall back
     // to primitive-drawn solid cards if the fetch fails.
@@ -645,7 +645,7 @@ Deno.serve(async (req) => {
         const lw = img.width * scale, lh = img.height * scale;
         page.drawImage(img, { x, y: y - lh * 0.15, width: lw, height: lh });
         if (effectiveBranding) {
-          // Crew: secondary BuildSlides wordmark to the right of client logo.
+          // Crew: secondary BuildFolder wordmark to the right of client logo.
           drawWordmark(page, x + lw + 10, y, fontSize * 0.85, pjsFont, brandMarkImage);
         }
       } else if (effectiveBranding) {

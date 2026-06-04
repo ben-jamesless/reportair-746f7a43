@@ -4,12 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* BuildSlides design system — warm paper canvas, dark ink sidebar, brand orange accent.
-   All shadcn semantic colors mapped to BuildSlides palette. All HSL. */
+/* BuildFolder design system — warm paper canvas, dark ink sidebar, brand orange accent.
+   All shadcn semantic colors mapped to BuildFolder palette. All HSL. */
 
 @layer base {
   :root {
-    /* ===== BuildSlides raw tokens (hex/rgb for non-tailwind use) ===== */
+    /* ===== BuildFolder raw tokens (hex/rgb for non-tailwind use) ===== */
     --bs-accent: #D94F2A;
     --bs-accent-hover: #B53D1F;
     --bs-accent-soft: #FBE6DE;
@@ -56,7 +56,7 @@
     --bs-pdf-rule-strong:#D4D4D4;
     --bs-pdf-muted:      #6B6B70;
 
-    /* ===== shadcn semantic tokens, mapped to BuildSlides (HSL only) ===== */
+    /* ===== shadcn semantic tokens, mapped to BuildFolder (HSL only) ===== */
     /* paper #F4F1EA (v5) */
     --background: 42 31% 94%;
     /* ink #0F1417 (body text) */
@@ -242,7 +242,7 @@
     color: hsl(var(--muted-foreground));
   }
 
-  /* BuildSlides icon sizing */
+  /* BuildFolder icon sizing */
   .bs-icon { width: 14px; height: 14px; flex-shrink: 0; display: inline-block; vertical-align: -2px; color: currentColor; }
   .bs-icon-sm { width: 12px; height: 12px; }
 

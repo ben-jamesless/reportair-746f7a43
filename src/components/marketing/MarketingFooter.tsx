@@ -17,9 +17,9 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
         <div className="grid gap-10 sm:grid-cols-3">
           {/* Brand + contact */}
           <div className="flex flex-col gap-4">
-            <a href="/" aria-label="BuildSlides home" className="flex items-center gap-2">
+            <a href="/" aria-label="BuildFolder home" className="flex items-center gap-2">
               <img src="/favicon.svg" alt="" className="h-8 w-8" />
-              <span className="font-display font-black tracking-tight text-base text-white">BuildSlides</span>
+              <span className="font-display font-black tracking-tight text-base text-white">BuildFolder</span>
             </a>
             <div className="text-sm leading-relaxed" style={{ color: link }}>
               <p className="text-white font-medium">Ben Lee · Director</p>
@@ -43,7 +43,7 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
           <div className="flex flex-col gap-2 sm:items-end sm:text-right">
             <p className="text-sm" style={{ color: link }}>Built in Hong Kong.</p>
             <p className="text-xs" style={{ color: muted }}>
-              © {new Date().getFullYear()} BuildSlides. Photo-first event build reporting.
+              © {new Date().getFullYear()} BuildFolder. Photo-first event build reporting.
             </p>
           </div>
         </div>

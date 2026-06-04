@@ -65,16 +65,16 @@ type Resolved = {
 
 import type { GuestNote as GuestNoteRow } from "@/lib/types";
 
-// BuildSlides share-page design tokens — themed via CSS variables on root wrapper.
+// BuildFolder share-page design tokens — themed via CSS variables on root wrapper.
 // Switch between light/dark by toggling --bg, --surface, --ink, --body, --muted, --border on the root.
-const TEAL = "#c84b2f"; // BuildSlides red-orange accent (used as fallback when brand colour absent)
+const TEAL = "#c84b2f"; // BuildFolder red-orange accent (used as fallback when brand colour absent)
 const NEAR_BLACK = "var(--ink)";
 const BODY = "var(--body)";
 const MUTED = "var(--muted)";
 const DIVIDER = "var(--border)";
 const SURFACE = "var(--surface-2)";
 
-// Status meta — pill backgrounds & dot colors. Aligned with BuildSlides v5
+// Status meta — pill backgrounds & dot colors. Aligned with BuildFolder v5
 // brand palette (see src/lib/projectStatus.ts) so the share page matches the
 // rest of the app.
 //   ON TRACK  #3A6EA5 (blue)
@@ -245,7 +245,7 @@ const SharePage = () => {
     setLockedUntil(null);
     setData(r);
     if (r.project?.name) {
-      document.title = `${r.project.name} — BuildSlides`;
+      document.title = `${r.project.name} — BuildFolder`;
     }
     // Fetch the team's brand colour for the share page accent.
     try {
