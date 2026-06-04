@@ -374,10 +374,11 @@ export default function UseCasesSection() {
             </ul>
           </div>
 
-          {/* Right column — mock report card */}
+          {/* Left column — mock report card (gradient removed) */}
           <div
             className="uc-card"
             style={{
+              order: 1,
               background: "linear-gradient(160deg, rgba(15,26,52,0.95), rgba(10,18,38,0.98))",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: 20,
@@ -386,18 +387,7 @@ export default function UseCasesSection() {
               overflow: "hidden",
             }}
           >
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                inset: -1,
-                borderRadius: 21,
-                background: `linear-gradient(135deg, ${accent} 0%, transparent 55%)`,
-                opacity: 0.2,
-                zIndex: 0,
-                pointerEvents: "none",
-              }}
-            />
+
             <div style={{ position: "relative", zIndex: 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <span
