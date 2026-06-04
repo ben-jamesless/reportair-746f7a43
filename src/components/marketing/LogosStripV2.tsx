@@ -27,7 +27,7 @@ const LogosStripV2 = () => (
         .logos-v2 .item { font-size: 17px; }
       }
     `}</style>
-    <p className="lbl">Built for builds like these</p>
+    <p className="lbl font-bold text-orange-600">Built for builds like these</p>
     <div className="row">
       {LOGOS.map((l) => <span key={l} className="item">{l}</span>)}
     </div>
