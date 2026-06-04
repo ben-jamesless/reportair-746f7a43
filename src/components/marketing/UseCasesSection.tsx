@@ -318,7 +318,7 @@ export default function UseCasesSection() {
           }}
         >
           {/* Right column — text */}
-          <div style={{ order: 2 }}>
+          <div style={{ order: 1 }}>
 
 
             <h3
