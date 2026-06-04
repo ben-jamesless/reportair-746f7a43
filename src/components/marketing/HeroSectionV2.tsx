@@ -26,6 +26,7 @@ const HeroSectionV2 = () => {
           font-family: var(--font-display);
           color: var(--ink);
           display: block; width: 100%; position: relative;
+          overflow-x: clip;
         }
         .bf-hero-v2 * { box-sizing: border-box; }
 
@@ -102,6 +103,9 @@ const HeroSectionV2 = () => {
           grid-template-columns: 240px minmax(0, 1fr);
           color: var(--ink);
           min-height: 640px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
           border: 1px solid var(--line);
           border-bottom: none;
           text-align: left;
@@ -210,6 +214,9 @@ const HeroSectionV2 = () => {
         @media (max-width: 1023px) {
           .bf-hero-v2 .hero-inner { padding: 72px 24px 88px; }
           .bf-hero-v2 .hero-copy { margin-bottom: 48px; }
+          .bf-hero-v2 .dash { grid-template-columns: 200px minmax(0, 1fr); }
+          .bf-hero-v2 .main { padding: 18px 18px 20px; }
+          .bf-hero-v2 .head-actions { justify-content: flex-start; }
         }
 
         /* ---------- MOBILE ---------- */
@@ -217,16 +224,18 @@ const HeroSectionV2 = () => {
           .bf-hero-v2 .hero-inner { padding: 56px 16px 64px; }
           .bf-hero-v2 .hero-copy { margin-bottom: 36px; }
           .bf-hero-v2 .dash-wrap { padding: 10px; border-radius: 16px; }
-          .bf-hero-v2 .dash { grid-template-columns: 1fr; min-height: 0; }
-          .bf-hero-v2 .side { border-right: none; border-bottom: 1px solid var(--line); padding: 14px; gap: 10px; }
-          .bf-hero-v2 .side-list { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; }
+          .bf-hero-v2 .dash { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+          .bf-hero-v2 .side { border-right: none; border-bottom: 1px solid var(--line); padding: 14px; gap: 10px; min-width: 0; max-width: 100%; overflow: hidden; }
+          .bf-hero-v2 .side-list { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; min-width: 0; max-width: 100%; }
           .bf-hero-v2 .side-list::-webkit-scrollbar { display: none; }
           .bf-hero-v2 .side-row { grid-template-columns: auto auto auto; flex-shrink: 0; padding: 6px 10px; }
-          .bf-hero-v2 .main { padding: 16px; gap: 14px; }
+          .bf-hero-v2 .main { padding: 16px; gap: 14px; min-width: 0; max-width: 100%; overflow: hidden; }
           .bf-hero-v2 .title { font-size: 18px; }
-          .bf-hero-v2 .tabs { gap: 16px; overflow-x: auto; scrollbar-width: none; }
+          .bf-hero-v2 .tabs { gap: 16px; overflow-x: auto; scrollbar-width: none; min-width: 0; max-width: 100%; }
           .bf-hero-v2 .tabs::-webkit-scrollbar { display: none; }
-          .bf-hero-v2 .card-grid { grid-template-columns: 1fr; }
+          .bf-hero-v2 .card-grid { grid-template-columns: minmax(0, 1fr); }
+          .bf-hero-v2 .card { min-width: 0; max-width: 100%; overflow: hidden; }
+          .bf-hero-v2 .card li { word-break: break-word; }
         }
       `}</style>
 
