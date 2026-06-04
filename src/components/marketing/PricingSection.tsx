@@ -130,7 +130,7 @@ export function PricingSection() {
         <div className="mb-12 flex justify-center">
           <div
             className="inline-flex items-center gap-1 rounded-full p-1.5"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
+            style={{ background: "#0F1417", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 12px 28px -12px rgba(15,20,23,0.35)" }}
           >
             <button
               type="button"
