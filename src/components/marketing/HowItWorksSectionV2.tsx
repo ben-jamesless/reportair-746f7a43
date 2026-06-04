@@ -2,6 +2,9 @@
  * "Build to report. Three steps." — two-column, three-row layout (V2 draft).
  * Light/paper version that sits over the .bs-paper-grid background.
  */
+import galleryImage from "@/assets/feature-01-gallery.png.asset.json";
+import reportLinkImage from "@/assets/feature-03-report-link.png.asset.json";
+
 const STEPS = [
   {
     n: "01",
@@ -157,6 +160,21 @@ const HowItWorksSectionV2 = () => {
         .hiw2-sort-chip .m { font-size: 8px; color: var(--mute); letter-spacing: 0.1em; margin-top: 2px; }
         .hiw2-sort-row .lbl { font-size: 13px; font-weight: 600; color: var(--ink); flex: 1; }
         .hiw2-sort-row .cnt { font-size: 11px; color: var(--mute); font-family: 'Geist Mono', ui-monospace, monospace; }
+        .hiw2-status {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-family: 'Geist Mono', ui-monospace, monospace;
+          font-size: 11px; font-weight: 700;
+          padding: 4px 10px; border-radius: 100px; white-space: nowrap;
+        }
+        .hiw2-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .hiw2-status.green { color: #1E8A5A; background: #E4F5EC; }
+        .hiw2-status.blue  { color: #2A5FA0; background: #E2ECF5; }
+        .hiw2-status.red   { color: #A52A1C; background: #F7E1DE; }
+
+        /* Image-only visuals (gallery / report link) */
+        .hiw2-visual.image { padding: 0; background: #fff; }
+        .hiw2-visual.image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 
         /* Visual 3 — share/export card */
         .hiw2-share {
@@ -222,61 +240,31 @@ const HowItWorksSectionV2 = () => {
                   {s.pills.map((p) => <span key={p} className="hiw2-pill">{p}</span>)}
                 </div>
               </div>
-              <div className="hiw2-visual" aria-hidden="true">
+              <div className={`hiw2-visual${i === 0 || i === 2 ? " image" : ""}`} aria-hidden="true">
                 {i === 0 && (
-                  <>
-                    <div className="hiw2-photo-grid">
-                      <div className="hiw2-photo p1"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p2"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p3"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p4"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p5"></div>
-                      <div className="hiw2-photo p6"></div>
-                    </div>
-                  </>
+                  <img src={galleryImage.url} alt="" />
                 )}
                 {i === 1 && (
                   <div className="hiw2-sort">
                     {[
-                      { d: "30", m: "OCT", label: "Hospitality", cnt: "12" },
-                      { d: "30", m: "OCT", label: "Media Centre", cnt: "8" },
-                      { d: "30", m: "OCT", label: "Main Stage", cnt: "15" },
-                      { d: "28", m: "OCT", label: "Broadcast / TV", cnt: "6" },
+                      { d: "30", m: "OCT", label: "Hospitality",    status: "On track", tone: "blue"  },
+                      { d: "30", m: "OCT", label: "Media Centre",   status: "Complete", tone: "green" },
+                      { d: "30", m: "OCT", label: "Main Stage",     status: "Delayed",  tone: "red"   },
+                      { d: "28", m: "OCT", label: "Broadcast / TV", status: "On track", tone: "blue"  },
                     ].map((r) => (
-                      <div key={r.label + r.cnt} className="hiw2-sort-row">
+                      <div key={r.label + r.status} className="hiw2-sort-row">
                         <div className="hiw2-sort-chip">
                           <span className="d">{r.d}</span>
                           <span className="m">{r.m}</span>
                         </div>
                         <span className="lbl font-bold text-orange-600">{r.label}</span>
-                        <span className="cnt">{r.cnt} photos</span>
+                        <span className={`hiw2-status ${r.tone}`}>{r.status}</span>
                       </div>
                     ))}
                   </div>
                 )}
                 {i === 2 && (
-                  <div className="hiw2-share">
-                    <div className="hiw2-link-card">
-                      <div className="ic">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                      </div>
-                      <div className="body">
-                        <div className="t">Client share link</div>
-                        <div className="u">buildfolder.app/s/hk-open-2026</div>
-                      </div>
-                      <button type="button" className="btn">Copy</button>
-                    </div>
-                    <div className="hiw2-link-card">
-                      <div className="ic">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                      </div>
-                      <div className="body">
-                        <div className="t">Hong Kong Open — Build Report.pdf</div>
-                        <div className="u">12 pages · 4.2 MB · Branded</div>
-                      </div>
-                      <button type="button" className="btn">Export</button>
-                    </div>
-                  </div>
+                  <img src={reportLinkImage.url} alt="" />
                 )}
               </div>
             </div>
