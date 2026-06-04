@@ -257,7 +257,7 @@ const HeroSectionV2 = () => {
         <div className="dash-wrap" aria-hidden="true">
           <div className="dash">
             <aside className="side">
-              <div className="side-brand"><BuildFolderLockup size={16} /></div>
+              <div className="side-brand"><BuildFolderLockup size={16} onDark /></div>
               <div className="side-label">Daily Log</div>
               <div className="side-list">
                 {[
