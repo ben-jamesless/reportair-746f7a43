@@ -216,12 +216,6 @@ const HowItWorksSectionV2 = () => {
           {STEPS.map((s, i) => (
             <div key={s.n} className={`hiw2-row${i % 2 === 1 ? " reverse" : ""}`}>
               <div className="hiw2-copy">
-                <div className="hiw2-num">
-                  <span className="brk">[</span>
-                  <span className="big">{s.n}</span>
-                  <span className="brk">]</span>
-                  <span>{s.label}</span>
-                </div>
                 <h3 className="hiw2-h3">{s.title}</h3>
                 <p className="hiw2-body">{s.body}</p>
                 <div className="hiw2-pills">
