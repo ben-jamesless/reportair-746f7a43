@@ -268,7 +268,7 @@ export default function UseCasesSection() {
             ...display,
             fontWeight: 800,
             fontSize: 48,
-            color: "#fff",
+            color: "#0F1417",
             letterSpacing: "-0.02em",
             lineHeight: 1.05,
             margin: "0 0 48px 0",
