@@ -103,6 +103,9 @@ const HeroSectionV2 = () => {
           grid-template-columns: 240px minmax(0, 1fr);
           color: var(--ink);
           min-height: 640px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
           border: 1px solid var(--line);
           border-bottom: none;
           text-align: left;
