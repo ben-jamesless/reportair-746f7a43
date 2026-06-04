@@ -42,7 +42,7 @@ const PreviewHomeV2 = () => {
       <LogosStripV2 />
       <HowItWorksSectionV2 />
       <WhyWeBuiltV2 />
-      <div className="keep-dark-wrap"><PaperWrap><UseCasesSection /></PaperWrap></div>
+      <div className="keep-dark-wrap"><UseCasesSection /></div>
       <TimeSavedSection />
       <div id="faq"><FAQSection /></div>
       <PricingSection />
