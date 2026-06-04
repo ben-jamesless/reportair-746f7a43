@@ -26,6 +26,7 @@ const HeroSectionV2 = () => {
           font-family: var(--font-display);
           color: var(--ink);
           display: block; width: 100%; position: relative;
+          overflow-x: clip;
         }
         .bf-hero-v2 * { box-sizing: border-box; }
 
