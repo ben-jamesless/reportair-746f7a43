@@ -79,23 +79,28 @@ const HeroSectionV2 = () => {
         /* ---------- DASHBOARD MOCK ---------- */
         .bf-hero-v2 .dash-wrap {
           position: relative; width: 100%; max-width: 1200px; margin: 0 auto;
-          padding: 16px;
-          border-radius: 22px;
-          background: #FFFFFF;
-          border: 1px solid var(--line);
-          box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 30px 80px rgba(15,20,23,0.10), 0 4px 12px rgba(15,20,23,0.05);
+          padding: 0;
+          border-radius: 22px 22px 0 0;
+          background: transparent;
+          border: none;
+          box-shadow: 0 30px 80px rgba(15,20,23,0.10);
+          overflow: hidden;
+          max-height: 560px;
+          -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 100%);
+                  mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 100%);
         }
         /* corner brackets removed per request */
 
         .bf-hero-v2 .dash {
-          background: var(--paper-2);
-          border-radius: 16px;
+          background: #FFFFFF;
+          border-radius: 22px 22px 0 0;
           overflow: hidden;
           display: grid;
           grid-template-columns: 240px minmax(0, 1fr);
           color: var(--ink);
           min-height: 640px;
           border: 1px solid var(--line);
+          border-bottom: none;
           text-align: left;
         }
 

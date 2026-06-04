@@ -16,7 +16,7 @@ const newItems = [
 
 export default function TimeSavedSection() {
   return (
-    <section className="py-[68px] px-6 sm:px-12 max-md:py-[34px]" style={{ background: "#0F1417" }}>
+    <section className="py-[128px] px-6 sm:px-12 max-md:py-[64px]" style={{ background: "#0F1417" }}>
       <style>{`
         .ts-wrap { max-width: 1100px; margin: 0 auto; }
         .ts-card {
