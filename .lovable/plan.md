@@ -1,92 +1,74 @@
-## Plan: BuildFolder rebrand + hero overhaul
+# Homepage Re-skin Plan — "Built for the Build" Paper Theme
 
-### 1. Brand assets (new SVGs in `/public/brand/`)
+## Goal
 
-Generate three SVGs from the supplied artwork and drop them in `/public/brand/`:
+Re-skin the marketing homepage to match the uploaded HTML reference (paper canvas, dotted grid, orange accent, Geist typography, two-column "How it works"). **All copy, CTAs, FAQ, pricing, auth routes, and app behavior stay exactly as-is.** Changes are cosmetic + one layout restructure.
 
-- `buildfolder-mark.svg` — black squircle with the orange corner-bracket mark (favicon / app icon use)
-- `buildfolder-lockup-twotone.svg` — "Build" in ink + "Folder" in orange with corner brackets around "Folder" (for light backgrounds)
-- `buildfolder-lockup-dark-bg.svg` — same lockup but "Build" in paper/white + "Folder" in orange (for dark backgrounds)
+## Answer to your question: draft first, yes
 
-Update `/public/favicon.svg` to the new mark.
+We can do this safely without committing the whole site. Approach:
 
-### 2. Wordmark rename: "BuildSlides" → "BuildFolder" (project-wide)
+1. **Build a draft preview at a hidden route** `/preview/home-v2` (not linked from nav, not indexed).
+2. It renders a new `HeroSectionV2` + `HowItWorksSectionV2` + restyled wrappers, leaving the live `/` route untouched.
+3. I screenshot it at desktop (1440) and mobile (375) and post the images back.
+4. You approve / request tweaks.
+5. Once approved, I swap the components into `src/pages/Index.tsx` and delete the preview route.
 
-Replace every occurrence in code, copy, alt text, page titles, meta, manifest, and email templates. Known locations include:
+This costs one extra file (`src/pages/PreviewHomeV2.tsx`) and two new section components. Zero risk to the live page.
 
-- `index.html` (title, og:*, twitter:*, manifest references)
-- `public/site.webmanifest`
-- `public/robots.txt` / `public/sitemap.xml` if they contain the name
-- Marketing: `MarketingHeader.tsx`, `MarketingFooter.tsx`, `HeroSection.tsx`, `HowItWorksSection.tsx`, `FAQSection.tsx`, `PricingSection.tsx`, `TimeSavedSection.tsx`, `UseCasesSection.tsx`, `LegalDialog.tsx`, `brand.tsx`, `brand-tokens.ts` comment
-- App shell: `OnboardingLayout.tsx`, `AppSidebar.tsx`, `AppShell.tsx`, auth/onboarding pages, `BuildSlidesMark.tsx` (rename to `BuildFolderMark.tsx` + update imports)
-- Share/export branding: `ShareBrandingFooter.tsx`, share pages, PDF generator templates in `supabase/functions/generate-pdf/`
-- Email templates: `supabase/functions/_shared/email-templates/` and `signup-buildslides.html` (rename + content)
-- Tests in `src/test/` where the string appears
+## Scope of cosmetic changes (Pass 1 — the draft)
 
-Keep the domain strings (`buildslides.lovable.app`, `buildslides.com`) untouched — those are infrastructure, not user-facing brand text. Domains are managed in Settings, not code.
+**Global tokens** (`src/index.css`)
+- Add a `.bs-paper-grid` utility: `#FAF7F0` base + repeating radial-gradient dot pattern (`#D9D4C5` at ~24px spacing, ~1px dots). This becomes the continuous page background.
+- Confirm Geist + Geist Mono are loaded (already are).
+- Keep all existing HSL semantic tokens — no token renames.
 
-### 3. Marketing header logo
+**`Index.tsx` / page shell**
+- Swap the dark `#0F1417` page background for the new paper-grid background on the wrapper div.
+- Reviews + Final CTA sections currently use `#0F1417` dark cards — keep them dark as accent "bands" (matches the reference's dark Time Saved band), OR convert to light paper cards. **Question for you below.**
 
-`MarketingHeader.tsx` + `brand.tsx`: swap the existing favicon mark + "BuildSlides" text for an `<img>` of `buildfolder-lockup-twotone.svg` (and `-dark-bg.svg` where the header is on a dark surface). Keep link target and aria-label.
+**`HeroSection.tsx` → `HeroSectionV2`**
+- Same eyebrow, headline, subtext, CTAs (no copy changes).
+- Background: transparent (inherits paper grid).
+- Right-side dashboard mockup: keep current mock but lighten the container to sit on paper (white card, soft shadow, 1px `#E5E1D6` border, corner brackets in `#D94F2A`).
+- No floating-object animation in Pass 1 — that's Pass 2 if you want it.
 
-### 4. Hero section rewrite (`src/components/marketing/HeroSection.tsx`)
+**`HowItWorksSection.tsx` → `HowItWorksSectionV2`** (the layout change you asked for)
+- Convert from current single-column step list to **two-column, three-row layout** matching the HTML:
+  - Each step = one row: left column = number + title + 1-line description; right column = small visual mock (photo grid / sort cards / share-link card).
+  - Step copy unchanged ("Capture", "Sort", "Share/Export" or whatever's currently there — I'll preserve verbatim).
+  - Bracket-accent number markers in `#D94F2A`.
 
-Left column — copy only this changes:
-- Eyebrow: `BUILT FOR THE BUILD` (unchanged)
-- Headline: unchanged — "Client-ready event build reports in **10 minutes.**" with `.accent` on "10 minutes."
-- Subline: replace with exact text — *"Capture and sort event site photos. Export a client-safe link or polished PDF in minutes."*
-- CTAs: unchanged ("Start your first build" primary, "See how it works →" secondary)
+**Other sections** (`TimeSavedSection`, `UseCasesSection`, `FAQSection`, `PricingSection`, `MarketingFooter`, `MarketingHeader`)
+- No structural changes. Only background tweak: ensure they render correctly over (or alongside) the paper grid — most are already light. Dark sections stay dark as deliberate bands.
 
-Right column — full replacement (delete chip/lines/node/report-card stage):
+## Out of scope for this pass
 
-New `<div class="dash">` styled as a screenshot card sitting on a paper-tinted rounded container. Internal layout matches the uploaded mock:
+- Floating "object field" hero animation (photos + WhatsApp/Gmail icons drifting) — defer to Pass 2 if you like the static skin.
+- Any copy edits.
+- Any change to FAQ items, pricing tiers, auth, routes, edge functions.
+- Logos strip (you haven't said you want one — I'll skip unless you ask).
 
-```text
-┌──────────────────────────────────────────────────────────┐
-│ [sidebar 28%]   │  [main 72%]                            │
-│ BuildFolder     │  Hong Kong Open  ●Complete   [Share]   │
-│ DAILY LOG       │  Fanling · 20 Oct 2026 · HKGC [PDF]    │
-│ ┌Thu 30 Oct─5┐  │                              [+Upload] │
-│ │ active     │  │  Updates  Gallery  Activity  Settings  │
-│ └────────────┘  │  ──────                                │
-│  Tue 28 Oct 12  │  Thursday, 30 October 2025             │
-│  Fri 24 Oct  8  │  ┌──────────┐ ┌──────────┐             │
-│  Mon 13 Oct 16  │  │ OBJ...   │ │ ACH...   │             │
-│  Tue  7 Oct 15  │  └──────────┘ └──────────┘             │
-│  Thu  2 Oct  8  │  ┌──────────┐ ┌──────────┐             │
-│  Sun 28 Sep  9  │  │ TOM OBJ  │ │ RISKS    │             │
-│                 │  └──────────┘ └──────────┘             │
-│                 │  ▌18th Hospitality      ●Delayed       │
-│                 │  ▌Media Centre          ●On track      │
-│                 │  ▌Spectator Village     ●Complete      │
-└──────────────────────────────────────────────────────────┘
-```
+## File changes
 
-Content exactly as specified in the brief (objectives/achievements/tomorrow/risks lists, three status rows with red/blue/green left borders and matching pills).
+**New**
+- `src/pages/PreviewHomeV2.tsx` (draft route, deleted after approval)
+- `src/components/marketing/HeroSectionV2.tsx`
+- `src/components/marketing/HowItWorksSectionV2.tsx`
 
-Styling rules:
-- Paper background `#F4F1EA`, card `#FFFFFF`, ink `#0F1417`, accent `#D94F2A`
-- Sidebar items: date chip (day + small SEP/OCT label) in JetBrains Mono, row label in Geist, photo count right-aligned. Active row = orange fill + white text.
-- Small uppercase labels and the `Fanling · 20 Oct 2026 · HKGC` metadata in JetBrains Mono mute color.
-- Bulleted list markers in accent orange.
-- Header buttons: "Share link" + "Export PDF" ghost (border, ink text, download/share icon), "+ Upload photos" solid orange.
-- "Updates" tab gets an orange underline; others muted.
-- Status pills: green `#3A7D44` / blue `#3A6EA5` / red `#C7382A` on tinted backgrounds, with matching 3px left border on each row.
-- Subtle drop shadow + 1px line around the card so it reads as a screenshot.
+**Edited**
+- `src/index.css` — add `.bs-paper-grid` utility only
+- `src/App.tsx` — register `/preview/home-v2` route (removed at end)
 
-Keep the existing hero dark ground (`#0F1417`) behind the dashboard so it pops.
+**Untouched**
+- `src/pages/Index.tsx` (until after approval)
+- All other section components, auth, pricing, FAQ data
 
-### 5. Responsive
+## One question before I build the draft
 
-- Desktop ≥1024px: copy ~40% / dashboard ~60% side-by-side, dashboard never overlaps copy.
-- Tablet/mobile <1024px: stack — copy on top, dashboard full-width below. Sidebar inside the dashboard collapses to a horizontal scroll row of date chips (or hides on <640px) so the main panel stays readable. Cards stack to single column on mobile.
+The reference HTML uses a continuous light paper background throughout. Your current page has two intentionally dark sections (Reviews, Final CTA). For the draft, do you want:
 
-### 6. Sections explicitly left alone
+- **A)** Keep Reviews + Final CTA dark as accent bands (matches reference's dark Time Saved band — recommended), or
+- **B)** Convert everything to light paper edge-to-edge?
 
-How it works, Time Saved, Who it's for (Use Cases), Reviews, FAQ, Pricing, Final CTA, Footer — no content or layout changes. Only the wordmark string inside them flips to "BuildFolder" as part of step 2.
-
-### 7. Verification
-
-- Build passes, no broken imports after the `BuildSlidesMark → BuildFolderMark` rename.
-- `rg -i buildslides` returns only intentional matches (domains, lockup file paths kept for back-compat if any).
-- Quick browser pass on the homepage at desktop + 375px width to confirm hero reflow and dashboard legibility.
+I'll default to **A** unless you say otherwise. Approve this plan and I'll build the draft route and post screenshots.
