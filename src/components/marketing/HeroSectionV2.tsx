@@ -315,7 +315,7 @@ const HeroSectionV2 = () => {
                 <div className="card">
                   <div className="card-label">Today's Objectives</div>
                   <ul>
-                    <li>Final media-centre furniture set</li>
+                    <li>Back Drop, AV and Furniture install for Media Centre</li>
                     <li>Touch-ups on hospitality final features</li>
                   </ul>
                 </div>
@@ -323,8 +323,8 @@ const HeroSectionV2 = () => {
                   <div className="card-label">Today's Achievements</div>
                   <ul>
                     <li>Hospitality ready for Pro-Am</li>
-                    <li>Furniture &amp; touch-ups to go for media centre</li>
-                    <li>TV all ready</li>
+                    <li>AV and backdrop all installed</li>
+                    <li>TV OB all ready</li>
                   </ul>
                 </div>
                 <div className="card">
@@ -337,7 +337,7 @@ const HeroSectionV2 = () => {
                 <div className="card">
                   <div className="card-label">Open Issues / Risks</div>
                   <ul>
-                    <li>Hospitality glazing supplier delay</li>
+                    <li>Furniture delayed from supplier's other project</li>
                   </ul>
                 </div>
               </div>
