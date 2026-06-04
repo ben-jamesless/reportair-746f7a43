@@ -120,7 +120,7 @@ const HeroSection = () => {
           border-radius: 18px;
           overflow: hidden;
           display: grid;
-          grid-template-columns: 220px 1fr;
+          grid-template-columns: 200px minmax(0, 1fr);
           color: var(--ink);
           min-height: 600px;
           box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 0 0 1px rgba(15,20,23,0.04);
@@ -173,14 +173,15 @@ const HeroSection = () => {
 
         /* main */
         .bf-hero .main { padding: 20px 22px 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-        .bf-hero .main-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-        .bf-hero .title-row { display: flex; align-items: center; gap: 12px; }
-        .bf-hero .title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+        .bf-hero .main-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .bf-hero .title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .bf-hero .title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); white-space: nowrap; }
         .bf-hero .pill {
           display: inline-flex; align-items: center; gap: 6px;
           font-size: 11px; font-weight: 600;
           padding: 4px 10px; border-radius: 100px;
           font-family: var(--font-display);
+          white-space: nowrap;
         }
         .bf-hero .pill::before {
           content: ''; width: 6px; height: 6px; border-radius: 50%;
@@ -197,13 +198,14 @@ const HeroSection = () => {
           letter-spacing: 0.04em;
           margin-top: 4px;
         }
-        .bf-hero .head-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .bf-hero .head-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
         .bf-hero .head-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12px; font-weight: 600;
-          padding: 8px 12px; border-radius: 10px;
+          font-size: 11.5px; font-weight: 600;
+          padding: 7px 10px; border-radius: 9px;
           border: 1px solid var(--line);
           background: #fff; color: var(--ink);
+          white-space: nowrap;
         }
         .bf-hero .head-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
 

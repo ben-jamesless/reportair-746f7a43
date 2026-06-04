@@ -9,60 +9,66 @@ interface LockupProps {
 
 /**
  * BuildFolder wordmark lockup.
- * "Build" in ink (or paper on dark), "Folder" in accent orange, wrapped in
- * corner brackets. Pure SVG — no font loading required.
+ * "Build" in ink (or paper on dark), "Folder" in accent orange wrapped
+ * tightly in two corner brackets (top-left + bottom-right).
  */
-export const BuildFolderLockup = ({ className, onDark = false, size = 32 }: LockupProps) => {
+export const BuildFolderLockup = ({ className, onDark = false, size = 22 }: LockupProps) => {
   const ink = onDark ? "#F4F1EA" : "#0F1417";
   const accent = "#D94F2A";
-  // Width is computed roughly from size to keep proportions: ~ size * 9
-  const w = size * 9.2;
-  const h = size * 1.95;
+  const stroke = Math.max(2, Math.round(size * 0.14));
+  const arm = Math.round(size * 0.32);
+
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox={`0 0 ${w} ${h}`}
-      className={cn("inline-block align-middle", className)}
-      style={{ height: h, width: "auto" }}
+    <span
+      className={cn("inline-flex items-baseline", className)}
       aria-label="BuildFolder"
       role="img"
+      style={{
+        font: `900 ${size}px Geist, system-ui, sans-serif`,
+        letterSpacing: "-0.03em",
+        lineHeight: 1,
+        gap: 0,
+      }}
     >
-      <text
-        x="0"
-        y={h * 0.78}
-        fill={ink}
+      <span style={{ color: ink }}>Build</span>
+      <span
         style={{
-          font: `900 ${size}px Geist, system-ui, sans-serif`,
-          letterSpacing: "-0.03em",
+          position: "relative",
+          color: accent,
+          paddingLeft: arm + 4,
+          paddingRight: arm + 4,
+          marginLeft: 2,
+          display: "inline-block",
         }}
       >
-        Build
-      </text>
-      <text
-        x={size * 3.05}
-        y={h * 0.78}
-        fill={accent}
-        style={{
-          font: `900 ${size}px Geist, system-ui, sans-serif`,
-          letterSpacing: "-0.03em",
-        }}
-      >
+        {/* Top-left corner bracket */}
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: 0,
+            top: `-${Math.round(size * 0.18)}px`,
+            width: arm,
+            height: arm,
+            borderLeft: `${stroke}px solid ${accent}`,
+            borderTop: `${stroke}px solid ${accent}`,
+          }}
+        />
         Folder
-      </text>
-      {/* Top-left bracket around "Folder" */}
-      <path
-        d={`M${size * 3.0} ${h * 0.18} h${size * 0.55} M${size * 3.0} ${h * 0.18} v${size * 0.55}`}
-        stroke={accent}
-        strokeWidth={size * 0.13}
-        fill="none"
-      />
-      {/* Bottom-right bracket around "Folder" */}
-      <path
-        d={`M${size * 8.85} ${h * 0.92} h-${size * 0.55} M${size * 8.85} ${h * 0.92} v-${size * 0.55}`}
-        stroke={accent}
-        strokeWidth={size * 0.13}
-        fill="none"
-      />
-    </svg>
+        {/* Bottom-right corner bracket */}
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            right: 0,
+            bottom: `-${Math.round(size * 0.12)}px`,
+            width: arm,
+            height: arm,
+            borderRight: `${stroke}px solid ${accent}`,
+            borderBottom: `${stroke}px solid ${accent}`,
+          }}
+        />
+      </span>
+    </span>
   );
 };
