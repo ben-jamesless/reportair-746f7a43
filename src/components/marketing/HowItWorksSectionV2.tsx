@@ -95,8 +95,8 @@ const HowItWorksSectionV2 = () => {
         .hiw2-pills { display: flex; flex-wrap: wrap; gap: 8px; }
         .hiw2-pill {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12px; font-weight: 600;
-          padding: 5px 11px; border-radius: 100px;
+          font-size: 13.5px; font-weight: 600;
+          padding: 6px 13px; border-radius: 100px;
           background: var(--paper-2); color: var(--ink);
           border: 1px solid var(--line);
         }
