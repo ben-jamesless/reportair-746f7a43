@@ -2,9 +2,8 @@ import { Link } from "react-router-dom";
 import { BuildFolderLockup } from "@/components/brand/BuildFolderLockup";
 
 /**
- * BuildFolder hero — paper/dotted canvas version (V2 draft).
- * Light theme that sits on top of the .bs-paper-grid page background.
- * Same copy, headlines and CTAs as HeroSection.
+ * BuildFolder hero — centered, headline on top, full-width dashboard below.
+ * Paper/dotted canvas (sits on .bs-paper-grid).
  */
 const HeroSectionV2 = () => {
   return (
@@ -31,49 +30,37 @@ const HeroSectionV2 = () => {
         .bf-hero-v2 * { box-sizing: border-box; }
 
         .bf-hero-v2 .hero-inner {
-          display: grid;
-          grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
-          align-items: center;
-          gap: 56px;
           max-width: 1320px;
           margin: 0 auto;
-          padding: 88px 48px 96px;
-          position: relative;
+          padding: 112px 32px 128px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
         }
 
-        /* ---------- LEFT: COPY ---------- */
-        .bf-hero-v2 .hero-copy { position: relative; z-index: 2; }
-        .bf-hero-v2 .eyebrow {
-          display: inline-flex; align-items: center; gap: 10px;
-          font-family: var(--font-mono);
-          font-size: 11px; font-weight: 500;
-          letter-spacing: 0.2em; text-transform: uppercase;
-          color: var(--accent);
-          margin: 0 0 22px;
-        }
-        .bf-hero-v2 .eyebrow::before {
-          content: ''; width: 22px; height: 2px; background: var(--accent); border-radius: 2px;
-        }
+        /* ---------- COPY ---------- */
+        .bf-hero-v2 .hero-copy { max-width: 880px; margin: 0 auto 64px; }
         .bf-hero-v2 .headline {
-          font-size: clamp(40px, 5vw, 60px);
+          font-size: clamp(44px, 6.2vw, 76px);
           font-weight: 900;
-          line-height: 1.04;
-          letter-spacing: -0.025em;
+          line-height: 1.02;
+          letter-spacing: -0.03em;
           color: var(--ink);
-          margin: 0 0 24px;
+          margin: 0 0 28px;
         }
         .bf-hero-v2 .headline .accent { color: var(--accent); }
         .bf-hero-v2 .subline {
-          font-size: 17px; line-height: 1.55;
+          font-size: 19px; line-height: 1.55;
           color: var(--mute);
-          margin: 0 0 36px;
-          max-width: 460px;
+          margin: 0 auto 40px;
+          max-width: 620px;
         }
-        .bf-hero-v2 .cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .bf-hero-v2 .cta-row { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
         .bf-hero-v2 .btn-primary {
           background: var(--accent); color: #fff;
           font-size: 15px; font-weight: 600;
-          padding: 13px 26px; border-radius: 100px;
+          padding: 14px 28px; border-radius: 100px;
           border: none; text-decoration: none;
           box-shadow: 0 6px 18px rgba(217,79,42,0.28);
           transition: background 0.15s;
@@ -83,25 +70,24 @@ const HeroSectionV2 = () => {
           color: var(--ink); font-size: 15px; font-weight: 500;
           text-decoration: none;
           border: 1px solid var(--line-strong);
-          padding: 12px 22px; border-radius: 100px;
+          padding: 13px 24px; border-radius: 100px;
           background: rgba(255,255,255,0.6);
           transition: border-color 0.2s, background 0.2s;
         }
         .bf-hero-v2 .btn-secondary:hover { border-color: var(--ink); background: #fff; }
 
-        /* ---------- RIGHT: DASHBOARD MOCK ---------- */
+        /* ---------- DASHBOARD MOCK ---------- */
         .bf-hero-v2 .dash-wrap {
-          position: relative; z-index: 2; min-width: 0;
-          padding: 14px;
-          border-radius: 20px;
+          position: relative; width: 100%; max-width: 1200px; margin: 0 auto;
+          padding: 16px;
+          border-radius: 22px;
           background: #FFFFFF;
           border: 1px solid var(--line);
-          box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 24px 60px rgba(15,20,23,0.08), 0 2px 6px rgba(15,20,23,0.04);
+          box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 30px 80px rgba(15,20,23,0.10), 0 4px 12px rgba(15,20,23,0.05);
         }
-        /* corner brackets */
         .bf-hero-v2 .dash-wrap::before,
         .bf-hero-v2 .dash-wrap::after {
-          content: ''; position: absolute; width: 18px; height: 18px;
+          content: ''; position: absolute; width: 20px; height: 20px;
           border-color: var(--accent); border-style: solid; border-width: 0;
         }
         .bf-hero-v2 .dash-wrap::before { top: -2px; left: -2px; border-top-width: 2px; border-left-width: 2px; }
@@ -109,19 +95,20 @@ const HeroSectionV2 = () => {
 
         .bf-hero-v2 .dash {
           background: var(--paper-2);
-          border-radius: 14px;
+          border-radius: 16px;
           overflow: hidden;
           display: grid;
-          grid-template-columns: 200px minmax(0, 1fr);
+          grid-template-columns: 240px minmax(0, 1fr);
           color: var(--ink);
-          min-height: 600px;
+          min-height: 640px;
           border: 1px solid var(--line);
+          text-align: left;
         }
 
         /* sidebar */
         .bf-hero-v2 .side {
           background: var(--paper);
-          padding: 18px 14px 18px 16px;
+          padding: 20px 16px 20px 18px;
           border-right: 1px solid var(--line);
           display: flex; flex-direction: column; gap: 14px;
         }
@@ -155,10 +142,10 @@ const HeroSectionV2 = () => {
         .bf-hero-v2 .side-row.active .cnt { color: #fff; }
 
         /* main */
-        .bf-hero-v2 .main { padding: 20px 22px 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+        .bf-hero-v2 .main { padding: 22px 26px 24px; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
         .bf-hero-v2 .main-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
         .bf-hero-v2 .title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .bf-hero-v2 .title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+        .bf-hero-v2 .title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
         .bf-hero-v2 .pill {
           display: inline-flex; align-items: center; gap: 6px;
           font-size: 11px; font-weight: 600;
@@ -193,8 +180,8 @@ const HeroSectionV2 = () => {
 
         .bf-hero-v2 .date-sub { font-size: 14px; font-weight: 700; color: var(--ink); }
 
-        .bf-hero-v2 .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .bf-hero-v2 .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+        .bf-hero-v2 .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .bf-hero-v2 .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
         .bf-hero-v2 .card-label {
           font-family: var(--font-mono);
           font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
@@ -219,14 +206,14 @@ const HeroSectionV2 = () => {
 
         /* ---------- TABLET ---------- */
         @media (max-width: 1023px) {
-          .bf-hero-v2 .hero-inner { grid-template-columns: 1fr; gap: 40px; padding: 56px 32px 64px; text-align: left; }
-          .bf-hero-v2 .subline { max-width: 100%; }
+          .bf-hero-v2 .hero-inner { padding: 72px 24px 88px; }
+          .bf-hero-v2 .hero-copy { margin-bottom: 48px; }
         }
 
         /* ---------- MOBILE ---------- */
         @media (max-width: 767px) {
-          .bf-hero-v2 .hero-inner { padding: 40px 18px 48px; gap: 32px; }
-          .bf-hero-v2 .headline { font-size: 36px; }
+          .bf-hero-v2 .hero-inner { padding: 56px 16px 64px; }
+          .bf-hero-v2 .hero-copy { margin-bottom: 36px; }
           .bf-hero-v2 .dash-wrap { padding: 10px; border-radius: 16px; }
           .bf-hero-v2 .dash { grid-template-columns: 1fr; min-height: 0; }
           .bf-hero-v2 .side { border-right: none; border-bottom: 1px solid var(--line); padding: 14px; gap: 10px; }
@@ -242,9 +229,7 @@ const HeroSectionV2 = () => {
       `}</style>
 
       <div className="hero-inner">
-        {/* LEFT: COPY */}
         <div className="hero-copy">
-          <p className="eyebrow">Built for the build</p>
           <h1 className="headline">
             Client-ready event build reports in <span className="accent">10 minutes.</span>
           </h1>
@@ -266,7 +251,6 @@ const HeroSectionV2 = () => {
           </div>
         </div>
 
-        {/* RIGHT: DASHBOARD MOCK */}
         <div className="dash-wrap" aria-hidden="true">
           <div className="dash">
             <aside className="side">

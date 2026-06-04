@@ -40,12 +40,12 @@ const HowItWorksSectionV2 = () => {
           --line-strong: #D9D4C5;
           font-family: 'Geist', system-ui, sans-serif;
           color: var(--ink);
-          padding: 96px 48px 112px;
+          padding: 128px 48px 144px;
         }
         .hiw2 * { box-sizing: border-box; }
         .hiw2-inner { max-width: 1200px; margin: 0 auto; }
 
-        .hiw2-head { text-align: center; margin: 0 auto 64px; max-width: 640px; }
+        .hiw2-head { text-align: center; margin: 0 auto 88px; max-width: 640px; }
         .hiw2-eyebrow {
           font-family: 'Geist Mono', ui-monospace, monospace;
           font-size: 11px; font-weight: 500;
@@ -64,7 +64,7 @@ const HowItWorksSectionV2 = () => {
           color: var(--mute); margin: 0;
         }
 
-        .hiw2-steps { display: flex; flex-direction: column; gap: 32px; }
+        .hiw2-steps { display: flex; flex-direction: column; gap: 72px; }
         .hiw2-row {
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -204,13 +204,15 @@ const HowItWorksSectionV2 = () => {
 
         /* responsive */
         @media (max-width: 1023px) {
-          .hiw2 { padding: 72px 32px 80px; }
+          .hiw2 { padding: 88px 32px 96px; }
+          .hiw2-steps { gap: 48px; }
           .hiw2-row { grid-template-columns: 1fr; gap: 28px; padding: 32px 28px; }
           .hiw2-row.reverse .hiw2-copy { order: 1; }
           .hiw2-row.reverse .hiw2-visual { order: 2; }
         }
         @media (max-width: 640px) {
-          .hiw2 { padding: 56px 18px 64px; }
+          .hiw2 { padding: 64px 18px 72px; }
+          .hiw2-steps { gap: 36px; }
           .hiw2-row { padding: 26px 22px; border-radius: 16px; }
           .hiw2-h3 { font-size: 22px; }
           .hiw2-num .big { font-size: 24px; }
