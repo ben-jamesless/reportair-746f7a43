@@ -1,0 +1,390 @@
+import { Link } from "react-router-dom";
+import { BuildFolderLockup } from "@/components/brand/BuildFolderLockup";
+
+/**
+ * BuildFolder hero — paper/dotted canvas version (V2 draft).
+ * Light theme that sits on top of the .bs-paper-grid page background.
+ * Same copy, headlines and CTAs as HeroSection.
+ */
+const HeroSectionV2 = () => {
+  return (
+    <section className="bf-hero-v2">
+      <style>{`
+        .bf-hero-v2 {
+          --ink: #0F1417;
+          --paper: #FAF7F0;
+          --paper-2: #F4F1EA;
+          --accent: #D94F2A;
+          --accent-hover: #B53D1F;
+          --mute: #6B6B66;
+          --line: #E5E1D6;
+          --line-strong: #D9D4C5;
+          --green: #1E8A5A;  --green-bg: #E4F5EC;
+          --blue:  #2A5FA0;  --blue-bg:  #E2ECF5;
+          --red:   #A52A1C;  --red-bg:   #F7E1DE;
+          --font-display: 'Geist', system-ui, sans-serif;
+          --font-mono: 'Geist Mono', ui-monospace, monospace;
+          font-family: var(--font-display);
+          color: var(--ink);
+          display: block; width: 100%; position: relative;
+        }
+        .bf-hero-v2 * { box-sizing: border-box; }
+
+        .bf-hero-v2 .hero-inner {
+          display: grid;
+          grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+          align-items: center;
+          gap: 56px;
+          max-width: 1320px;
+          margin: 0 auto;
+          padding: 88px 48px 96px;
+          position: relative;
+        }
+
+        /* ---------- LEFT: COPY ---------- */
+        .bf-hero-v2 .hero-copy { position: relative; z-index: 2; }
+        .bf-hero-v2 .eyebrow {
+          display: inline-flex; align-items: center; gap: 10px;
+          font-family: var(--font-mono);
+          font-size: 11px; font-weight: 500;
+          letter-spacing: 0.2em; text-transform: uppercase;
+          color: var(--accent);
+          margin: 0 0 22px;
+        }
+        .bf-hero-v2 .eyebrow::before {
+          content: ''; width: 22px; height: 2px; background: var(--accent); border-radius: 2px;
+        }
+        .bf-hero-v2 .headline {
+          font-size: clamp(40px, 5vw, 60px);
+          font-weight: 900;
+          line-height: 1.04;
+          letter-spacing: -0.025em;
+          color: var(--ink);
+          margin: 0 0 24px;
+        }
+        .bf-hero-v2 .headline .accent { color: var(--accent); }
+        .bf-hero-v2 .subline {
+          font-size: 17px; line-height: 1.55;
+          color: var(--mute);
+          margin: 0 0 36px;
+          max-width: 460px;
+        }
+        .bf-hero-v2 .cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .bf-hero-v2 .btn-primary {
+          background: var(--accent); color: #fff;
+          font-size: 15px; font-weight: 600;
+          padding: 13px 26px; border-radius: 100px;
+          border: none; text-decoration: none;
+          box-shadow: 0 6px 18px rgba(217,79,42,0.28);
+          transition: background 0.15s;
+        }
+        .bf-hero-v2 .btn-primary:hover { background: var(--accent-hover); }
+        .bf-hero-v2 .btn-secondary {
+          color: var(--ink); font-size: 15px; font-weight: 500;
+          text-decoration: none;
+          border: 1px solid var(--line-strong);
+          padding: 12px 22px; border-radius: 100px;
+          background: rgba(255,255,255,0.6);
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .bf-hero-v2 .btn-secondary:hover { border-color: var(--ink); background: #fff; }
+
+        /* ---------- RIGHT: DASHBOARD MOCK ---------- */
+        .bf-hero-v2 .dash-wrap {
+          position: relative; z-index: 2; min-width: 0;
+          padding: 14px;
+          border-radius: 20px;
+          background: #FFFFFF;
+          border: 1px solid var(--line);
+          box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 24px 60px rgba(15,20,23,0.08), 0 2px 6px rgba(15,20,23,0.04);
+        }
+        /* corner brackets */
+        .bf-hero-v2 .dash-wrap::before,
+        .bf-hero-v2 .dash-wrap::after {
+          content: ''; position: absolute; width: 18px; height: 18px;
+          border-color: var(--accent); border-style: solid; border-width: 0;
+        }
+        .bf-hero-v2 .dash-wrap::before { top: -2px; left: -2px; border-top-width: 2px; border-left-width: 2px; }
+        .bf-hero-v2 .dash-wrap::after  { bottom: -2px; right: -2px; border-bottom-width: 2px; border-right-width: 2px; }
+
+        .bf-hero-v2 .dash {
+          background: var(--paper-2);
+          border-radius: 14px;
+          overflow: hidden;
+          display: grid;
+          grid-template-columns: 200px minmax(0, 1fr);
+          color: var(--ink);
+          min-height: 600px;
+          border: 1px solid var(--line);
+        }
+
+        /* sidebar */
+        .bf-hero-v2 .side {
+          background: var(--paper);
+          padding: 18px 14px 18px 16px;
+          border-right: 1px solid var(--line);
+          display: flex; flex-direction: column; gap: 14px;
+        }
+        .bf-hero-v2 .side-brand { padding: 4px 4px 6px; }
+        .bf-hero-v2 .side-label {
+          font-family: var(--font-mono);
+          font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+          color: var(--mute); padding: 2px 4px;
+        }
+        .bf-hero-v2 .side-list { display: flex; flex-direction: column; gap: 4px; }
+        .bf-hero-v2 .side-row {
+          display: grid; grid-template-columns: 38px 1fr auto;
+          align-items: center; gap: 10px;
+          padding: 8px 10px; border-radius: 10px; color: var(--ink);
+        }
+        .bf-hero-v2 .side-row .chip {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          width: 38px; height: 38px; border-radius: 8px;
+          background: #fff; border: 1px solid var(--line);
+          font-family: var(--font-mono); line-height: 1;
+        }
+        .bf-hero-v2 .side-row .chip .d { font-size: 14px; font-weight: 700; color: var(--ink); }
+        .bf-hero-v2 .side-row .chip .m { font-size: 8px; letter-spacing: 0.12em; color: var(--mute); margin-top: 2px; }
+        .bf-hero-v2 .side-row .lbl { font-size: 13px; font-weight: 600; color: var(--ink); }
+        .bf-hero-v2 .side-row .cnt { font-size: 12px; color: var(--mute); font-family: var(--font-mono); }
+        .bf-hero-v2 .side-row.active { background: var(--accent); }
+        .bf-hero-v2 .side-row.active .chip { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.3); }
+        .bf-hero-v2 .side-row.active .chip .d,
+        .bf-hero-v2 .side-row.active .chip .m,
+        .bf-hero-v2 .side-row.active .lbl,
+        .bf-hero-v2 .side-row.active .cnt { color: #fff; }
+
+        /* main */
+        .bf-hero-v2 .main { padding: 20px 22px 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+        .bf-hero-v2 .main-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .bf-hero-v2 .title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .bf-hero-v2 .title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+        .bf-hero-v2 .pill {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 11px; font-weight: 600;
+          padding: 4px 10px; border-radius: 100px; white-space: nowrap;
+        }
+        .bf-hero-v2 .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .bf-hero-v2 .pill.green { color: var(--green); background: var(--green-bg); }
+        .bf-hero-v2 .pill.blue  { color: var(--blue);  background: var(--blue-bg);  }
+        .bf-hero-v2 .pill.red   { color: var(--red);   background: var(--red-bg);   }
+
+        .bf-hero-v2 .meta {
+          font-family: var(--font-mono);
+          font-size: 11px; color: var(--mute);
+          letter-spacing: 0.04em; margin-top: 4px;
+        }
+        .bf-hero-v2 .head-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .bf-hero-v2 .head-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 11.5px; font-weight: 600;
+          padding: 7px 10px; border-radius: 9px;
+          border: 1px solid var(--line);
+          background: #fff; color: var(--ink); white-space: nowrap;
+        }
+        .bf-hero-v2 .head-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .bf-hero-v2 .tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--line); }
+        .bf-hero-v2 .tab {
+          font-size: 13px; font-weight: 600; color: var(--mute);
+          padding: 8px 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+        }
+        .bf-hero-v2 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .bf-hero-v2 .date-sub { font-size: 14px; font-weight: 700; color: var(--ink); }
+
+        .bf-hero-v2 .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .bf-hero-v2 .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+        .bf-hero-v2 .card-label {
+          font-family: var(--font-mono);
+          font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+          color: var(--mute); margin-bottom: 8px;
+        }
+        .bf-hero-v2 .card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+        .bf-hero-v2 .card li { font-size: 12.5px; line-height: 1.4; color: var(--ink); padding-left: 14px; position: relative; }
+        .bf-hero-v2 .card li::before { content: '•'; color: var(--accent); position: absolute; left: 0; top: 0; font-size: 14px; line-height: 1.2; }
+
+        .bf-hero-v2 .status-list { display: flex; flex-direction: column; gap: 8px; }
+        .bf-hero-v2 .status-row {
+          display: flex; align-items: center; justify-content: space-between; gap: 12px;
+          background: #fff; border: 1px solid var(--line);
+          border-left: 4px solid var(--line); border-radius: 8px;
+          padding: 10px 14px;
+        }
+        .bf-hero-v2 .status-row.red   { border-left-color: var(--red); }
+        .bf-hero-v2 .status-row.blue  { border-left-color: var(--blue); }
+        .bf-hero-v2 .status-row.green { border-left-color: var(--green); }
+        .bf-hero-v2 .status-row .sr-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+        .bf-hero-v2 .status-row .sr-desc  { font-size: 12px; color: var(--mute); margin-top: 2px; }
+
+        /* ---------- TABLET ---------- */
+        @media (max-width: 1023px) {
+          .bf-hero-v2 .hero-inner { grid-template-columns: 1fr; gap: 40px; padding: 56px 32px 64px; text-align: left; }
+          .bf-hero-v2 .subline { max-width: 100%; }
+        }
+
+        /* ---------- MOBILE ---------- */
+        @media (max-width: 767px) {
+          .bf-hero-v2 .hero-inner { padding: 40px 18px 48px; gap: 32px; }
+          .bf-hero-v2 .headline { font-size: 36px; }
+          .bf-hero-v2 .dash-wrap { padding: 10px; border-radius: 16px; }
+          .bf-hero-v2 .dash { grid-template-columns: 1fr; min-height: 0; }
+          .bf-hero-v2 .side { border-right: none; border-bottom: 1px solid var(--line); padding: 14px; gap: 10px; }
+          .bf-hero-v2 .side-list { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; }
+          .bf-hero-v2 .side-list::-webkit-scrollbar { display: none; }
+          .bf-hero-v2 .side-row { grid-template-columns: auto auto auto; flex-shrink: 0; padding: 6px 10px; }
+          .bf-hero-v2 .main { padding: 16px; gap: 14px; }
+          .bf-hero-v2 .title { font-size: 18px; }
+          .bf-hero-v2 .tabs { gap: 16px; overflow-x: auto; scrollbar-width: none; }
+          .bf-hero-v2 .tabs::-webkit-scrollbar { display: none; }
+          .bf-hero-v2 .card-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      <div className="hero-inner">
+        {/* LEFT: COPY */}
+        <div className="hero-copy">
+          <p className="eyebrow">Built for the build</p>
+          <h1 className="headline">
+            Client-ready event build reports in <span className="accent">10 minutes.</span>
+          </h1>
+          <p className="subline">
+            Capture and sort event site photos. Export a client-safe link or polished PDF in minutes.
+          </p>
+          <div className="cta-row">
+            <Link className="btn-primary" to="/auth">Start your first build</Link>
+            <a
+              className="btn-secondary"
+              href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            >
+              See how it works →
+            </a>
+          </div>
+        </div>
+
+        {/* RIGHT: DASHBOARD MOCK */}
+        <div className="dash-wrap" aria-hidden="true">
+          <div className="dash">
+            <aside className="side">
+              <div className="side-brand"><BuildFolderLockup size={16} /></div>
+              <div className="side-label">Daily Log</div>
+              <div className="side-list">
+                {[
+                  { d: "30", m: "OCT", label: "Thu 30 Oct", count: 5, active: true },
+                  { d: "28", m: "OCT", label: "Tue 28 Oct", count: 12 },
+                  { d: "24", m: "OCT", label: "Fri 24 Oct", count: 8 },
+                  { d: "13", m: "OCT", label: "Mon 13 Oct", count: 16 },
+                  { d: "07", m: "OCT", label: "Tue 7 Oct", count: 15 },
+                  { d: "02", m: "OCT", label: "Thu 2 Oct", count: 8 },
+                  { d: "28", m: "SEP", label: "Sun 28 Sep", count: 9 },
+                ].map((r) => (
+                  <div key={r.label} className={`side-row${r.active ? " active" : ""}`}>
+                    <div className="chip"><span className="d">{r.d}</span><span className="m">{r.m}</span></div>
+                    <span className="lbl">{r.label}</span>
+                    <span className="cnt">{r.count}</span>
+                  </div>
+                ))}
+              </div>
+            </aside>
+
+            <div className="main">
+              <div className="main-head">
+                <div>
+                  <div className="title-row">
+                    <span className="title">Hong Kong Open</span>
+                    <span className="pill green">Complete</span>
+                  </div>
+                  <div className="meta">Fanling · 20 Oct 2026 · HKGC</div>
+                </div>
+                <div className="head-actions">
+                  <button type="button" className="head-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+                    Share link
+                  </button>
+                  <button type="button" className="head-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export PDF
+                  </button>
+                  <button type="button" className="head-btn primary">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Upload photos
+                  </button>
+                </div>
+              </div>
+
+              <div className="tabs">
+                <span className="tab active">Updates</span>
+                <span className="tab">Gallery</span>
+                <span className="tab">Activity</span>
+                <span className="tab">Settings</span>
+              </div>
+
+              <div className="date-sub">Thursday, 30 October 2025</div>
+
+              <div className="card-grid">
+                <div className="card">
+                  <div className="card-label">Today's Objectives</div>
+                  <ul>
+                    <li>Final media-centre furniture set</li>
+                    <li>Touch-ups on hospitality glazing</li>
+                  </ul>
+                </div>
+                <div className="card">
+                  <div className="card-label">Today's Achievements</div>
+                  <ul>
+                    <li>Hospitality ready for Pro-Am</li>
+                    <li>Furniture &amp; touch-ups to go for media centre</li>
+                    <li>TV all ready</li>
+                  </ul>
+                </div>
+                <div className="card">
+                  <div className="card-label">Tomorrow's Objectives</div>
+                  <ul>
+                    <li>Finish media centre fit-out</li>
+                    <li>Final walkthrough with client</li>
+                  </ul>
+                </div>
+                <div className="card">
+                  <div className="card-label">Open Issues / Risks</div>
+                  <ul>
+                    <li>Hospitality glazing supplier delay</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="status-list">
+                <div className="status-row red">
+                  <div>
+                    <div className="sr-title">Media Centre</div>
+                    <div className="sr-desc">Furniture and AV outstanding</div>
+                  </div>
+                  <span className="pill red">At risk</span>
+                </div>
+                <div className="status-row blue">
+                  <div>
+                    <div className="sr-title">Hospitality</div>
+                    <div className="sr-desc">Glazing touch-ups in progress</div>
+                  </div>
+                  <span className="pill blue">In review</span>
+                </div>
+                <div className="status-row green">
+                  <div>
+                    <div className="sr-title">Broadcast / TV</div>
+                    <div className="sr-desc">Signed off this morning</div>
+                  </div>
+                  <span className="pill green">On track</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default HeroSectionV2;
