@@ -87,7 +87,7 @@ export default function FAQSection() {
         </p>
       </div>
 
-      <div style={{ maxWidth: 680, margin: "0 auto" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto" }}>
         {faqs.map((f, i) => {
           const isOpen = openIdx === i;
           return (
@@ -108,14 +108,14 @@ export default function FAQSection() {
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
-                  padding: "22px 0",
+                  padding: "24px 0",
                   textAlign: "left",
                 }}
               >
                 <span
                   style={{
                     ...display,
-                    fontSize: 15,
+                    fontSize: 18,
                     fontWeight: 600,
                     color: "#ffffff",
                     lineHeight: 1.5,
@@ -127,8 +127,8 @@ export default function FAQSection() {
                   style={{
                     flexShrink: 0,
                     marginLeft: 16,
-                    width: 26,
-                    height: 26,
+                    width: 28,
+                    height: 28,
                     borderRadius: "50%",
                     border: `1.5px solid ${isOpen ? "#D94F2A" : "rgba(255,255,255,0.15)"}`,
                     color: isOpen ? "#D94F2A" : "rgba(255,255,255,0.4)",
@@ -136,7 +136,7 @@ export default function FAQSection() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 16,
+                    fontSize: 18,
                     transition: "border-color 0.2s ease, color 0.2s ease, background 0.2s ease",
                   }}
                 >
@@ -153,11 +153,11 @@ export default function FAQSection() {
                 <p
                   style={{
                     ...body,
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: 400,
                     color: "rgba(255,255,255,0.5)",
                     lineHeight: 1.72,
-                    paddingBottom: 20,
+                    paddingBottom: 24,
                     paddingRight: 42,
                     margin: 0,
                   }}
