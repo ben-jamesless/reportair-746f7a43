@@ -19,7 +19,7 @@ const WhyWeBuiltV2 = () => (
         text-align: left;
       }
       .why-v2 .copy {
-        font-size: clamp(26px, 3.2vw, 38px);
+        font-size: clamp(32px, 4.2vw, 52px);
         font-weight: 800; line-height: 1.18;
         letter-spacing: -0.018em; color: #F4F1EA; margin: 0;
       }
