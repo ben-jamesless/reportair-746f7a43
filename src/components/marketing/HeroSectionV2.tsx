@@ -40,7 +40,7 @@ const HeroSectionV2 = () => {
         }
 
         /* ---------- COPY ---------- */
-        .bf-hero-v2 .hero-copy { max-width: 880px; margin: 0 auto 64px; }
+        .bf-hero-v2 .hero-copy { max-width: 1056px; margin: 0 auto 64px; }
         .bf-hero-v2 .headline {
           font-size: clamp(44px, 6.2vw, 76px);
           font-weight: 900;
@@ -85,13 +85,7 @@ const HeroSectionV2 = () => {
           border: 1px solid var(--line);
           box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 30px 80px rgba(15,20,23,0.10), 0 4px 12px rgba(15,20,23,0.05);
         }
-        .bf-hero-v2 .dash-wrap::before,
-        .bf-hero-v2 .dash-wrap::after {
-          content: ''; position: absolute; width: 20px; height: 20px;
-          border-color: var(--accent); border-style: solid; border-width: 0;
-        }
-        .bf-hero-v2 .dash-wrap::before { top: -2px; left: -2px; border-top-width: 2px; border-left-width: 2px; }
-        .bf-hero-v2 .dash-wrap::after  { bottom: -2px; right: -2px; border-bottom-width: 2px; border-right-width: 2px; }
+        /* corner brackets removed per request */
 
         .bf-hero-v2 .dash {
           background: var(--paper-2);
