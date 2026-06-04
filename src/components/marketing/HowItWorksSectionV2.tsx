@@ -240,61 +240,31 @@ const HowItWorksSectionV2 = () => {
                   {s.pills.map((p) => <span key={p} className="hiw2-pill">{p}</span>)}
                 </div>
               </div>
-              <div className="hiw2-visual" aria-hidden="true">
+              <div className={`hiw2-visual${i === 0 || i === 2 ? " image" : ""}`} aria-hidden="true">
                 {i === 0 && (
-                  <>
-                    <div className="hiw2-photo-grid">
-                      <div className="hiw2-photo p1"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p2"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p3"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p4"><span className="tick">✓</span></div>
-                      <div className="hiw2-photo p5"></div>
-                      <div className="hiw2-photo p6"></div>
-                    </div>
-                  </>
+                  <img src={galleryImage.url} alt="" />
                 )}
                 {i === 1 && (
                   <div className="hiw2-sort">
                     {[
-                      { d: "30", m: "OCT", label: "Hospitality", cnt: "12" },
-                      { d: "30", m: "OCT", label: "Media Centre", cnt: "8" },
-                      { d: "30", m: "OCT", label: "Main Stage", cnt: "15" },
-                      { d: "28", m: "OCT", label: "Broadcast / TV", cnt: "6" },
+                      { d: "30", m: "OCT", label: "Hospitality",    status: "On track", tone: "blue"  },
+                      { d: "30", m: "OCT", label: "Media Centre",   status: "Complete", tone: "green" },
+                      { d: "30", m: "OCT", label: "Main Stage",     status: "Delayed",  tone: "red"   },
+                      { d: "28", m: "OCT", label: "Broadcast / TV", status: "On track", tone: "blue"  },
                     ].map((r) => (
-                      <div key={r.label + r.cnt} className="hiw2-sort-row">
+                      <div key={r.label + r.status} className="hiw2-sort-row">
                         <div className="hiw2-sort-chip">
                           <span className="d">{r.d}</span>
                           <span className="m">{r.m}</span>
                         </div>
                         <span className="lbl font-bold text-orange-600">{r.label}</span>
-                        <span className="cnt">{r.cnt} photos</span>
+                        <span className={`hiw2-status ${r.tone}`}>{r.status}</span>
                       </div>
                     ))}
                   </div>
                 )}
                 {i === 2 && (
-                  <div className="hiw2-share">
-                    <div className="hiw2-link-card">
-                      <div className="ic">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                      </div>
-                      <div className="body">
-                        <div className="t">Client share link</div>
-                        <div className="u">buildfolder.app/s/hk-open-2026</div>
-                      </div>
-                      <button type="button" className="btn">Copy</button>
-                    </div>
-                    <div className="hiw2-link-card">
-                      <div className="ic">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                      </div>
-                      <div className="body">
-                        <div className="t">Hong Kong Open — Build Report.pdf</div>
-                        <div className="u">12 pages · 4.2 MB · Branded</div>
-                      </div>
-                      <button type="button" className="btn">Export</button>
-                    </div>
-                  </div>
+                  <img src={reportLinkImage.url} alt="" />
                 )}
               </div>
             </div>
