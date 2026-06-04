@@ -378,7 +378,7 @@ export default function UseCasesSection() {
           <div
             className="uc-card"
             style={{
-              order: 1,
+              order: 2,
               background: "linear-gradient(160deg, rgba(15,26,52,0.95), rgba(10,18,38,0.98))",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: 20,
