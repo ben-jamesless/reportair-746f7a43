@@ -83,7 +83,11 @@ const HeroSectionV2 = () => {
           border-radius: 22px 22px 0 0;
           background: transparent;
           border: none;
-          box-shadow: 0 30px 80px rgba(15,20,23,0.10);
+          box-shadow:
+            -24px 0 60px -20px rgba(15,20,23,0.18),
+            24px 0 60px -20px rgba(15,20,23,0.18),
+            0 -20px 50px -20px rgba(15,20,23,0.18),
+            0 30px 80px rgba(15,20,23,0.10);
           overflow: hidden;
           max-height: 560px;
           -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 100%);
