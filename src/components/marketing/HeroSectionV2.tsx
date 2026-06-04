@@ -362,7 +362,7 @@ const HeroSectionV2 = () => {
                     <div className="sr-title">Broadcast / TV</div>
                     <div className="sr-desc">Signed off this morning</div>
                   </div>
-                  <span className="pill green">Completed</span>
+                  <span className="pill green">Complete</span>
                 </div>
               </div>
             </div>
