@@ -355,7 +355,7 @@ const HeroSectionV2 = () => {
                     <div className="sr-title">Hospitality</div>
                     <div className="sr-desc">Glazing touch-ups in progress</div>
                   </div>
-                  <span className="pill blue">In review</span>
+                  <span className="pill blue">On Track</span>
                 </div>
                 <div className="status-row green">
                   <div>
