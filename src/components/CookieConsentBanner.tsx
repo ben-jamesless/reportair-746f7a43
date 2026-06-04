@@ -34,7 +34,7 @@ export function CookieConsentBanner() {
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 text-sm text-white sm:flex-row sm:items-center sm:justify-between">
         <p className="text-white/90">
-          We use analytics to improve Build Slides. Accept to help us.
+          We use analytics to improve BuildFolder. Accept to help us.
         </p>
         <div className="flex shrink-0 gap-2">
           <button

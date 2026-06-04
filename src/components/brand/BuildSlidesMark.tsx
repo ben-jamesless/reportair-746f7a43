@@ -7,12 +7,12 @@ interface MarkProps {
   variant?: "light" | "dark" | "onSky";
 }
 
-/** BuildSlides mark: matches the marketing homepage favicon mark. */
+/** BuildFolder mark: matches the marketing homepage favicon mark. */
 export const BuildSlidesMark = ({ className }: MarkProps) => (
   <img
     src="/favicon.svg"
     className={cn("h-6 w-6", className)}
-    alt="BuildSlides"
+    alt="BuildFolder"
   />
 );
 
@@ -23,7 +23,7 @@ interface LockupProps {
   variant?: "light" | "dark" | "onSky";
 }
 
-/** Mark + "BuildSlides" wordmark lockup. */
+/** Mark + "BuildFolder" wordmark lockup. */
 export const BuildSlidesLockup = ({ className, markClassName, textClassName, variant = "light" }: LockupProps) => {
   const onDark = variant === "dark" || variant === "onSky";
   return (
@@ -36,7 +36,7 @@ export const BuildSlidesLockup = ({ className, markClassName, textClassName, var
           textClassName,
         )}
       >
-        BuildSlides
+        BuildFolder
       </span>
     </span>
   );

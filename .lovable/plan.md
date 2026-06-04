@@ -1,71 +1,92 @@
-## Scope split
+## Plan: BuildFolder rebrand + hero overhaul
 
-Most "Customer Portal config" and "Branding on Stripe-hosted pages" items are **Stripe Dashboard settings, not code**. I'll do all the code, and list the Dashboard clicks you (or I, if you paste a screenshot) need to make.
+### 1. Brand assets (new SVGs in `/public/brand/`)
 
----
+Generate three SVGs from the supplied artwork and drop them in `/public/brand/`:
 
-### A. Code changes I'll ship
+- `buildfolder-mark.svg` — black squircle with the orange corner-bracket mark (favicon / app icon use)
+- `buildfolder-lockup-twotone.svg` — "Build" in ink + "Folder" in orange with corner brackets around "Folder" (for light backgrounds)
+- `buildfolder-lockup-dark-bg.svg` — same lockup but "Build" in paper/white + "Folder" in orange (for dark backgrounds)
 
-**1. Webhook handlers (`supabase/functions/stripe-webhook/index.ts`)**
-- Add `customer.subscription.created` → same provisioning logic as `checkout.session.completed` (idempotent upsert on `teams.plan`, `stripe_subscription_id`, status, period end, trial end). Keeps the checkout handler too (covers metadata edge cases).
-- Add `invoice.payment_succeeded` → set `teams.subscription_status = 'active'` and clear `payment_failed_at`. This is what clears the in-app banner.
-- Existing handlers stay as-is: `subscription.updated`, `subscription.deleted` (→ downgrades to `solo` today; **changing to `free`** per spec), `invoice.payment_failed`, `trial_will_end`.
-- `subscription.deleted` change: set `plan = 'free'` (not `'solo'`), keep all team/project/photo data untouched.
+Update `/public/favicon.svg` to the new mark.
 
-**2. Grandfathering**
-- DB: add `teams.grandfathered_until timestamptz` and `teams.payment_failed_at timestamptz` columns.
-- `stripe-checkout`: when creating the Stripe customer, set `metadata.grandfathered = "true"` and `metadata.grandfathered_until = <now + 12 months ISO>` **only if** the team's `created_at` is before the v1→v2 cutover date (I'll use `now()` as the cutover — every team that subscribes from this deploy forward is grandfathered for 12 months from their first subscription). Mirror to `teams.grandfathered_until`.
-- Webhook on `subscription.updated`: if a price change would move them off their grandfathered price before `grandfathered_until`, log a warning (Stripe is source of truth — we don't auto-revert, just flag).
+### 2. Wordmark rename: "BuildSlides" → "BuildFolder" (project-wide)
 
-**3. Payment-failed in-app banner**
-- New `src/components/PaymentFailedBanner.tsx` (sibling to `TrialBanner`). Shows when `teams.subscription_status === 'past_due'` OR `payment_failed_at` is set.
-- Copy: **"Payment failed. Update your card to keep access."** + "Update card" link → opens Stripe Portal.
-- Mount in `AppShell` alongside `TrialBanner`.
-- `usePlan` hook: expose `paymentFailedAt` and `subscriptionStatus` (already there).
+Replace every occurrence in code, copy, alt text, page titles, meta, manifest, and email templates. Known locations include:
 
-**4. Copy strings — replace in place**
-- Trial CTAs everywhere → **"Start 7-day free trial. No card until day 8."** (Plan.tsx, PricingSection.tsx, Billing.tsx, FAQ if relevant).
-- Upgrade dialog when out of free build days → **"Your 3 build days are up. Keep the build going — upgrade to Solo."** (UpgradeDialog.tsx).
-- Cancel confirmation (rendered in our app before sending to portal; portal itself we can't customize copy beyond branding) → **"Your builds and reports stay on file. Access ends at period end."** New small confirm dialog before "Manage billing → Cancel" flows.
+- `index.html` (title, og:*, twitter:*, manifest references)
+- `public/site.webmanifest`
+- `public/robots.txt` / `public/sitemap.xml` if they contain the name
+- Marketing: `MarketingHeader.tsx`, `MarketingFooter.tsx`, `HeroSection.tsx`, `HowItWorksSection.tsx`, `FAQSection.tsx`, `PricingSection.tsx`, `TimeSavedSection.tsx`, `UseCasesSection.tsx`, `LegalDialog.tsx`, `brand.tsx`, `brand-tokens.ts` comment
+- App shell: `OnboardingLayout.tsx`, `AppSidebar.tsx`, `AppShell.tsx`, auth/onboarding pages, `BuildSlidesMark.tsx` (rename to `BuildFolderMark.tsx` + update imports)
+- Share/export branding: `ShareBrandingFooter.tsx`, share pages, PDF generator templates in `supabase/functions/generate-pdf/`
+- Email templates: `supabase/functions/_shared/email-templates/` and `signup-buildslides.html` (rename + content)
+- Tests in `src/test/` where the string appears
 
-**5. Confirmation gate for paid downgrades**
-- Stripe Portal lets users downgrade freely. To force a confirmation, I'll **disable plan switching in the Portal** (Dashboard setting) and instead route downgrades through our own `Plan.tsx` flow, where I'll add a confirm dialog with the cancel copy above before calling `stripe-checkout` with the new (lower) price. Upgrades go straight through. This matches your "no self-serve downgrade without confirmation" rule.
+Keep the domain strings (`buildslides.lovable.app`, `buildslides.com`) untouched — those are infrastructure, not user-facing brand text. Domains are managed in Settings, not code.
 
----
+### 3. Marketing header logo
 
-### B. Stripe Dashboard items (you do these, or paste screenshots and I'll walk you through each)
+`MarketingHeader.tsx` + `brand.tsx`: swap the existing favicon mark + "BuildSlides" text for an `<img>` of `buildfolder-lockup-twotone.svg` (and `-dark-bg.svg` where the header is on a dark surface). Keep link target and aria-label.
 
-In **Stripe Dashboard → Settings → Billing → Customer portal**:
-- Enable: update payment method, view invoices, cancel subscription
-- Enable: switch plans (Free / Solo / Crew / Studio products)
-- Cancellation mode: **"At end of billing period"**
-- Proration: on for upgrades, off for downgrades (we gate downgrades in-app anyway)
+### 4. Hero section rewrite (`src/components/marketing/HeroSection.tsx`)
 
-In **Settings → Branding**:
-- Logo: upload `lockup_horizontal_ink.svg` (Paper-ground horizontal lockup)
-- Brand colour: `#D94F2A`
-- Accent background: `#F4F1EA`
-- Font: Inter (Stripe default)
+Left column — copy only this changes:
+- Eyebrow: `BUILT FOR THE BUILD` (unchanged)
+- Headline: unchanged — "Client-ready event build reports in **10 minutes.**" with `.accent` on "10 minutes."
+- Subline: replace with exact text — *"Capture and sort event site photos. Export a client-safe link or polished PDF in minutes."*
+- CTAs: unchanged ("Start your first build" primary, "See how it works →" secondary)
 
-In **Settings → Emails**:
-- Turn on "Send finalized invoices" and "Send emails about expiring cards"
+Right column — full replacement (delete chip/lines/node/report-card stage):
 
----
+New `<div class="dash">` styled as a screenshot card sitting on a paper-tinted rounded container. Internal layout matches the uploaded mock:
 
-### C. Out of scope right now (per your last message)
-- Alipay / WeChat Pay — held until HK account approval.
-- Move from sandbox → live mode — held until you confirm Stripe keys for live are ready in `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`. Right now this ships against whichever mode your current keys point to.
+```text
+┌──────────────────────────────────────────────────────────┐
+│ [sidebar 28%]   │  [main 72%]                            │
+│ BuildFolder     │  Hong Kong Open  ●Complete   [Share]   │
+│ DAILY LOG       │  Fanling · 20 Oct 2026 · HKGC [PDF]    │
+│ ┌Thu 30 Oct─5┐  │                              [+Upload] │
+│ │ active     │  │  Updates  Gallery  Activity  Settings  │
+│ └────────────┘  │  ──────                                │
+│  Tue 28 Oct 12  │  Thursday, 30 October 2025             │
+│  Fri 24 Oct  8  │  ┌──────────┐ ┌──────────┐             │
+│  Mon 13 Oct 16  │  │ OBJ...   │ │ ACH...   │             │
+│  Tue  7 Oct 15  │  └──────────┘ └──────────┘             │
+│  Thu  2 Oct  8  │  ┌──────────┐ ┌──────────┐             │
+│  Sun 28 Sep  9  │  │ TOM OBJ  │ │ RISKS    │             │
+│                 │  └──────────┘ └──────────┘             │
+│                 │  ▌18th Hospitality      ●Delayed       │
+│                 │  ▌Media Centre          ●On track      │
+│                 │  ▌Spectator Village     ●Complete      │
+└──────────────────────────────────────────────────────────┘
+```
 
----
+Content exactly as specified in the brief (objectives/achievements/tomorrow/risks lists, three status rows with red/blue/green left borders and matching pills).
 
-### Files touched
-- `supabase/functions/stripe-webhook/index.ts` (+ `helpers.ts` no change)
-- `supabase/functions/stripe-checkout/index.ts` (grandfathering metadata)
-- DB migration: `teams.grandfathered_until`, `teams.payment_failed_at`
-- `src/components/PaymentFailedBanner.tsx` (new)
-- `src/components/AppShell.tsx` (mount banner)
-- `src/components/CancelSubscriptionDialog.tsx` (new)
-- `src/hooks/usePlan.ts` (expose `paymentFailedAt`)
-- `src/pages/Plan.tsx`, `src/pages/Billing.tsx`, `src/components/marketing/PricingSection.tsx`, `src/components/UpgradeDialog.tsx`, `src/components/marketing/FAQSection.tsx` (copy)
+Styling rules:
+- Paper background `#F4F1EA`, card `#FFFFFF`, ink `#0F1417`, accent `#D94F2A`
+- Sidebar items: date chip (day + small SEP/OCT label) in JetBrains Mono, row label in Geist, photo count right-aligned. Active row = orange fill + white text.
+- Small uppercase labels and the `Fanling · 20 Oct 2026 · HKGC` metadata in JetBrains Mono mute color.
+- Bulleted list markers in accent orange.
+- Header buttons: "Share link" + "Export PDF" ghost (border, ink text, download/share icon), "+ Upload photos" solid orange.
+- "Updates" tab gets an orange underline; others muted.
+- Status pills: green `#3A7D44` / blue `#3A6EA5` / red `#C7382A` on tinted backgrounds, with matching 3px left border on each row.
+- Subtle drop shadow + 1px line around the card so it reads as a screenshot.
 
-Approve and I'll ship A in one pass, then hand you the B checklist.
+Keep the existing hero dark ground (`#0F1417`) behind the dashboard so it pops.
+
+### 5. Responsive
+
+- Desktop ≥1024px: copy ~40% / dashboard ~60% side-by-side, dashboard never overlaps copy.
+- Tablet/mobile <1024px: stack — copy on top, dashboard full-width below. Sidebar inside the dashboard collapses to a horizontal scroll row of date chips (or hides on <640px) so the main panel stays readable. Cards stack to single column on mobile.
+
+### 6. Sections explicitly left alone
+
+How it works, Time Saved, Who it's for (Use Cases), Reviews, FAQ, Pricing, Final CTA, Footer — no content or layout changes. Only the wordmark string inside them flips to "BuildFolder" as part of step 2.
+
+### 7. Verification
+
+- Build passes, no broken imports after the `BuildSlidesMark → BuildFolderMark` rename.
+- `rg -i buildslides` returns only intentional matches (domains, lockup file paths kept for back-compat if any).
+- Quick browser pass on the homepage at desktop + 375px width to confirm hero reflow and dashboard legibility.

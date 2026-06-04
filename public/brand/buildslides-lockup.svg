@@ -1,5 +1,5 @@
 <!--
-  BuildSlides horizontal lockup — mark + wordmark.
+  BuildFolder horizontal lockup — mark + wordmark.
   Use in: sidebar header, sign-in page top-left, PDF cover header.
   Wordmark uses DM Sans 700 at -0.02em tracking.
   viewBox 200×40. Recommended display height: 22-32px in nav, 40-56px on auth page.
@@ -10,7 +10,7 @@
 
   The mark colour does NOT change between themes.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40" role="img" aria-label="BuildSlides">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40" role="img" aria-label="BuildFolder">
   <!-- Mark -->
   <svg x="0" y="4" width="32" height="32" viewBox="0 0 512 512">
     <rect width="512" height="512" rx="96" fill="#F4F1EA"/>
@@ -31,5 +31,5 @@
         font-weight="700"
         font-size="20"
         letter-spacing="-0.4"
-        fill="#0F1417">BuildSlides</text>
+        fill="#0F1417">BuildFolder</text>
 </svg>

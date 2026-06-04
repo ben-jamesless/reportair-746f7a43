@@ -64,7 +64,7 @@ const COMPARE_PLANS: ComparePlan[] = [
       "Unlimited build days",
       "Unlimited photo uploads",
       "Live share link",
-      "BuildSlides branded",
+      "BuildFolder branded",
       "7-day free trial",
     ],
   },
@@ -84,7 +84,7 @@ const COMPARE_PLANS: ComparePlan[] = [
       "5 team members",
       "PDF export",
       "Password-protected links",
-      "Your logo + BuildSlides on PDF",
+      "Your logo + BuildFolder on PDF",
       "Project folders & invites",
       "7-day free trial",
     ],
@@ -103,7 +103,7 @@ const COMPARE_PLANS: ComparePlan[] = [
     features: [
       "Unlimited active builds",
       "PDF export — fully white-label",
-      "Your logo only, no BuildSlides",
+      "Your logo only, no BuildFolder",
       "White-label report header",
       "Custom domain (coming soon)",
       "Priority support + onboarding call",
@@ -434,7 +434,7 @@ const Billing = () => {
                   className="w-full font-semibold bg-primary text-primary-foreground hover:bg-primary-hover"
                   onClick={() => {
                     if (p.key === "studio") {
-                      window.open("mailto:hello@buildslides.co?subject=BuildSlides%20Studio%20Enquiry", "_blank");
+                      window.open("mailto:hello@buildslides.co?subject=BuildFolder%20Studio%20Enquiry", "_blank");
                       return;
                     }
                     handleChoosePlan(p.key);
@@ -469,12 +469,12 @@ const Billing = () => {
           <div className="rounded-2xl bg-muted/40 border border-border p-6 flex flex-col gap-4 self-start">
             <h3 className="text-lg font-semibold text-foreground">Want a live walkthrough?</h3>
             <p className="text-sm text-muted-foreground">
-              See how BuildSlides works, ask questions, and start saving your team time and money.
+              See how BuildFolder works, ask questions, and start saving your team time and money.
             </p>
             <Button
               variant="outline"
               className="w-full font-semibold"
-              onClick={() => window.open("mailto:ben@buildslides.com?subject=BuildSlides%20Demo%20Request", "_blank")}
+              onClick={() => window.open("mailto:ben@buildslides.com?subject=BuildFolder%20Demo%20Request", "_blank")}
             >
               Schedule a Demo
             </Button>

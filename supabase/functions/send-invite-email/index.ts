@@ -95,7 +95,7 @@ function renderEmail(args: {
                     <img src="https://www.buildslides.com/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
                   </td>
                   <td style="vertical-align:middle;">
-                    <span style="font-family:Geist,Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildSlides</span>
+                    <span style="font-family:Geist,Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildFolder</span>
                   </td>
                 </tr></table>
               </td>
@@ -107,7 +107,7 @@ function renderEmail(args: {
                 </h1>
                 <p style="margin:0 0 12px 0;font-size:15px;line-height:1.5;color:#0F1417;">
                   <strong>${safeInviter}</strong> invited you to collaborate on
-                  <strong>${safeProject}</strong> in BuildSlides as a
+                  <strong>${safeProject}</strong> in BuildFolder as a
                   <strong>${safeRole}</strong>.
                 </p>
                 <p style="margin:0 0 24px 0;font-size:15px;line-height:1.5;color:#0F1417;">
@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
       }, 200);
     }
 
-    const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "BuildSlides <onboarding@resend.dev>";
+    const rawFrom = Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>";
     let fromAddress = rawFrom.trim().replace(/^['"]|['"]$/g, "").trim();
     if (!/<[^>]+>/.test(fromAddress)) {
       const m = fromAddress.match(/^(.*?)([^\s<>"]+@[^\s<>"]+)\s*$/);
@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const subject = `You've been invited to ${projectName} on BuildSlides`;
+    const subject = `You've been invited to ${projectName} on BuildFolder`;
     const html = renderEmail({
       inviterName,
       projectName,
@@ -247,12 +247,12 @@ Deno.serve(async (req) => {
     const text = [
       `You've been invited to ${projectName}`,
       ``,
-      `${inviterName} invited you to collaborate on ${projectName} in BuildSlides as a ${invite.role}.`,
+      `${inviterName} invited you to collaborate on ${projectName} in BuildFolder as a ${invite.role}.`,
       ``,
       `Accept the invite here:`,
       inviteUrl,
       ``,
-      `— BuildSlides`,
+      `— BuildFolder`,
     ].join("\n");
 
     const resp = await fetch("https://api.resend.com/emails", {

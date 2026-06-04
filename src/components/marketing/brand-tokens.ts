@@ -1,4 +1,4 @@
-// Brand tokens scoped to the marketing layer. BuildSlides palette.
+// Brand tokens scoped to the marketing layer. BuildFolder palette.
 export const BRAND = {
   // Brand orange (replaces sky)
   accent: "#D94F2A",

@@ -315,9 +315,9 @@ export default function SettingsPage() {
                   <section className="space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <Label>Remove BuildSlides branding</Label>
+                        <Label>Remove BuildFolder branding</Label>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Your logo replaces the BuildSlides mark on exported PDFs, and the "Built by BuildSlides" footer is hidden on share pages.
+                          Your logo replaces the BuildFolder mark on exported PDFs, and the "Built by BuildFolder" footer is hidden on share pages.
                         </p>
 
                       </div>

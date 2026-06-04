@@ -1,9 +1,9 @@
 <!--
-  BuildSlides horizontal lockup — for DARK backgrounds.
+  BuildFolder horizontal lockup — for DARK backgrounds.
   Use in: dark ink sidebar, sign-in page LEFT panel (dark).
   Wordmark fill is paper-coloured.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40" role="img" aria-label="BuildSlides">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" width="200" height="40" role="img" aria-label="BuildFolder">
   <svg x="0" y="4" width="32" height="32" viewBox="0 0 512 512">
     <rect width="512" height="512" rx="96" fill="#F4F1EA"/>
     <g transform="translate(30,38) scale(2.0)">
@@ -22,5 +22,5 @@
         font-weight="700"
         font-size="20"
         letter-spacing="-0.4"
-        fill="#F4F1EA">BuildSlides</text>
+        fill="#F4F1EA">BuildFolder</text>
 </svg>

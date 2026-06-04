@@ -30,7 +30,7 @@ const LOGO_HEADER = `<table cellpadding="0" cellspacing="0" role="presentation">
     <img src="${APP_URL}/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
   </td>
   <td style="vertical-align:middle;">
-    <span style="font-family:Geist,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildSlides</span>
+    <span style="font-family:Geist,'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildFolder</span>
   </td>
 </tr></table>`;
 
@@ -100,10 +100,10 @@ type TemplateData = Record<string, string>;
 const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: string }> = {
 
   welcome: (d) => ({
-    subject: "Welcome to BuildSlides",
+    subject: "Welcome to BuildFolder",
     html: baseWrapper("", `
       <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Welcome, ${escapeHtml(d.name || "there")}!</h1>
-      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Your BuildSlides account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Your BuildFolder account is ready. Start by creating your first project &mdash; upload photos, track area progress, and share polished daily reports with your team.</p>
       <p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">You&rsquo;re on the <strong style="color:#0F1417;">Solo plan</strong>. Upgrade anytime to unlock share links, more events, team members, and custom branding.</p>
       ${ctaBtn("https://www.buildslides.com/projects", "Go to your projects")}
     `),
@@ -119,10 +119,10 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       subject: `You're now on the ${planLabel} plan`,
       html: baseWrapper(strip, `
         <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">You&rsquo;re all set, ${escapeHtml(d.name || "there")}.</h1>
-        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Your BuildSlides <strong style="color:#0F1417;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1417;">${escapeHtml(price)}/month</strong>` : ""}.</p>
+        <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Your BuildFolder <strong style="color:#0F1417;">${escapeHtml(planLabel)}</strong> subscription is now active${price ? ` at <strong style="color:#0F1417;">${escapeHtml(price)}/month</strong>` : ""}.</p>
         ${d.renewalDate ? `<p style="margin:0 0 28px;font-size:15px;line-height:1.75;color:#0F1417;">Your next billing date is <strong style="color:#0F1417;">${escapeHtml(d.renewalDate)}</strong>.</p>` : "<p style='margin:0 0 28px;'></p>"}
         ${featureGrid(d.plan)}
-        ${ctaBtn("https://www.buildslides.com/projects", "Go to BuildSlides")}
+        ${ctaBtn("https://www.buildslides.com/projects", "Go to BuildFolder")}
         <p style="margin:20px 0 0;font-size:13px;color:#6B6B66;">Manage or cancel anytime from your <a href="https://www.buildslides.com/billing" style="color:#D94F2A;text-decoration:none;font-weight:500;">Billing page</a>.</p>
       `),
     };
@@ -131,7 +131,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
   cancelled: (d) => {
     const planLabel = d.plan ? d.plan.charAt(0).toUpperCase() + d.plan.slice(1) : "your";
     return {
-      subject: "Your BuildSlides subscription has been cancelled",
+      subject: "Your BuildFolder subscription has been cancelled",
       html: baseWrapper("", `
         <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Subscription cancelled</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your <strong style="color:#0F1417;">${escapeHtml(planLabel)}</strong> subscription has been cancelled.</p>
@@ -150,7 +150,7 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       <span style="font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#DC2626;letter-spacing:0.04em;">&#9888;&nbsp; Action required &mdash; payment failed</span>
     </td></tr>`;
     return {
-      subject: "Action required: payment failed for your BuildSlides subscription",
+      subject: "Action required: payment failed for your BuildFolder subscription",
       html: baseWrapper(alertStrip, `
         <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">We couldn&rsquo;t process your payment</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your payment${price ? ` of <strong style="color:#0F1417;">${escapeHtml(price)}</strong>` : ""} for the ${escapeHtml(planLabel)} plan was declined.</p>
@@ -170,9 +170,9 @@ const TEMPLATES: Record<string, (d: TemplateData) => { subject: string; html: st
       <span style="font-family:Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.04em;">Your free trial ends in ${escapeHtml(daysLeft)} day${daysLeft === "1" ? "" : "s"}</span>
     </td></tr>`;
     return {
-      subject: `Your BuildSlides trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
+      subject: `Your BuildFolder trial ends in ${daysLeft} day${daysLeft === "1" ? "" : "s"}`,
       html: baseWrapper(strip, `
-        <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Make the most of BuildSlides</h1>
+        <h1 style="margin:0 0 14px;font-family:Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#0F1417;line-height:1.25;">Make the most of BuildFolder</h1>
         <p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#0F1417;">Hi ${escapeHtml(d.name || "there")}, your 7-day free trial of the <strong style="color:#0F1417;">${escapeHtml(planLabel)} plan</strong>${d.trialEnd ? ` ends on <strong style="color:#0F1417;">${escapeHtml(d.trialEnd)}</strong>` : " is ending soon"}.</p>
         <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#0F1417;">After that, you&rsquo;ll move to the Solo plan unless you add a payment method. No charge until your trial ends &mdash; cancel anytime before then.</p>
         <table cellpadding="0" cellspacing="0" style="width:100%;background:#F4F1EA;border-radius:10px;margin-bottom:28px;">
@@ -226,7 +226,7 @@ async function sendEmail(to: string, template: string, data: TemplateData) {
   const { subject, html } = tpl(data);
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) throw new Error("RESEND_API_KEY not set");
-  const from = Deno.env.get("RESEND_FROM_EMAIL") || "BuildSlides <onboarding@resend.dev>";
+  const from = Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>";
   const resp = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },

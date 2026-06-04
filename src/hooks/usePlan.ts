@@ -14,9 +14,9 @@ export interface PlanLimits {
   shareLinks:             boolean;  // can create share links
   shareLinkEmail:         boolean;  // can send share link by email
   passwordLinks:          boolean;  // can password-protect share links
-  showBuildSlidesBranding:boolean;  // BuildSlides wordmark shown on share pages & PDFs
+  showBuildSlidesBranding:boolean;  // BuildFolder wordmark shown on share pages & PDFs
   allowCustomLogo:        boolean;  // can upload their own team/client logo
-  whiteLabelFull:         boolean;  // removes ALL BuildSlides branding (Studio only)
+  whiteLabelFull:         boolean;  // removes ALL BuildFolder branding (Studio only)
   projectFolders:         boolean;
   planIncludesInvites:    boolean;  // external project invites
 }
@@ -61,7 +61,7 @@ const LIMITS: Record<PlanName, PlanLimits> = {
     shareLinks:              true,
     shareLinkEmail:          true,
     passwordLinks:           true,
-    showBuildSlidesBranding: true,  // BuildSlides shown alongside client logo
+    showBuildSlidesBranding: true,  // BuildFolder shown alongside client logo
     allowCustomLogo:         true,
     whiteLabelFull:          false,
     projectFolders:          true,
@@ -76,7 +76,7 @@ const LIMITS: Record<PlanName, PlanLimits> = {
     shareLinks:              true,
     shareLinkEmail:          true,
     passwordLinks:           true,
-    showBuildSlidesBranding: false, // BuildSlides removed entirely
+    showBuildSlidesBranding: false, // BuildFolder removed entirely
     allowCustomLogo:         true,
     whiteLabelFull:          true,
     projectFolders:          true,

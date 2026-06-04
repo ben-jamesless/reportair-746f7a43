@@ -29,7 +29,7 @@ const About = () => {
             Reporting <span style={{ color: ORANGE }}>built for the build</span> itself — not before, not after.
           </h1>
           <p className="mt-6 text-lg" style={{ color: "rgba(237,241,247,.75)", lineHeight: 1.6 }}>
-            BuildSlides is photo-first reporting for event and production teams who need to keep
+            BuildFolder is photo-first reporting for event and production teams who need to keep
             clients in the loop while the build is still happening.
           </p>
 
@@ -37,14 +37,14 @@ const About = () => {
             className="mt-14 text-2xl font-extrabold sm:text-3xl"
             style={{ ...display, color: "#FFFFFF", lineHeight: 1.2 }}
           >
-            Why we created BuildSlides
+            Why we created BuildFolder
           </h2>
           <div
             className="mt-5 space-y-5 text-base sm:text-[1.05rem]"
             style={{ color: "rgba(237,241,247,.8)", lineHeight: 1.7 }}
           >
             <p>
-              BuildSlides was built by an Operations Director who spent 15 years running
+              BuildFolder was built by an Operations Director who spent 15 years running
               large-scale event builds. Late nights chasing photos from on-site crew.
               Stitching them into decks at midnight. Sending them by morning so the client could
               see progress. After all of that, one thing was obvious: the reporting part of the
@@ -58,7 +58,7 @@ const About = () => {
               meant WhatsApp threads, screenshots, and hand-built PowerPoints.
             </p>
             <p>
-              BuildSlides is the tool we wished existed. The team uploads photos as they work,
+              BuildFolder is the tool we wished existed. The team uploads photos as they work,
               the system organises them by day, area, and status, and the client gets a clean,
               branded report — live share link or polished PDF — without anyone staying up
               making slides
