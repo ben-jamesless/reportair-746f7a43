@@ -29,7 +29,7 @@ const WhyWeBuiltV2 = () => (
         .why-v2 .card { padding: 36px 28px; border-radius: 18px; }
       }
     `}</style>
-    <p className="eyebrow">Why we built this</p>
+    <p className="eyebrow font-bold">Why we built this</p>
     <div className="card">
       <p className="copy">
         Photos are lost between WhatsApp messages, a camera roll accessible to one person, a share drive no one opens. The daily report becomes an unnecessary two-hour project. So <span className="accent">we built the platform we always wanted,</span> a place to store, share and review project progress.

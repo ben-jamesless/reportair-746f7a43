@@ -203,7 +203,7 @@ const HowItWorksSectionV2 = () => {
 
       <div className="hiw2-inner">
         <header className="hiw2-head">
-          <p className="hiw2-eyebrow">How it works</p>
+          <p className="hiw2-eyebrow font-bold">How it works</p>
           <h2 className="hiw2-title">
             Build to report. <span className="accent">Three steps.</span>
           </h2>
