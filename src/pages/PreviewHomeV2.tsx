@@ -53,70 +53,58 @@ const PreviewHomeV2 = () => {
 };
 
 /**
- * Recolors the wrapped (inline-styled-dark) section to paper:
- *  - transparent section bg
- *  - text/borders flipped for legibility on light canvas
+ * FAQ: section is all text on dark. On paper we flip the section bg
+ * to transparent and recolor every white/translucent-white text to ink/mute.
  */
-const PaperWrap = ({ children }: { children: React.ReactNode }) => (
-  <div className="paper-wrap">
+const FaqOnPaper = ({ children }: { children: React.ReactNode }) => (
+  <div className="paper-faq">
     <style>{`
-      .paper-wrap > section { background: transparent !important; }
+      .paper-faq > div > section { background: transparent !important; }
 
-      /* white text → ink (browsers normalize inline color to rgb(...)) */
-      .paper-wrap [style*="color: #fff"],
-      .paper-wrap [style*="color:#fff"],
-      .paper-wrap [style*="color: #FFFFFF"],
-      .paper-wrap [style*="color:#FFFFFF"],
-      .paper-wrap [style*="color: #ffffff"],
-      .paper-wrap [style*="color:#ffffff"],
-      .paper-wrap [style*="color: rgb(255, 255, 255)"],
-      .paper-wrap [style*="color: rgb(255,255,255)"] { color: #0F1417 !important; }
+      /* Headline + question text: solid white → ink */
+      .paper-faq [style*="color: #ffffff"],
+      .paper-faq [style*="color:#ffffff"],
+      .paper-faq [style*="color: #fff"],
+      .paper-faq [style*="color:#fff"],
+      .paper-faq [style*="color: rgb(255, 255, 255)"] { color: #0F1417 !important; }
 
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.7)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.7)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.65)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.65)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.6)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.6)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.55)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.55)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.5)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.5)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.45)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.45)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.4)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.4)"],
-      .paper-wrap [style*="color: rgba(255, 255, 255, 0.35)"],
-      .paper-wrap [style*="color: rgba(255,255,255,0.35)"] { color: #6B6B66 !important; }
+      /* Sub copy / answer text: translucent white → muted ink */
+      .paper-faq [style*="rgba(255,255,255,0.5)"],
+      .paper-faq [style*="rgba(255, 255, 255, 0.5)"],
+      .paper-faq [style*="rgba(255,255,255,0.4)"],
+      .paper-faq [style*="rgba(255, 255, 255, 0.4)"] { color: #4A4A45 !important; }
 
-      /* Subtle white-fill cards become paper cards */
-      .paper-wrap [style*="background: rgba(255,255,255,0.04)"],
-      .paper-wrap [style*="background: rgba(255,255,255,0.05)"],
-      .paper-wrap [style*="background: rgba(255,255,255,0.06)"],
-      .paper-wrap [style*="background: rgba(255,255,255,0.08)"] {
-        background: #FFFFFF !important;
-        border: 1px solid #E5E1D6 !important;
-      }
-      .paper-wrap [style*="border: 1px solid rgba(255,255,255,0.06)"],
-      .paper-wrap [style*="border: 1px solid rgba(255,255,255,0.08)"],
-      .paper-wrap [style*="border: 1px solid rgba(255,255,255,0.1)"],
-      .paper-wrap [style*="border: 1px solid rgba(255,255,255,0.12)"] {
-        border-color: #E5E1D6 !important;
-      }
+      /* Divider lines */
+      .paper-faq [style*="rgba(255,255,255,0.07)"],
+      .paper-faq [style*="rgba(255, 255, 255, 0.07)"] { border-color: #D9D4C5 !important; }
 
-      /* Featured pricing card */
-      .paper-wrap [style*="linear-gradient(135deg, rgba(26,32,37"] {
-        background: #FFFFFF !important;
-        border: 1px solid #E5E1D6 !important;
-      }
-
-      /* UseCases inner card */
-      .paper-wrap [style*="linear-gradient(160deg, rgba(15,26,52"] {
-        background: #FFFFFF !important;
-      }
+      /* Plus/minus circle inactive border + color */
+      .paper-faq [style*="rgba(255,255,255,0.15)"] { border-color: #C9C3B3 !important; }
     `}</style>
     {children}
   </div>
 );
+
+/**
+ * Pricing: keep dark cards (white text on dark stays readable), only
+ * recolor the section header, toggle, and section background.
+ */
+const PricingOnPaper = ({ children }: { children: React.ReactNode }) => (
+  <div className="paper-pricing">
+    <style>{`
+      .paper-pricing > section { background: transparent !important; }
+
+      /* Section title + sub (the only text outside the dark <article> cards) */
+      .paper-pricing > section > div > header h2 { color: #0F1417 !important; }
+      .paper-pricing > section > div > header p  { color: #4A4A45 !important; }
+
+      /* Monthly / Annual toggle labels live outside cards */
+      .paper-pricing > section > div > div .text-white { color: #0F1417 !important; }
+      .paper-pricing > section > div > div .text-white\\/50 { color: rgba(15,20,23,0.5) !important; }
+    `}</style>
+    {children}
+  </div>
+);
+
 
 export default PreviewHomeV2;
