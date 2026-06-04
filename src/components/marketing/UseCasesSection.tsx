@@ -274,7 +274,7 @@ export default function UseCasesSection() {
             margin: "0 0 48px 0",
           }}
         >
-          One tool.<br /><span style={{ color: "#D94F2A" }}>Every build.</span>
+          One tool. <span style={{ color: "#D94F2A" }}>Every build.</span>
         </h2>
 
         {/* Tabs */}
@@ -318,7 +318,7 @@ export default function UseCasesSection() {
           }}
         >
           {/* Right column — text */}
-          <div style={{ order: 2 }}>
+          <div style={{ order: 1 }}>
 
 
             <h3
@@ -378,7 +378,7 @@ export default function UseCasesSection() {
           <div
             className="uc-card"
             style={{
-              order: 1,
+              order: 2,
               background: "linear-gradient(160deg, rgba(15,26,52,0.95), rgba(10,18,38,0.98))",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: 20,
