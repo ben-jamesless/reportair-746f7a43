@@ -274,7 +274,7 @@ export default function UseCasesSection() {
             margin: "0 0 48px 0",
           }}
         >
-          One tool.<br /><span style={{ color: "#D94F2A" }}>Every build.</span>
+          One tool. <span style={{ color: "#D94F2A" }}>Every build.</span>
         </h2>
 
         {/* Tabs */}
