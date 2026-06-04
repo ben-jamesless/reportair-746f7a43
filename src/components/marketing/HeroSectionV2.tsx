@@ -271,7 +271,7 @@ const HeroSectionV2 = () => {
                 ].map((r) => (
                   <div key={r.label} className={`side-row${r.active ? " active" : ""}`}>
                     <div className="chip"><span className="d">{r.d}</span><span className="m">{r.m}</span></div>
-                    <span className="lbl">{r.label}</span>
+                    <span className="lbl font-bold text-orange-600">{r.label}</span>
                     <span className="cnt">{r.count}</span>
                   </div>
                 ))}
