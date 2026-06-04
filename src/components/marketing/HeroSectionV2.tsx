@@ -40,7 +40,7 @@ const HeroSectionV2 = () => {
         }
 
         /* ---------- COPY ---------- */
-        .bf-hero-v2 .hero-copy { max-width: 880px; margin: 0 auto 64px; }
+        .bf-hero-v2 .hero-copy { max-width: 1056px; margin: 0 auto 64px; }
         .bf-hero-v2 .headline {
           font-size: clamp(44px, 6.2vw, 76px);
           font-weight: 900;
