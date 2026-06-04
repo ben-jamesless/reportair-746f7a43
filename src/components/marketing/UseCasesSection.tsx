@@ -230,7 +230,7 @@ export default function UseCasesSection() {
   const accent = current.accent;
 
   return (
-    <section className="py-[86px] max-md:py-[43px]" style={{ background: "#0F1417", overflow: "hidden" }}>
+    <section className="py-[86px] max-md:py-[43px]" style={{ background: "transparent", overflow: "hidden" }}>
       <style>{`
         @keyframes uc-fadeUp {
           from { opacity: 0; transform: translateY(10px); }
@@ -268,7 +268,7 @@ export default function UseCasesSection() {
             ...display,
             fontWeight: 800,
             fontSize: 48,
-            color: "#fff",
+            color: "#0F1417",
             letterSpacing: "-0.02em",
             lineHeight: 1.05,
             margin: "0 0 48px 0",
@@ -292,9 +292,9 @@ export default function UseCasesSection() {
                   fontWeight: 600,
                   padding: "8px 18px",
                   borderRadius: 100,
-                  border: `1px solid ${isActive ? "transparent" : "rgba(255,255,255,0.12)"}`,
+                  border: `1px solid ${isActive ? "transparent" : "rgba(15,20,23,0.18)"}`,
                   background: isActive ? u.accent : "transparent",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  color: isActive ? "#fff" : "rgba(15,20,23,0.65)",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
@@ -327,7 +327,7 @@ export default function UseCasesSection() {
                 fontSize: 28,
                 fontWeight: 800,
                 letterSpacing: "-0.02em",
-                color: "#fff",
+                color: "#0F1417",
                 margin: "0 0 12px 0",
               }}
             >
@@ -337,7 +337,7 @@ export default function UseCasesSection() {
               style={{
                 ...body,
                 fontSize: 15,
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(15,20,23,0.65)",
                 lineHeight: 1.65,
                 margin: "0 0 24px 0",
               }}
@@ -354,7 +354,7 @@ export default function UseCasesSection() {
                     alignItems: "flex-start",
                     gap: 10,
                     fontSize: 14,
-                    color: "rgba(255,255,255,0.65)",
+                    color: "rgba(15,20,23,0.75)",
                     lineHeight: 1.5,
                   }}
                 >
@@ -379,7 +379,7 @@ export default function UseCasesSection() {
             className="uc-card"
             style={{
               order: 2,
-              background: "linear-gradient(160deg, rgba(15,26,52,0.95), rgba(10,18,38,0.98))",
+              background: "#1A2025",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: 20,
               padding: 28,
