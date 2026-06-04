@@ -316,7 +316,7 @@ const HeroSectionV2 = () => {
                   <div className="card-label">Today's Objectives</div>
                   <ul>
                     <li>Final media-centre furniture set</li>
-                    <li>Touch-ups on hospitality glazing</li>
+                    <li>Touch-ups on hospitality final features</li>
                   </ul>
                 </div>
                 <div className="card">
