@@ -11,7 +11,7 @@ const LogosStripV2 = () => (
         font-family: 'Geist Mono', ui-monospace, monospace;
         font-size: 11px; font-weight: 500;
         letter-spacing: 0.22em; text-transform: uppercase;
-        color: #6B6B66; margin: 0 0 28px;
+        color: inherit; margin: 0 0 28px;
       }
       .logos-v2 .row {
         display: flex; flex-wrap: wrap; justify-content: center;
@@ -27,7 +27,7 @@ const LogosStripV2 = () => (
         .logos-v2 .item { font-size: 17px; }
       }
     `}</style>
-    <p className="lbl">Built for builds like these</p>
+    <p className="lbl font-bold text-orange-600">Built for builds like these</p>
     <div className="row">
       {LOGOS.map((l) => <span key={l} className="item">{l}</span>)}
     </div>
