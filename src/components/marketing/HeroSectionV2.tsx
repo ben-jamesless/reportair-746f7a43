@@ -84,14 +84,13 @@ const HeroSectionV2 = () => {
           background: transparent;
           border: none;
           box-shadow:
-            -24px 0 60px -20px rgba(15,20,23,0.18),
-            24px 0 60px -20px rgba(15,20,23,0.18),
-            0 -20px 50px -20px rgba(15,20,23,0.18),
-            0 30px 80px rgba(15,20,23,0.10);
+            -28px 0 70px -18px rgba(15,20,23,0.22),
+            28px 0 70px -18px rgba(15,20,23,0.22),
+            0 -26px 60px -18px rgba(15,20,23,0.22);
           overflow: hidden;
-          max-height: 560px;
-          -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 100%);
-                  mask-image: linear-gradient(to bottom, #000 0, #000 78%, transparent 100%);
+          max-height: 760px;
+          -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 88%, transparent 100%);
+                  mask-image: linear-gradient(to bottom, #000 0, #000 88%, transparent 100%);
         }
         /* corner brackets removed per request */
 
