@@ -221,16 +221,18 @@ const HeroSectionV2 = () => {
           .bf-hero-v2 .hero-inner { padding: 56px 16px 64px; }
           .bf-hero-v2 .hero-copy { margin-bottom: 36px; }
           .bf-hero-v2 .dash-wrap { padding: 10px; border-radius: 16px; }
-          .bf-hero-v2 .dash { grid-template-columns: 1fr; min-height: 0; }
-          .bf-hero-v2 .side { border-right: none; border-bottom: 1px solid var(--line); padding: 14px; gap: 10px; }
-          .bf-hero-v2 .side-list { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; }
+          .bf-hero-v2 .dash { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+          .bf-hero-v2 .side { border-right: none; border-bottom: 1px solid var(--line); padding: 14px; gap: 10px; min-width: 0; max-width: 100%; overflow: hidden; }
+          .bf-hero-v2 .side-list { flex-direction: row; overflow-x: auto; gap: 8px; padding-bottom: 4px; scrollbar-width: none; min-width: 0; max-width: 100%; }
           .bf-hero-v2 .side-list::-webkit-scrollbar { display: none; }
           .bf-hero-v2 .side-row { grid-template-columns: auto auto auto; flex-shrink: 0; padding: 6px 10px; }
-          .bf-hero-v2 .main { padding: 16px; gap: 14px; }
+          .bf-hero-v2 .main { padding: 16px; gap: 14px; min-width: 0; max-width: 100%; overflow: hidden; }
           .bf-hero-v2 .title { font-size: 18px; }
-          .bf-hero-v2 .tabs { gap: 16px; overflow-x: auto; scrollbar-width: none; }
+          .bf-hero-v2 .tabs { gap: 16px; overflow-x: auto; scrollbar-width: none; min-width: 0; max-width: 100%; }
           .bf-hero-v2 .tabs::-webkit-scrollbar { display: none; }
-          .bf-hero-v2 .card-grid { grid-template-columns: 1fr; }
+          .bf-hero-v2 .card-grid { grid-template-columns: minmax(0, 1fr); }
+          .bf-hero-v2 .card { min-width: 0; max-width: 100%; overflow: hidden; }
+          .bf-hero-v2 .card li { word-break: break-word; }
         }
       `}</style>
 
