@@ -76,13 +76,7 @@ const HowItWorksSectionV2 = () => {
           padding: 40px 44px;
           position: relative;
         }
-        /* corner brackets */
-        .hiw2-row::before, .hiw2-row::after {
-          content: ''; position: absolute; width: 14px; height: 14px;
-          border-color: var(--accent); border-style: solid; border-width: 0;
-        }
-        .hiw2-row::before { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
-        .hiw2-row::after  { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+        /* corner brackets removed per request */
         .hiw2-row.reverse .hiw2-copy { order: 2; }
         .hiw2-row.reverse .hiw2-visual { order: 1; }
 
