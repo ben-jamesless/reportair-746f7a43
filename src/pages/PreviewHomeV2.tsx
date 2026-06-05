@@ -3,6 +3,7 @@ import HeroSectionV2 from "@/components/marketing/HeroSectionV2";
 import LogosStripV2 from "@/components/marketing/LogosStripV2";
 import HowItWorksSectionV2 from "@/components/marketing/HowItWorksSectionV2";
 import WhyWeBuiltV2 from "@/components/marketing/WhyWeBuiltV2";
+import WhyBuildFolderV2 from "@/components/marketing/WhyBuildFolderV2";
 import TimeSavedSection from "@/components/marketing/TimeSavedSection";
 import UseCasesSection from "@/components/marketing/UseCasesSection";
 import FAQSection from "@/components/marketing/FAQSection";
@@ -42,6 +43,7 @@ const PreviewHomeV2 = () => {
       <LogosStripV2 />
       <HowItWorksSectionV2 />
       <WhyWeBuiltV2 />
+      <WhyBuildFolderV2 />
       <div className="keep-dark-wrap"><UseCasesSection /></div>
       <TimeSavedSection />
       <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
