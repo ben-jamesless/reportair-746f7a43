@@ -1,7 +1,7 @@
 /**
  * "Built for builds like these" — logo strip on paper canvas.
  */
-const LOGOS = ["Ryder Cup", "Art Basel", "F1 Paddock", "LFW", "Clockenflap", "ComplexCon"];
+const LOGOS = ["Ryder Cup", "Art Basel", "​Winter Carnival", "Hong Kong 7s", "Clockenflap", "ComplexCon"];
 
 const LogosStripV2 = () => (
   <section className="logos-v2">
