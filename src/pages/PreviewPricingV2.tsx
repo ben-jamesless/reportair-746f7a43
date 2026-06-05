@@ -17,8 +17,8 @@ const PreviewPricingV2 = () => {
     <div className="min-h-screen bs-paper-grid text-foreground" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>
       <MarketingHeader />
       <PricingSectionV2 />
-      <ComparePlansV2 />
       <LogosStripV2 />
+      <ComparePlansV2 />
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
     </div>

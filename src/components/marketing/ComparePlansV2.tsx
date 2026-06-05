@@ -23,10 +23,9 @@ const ROWS: Row[] = [
   { feature: "PDF export",            free: false,       solo: false,       crew: true,        studio: true },
   { feature: "Project folders & invites", free: false,   solo: false,       crew: true,        studio: true },
   { feature: "BuildFolder branding",  free: "Required",  solo: "Required",  crew: "Your logo + BF", studio: "Your logo only" },
-  { feature: "White-label reports",   free: false,       solo: false,       crew: false,       studio: true },
+  { feature: "White-label reports",   free: false,       solo: false,       crew: false,       studio: "Coming soon" },
   { feature: "Custom domain",         free: false,       solo: false,       crew: false,       studio: "Coming soon" },
   { feature: "Priority support",      free: false,       solo: false,       crew: false,       studio: true },
-  { feature: "Onboarding call",       free: false,       solo: false,       crew: false,       studio: true },
 ];
 
 const renderCell = (c: Cell) => {
@@ -42,8 +41,8 @@ const ComparePlansV2 = () => (
         --ink: #0F1417;
         --paper-2: #F4F1EA;
         --accent: #D94F2A;
-        --highlight: #FBFCE0;
-        --highlight-border: #E8E89A;
+        --highlight: #FBF1ED;
+        --highlight-border: rgba(217,79,42,0.35);
         --mute: #6B6B66;
         --line: #E5E1D6;
         font-family: 'Geist', system-ui, sans-serif;
@@ -95,7 +94,7 @@ const ComparePlansV2 = () => (
       }
       .compare-v2-table thead th.featured-col .badge {
         display: inline-flex; align-items: center; gap: 6px;
-        background: #0F1417; color: #E4FF6B;
+        background: var(--accent); color: #FFFFFF;
         font-family: 'Geist Mono', ui-monospace, monospace;
         font-size: 10.5px; font-weight: 700;
         padding: 4px 10px; border-radius: 100px;

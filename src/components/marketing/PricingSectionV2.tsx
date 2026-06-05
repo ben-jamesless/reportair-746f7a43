@@ -98,9 +98,9 @@ const PLANS: Plan[] = [
     ],
     groupHeader: "Everything in Crew, plus:",
     features: [
-      "White-label (your logo only)",
+      "White-label reports (coming soon)",
       "Custom domain (coming soon)",
-      "Priority support + onboarding",
+      "Priority support",
       "Custom contracts & invoicing",
     ],
     cta: "Talk to sales",
@@ -191,13 +191,14 @@ const PricingSectionV2 = () => (
       }
       .pcard .flag {
         position: absolute; top: -12px; right: 20px;
-        background: #0F1417; color: #E4FF6B;
+        background: var(--accent); color: #FFFFFF;
         font-family: 'Geist Mono', ui-monospace, monospace;
         font-size: 11px; font-weight: 700;
         letter-spacing: 0.04em;
-        padding: 6px 12px 6px 26px;
+        padding: 6px 14px;
         border-radius: 100px;
       }
+      .pcard .flag::before { display: none; }
       .pcard .flag::before {
         content: ''; position: absolute; left: 10px; top: 50%;
         transform: translateY(-50%);
