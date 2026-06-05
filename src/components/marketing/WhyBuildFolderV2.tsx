@@ -82,7 +82,7 @@ const WhyBuildFolderV2 = () => {
           color: var(--paper);
           margin: 0 0 10px;
         }
-        .bf-why .why-card p {
+        .bf-why .why-card h3 .o { color: var(--accent); }
           color: rgba(244,241,234,.66);
           font-size: 15px;
           line-height: 1.55;
@@ -103,7 +103,7 @@ const WhyBuildFolderV2 = () => {
             <div className="why-ico">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h13"/><path d="M3 12h9"/><path d="M3 18h5"/><path d="M18 9l3 3-3 3"/><path d="M21 12h-9"/></svg>
             </div>
-            <h3>Sorted, not dumped</h3>
+            <h3><span className="o">Sorted</span>, not dumped</h3>
             <p>Every photo is sorted and processed the moment it lands — by zone, by day, automatically. A workflow that does the filing, not a bucket you dig through later.</p>
           </div>
 
@@ -111,7 +111,7 @@ const WhyBuildFolderV2 = () => {
             <div className="why-ico">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4"/><path d="M17 12h4"/><circle cx="12" cy="12" r="3"/><path d="M10 5h4"/><path d="M10 19h4"/></svg>
             </div>
-            <h3>A live build timeline</h3>
+            <h3>A <span className="o">live</span> build timeline</h3>
             <p>Every build shows its status, day by day, as it happens. Share one live link with the team or the client — they see progress without a single email chase.</p>
           </div>
 
@@ -119,7 +119,7 @@ const WhyBuildFolderV2 = () => {
             <div className="why-ico">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
             </div>
-            <h3>Hours back on admin</h3>
+            <h3><span className="o">Hours</span> back on admin</h3>
             <p>The report is a by-product, not a second job. No copy-pasting into decks at midnight — the daily report is already built by the time you leave site.</p>
           </div>
 
@@ -127,7 +127,7 @@ const WhyBuildFolderV2 = () => {
             <div className="why-ico">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M4 8l1.5-3h13L20 8"/><path d="M10 12h4"/></svg>
             </div>
-            <h3>A record that lasts</h3>
+            <h3>A <span className="o">record</span> that lasts</h3>
             <p>Long after the build comes down, everything is there and sorted — ready to look back on. No searching through a bucket of photos. It's all on the record.</p>
           </div>
         </div>
