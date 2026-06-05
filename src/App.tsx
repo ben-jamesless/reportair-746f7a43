@@ -15,7 +15,7 @@ import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { RouteAnalytics } from "@/components/RouteAnalytics";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
-const PreviewHomeV2 = lazy(() => import("./pages/PreviewHomeV2.tsx"));
+
 const About = lazy(() => import("./pages/About.tsx"));
 
 // Heavy / less-frequently-visited routes are loaded on demand to keep the
