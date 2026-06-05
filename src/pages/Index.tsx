@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import HeroSectionV2 from "@/components/marketing/HeroSectionV2";
-import LogosStripV2 from "@/components/marketing/LogosStripV2";
-import HowItWorksSectionV2 from "@/components/marketing/HowItWorksSectionV2";
-import WhyWeBuiltV2 from "@/components/marketing/WhyWeBuiltV2";
+import HeroSection from "@/components/marketing/HeroSection";
+import HowItWorksSection from "@/components/marketing/HowItWorksSection";
 import FAQSection from "@/components/marketing/FAQSection";
 import TimeSavedSection from "@/components/marketing/TimeSavedSection";
 import UseCasesSection from "@/components/marketing/UseCasesSection";
@@ -15,6 +13,9 @@ import { PricingSection } from "@/components/marketing/PricingSection";
 import { LegalDialog } from "@/components/marketing/LegalDialog";
 import { BRAND, body, display } from "@/components/marketing/brand-tokens";
 
+// Marketing copy that remains in this file (Reviews + Final CTA — the
+// only sections still rendered inline). Section-specific copy lives in
+// each extracted section.
 const COPY = {
   reviews: {
     eyebrow: "Early users",
@@ -45,42 +46,6 @@ const COPY = {
   },
 };
 
-/** FAQ on paper canvas — converts the dark FAQ section to light. */
-const FaqOnPaper = ({ children }: { children: React.ReactNode }) => (
-  <div className="paper-faq">
-    <style>{`
-      .paper-faq > div > section { background: transparent !important; }
-      .paper-faq [style*="color: #ffffff"],
-      .paper-faq [style*="color:#ffffff"],
-      .paper-faq [style*="color: #fff"],
-      .paper-faq [style*="color:#fff"],
-      .paper-faq [style*="color: rgb(255, 255, 255)"] { color: #0F1417 !important; }
-      .paper-faq [style*="rgba(255,255,255,0.5)"],
-      .paper-faq [style*="rgba(255, 255, 255, 0.5)"],
-      .paper-faq [style*="rgba(255,255,255,0.4)"],
-      .paper-faq [style*="rgba(255, 255, 255, 0.4)"] { color: #4A4A45 !important; }
-      .paper-faq [style*="rgba(255,255,255,0.07)"],
-      .paper-faq [style*="rgba(255, 255, 255, 0.07)"] { border-color: #D9D4C5 !important; }
-      .paper-faq [style*="rgba(255,255,255,0.15)"] { border-color: #C9C3B3 !important; }
-    `}</style>
-    {children}
-  </div>
-);
-
-/** Pricing section header on paper canvas — dark cards remain. */
-const PricingOnPaper = ({ children }: { children: React.ReactNode }) => (
-  <div className="paper-pricing">
-    <style>{`
-      .paper-pricing > section { background: transparent !important; }
-      .paper-pricing > section > div > header h2 { color: #0F1417 !important; }
-      .paper-pricing > section > div > header p  { color: #4A4A45 !important; }
-      .paper-pricing > section > div > div .text-white { color: #0F1417 !important; }
-      .paper-pricing > section > div > div .text-white\\/50 { color: rgba(15,20,23,0.5) !important; }
-    `}</style>
-    {children}
-  </div>
-);
-
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -91,20 +56,16 @@ const Index = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bs-paper-grid text-foreground" style={{ fontFamily: "'Geist', system-ui, sans-serif", color: BRAND.ink, ...body }}>
+    <div className="min-h-screen" style={{ backgroundColor: BRAND.fog, color: BRAND.ink, ...body }}>
       <MarketingHeader />
 
-      <HeroSectionV2 />
+      <HeroSection />
 
-      <LogosStripV2 />
-
-      <HowItWorksSectionV2 />
-
-      <WhyWeBuiltV2 />
-
-      <UseCasesSection />
+      <div id="how-it-works"><HowItWorksSection /></div>
 
       <TimeSavedSection />
+
+      <UseCasesSection />
 
       {/* ============ REVIEWS ============ */}
       <section id="reviews" className="py-[34px] md:py-[68px]" style={{ background: "#0F1417" }}>
@@ -148,9 +109,9 @@ const Index = () => {
         </div>
       </section>
 
-      <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
+      <div id="faq"><FAQSection /></div>
 
-      <PricingOnPaper><PricingSection /></PricingOnPaper>
+      <PricingSection />
 
       {/* ============ FINAL CTA ============ */}
       <section id="cta" className="relative overflow-hidden py-[34px] sm:py-[41px] md:py-[82px]" style={{ background: BRAND.ink }}>
