@@ -6,7 +6,7 @@ import WhyWeBuiltV2 from "@/components/marketing/WhyWeBuiltV2";
 import TimeSavedSection from "@/components/marketing/TimeSavedSection";
 import UseCasesSection from "@/components/marketing/UseCasesSection";
 import FAQSection from "@/components/marketing/FAQSection";
-import { PricingSection } from "@/components/marketing/PricingSection";
+
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter, type LegalPanel } from "@/components/marketing/MarketingFooter";
 import { LegalDialog } from "@/components/marketing/LegalDialog";
@@ -45,7 +45,6 @@ const PreviewHomeV2 = () => {
       <div className="keep-dark-wrap"><UseCasesSection /></div>
       <TimeSavedSection />
       <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
-      <PricingOnPaper><PricingSection /></PricingOnPaper>
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
     </div>

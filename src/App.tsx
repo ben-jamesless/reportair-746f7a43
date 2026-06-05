@@ -16,6 +16,7 @@ import { RouteAnalytics } from "@/components/RouteAnalytics";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 const PreviewHomeV2 = lazy(() => import("./pages/PreviewHomeV2.tsx"));
+const PreviewPricingV2 = lazy(() => import("./pages/PreviewPricingV2.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 
 // Heavy / less-frequently-visited routes are loaded on demand to keep the
@@ -62,6 +63,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
                 <Route path="/preview/home-v2" element={<ErrorBoundary label="page"><PreviewHomeV2 /></ErrorBoundary>} />
+                <Route path="/preview/pricing-v2" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
                 <Route path="/about" element={<ErrorBoundary label="page"><About /></ErrorBoundary>} />
                 <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
