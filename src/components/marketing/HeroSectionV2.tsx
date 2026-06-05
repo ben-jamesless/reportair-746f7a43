@@ -291,7 +291,7 @@ const HeroSectionV2 = () => {
                 <div>
                   <div className="title-row">
                     <span className="title">Hong Kong Open</span>
-                    <span className="pill green">Complete</span>
+                    <span className="pill blue">On Track</span>
                   </div>
                   <div className="meta">Fanling · 20 Oct 2026 · HKGC</div>
                 </div>
@@ -371,7 +371,7 @@ const HeroSectionV2 = () => {
                     <div className="sr-title">Broadcast / TV</div>
                     <div className="sr-desc">Signed off this morning</div>
                   </div>
-                  <span className="pill green">Complete</span>
+                  <span className="pill blue">On Track</span>
                 </div>
               </div>
             </div>
