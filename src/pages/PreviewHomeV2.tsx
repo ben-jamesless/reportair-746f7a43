@@ -43,8 +43,8 @@ const PreviewHomeV2 = () => {
       <LogosStripV2 />
       <HowItWorksSectionV2 />
       <WhyWeBuiltV2 />
-      <WhyBuildFolderV2 />
       <div className="keep-dark-wrap"><UseCasesSection /></div>
+      <WhyBuildFolderV2 />
       <TimeSavedSection />
       <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
       <MarketingFooter onOpenLegal={setLegalPanel} />
