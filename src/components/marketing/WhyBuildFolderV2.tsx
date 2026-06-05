@@ -83,6 +83,7 @@ const WhyBuildFolderV2 = () => {
           margin: 0 0 10px;
         }
         .bf-why .why-card h3 .o { color: var(--accent); }
+        .bf-why .why-card p {
           color: rgba(244,241,234,.66);
           font-size: 15px;
           line-height: 1.55;
