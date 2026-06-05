@@ -93,9 +93,9 @@ const WhyBuildFolderV2 = () => {
 
       <div className="why-container">
         <span className="label">Why Build Folder</span>
-        <h2>A workflow, <span className="o">not a bucket.</span></h2>
+        <h2>A photo first workflow, <span className="o">not a bucket.</span></h2>
         <p className="why-lead">
-          Photos don't just land in a folder and sit there. They sort, process and file themselves as the build moves — so the record builds itself while you work.
+          Photos don't just land in a folder and sit there. They sort, process and file themselves as the build moves. The event record builds itself and is there when you need it.
         </p>
 
         <div className="why-grid">
@@ -104,7 +104,7 @@ const WhyBuildFolderV2 = () => {
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h13"/><path d="M3 12h9"/><path d="M3 18h5"/><path d="M18 9l3 3-3 3"/><path d="M21 12h-9"/></svg>
             </div>
             <h3><span className="o">Sorted</span>, not dumped</h3>
-            <p>Every photo is sorted and processed the moment it lands — by zone, by day, automatically. A workflow that does the filing, not a bucket you dig through later.</p>
+            <p>Every photo is sorted and processed the moment it is uploaded, by area by day, automatically. Our workflow does the filing, it's not a bucket you dig through later.</p>
           </div>
 
           <div className="why-card">
@@ -112,7 +112,7 @@ const WhyBuildFolderV2 = () => {
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4"/><path d="M17 12h4"/><circle cx="12" cy="12" r="3"/><path d="M10 5h4"/><path d="M10 19h4"/></svg>
             </div>
             <h3><span className="o">A Live</span> build timeline</h3>
-            <p>Every build shows its status, day by day, as it happens. Share one live link with the team or the client — they see progress without a single email chase.</p>
+            <p>Every build shows its status, day by day, as it happens. Share one live link with the team or the client so they can see progress without a single email chase.</p>
           </div>
 
           <div className="why-card">
@@ -120,7 +120,7 @@ const WhyBuildFolderV2 = () => {
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
             </div>
             <h3><span className="o">Hours Back</span> on admin</h3>
-            <p>The report is a by-product, not a second job. No copy-pasting into decks at midnight — the daily report is already built by the time you leave site.</p>
+            <p>No copy-pasting photos into decks at midnight. The daily report is already built by the time the team is ready to leave. Just hit export for a fully branded daily report.</p>
           </div>
 
           <div className="why-card">
@@ -128,7 +128,7 @@ const WhyBuildFolderV2 = () => {
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M4 8l1.5-3h13L20 8"/><path d="M10 12h4"/></svg>
             </div>
             <h3><span className="o">A Record</span> that lasts</h3>
-            <p>Long after the build comes down, everything is there and sorted — ready to look back on. No searching through a bucket of photos. It's all on the record.</p>
+            <p>Long after the build comes down, every photo is stored and in order. Export the full project in files by area or date ready. No searching through a individual photo galleries or an online bucket. It is all on the record, in place.</p>
           </div>
         </div>
       </div>
