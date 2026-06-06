@@ -449,6 +449,8 @@ export type Database = {
           email: string
           id: string
           pdf_slug: string
+          resend_message_id: string | null
+          resend_status: number | null
           source: string | null
         }
         Insert: {
@@ -456,6 +458,8 @@ export type Database = {
           email: string
           id?: string
           pdf_slug?: string
+          resend_message_id?: string | null
+          resend_status?: number | null
           source?: string | null
         }
         Update: {
@@ -463,6 +467,8 @@ export type Database = {
           email?: string
           id?: string
           pdf_slug?: string
+          resend_message_id?: string | null
+          resend_status?: number | null
           source?: string | null
         }
         Relationships: []
