@@ -10,7 +10,10 @@ const corsHeaders = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const APP_URL = "https://www.buildfolder.com";
-const PDF_URL = `${APP_URL}/__l5e/assets-v1/b84f5219-055b-4df0-aa5e-3165bbad384b/BuildFolder_Benefits.pdf`;
+const PDF_BUCKET = "lead-magnet";
+const PDF_OBJECT = "BuildFolder_Benefits.pdf";
+// 1 year signed URL — regenerated on every send, so always fresh.
+const PDF_SIGN_TTL_SECONDS = 60 * 60 * 24 * 365;
 
 function emailHtml(downloadUrl: string): string {
   return `<!doctype html>
@@ -20,14 +23,7 @@ function emailHtml(downloadUrl: string): string {
     <tr><td align="center" style="padding:40px 16px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #C9C5BC;border-radius:12px;overflow:hidden;">
         <tr><td style="background:#F4F1EA;padding:22px 28px;border-bottom:1px solid #C9C5BC;">
-          <table cellpadding="0" cellspacing="0" role="presentation"><tr>
-            <td style="padding-right:12px;vertical-align:middle;">
-              <img src="${APP_URL}/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
-            </td>
-            <td style="vertical-align:middle;">
-              <span style="font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildFolder</span>
-            </td>
-          </tr></table>
+          <span style="font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildFolder</span>
         </td></tr>
         <tr><td style="padding:32px 28px 28px;">
           <h1 style="margin:0 0 14px;font-size:24px;font-weight:800;line-height:1.25;">Here&rsquo;s your guide</h1>
@@ -67,11 +63,13 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { error: insErr } = await supabase
+    const { data: inserted, error: insErr } = await supabase
       .from("lead_magnet_signups")
-      .insert({ email: rawEmail, source, pdf_slug: pdfSlug });
+      .insert({ email: rawEmail, source, pdf_slug: pdfSlug })
+      .select("id")
+      .single();
 
-    if (insErr) {
+    if (insErr || !inserted) {
       console.error("insert error", insErr);
       return new Response(JSON.stringify({ error: "Could not save signup" }), {
         status: 500,
@@ -79,23 +77,28 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send the email
+    // Generate a fresh signed URL for the PDF (bucket is private).
+    let pdfUrl = `${APP_URL}/`;
+    const { data: signed, error: signErr } = await supabase
+      .storage
+      .from(PDF_BUCKET)
+      .createSignedUrl(PDF_OBJECT, PDF_SIGN_TTL_SECONDS);
+    if (signErr || !signed?.signedUrl) {
+      console.error("PDF sign URL error", signErr);
+    } else {
+      pdfUrl = signed.signedUrl;
+    }
+
+    // Send the email and capture the real result.
+    let emailSent = false;
+    let resendStatus: number | null = null;
+    let resendMessageId: string | null = null;
+
     const apiKey = Deno.env.get("RESEND_API_KEY");
-    let debug: Record<string, unknown> = { apiKeyPresent: !!apiKey };
-    if (apiKey) {
-      const rawFrom = (Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>").trim();
-      let from = rawFrom;
-      if (!/^[^<>]+<[^\s@<>]+@[^\s@<>]+>$/.test(rawFrom) && !EMAIL_RE.test(rawFrom)) {
-        const m = rawFrom.match(/([^\s<>"]+@[^\s<>"]+)/);
-        if (m) {
-          const name = rawFrom.replace(m[1], "").replace(/[<>"]/g, "").trim() || "BuildFolder";
-          from = `${name} <${m[1]}>`;
-        } else {
-          from = "BuildFolder <onboarding@resend.dev>";
-        }
-      }
-      debug.rawFrom = rawFrom;
-      debug.normalizedFrom = from;
+    if (!apiKey) {
+      console.error("RESEND_API_KEY missing");
+    } else {
+      const from = (Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>").trim();
       try {
         const resp = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -104,19 +107,29 @@ Deno.serve(async (req) => {
             from,
             to: [rawEmail],
             subject: "Your BuildFolder guide",
-            html: emailHtml(PDF_URL),
+            html: emailHtml(pdfUrl),
           }),
         });
+        resendStatus = resp.status;
         const text = await resp.text();
-        debug.resendStatus = resp.status;
-        debug.resendBody = text.slice(0, 500);
-        if (!resp.ok) console.warn("Resend send failed", resp.status, text);
+        if (resp.ok) {
+          emailSent = true;
+          try { resendMessageId = JSON.parse(text)?.id ?? null; } catch { /* ignore */ }
+        } else {
+          console.error("Resend send failed", resp.status, text);
+        }
       } catch (e) {
-        debug.resendException = String(e);
+        console.error("Resend exception", String(e));
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, debug }), {
+    // Record the send outcome on the signup row (best-effort).
+    await supabase
+      .from("lead_magnet_signups")
+      .update({ resend_status: resendStatus, resend_message_id: resendMessageId })
+      .eq("id", inserted.id);
+
+    return new Response(JSON.stringify({ ok: true, emailSent }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
