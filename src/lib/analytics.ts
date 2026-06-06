@@ -28,12 +28,12 @@ function ensureGtagStub() {
   }
 }
 
-/** Push the default-denied Consent Mode v2 signal. Safe to call before the
- * gtag.js script is loaded — the queue replays once the script attaches. */
+/** Implicit-consent defaults: analytics granted by default; ad signals denied.
+ * Users can opt out via the banner, which switches analytics_storage to denied. */
 export function initConsentDefaults() {
   ensureGtagStub();
   window.gtag("consent", "default", {
-    analytics_storage: "denied",
+    analytics_storage: "granted",
     ad_storage: "denied",
     ad_user_data: "denied",
     ad_personalization: "denied",
@@ -51,7 +51,7 @@ function injectScript() {
   window.gtag("config", GA_ID, { send_page_view: false });
 }
 
-/** Called after the user clicks Accept. Loads gtag.js and grants consent. */
+/** Called when the user explicitly accepts (opt-in confirmation). */
 export function grantConsent() {
   try {
     localStorage.setItem(CONSENT_KEY, "granted");
@@ -64,12 +64,15 @@ export function grantConsent() {
   window.gtag("consent", "update", { analytics_storage: "granted" });
 }
 
+/** Called when the user opts out. Revokes consent and prevents further events. */
 export function denyConsent() {
   try {
     localStorage.setItem(CONSENT_KEY, "denied");
   } catch {
     /* ignore */
   }
+  ensureGtagStub();
+  window.gtag("consent", "update", { analytics_storage: "denied" });
 }
 
 export function getConsent(): "granted" | "denied" | null {
@@ -81,24 +84,27 @@ export function getConsent(): "granted" | "denied" | null {
   }
 }
 
-/** If consent was already granted in a previous session, attach gtag now. */
+/** Implicit consent: load GA unless the user has explicitly opted out. */
 export function bootstrapIfConsented() {
   ensureGtagStub();
   initConsentDefaults();
-  if (getConsent() === "granted" && IS_PROD && GA_ID) {
+  if (getConsent() === "denied") return;
+  if (IS_PROD && GA_ID) {
     injectScript();
     window.gtag("consent", "update", { analytics_storage: "granted" });
   }
 }
 
 export function pageview(url: string) {
-  if (!IS_PROD || !GA_ID || getConsent() !== "granted") return;
+  if (!IS_PROD || !GA_ID || getConsent() === "denied") return;
   ensureGtagStub();
   window.gtag("config", GA_ID, { page_path: url });
 }
 
+
 export function event(action: string, params?: Record<string, unknown>) {
-  if (!IS_PROD || !GA_ID || getConsent() !== "granted") return;
+  if (!IS_PROD || !GA_ID || getConsent() === "denied") return;
   ensureGtagStub();
   window.gtag("event", action, params ?? {});
 }
+
