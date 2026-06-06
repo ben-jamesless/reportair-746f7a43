@@ -30,7 +30,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
             Site to report. 10 minutes.
           </p>
           <p className="mt-6 text-sm text-[color:var(--bs-rule)] max-w-md">
-            The daily reporting tool for event-build crews — activations, exhibitions, conferences.
+            The daily reporting tool for event-build crews. Keep your site photos organised.
           </p>
         </div>
 
@@ -40,11 +40,11 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
           </p>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[#D94F2A]/30 flex items-center justify-center text-white text-xs font-bold">
-              SL
+              BL
             </div>
             <div>
-              <p className="text-white text-xs font-medium">Sarah Lennon</p>
-              <p className="text-white/50 text-xs">Event Director, Apex Events Group</p>
+              <p className="text-white text-xs font-medium">Ben Lee</p>
+              <p className="text-white/50 text-xs">Operations Director, 54</p>
             </div>
           </div>
         </div>
