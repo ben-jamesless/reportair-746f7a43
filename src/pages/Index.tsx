@@ -9,6 +9,7 @@ import TimeSavedSection from "@/components/marketing/TimeSavedSection";
 import UseCasesSection from "@/components/marketing/UseCasesSection";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter, type LegalPanel } from "@/components/marketing/MarketingFooter";
+import { LeadMagnetPopup } from "@/components/marketing/LeadMagnetPopup";
 import { PricingSection } from "@/components/marketing/PricingSection";
 import { LegalDialog } from "@/components/marketing/LegalDialog";
 import { BRAND, body, display } from "@/components/marketing/brand-tokens";
@@ -182,6 +183,7 @@ const Index = () => {
       <MarketingFooter onOpenLegal={setLegalPanel} />
 
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
+      <LeadMagnetPopup />
     </div>
   );
 };

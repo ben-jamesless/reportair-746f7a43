@@ -21,5 +21,8 @@ verify_jwt = false
 [functions.newsletter-signup]
 verify_jwt = false
 
+[functions.lead-magnet-signup]
+verify_jwt = false
+
 [functions.process-email-queue]
 verify_jwt = true

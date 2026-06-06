@@ -443,6 +443,30 @@ export type Database = {
           },
         ]
       }
+      lead_magnet_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          pdf_slug: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          pdf_slug?: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          pdf_slug?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       newsletter_signups: {
         Row: {
           created_at: string
