@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 689.10 160.00" width="689" height="160" role="img" aria-label="BuildFolder">
+  <text x="18.00" y="112.00" font-family="Geist, 'Geist Black', system-ui, sans-serif" font-weight="900" font-size="100" letter-spacing="-2.00" fill="#FFFFFF">Build</text>
+  <text x="315.60" y="112.00" font-family="Geist, 'Geist Black', system-ui, sans-serif" font-weight="900" font-size="100" letter-spacing="-2.00" fill="#D94F2A">Folder</text>
+  <path d="M 333.60 23.00 L 290.60 23.00 L 290.60 66.00" fill="none" stroke="#D94F2A" stroke-width="10.00" stroke-linecap="butt" stroke-linejoin="miter"/>
+  <path d="M 623.10 137.00 L 666.10 137.00 L 666.10 94.00" fill="none" stroke="#D94F2A" stroke-width="10.00" stroke-linecap="butt" stroke-linejoin="miter"/>
+  <rect x="328.60" y="18.00" width="10" height="10" fill="#D94F2A"/>
+  <rect x="285.60" y="61.00" width="10" height="10" fill="#D94F2A"/>
+  <rect x="618.10" y="132.00" width="10" height="10" fill="#D94F2A"/>
+  <rect x="661.10" y="89.00" width="10" height="10" fill="#D94F2A"/>
+</svg>
