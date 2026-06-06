@@ -62,8 +62,8 @@ export function LeadMagnetSection() {
                 Free guide
               </span>
               <h2
-                className="text-2xl font-extrabold sm:text-3xl md:text-4xl"
-                style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}
+                className="text-2xl font-extrabold sm:text-3xl md:text-4xl text-white"
+                style={{ ...display, lineHeight: 1.15 }}
               >
                 Get the BuildFolder Benefits guide
               </h2>
@@ -79,9 +79,9 @@ export function LeadMagnetSection() {
               {success ? (
                 <div
                   className="rounded-2xl p-5 text-center"
-                  style={{ background: "#FFFFFF", border: `1px solid ${BRAND.ink}14` }}
+                  style={{ background: "#1a1a1a", border: `1px solid ${BRAND.ink}33` }}
                 >
-                  <h3 className="text-base font-bold" style={{ color: BRAND.ink }}>
+                  <h3 className="text-base font-bold text-white">
                     Check your inbox
                   </h3>
                   <p className="mt-1 text-sm" style={{ color: `${BRAND.ink}99` }}>
