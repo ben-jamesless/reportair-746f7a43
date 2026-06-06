@@ -48,6 +48,7 @@ const PreviewHomeV2 = () => {
       <WhyBuildFolderV2 />
       
       <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
+      <LeadMagnetSection />
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
     </div>
