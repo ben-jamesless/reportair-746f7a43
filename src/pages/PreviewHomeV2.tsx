@@ -7,6 +7,7 @@ import WhyBuildFolderV2 from "@/components/marketing/WhyBuildFolderV2";
 
 import UseCasesSection from "@/components/marketing/UseCasesSection";
 import FAQSection from "@/components/marketing/FAQSection";
+import { LeadMagnetSection } from "@/components/marketing/LeadMagnetSection";
 
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter, type LegalPanel } from "@/components/marketing/MarketingFooter";
@@ -47,6 +48,7 @@ const PreviewHomeV2 = () => {
       <WhyBuildFolderV2 />
       
       <FaqOnPaper><div id="faq"><FAQSection /></div></FaqOnPaper>
+      <LeadMagnetSection />
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
     </div>
