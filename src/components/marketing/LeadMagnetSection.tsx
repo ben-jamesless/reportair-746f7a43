@@ -99,9 +99,9 @@ export function LeadMagnetSection() {
                     disabled={loading}
                     className="h-12 w-full rounded-full border px-5 text-sm outline-none"
                     style={{
-                      background: "#FFFFFF",
-                      borderColor: `${BRAND.ink}26`,
-                      color: BRAND.ink,
+                      background: "#111111",
+                      borderColor: `${BRAND.ink}33`,
+                      color: "#ffffff",
                     }}
                   />
                   <button
