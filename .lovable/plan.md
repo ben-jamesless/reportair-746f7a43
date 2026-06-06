@@ -1,21 +1,52 @@
-## Add WhyBuildFolderV2 benefits section
+# Email Popup → PDF Lead Magnet
 
-Create a new section component matching the uploaded HTML and slot it into the V2 home page.
+A popup on the marketing site that appears once a visitor scrolls past 50% of the page. They enter their email, get the PDF emailed to them, and we store the lead in the database.
 
-### 1. New component: `src/components/marketing/WhyBuildFolderV2.tsx`
-- Port the uploaded HTML/CSS into a React component with a scoped `<style>` block (same pattern as `HeroSectionV2`).
-- Use the V2 token values inline (`--ink: #0F1417`, `--paper: #FAF7F0`, `--accent: #D94F2A`, `--font-display: 'Geist'`) since the V2 sections don't rely on `brand.css` vars.
-- Eyebrow "Why Build Folder", headline "A workflow, **not a bucket.**" (orange span), lead paragraph, 2×2 grid of 4 cards with inline SVG icons:
-  1. Sorted, not dumped
-  2. A live build timeline
-  3. Hours back on admin
-  4. A record that lasts
-- Drop the `[data-reveal]` JS-dependent animation (no observer in V2); keep cards statically visible. Preserve hairline icon tiles, dotted ink background, responsive 1-col stack ≤760px.
+## What you'll see
 
-### 2. Wire into `src/pages/PreviewHomeV2.tsx`
-- Import `WhyBuildFolderV2`.
-- Insert it between `<WhyWeBuiltV2 />` and `<UseCasesSection />` (i.e. right after the manifesto, before the dark UseCases band) — matches the uploaded file's "after Manifesto / before Time-saved" intent while respecting the current V2 order.
+1. Visitor scrolls past halfway on the homepage → modal slides in
+2. Modal: headline, short pitch, email input, "Send me the guide" button
+3. On submit: success state ("Check your inbox") + the popup never appears again on this browser
+4. They receive a branded email with a download link to the PDF
+5. Dismissing (X) also marks it as seen-forever
 
-### Notes
-- No changes to V1 home, pricing, or other components.
-- No new deps, no backend changes.
+## The PDF
+
+You didn't specify content. I'll wire everything up against a placeholder file at `public/lead-magnet.pdf`. Once the popup is live, you can either:
+- Upload your own PDF to replace it, or
+- Tell me what it should contain and I'll generate one
+
+The download link in the email points to a public URL, so swapping the file works without code changes.
+
+## Lead storage
+
+A new `lead_magnet_signups` table:
+- email, source (e.g. "homepage-popup"), pdf_slug, created_at
+- Anyone can insert (so the popup works without login)
+- Only platform admins can read (same pattern as your existing `newsletter_signups`)
+
+## Frequency control
+
+`localStorage` flag `bf_lead_magnet_seen=1` — set on dismiss or successful submit. Once set, popup never shows again in that browser.
+
+## Email delivery
+
+Uses Lovable's built-in email system (your `notify.buildfolder.com` domain is already set up). New transactional template `lead-magnet-delivery` with the PDF download button, branded to match BuildFolder.
+
+## Technical details
+
+- **New files**
+  - `src/components/marketing/LeadMagnetPopup.tsx` — modal UI, scroll listener, zod-validated form
+  - `supabase/functions/_shared/transactional-email-templates/lead-magnet-delivery.tsx` — React Email template
+  - `public/lead-magnet.pdf` — placeholder (you replace)
+- **Edits**
+  - `src/pages/Index.tsx` — mount `<LeadMagnetPopup />`
+  - `supabase/functions/_shared/transactional-email-templates/registry.ts` — register new template
+- **Migration**
+  - `lead_magnet_signups` table + RLS (anon insert, admin read) + GRANTs
+- **Flow on submit**
+  1. Client inserts row into `lead_magnet_signups`
+  2. Client invokes `send-transactional-email` with `templateName: 'lead-magnet-delivery'`, `templateData: { downloadUrl }`
+  3. Show success state
+- Idempotency key: `lead-magnet-<signup-row-id>` to prevent duplicate sends on retry
+- GA event `lead_magnet_submit` fired on success
