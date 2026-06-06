@@ -15,26 +15,30 @@ const PDF_OBJECT = "BuildFolder_Benefits.pdf";
 // 1 year signed URL — regenerated on every send, so always fresh.
 const PDF_SIGN_TTL_SECONDS = 60 * 60 * 24 * 365;
 
+const LOGO_URL = "https://buildfolder.com/__l5e/assets-v1/e85ee73c-12f9-4cf9-b414-9951e118bf3d/buildfolder-logo.png";
+
 function emailHtml(downloadUrl: string): string {
   return `<!doctype html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"></head>
 <body style="margin:0;padding:0;background:#F4F1EA;font-family:Helvetica,Arial,sans-serif;color:#0F1417;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F1EA;">
     <tr><td align="center" style="padding:40px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #C9C5BC;border-radius:12px;overflow:hidden;">
-        <tr><td style="background:#F4F1EA;padding:22px 28px;border-bottom:1px solid #C9C5BC;">
-          <span style="font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildFolder</span>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid #C9C5BC;border-radius:14px;overflow:hidden;">
+        <tr><td align="left" style="background:#F4F1EA;padding:26px 32px;border-bottom:1px solid #C9C5BC;">
+          <img src="${LOGO_URL}" alt="BuildFolder" height="30" style="display:block;height:30px;width:auto;border:0;" />
         </td></tr>
-        <tr><td style="padding:32px 28px 28px;">
-          <h1 style="margin:0 0 14px;font-size:24px;font-weight:800;line-height:1.25;">Here&rsquo;s your guide</h1>
-          <p style="margin:0 0 14px;font-size:15px;line-height:1.7;">Thanks for signing up. Click below to download your BuildFolder guide.</p>
-          <p style="margin:0 0 28px;font-size:15px;line-height:1.7;">If you have any questions, just reply to this email &mdash; we read every response.</p>
-          <a href="${downloadUrl}" style="display:inline-block;background:#D94F2A;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:600;padding:12px 20px;border-radius:8px;">Download the PDF &rarr;</a>
-          <p style="margin:24px 0 0;font-size:13px;color:#6B6B66;">Or paste this link into your browser:<br><a href="${downloadUrl}" style="color:#D94F2A;">${downloadUrl}</a></p>
+        <tr><td style="padding:36px 32px 30px;">
+          <h1 style="margin:0 0 16px;font-size:25px;font-weight:800;line-height:1.25;color:#0F1417;letter-spacing:-0.01em;">Here&rsquo;s your guide</h1>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#0F1417;">Thanks for signing up. Click below to download your BuildFolder guide.</p>
+          <p style="margin:0 0 30px;font-size:15px;line-height:1.7;color:#0F1417;">If you have any questions, just reply to this email &mdash; we read every response.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:9px;background:#D94F2A;">
+            <a href="${downloadUrl}" style="display:inline-block;background:#D94F2A;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:700;padding:14px 26px;border-radius:9px;">Download the PDF &nbsp;&rarr;</a>
+          </td></tr></table>
+          <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#8A8A82;">Button not working? <a href="${downloadUrl}" style="color:#D94F2A;text-decoration:underline;">Download here</a> instead.</p>
         </td></tr>
-        <tr><td style="padding:24px 28px 28px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
-          <p style="margin:0 0 8px;font-size:13px;"><strong>Built for the build. Built in Hong Kong.</strong></p>
-          <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="${APP_URL}" style="color:#D94F2A;text-decoration:none;">buildfolder.com</a></p>
+        <tr><td style="padding:24px 32px 26px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
+          <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0F1417;">Built for the build. Built in Hong Kong.</p>
+          <p style="margin:0;font-size:12px;color:#8A8A82;"><a href="${APP_URL}" style="color:#D94F2A;text-decoration:none;">buildfolder.com</a></p>
         </td></tr>
       </table>
     </td></tr>
