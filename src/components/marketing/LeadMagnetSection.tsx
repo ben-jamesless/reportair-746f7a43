@@ -42,25 +42,17 @@ export function LeadMagnetSection() {
   return (
     <section
       id="lead-magnet"
-      className="py-[34px] sm:py-[41px] md:py-[82px]"
-      style={{ background: BRAND.fog, ...body }}
+      className="py-[34px] sm:py-[41px] md:py-[82px] bg-black"
+      style={{ ...body }}
     >
       <div className="mx-auto max-w-[1000px] px-5 sm:px-8">
         <div
-          className="relative overflow-hidden rounded-3xl p-8 sm:p-12 md:p-16"
+          className="relative overflow-hidden rounded-3xl p-8 sm:p-12 md:p-16 bg-black"
           style={{
-            background: "linear-gradient(135deg, #FFFFFF 0%, #F5F7FA 100%)",
             border: `1px solid ${BRAND.ink}14`,
             boxShadow: "0 24px 60px rgba(15,20,23,0.08)",
           }}
         >
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(40% 50% at 90% 10%, rgba(217,79,42,.08), transparent 60%), radial-gradient(40% 50% at 10% 90%, rgba(46,139,192,.08), transparent 60%)",
-            }}
-          />
           <div className="relative grid items-center gap-8 md:grid-cols-[1fr_auto]">
             <div>
               <span
