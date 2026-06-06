@@ -21,7 +21,7 @@ type Row = {
   last_accessed_at: string | null;
   created_at: string;
   project_id: string;
-  projects: { id: string; name: string | null } | null;
+  project_name?: string | null;
 };
 
 export default function ShareLinksPage() {
@@ -33,10 +33,17 @@ export default function ShareLinksPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,project_id,projects(id,name)")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,project_id")
       .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setRows((data ?? []) as unknown as Row[]);
+    if (error) { toast.error(error.message); setRows([]); setLoading(false); return; }
+    const links = (data ?? []) as Row[];
+    const projectIds = Array.from(new Set(links.map(l => l.project_id).filter(Boolean)));
+    let nameMap = new Map<string, string>();
+    if (projectIds.length) {
+      const { data: projs } = await supabase.from("projects").select("id,name").in("id", projectIds);
+      (projs ?? []).forEach((p: { id: string; name: string | null }) => nameMap.set(p.id, p.name ?? ""));
+    }
+    setRows(links.map(l => ({ ...l, project_name: nameMap.get(l.project_id) ?? null })));
     setLoading(false);
   };
 
