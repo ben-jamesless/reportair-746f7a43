@@ -183,6 +183,7 @@ const Index = () => {
       <MarketingFooter onOpenLegal={setLegalPanel} />
 
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
+      <LeadMagnetPopup />
     </div>
   );
 };
