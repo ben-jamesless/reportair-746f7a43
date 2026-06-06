@@ -32,7 +32,7 @@ const WhyWeBuiltV2 = () => (
     <p className="eyebrow font-bold">Why we built this</p>
     <div className="card">
       <p className="copy">
-        Photos are the backbone of sharing information during an event build but when it comes to updating progress reports or looking back at past events they are lost to depths of WhatApp threads, an inaccessible camera roll or a drive with no organisation. So <span className="accent">we built the platform we always wanted,</span> a place to store, share and review project progress.
+        Photos are how a build gets shared, but come reporting they are lost to WhatApp threads, camera roles or drives with no organisation. So <span className="accent">we built the platform we always wanted,</span> a place to store, share and review project progress.
       </p>
     </div>
   </section>
