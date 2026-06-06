@@ -11,7 +11,7 @@ const About = () => {
   const [legalPanel, setLegalPanel] = useState<LegalPanel | null>(null);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND.fog, color: BRAND.ink, ...body }}>
+    <div className="min-h-screen" style={{ backgroundColor: BRAND.paper, color: BRAND.ink, ...body }}>
       <MarketingHeader />
 
       <section style={{ background: "#0F1417" }}>
