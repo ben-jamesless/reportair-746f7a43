@@ -10,7 +10,7 @@ const corsHeaders = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const APP_URL = "https://www.buildfolder.com";
-const PDF_URL = `${APP_URL}/lead-magnet.pdf`;
+const PDF_URL = `${APP_URL}/__l5e/assets-v1/b84f5219-055b-4df0-aa5e-3165bbad384b/BuildFolder_Benefits.pdf`;
 
 function emailHtml(downloadUrl: string): string {
   return `<!doctype html>
