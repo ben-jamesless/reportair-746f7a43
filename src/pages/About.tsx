@@ -11,10 +11,10 @@ const About = () => {
   const [legalPanel, setLegalPanel] = useState<LegalPanel | null>(null);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: BRAND.paper, color: BRAND.ink, ...body }}>
+    <div className="min-h-screen bs-paper-grid" style={{ backgroundColor: BRAND.paper, color: BRAND.ink, ...body }}>
       <MarketingHeader />
 
-      <section style={{ background: BRAND.paper }}>
+      <section>
         <div className="mx-auto max-w-[760px] px-5 py-16 sm:px-6 sm:py-24">
           <span
             className="mb-4 inline-block text-[11px] font-extrabold uppercase tracking-[0.14em]"
