@@ -17,9 +17,8 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
         <div className="grid gap-10 sm:grid-cols-3">
           {/* Brand + contact */}
           <div className="flex flex-col gap-4">
-            <a href="/" aria-label="BuildFolder home" className="flex items-center gap-2">
-              <img src="/brand-mark.svg" alt="" className="h-8 w-8" />
-              <span className="font-display font-black tracking-tight text-base text-white">BuildFolder</span>
+            <a href="/" aria-label="BuildFolder home" className="flex items-center">
+              <img src="/buildfolder-lockup-dark.svg" alt="BuildFolder" className="h-8 w-auto" />
             </a>
             <div className="text-sm leading-relaxed" style={{ color: link }}>
               <p className="text-white font-medium">Ben Lee · Director</p>
