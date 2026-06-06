@@ -65,6 +65,7 @@ const App = () => (
                 <Route path="/preview/home-v2" element={<ErrorBoundary label="page"><PreviewHomeV2 /></ErrorBoundary>} />
                 <Route path="/home-v1" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
                 <Route path="/pricing" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
+                <Route path="/preview/pricing-v2" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
                 <Route path="/about" element={<ErrorBoundary label="page"><About /></ErrorBoundary>} />
                 <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
