@@ -14,7 +14,7 @@ const About = () => {
     <div className="min-h-screen" style={{ backgroundColor: BRAND.paper, color: BRAND.ink, ...body }}>
       <MarketingHeader />
 
-      <section style={{ background: "#0F1417" }}>
+      <section style={{ background: BRAND.paper }}>
         <div className="mx-auto max-w-[760px] px-5 py-16 sm:px-6 sm:py-24">
           <span
             className="mb-4 inline-block text-[11px] font-extrabold uppercase tracking-[0.14em]"
@@ -24,24 +24,24 @@ const About = () => {
           </span>
           <h1
             className="text-4xl font-extrabold sm:text-5xl"
-            style={{ ...display, color: "#FFFFFF", lineHeight: 1.1 }}
+            style={{ ...display, color: BRAND.ink, lineHeight: 1.1 }}
           >
             Reporting <span style={{ color: ORANGE }}>built for the build</span> itself — not before, not after.
           </h1>
-          <p className="mt-6 text-lg" style={{ color: "rgba(237,241,247,.75)", lineHeight: 1.6 }}>
+          <p className="mt-6 text-lg" style={{ color: "rgba(15,20,23,.75)", lineHeight: 1.6 }}>
             BuildFolder is photo-first reporting for event and production teams who need to keep
             clients in the loop while the build is still happening.
           </p>
 
           <h2
             className="mt-14 text-2xl font-extrabold sm:text-3xl"
-            style={{ ...display, color: "#FFFFFF", lineHeight: 1.2 }}
+            style={{ ...display, color: BRAND.ink, lineHeight: 1.2 }}
           >
             Why we created BuildFolder
           </h2>
           <div
             className="mt-5 space-y-5 text-base sm:text-[1.05rem]"
-            style={{ color: "rgba(237,241,247,.8)", lineHeight: 1.7 }}
+            style={{ color: "rgba(15,20,23,.8)", lineHeight: 1.7 }}
           >
             <p>
               BuildFolder was built by an Operations Director who spent 15 years running
@@ -67,7 +67,7 @@ const About = () => {
               It is built by people who have lived the problem, for people who are still living
               it. If that sounds familiar, we would love for you to try it.
             </p>
-            <p className="pt-2" style={{ ...display, color: "#FFFFFF", fontWeight: 700 }}>
+            <p className="pt-2" style={{ ...display, color: BRAND.ink, fontWeight: 700 }}>
               — Ben
             </p>
           </div>
@@ -86,9 +86,9 @@ const About = () => {
               to="/#how-it-works"
               className="rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
               style={{
-                color: "#FFFFFF",
-                border: "1px solid rgba(255,255,255,0.18)",
-                backgroundColor: "rgba(255,255,255,0.06)",
+                color: BRAND.ink,
+                border: "1px solid rgba(15,20,23,0.18)",
+                backgroundColor: "rgba(15,20,23,0.06)",
               }}
             >
               See how it works
