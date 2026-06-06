@@ -40,6 +40,7 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
+const AdminLeadMagnet = lazy(() => import("./pages/admin/AdminLeadMagnet.tsx"));
 
 
 
@@ -89,6 +90,7 @@ const App = () => (
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="accounts" element={<AdminUsers />} />
                   <Route path="projects" element={<AdminProjects />} />
+                  <Route path="signups" element={<AdminLeadMagnet />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

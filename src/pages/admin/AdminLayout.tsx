@@ -6,6 +6,7 @@ const tabs = [
   { to: "/admin/summary", label: "Summary" },
   { to: "/admin/users", label: "Users" },
   { to: "/admin/projects", label: "Projects" },
+  { to: "/admin/signups", label: "Signups" },
 ];
 
 const AdminLayout = () => {
