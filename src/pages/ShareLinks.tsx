@@ -124,9 +124,9 @@ export default function ShareLinksPage() {
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
                           Project:{" "}
-                          {r.projects?.id ? (
-                            <RouterLink to={`/projects/${r.projects.id}`} className="font-medium text-foreground hover:underline">
-                              {r.projects.name || "Untitled project"}
+                          {r.project_id ? (
+                            <RouterLink to={`/projects/${r.project_id}`} className="font-medium text-foreground hover:underline">
+                              {r.project_name || "Untitled project"}
                             </RouterLink>
                           ) : (
                             <span>—</span>
