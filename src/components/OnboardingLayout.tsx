@@ -18,7 +18,7 @@ export function OnboardingLayout({ children, step, totalSteps = 3 }: OnboardingL
       >
         <div className="relative z-10">
           <Link to="/" aria-label="BuildFolder home" className="flex items-center gap-2">
-            <img src="/favicon.svg" alt="" className="h-8 w-8" />
+            <img src="/brand-mark.svg" alt="" className="h-8 w-8" />
             <span className="font-display font-black tracking-tight text-base text-white">BuildFolder</span>
           </Link>
         </div>

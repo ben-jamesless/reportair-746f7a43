@@ -61,8 +61,9 @@ const App = () => (
           <Suspense fallback={<RouteFallback />}>
             <ErrorBoundary label="page">
               <Routes>
-                <Route path="/" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
+                <Route path="/" element={<ErrorBoundary label="page"><PreviewHomeV2 /></ErrorBoundary>} />
                 <Route path="/preview/home-v2" element={<ErrorBoundary label="page"><PreviewHomeV2 /></ErrorBoundary>} />
+                <Route path="/home-v1" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
                 <Route path="/preview/pricing-v2" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
                 <Route path="/about" element={<ErrorBoundary label="page"><About /></ErrorBoundary>} />
