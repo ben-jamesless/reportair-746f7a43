@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { usePlan } from "@/hooks/usePlan";
+import { usePlatformAdmin } from "@/hooks/usePlatformAdmin";
 
 export function TrialBanner() {
   const { subscriptionStatus, plan, trialEndsAt } = usePlan();
+  const { isAdmin } = usePlatformAdmin();
 
+  if (isAdmin) return null;
   if (subscriptionStatus !== "trialing" || !trialEndsAt) return null;
 
   const daysLeft = Math.max(
