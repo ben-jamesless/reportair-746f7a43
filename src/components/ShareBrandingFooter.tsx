@@ -19,7 +19,7 @@ export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBrand
       onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
       onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
     >
-      <img src="/favicon.svg" alt="" style={{ width: "18px", height: "18px", display: "block" }} />
+      <img src="/brand-mark.svg" alt="" style={{ width: "18px", height: "18px", display: "block" }} />
       <span style={{ color: "#F4F1EA", fontWeight: 700, fontSize: "13px", letterSpacing: "-0.01em" }}>
         BuildFolder
       </span>
