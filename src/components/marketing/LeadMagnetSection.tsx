@@ -42,17 +42,25 @@ export function LeadMagnetSection() {
   return (
     <section
       id="lead-magnet"
-      className="py-[34px] sm:py-[41px] md:py-[82px] bg-black"
-      style={{ ...body }}
+      className="py-[34px] sm:py-[41px] md:py-[82px]"
+      style={{ background: BRAND.fog, ...body }}
     >
       <div className="mx-auto max-w-[1000px] px-5 sm:px-8">
         <div
-          className="relative overflow-hidden rounded-3xl p-8 sm:p-12 md:p-16 bg-black"
+          className="relative overflow-hidden rounded-3xl p-8 sm:p-12 md:p-16"
           style={{
+            background: "linear-gradient(135deg, #FFFFFF 0%, #F5F7FA 100%)",
             border: `1px solid ${BRAND.ink}14`,
             boxShadow: "0 24px 60px rgba(15,20,23,0.08)",
           }}
         >
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(40% 50% at 90% 10%, rgba(217,79,42,.08), transparent 60%), radial-gradient(40% 50% at 10% 90%, rgba(46,139,192,.08), transparent 60%)",
+            }}
+          />
           <div className="relative grid items-center gap-8 md:grid-cols-[1fr_auto]">
             <div>
               <span
@@ -62,8 +70,8 @@ export function LeadMagnetSection() {
                 Free guide
               </span>
               <h2
-                className="text-2xl font-extrabold sm:text-3xl md:text-4xl text-white"
-                style={{ ...display, lineHeight: 1.15 }}
+                className="text-2xl font-extrabold sm:text-3xl md:text-4xl"
+                style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}
               >
                 Get the BuildFolder Benefits guide
               </h2>
@@ -79,9 +87,9 @@ export function LeadMagnetSection() {
               {success ? (
                 <div
                   className="rounded-2xl p-5 text-center"
-                  style={{ background: "#1a1a1a", border: `1px solid ${BRAND.ink}33` }}
+                  style={{ background: "#FFFFFF", border: `1px solid ${BRAND.ink}14` }}
                 >
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-bold" style={{ color: BRAND.ink }}>
                     Check your inbox
                   </h3>
                   <p className="mt-1 text-sm" style={{ color: `${BRAND.ink}99` }}>
@@ -99,9 +107,9 @@ export function LeadMagnetSection() {
                     disabled={loading}
                     className="h-12 w-full rounded-full border px-5 text-sm outline-none"
                     style={{
-                      background: "#111111",
-                      borderColor: `${BRAND.ink}33`,
-                      color: "#ffffff",
+                      background: "#FFFFFF",
+                      borderColor: `${BRAND.ink}26`,
+                      color: BRAND.ink,
                     }}
                   />
                   <button
