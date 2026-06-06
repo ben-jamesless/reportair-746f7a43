@@ -49,18 +49,10 @@ export function LeadMagnetSection() {
         <div
           className="relative overflow-hidden rounded-3xl p-8 sm:p-12 md:p-16"
           style={{
-            background: "linear-gradient(135deg, #FFFFFF 0%, #F5F7FA 100%)",
-            border: `1px solid ${BRAND.ink}14`,
+            background: BRAND.ink,
             boxShadow: "0 24px 60px rgba(15,20,23,0.08)",
           }}
         >
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(40% 50% at 90% 10%, rgba(217,79,42,.08), transparent 60%), radial-gradient(40% 50% at 10% 90%, rgba(46,139,192,.08), transparent 60%)",
-            }}
-          />
           <div className="relative grid items-center gap-8 md:grid-cols-[1fr_auto]">
             <div>
               <span
@@ -71,13 +63,13 @@ export function LeadMagnetSection() {
               </span>
               <h2
                 className="text-2xl font-extrabold sm:text-3xl md:text-4xl"
-                style={{ ...display, color: BRAND.ink, lineHeight: 1.15 }}
+                style={{ ...display, color: "#FFFFFF", lineHeight: 1.15 }}
               >
                 Get the BuildFolder Benefits guide
               </h2>
               <p
                 className="mt-3 max-w-xl text-sm sm:text-base"
-                style={{ color: `${BRAND.ink}B3` }}
+                style={{ color: "rgba(255,255,255,0.70)" }}
               >
                 A free PDF on how site teams cut hours off weekly reporting — delivered to your inbox.
               </p>
@@ -87,7 +79,7 @@ export function LeadMagnetSection() {
               {success ? (
                 <div
                   className="rounded-2xl p-5 text-center"
-                  style={{ background: "#FFFFFF", border: `1px solid ${BRAND.ink}14` }}
+                  style={{ background: "#FFFFFF" }}
                 >
                   <h3 className="text-base font-bold" style={{ color: BRAND.ink }}>
                     Check your inbox
@@ -127,7 +119,7 @@ export function LeadMagnetSection() {
                       {error}
                     </p>
                   )}
-                  <p className="text-[11px]" style={{ color: `${BRAND.ink}80` }}>
+                  <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.50)" }}>
                     No spam. Unsubscribe anytime.
                   </p>
                 </form>
