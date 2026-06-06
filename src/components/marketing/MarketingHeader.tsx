@@ -23,7 +23,7 @@ export function MarketingHeader() {
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary">
           <a href="/#how-it-works" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>How it works</a>
           <a href="/#faq" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>FAQ</a>
-          <a href="/#pricing" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Pricing</a>
+          <a href="/pricing" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>Pricing</a>
           <Link to="/about" className="text-sm font-medium transition-colors" style={{ color: BRAND.slate }}>About</Link>
         </nav>
         <div className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export function MarketingHeader() {
           <nav className="mx-auto flex max-w-[1360px] flex-col px-5 py-3 sm:px-6" aria-label="Mobile">
             <a href="/#how-it-works" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>How it works</a>
             <a href="/#faq" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>FAQ</a>
-            <a href="/#pricing" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>Pricing</a>
+            <a href="/pricing" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>Pricing</a>
             <Link to="/about" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm font-medium" style={{ color: BRAND.slate }}>About</Link>
             <Link to="/auth?tab=signin" onClick={() => setMobileNavOpen(false)} className="sm:hidden py-2 text-sm font-semibold" style={{ color: BRAND.ink }}>Sign in</Link>
           </nav>
