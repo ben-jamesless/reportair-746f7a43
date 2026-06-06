@@ -54,7 +54,7 @@ export default function ShareLinksPage() {
     if (!q) return rows;
     return rows.filter(r =>
       (r.label ?? "").toLowerCase().includes(q) ||
-      (r.projects?.name ?? "").toLowerCase().includes(q) ||
+      (r.project_name ?? "").toLowerCase().includes(q) ||
       r.token.toLowerCase().includes(q)
     );
   }, [rows, query]);
