@@ -34,7 +34,7 @@ export function CookieConsentBanner() {
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 text-sm text-white sm:flex-row sm:items-center sm:justify-between">
         <p className="text-white/90">
-          We use analytics to improve BuildFolder. Accept to help us.
+          We use cookies and analytics to improve BuildFolder. By continuing to browse you agree to this. You can opt out anytime.
         </p>
         <div className="flex shrink-0 gap-2">
           <button
@@ -42,7 +42,7 @@ export function CookieConsentBanner() {
             onClick={decline}
             className="rounded-md border border-white/20 px-4 py-2 text-white/80 transition hover:bg-white/10"
           >
-            Decline
+            Opt out
           </button>
           <button
             type="button"
@@ -50,7 +50,7 @@ export function CookieConsentBanner() {
             className="rounded-md px-4 py-2 font-medium text-white transition hover:opacity-90"
             style={{ background: "#1A6EFF" }}
           >
-            Accept
+            Got it
           </button>
         </div>
       </div>
