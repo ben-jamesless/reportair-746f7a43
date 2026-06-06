@@ -81,9 +81,9 @@ Deno.serve(async (req) => {
 
     // Send the email
     const apiKey = Deno.env.get("RESEND_API_KEY");
+    let debug: Record<string, unknown> = { apiKeyPresent: !!apiKey };
     if (apiKey) {
       const rawFrom = (Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>").trim();
-      // Normalize "from" to satisfy Resend: must be `email@host` or `Name <email@host>`
       let from = rawFrom;
       if (!/^[^<>]+<[^\s@<>]+@[^\s@<>]+>$/.test(rawFrom) && !EMAIL_RE.test(rawFrom)) {
         const m = rawFrom.match(/([^\s<>"]+@[^\s<>"]+)/);
@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
           from = "BuildFolder <onboarding@resend.dev>";
         }
       }
+      debug.rawFrom = rawFrom;
+      debug.normalizedFrom = from;
       try {
         const resp = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -105,17 +107,16 @@ Deno.serve(async (req) => {
             html: emailHtml(PDF_URL),
           }),
         });
-        if (!resp.ok) {
-          console.warn("Resend send failed", resp.status, await resp.text());
-        }
+        const text = await resp.text();
+        debug.resendStatus = resp.status;
+        debug.resendBody = text.slice(0, 500);
+        if (!resp.ok) console.warn("Resend send failed", resp.status, text);
       } catch (e) {
-        console.warn("Resend send exception", e);
+        debug.resendException = String(e);
       }
-    } else {
-      console.warn("RESEND_API_KEY not configured; skipping email send");
     }
 
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ ok: true, debug }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
