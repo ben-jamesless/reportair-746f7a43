@@ -1,9 +1,9 @@
 // GA4 analytics utility with Consent Mode v2.
 //
 // This app is Vite + React (not Next.js), so the measurement ID is read from
-// `import.meta.env.VITE_GA_MEASUREMENT_ID`. The GA script is NOT loaded until
-// the user accepts cookies (see CookieConsentBanner). In dev the script is
-// skipped entirely to keep development data clean.
+// `import.meta.env.VITE_GA_MEASUREMENT_ID`. In production, GA loads by default
+// unless the user explicitly opts out in the cookie banner. In dev the script
+// is skipped entirely to keep development data clean.
 
 declare global {
   interface Window {
@@ -48,7 +48,7 @@ function injectScript() {
   s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
   document.head.appendChild(s);
   window.gtag("js", new Date());
-  window.gtag("config", GA_ID, { send_page_view: false });
+  window.gtag("config", GA_ID, { send_page_view: true });
 }
 
 /** Called when the user explicitly accepts (opt-in confirmation). */
@@ -98,7 +98,13 @@ export function bootstrapIfConsented() {
 export function pageview(url: string) {
   if (!IS_PROD || !GA_ID || getConsent() === "denied") return;
   ensureGtagStub();
-  window.gtag("config", GA_ID, { page_path: url });
+  injectScript();
+  window.gtag("event", "page_view", {
+    send_to: GA_ID,
+    page_path: url,
+    page_location: window.location.origin + url,
+    page_title: document.title,
+  });
 }
 
 
