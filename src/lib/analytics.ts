@@ -48,7 +48,7 @@ function injectScript() {
   s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
   document.head.appendChild(s);
   window.gtag("js", new Date());
-  window.gtag("config", GA_ID, { send_page_view: false });
+  window.gtag("config", GA_ID, { send_page_view: true });
 }
 
 /** Called when the user explicitly accepts (opt-in confirmation). */
