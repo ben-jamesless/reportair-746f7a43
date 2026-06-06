@@ -21,7 +21,7 @@ type Row = {
   last_accessed_at: string | null;
   created_at: string;
   project_id: string;
-  projects: { id: string; name: string | null } | null;
+  project_name?: string | null;
 };
 
 export default function ShareLinksPage() {
@@ -33,10 +33,17 @@ export default function ShareLinksPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,project_id,projects(id,name)")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,project_id")
       .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setRows((data ?? []) as unknown as Row[]);
+    if (error) { toast.error(error.message); setRows([]); setLoading(false); return; }
+    const links = (data ?? []) as Row[];
+    const projectIds = Array.from(new Set(links.map(l => l.project_id).filter(Boolean)));
+    let nameMap = new Map<string, string>();
+    if (projectIds.length) {
+      const { data: projs } = await supabase.from("projects").select("id,name").in("id", projectIds);
+      (projs ?? []).forEach((p: { id: string; name: string | null }) => nameMap.set(p.id, p.name ?? ""));
+    }
+    setRows(links.map(l => ({ ...l, project_name: nameMap.get(l.project_id) ?? null })));
     setLoading(false);
   };
 
@@ -47,7 +54,7 @@ export default function ShareLinksPage() {
     if (!q) return rows;
     return rows.filter(r =>
       (r.label ?? "").toLowerCase().includes(q) ||
-      (r.projects?.name ?? "").toLowerCase().includes(q) ||
+      (r.project_name ?? "").toLowerCase().includes(q) ||
       r.token.toLowerCase().includes(q)
     );
   }, [rows, query]);
@@ -117,9 +124,9 @@ export default function ShareLinksPage() {
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
                           Project:{" "}
-                          {r.projects?.id ? (
-                            <RouterLink to={`/projects/${r.projects.id}`} className="font-medium text-foreground hover:underline">
-                              {r.projects.name || "Untitled project"}
+                          {r.project_id ? (
+                            <RouterLink to={`/projects/${r.project_id}`} className="font-medium text-foreground hover:underline">
+                              {r.project_name || "Untitled project"}
                             </RouterLink>
                           ) : (
                             <span>—</span>
