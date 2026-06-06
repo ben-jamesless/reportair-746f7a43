@@ -82,7 +82,18 @@ Deno.serve(async (req) => {
     // Send the email
     const apiKey = Deno.env.get("RESEND_API_KEY");
     if (apiKey) {
-      const from = Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>";
+      const rawFrom = (Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>").trim();
+      // Normalize "from" to satisfy Resend: must be `email@host` or `Name <email@host>`
+      let from = rawFrom;
+      if (!/^[^<>]+<[^\s@<>]+@[^\s@<>]+>$/.test(rawFrom) && !EMAIL_RE.test(rawFrom)) {
+        const m = rawFrom.match(/([^\s<>"]+@[^\s<>"]+)/);
+        if (m) {
+          const name = rawFrom.replace(m[1], "").replace(/[<>"]/g, "").trim() || "BuildFolder";
+          from = `${name} <${m[1]}>`;
+        } else {
+          from = "BuildFolder <onboarding@resend.dev>";
+        }
+      }
       try {
         const resp = await fetch("https://api.resend.com/emails", {
           method: "POST",
