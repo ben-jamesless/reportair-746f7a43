@@ -42,8 +42,8 @@ export function LeadMagnetSection() {
   return (
     <section
       id="lead-magnet"
-      className="bs-paper-grid py-[34px] sm:py-[41px] md:py-[82px]"
-      style={{ ...body }}
+      className="py-[34px] sm:py-[41px] md:py-[82px]"
+      style={{ background: "transparent", ...body }}
     >
       <div className="mx-auto max-w-[1000px] px-5 sm:px-8">
         <div
