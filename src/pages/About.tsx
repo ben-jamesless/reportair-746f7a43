@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter, type LegalPanel } from "@/components/marketing/MarketingFooter";
 import { LegalDialog } from "@/components/marketing/LegalDialog";
+import { LeadMagnetSection } from "@/components/marketing/LeadMagnetSection";
 import { BRAND, body, display } from "@/components/marketing/brand-tokens";
 
 const ORANGE = "#D94F2A";
@@ -96,6 +97,8 @@ const About = () => {
           </div>
         </div>
       </section>
+
+      <LeadMagnetSection />
 
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />

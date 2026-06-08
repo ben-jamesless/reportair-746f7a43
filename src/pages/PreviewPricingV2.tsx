@@ -2,6 +2,7 @@ import { useState } from "react";
 import PricingSectionV2 from "@/components/marketing/PricingSectionV2";
 import ComparePlansV2 from "@/components/marketing/ComparePlansV2";
 import LogosStripV2 from "@/components/marketing/LogosStripV2";
+import { LeadMagnetSection } from "@/components/marketing/LeadMagnetSection";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter, type LegalPanel } from "@/components/marketing/MarketingFooter";
 import { LegalDialog } from "@/components/marketing/LegalDialog";
@@ -19,6 +20,7 @@ const PreviewPricingV2 = () => {
       <PricingSectionV2 />
       <LogosStripV2 />
       <ComparePlansV2 />
+      <LeadMagnetSection />
       <MarketingFooter onOpenLegal={setLegalPanel} />
       <LegalDialog panel={legalPanel} onClose={() => setLegalPanel(null)} />
     </div>
