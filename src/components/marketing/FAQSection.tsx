@@ -79,7 +79,7 @@ export default function FAQSection() {
         <p style={{ ...body, fontSize: 15, fontWeight: 400, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
           Can't find what you're looking for?{" "}
           <a
-            href="mailto:ben@buildslides.com"
+            href="mailto:hello@buildfolder.com"
             style={{ color: "#D94F2A", textDecoration: "underline", textUnderlineOffset: 3 }}
           >
             Drop us a message →

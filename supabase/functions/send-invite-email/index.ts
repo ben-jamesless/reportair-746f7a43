@@ -130,7 +130,7 @@ function renderEmail(args: {
             <tr>
               <td style="padding:24px 28px 28px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
                 <p style="margin:0 0 8px;font-size:13px;color:#0F1417;line-height:1.5;"><strong>Built for the build. Built in Hong Kong.</strong></p>
-                <p style="margin:0 0 12px;font-size:13px;color:#6B6B66;line-height:1.5;">Ben Lee · Director · <a href="mailto:ben@buildslides.com" style="color:#D94F2A;text-decoration:underline;">ben@buildslides.com</a></p>
+                <p style="margin:0 0 12px;font-size:13px;color:#6B6B66;line-height:1.5;">Ben Lee · Director · <a href="mailto:hello@buildfolder.com" style="color:#D94F2A;text-decoration:underline;">hello@buildfolder.com</a></p>
                 <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="https://www.buildslides.com" style="color:#D94F2A;text-decoration:none;">buildslides.com</a></p>
               </td>
             </tr>

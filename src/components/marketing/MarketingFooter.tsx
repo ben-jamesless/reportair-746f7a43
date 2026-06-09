@@ -22,7 +22,7 @@ export function MarketingFooter({ onOpenLegal }: MarketingFooterProps) {
             </a>
             <div className="text-sm leading-relaxed" style={{ color: link }}>
               <p className="text-white font-medium">Ben Lee · Director</p>
-              <p><a href="mailto:ben@buildslides.com" className="hover:text-white transition-colors">ben@buildslides.com</a></p>
+              <p><a href="mailto:hello@buildfolder.com" className="hover:text-white transition-colors">hello@buildfolder.com</a></p>
               <p>{"\n"}</p>
               <p style={{ color: muted }}>Hong Kong</p>
             </div>

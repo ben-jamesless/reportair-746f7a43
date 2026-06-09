@@ -434,7 +434,7 @@ const Billing = () => {
                   className="w-full font-semibold bg-primary text-primary-foreground hover:bg-primary-hover"
                   onClick={() => {
                     if (p.key === "studio") {
-                      window.open("mailto:hello@buildslides.co?subject=BuildFolder%20Studio%20Enquiry", "_blank");
+                      window.open("mailto:hello@buildfolder.com?subject=BuildFolder%20Studio%20Enquiry", "_blank");
                       return;
                     }
                     handleChoosePlan(p.key);
@@ -474,7 +474,7 @@ const Billing = () => {
             <Button
               variant="outline"
               className="w-full font-semibold"
-              onClick={() => window.open("mailto:ben@buildslides.com?subject=BuildFolder%20Demo%20Request", "_blank")}
+              onClick={() => window.open("mailto:hello@buildfolder.com?subject=BuildFolder%20Demo%20Request", "_blank")}
             >
               Schedule a Demo
             </Button>

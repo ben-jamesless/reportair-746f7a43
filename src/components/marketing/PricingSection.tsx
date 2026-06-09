@@ -98,7 +98,7 @@ const PRICING = {
         "7-day free trial",
       ],
       cta: "Talk to sales",
-      ctaLink: "mailto:hello@buildslides.co",
+      ctaLink: "mailto:hello@buildfolder.com",
       featured: false,
       flag: undefined,
     },

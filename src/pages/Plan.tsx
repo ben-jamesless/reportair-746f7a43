@@ -106,7 +106,7 @@ const PLANS: {
       "White-label report header",
       "Priority support + onboarding call",
     ],
-    action: { type: "contact", href: "mailto:hello@buildslides.co" },
+    action: { type: "contact", href: "mailto:hello@buildfolder.com" },
     cta: "Get in touch",
   },
 ];
