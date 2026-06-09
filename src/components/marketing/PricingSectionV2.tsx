@@ -104,7 +104,7 @@ const PLANS: Plan[] = [
       "Custom contracts & invoicing",
     ],
     cta: "Talk to sales",
-    ctaLink: "mailto:hello@buildslides.co",
+    ctaLink: "mailto:hello@buildfolder.com",
     dark: true,
   },
 ];
