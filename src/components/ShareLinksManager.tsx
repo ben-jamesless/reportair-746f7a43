@@ -101,7 +101,7 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
     setSendingFor(link.id);
     try {
       const shareUrl = `${window.location.origin}/s/${link.token}`;
-      await supabase.functions.invoke("send-transactional-email", {
+      const { data, error } = await supabase.functions.invoke("send-transactional-email", {
         body: {
           to: email,
           template: "share_link",
@@ -109,13 +109,16 @@ export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
             senderName: senderName || "Your team",
             projectName: projectName || "a project",
             shareUrl,
+            shareLinkToken: link.token,
           },
         },
       });
+      if (error) throw error;
+      if (data && data.ok === false) throw new Error(data.error || "Send failed");
       toast.success("Share link sent");
       setNotifyEmails(prev => ({ ...prev, [link.id]: "" }));
-    } catch {
-      toast.error("Could not send email. Please try again.");
+    } catch (e) {
+      toast.error((e as Error)?.message || "Could not send email. Please try again.");
     } finally {
       setSendingFor(null);
     }
