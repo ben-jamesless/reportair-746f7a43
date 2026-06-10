@@ -69,7 +69,7 @@ const About = () => {
               it. If that sounds familiar, we would love for you to try it.
             </p>
             <p className="pt-2" style={{ ...display, color: BRAND.ink, fontWeight: 700 }}>
-              — Ben
+              {"\n"}
             </p>
           </div>
 
