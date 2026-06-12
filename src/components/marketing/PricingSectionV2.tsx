@@ -83,29 +83,7 @@ const PLANS: Plan[] = [
     ],
     cta: "Start 7-day trial",
     ctaLink: "/auth?tab=signup",
-    featured: true,
-    flag: "Most Popular",
     microcopy: "No credit card needed",
-  },
-  {
-    name: "Studio",
-    best: "For agencies & venues",
-    price: "Custom",
-    priceCaption: "Contact sales",
-    highlights: [
-      { label: "active builds", bold: "Unlimited" },
-      { label: "team members", bold: "Unlimited" },
-    ],
-    groupHeader: "Everything in Crew, plus:",
-    features: [
-      "White-label reports (coming soon)",
-      "Custom domain (coming soon)",
-      "Priority support",
-      "Custom contracts & invoicing",
-    ],
-    cta: "Talk to sales",
-    ctaLink: "mailto:hello@buildfolder.com",
-    dark: true,
   },
 ];
 
@@ -161,7 +139,7 @@ const PricingSectionV2 = () => (
 
       .pricing-v2-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 20px;
         align-items: stretch;
       }
