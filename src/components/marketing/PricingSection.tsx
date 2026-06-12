@@ -75,30 +75,6 @@ const PRICING = {
       ],
       cta: "Start your first build",
       ctaLink: "/auth?tab=signup",
-      featured: true,
-      flag: "Most teams start here",
-    },
-    {
-      name: "Studio",
-      best: "For agencies, large contractors, venues",
-      monthlyPrice: "Get in touch",
-      annualMonthly: "Get in touch",
-      annualBilled: "Custom pricing",
-      features: [
-        "Unlimited active builds",
-        "Unlimited team members",
-        "Unlimited photo uploads",
-        "Live share link",
-        "Password-protected links",
-        "PDF export",
-        "Your logo only — no BuildFolder",
-        "White-label report header",
-        "Custom domain (coming soon)",
-        "Priority support + onboarding call",
-        "7-day free trial",
-      ],
-      cta: "Talk to sales",
-      ctaLink: "mailto:hello@buildfolder.com",
       featured: false,
       flag: undefined,
     },
@@ -168,7 +144,7 @@ export function PricingSection() {
           </div>
         </div>
 
-        <div className="grid items-stretch gap-7 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+        <div className="grid items-stretch gap-7 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {PRICING.plans.map((p) => {
             const isFeatured = p.featured;
             const isCustom = p.monthlyPrice === "Get in touch";
