@@ -173,7 +173,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                               className="inline-block h-3 w-3 rounded-full border border-white/60"
                               style={{ backgroundColor: f.color ?? "#64748B" }}
                             />
-                            <span>{kindLabel(f.kind)}</span>
+                            <span className="truncate">{f.label?.trim() || kindLabel(f.kind)}</span>
                           </button>
                           {canEdit && (
                             <>
