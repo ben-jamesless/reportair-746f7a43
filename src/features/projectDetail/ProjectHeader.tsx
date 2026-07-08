@@ -330,10 +330,11 @@ export function ProjectHeader({
 
         {/* Horizontal tab bar */}
         <TabBar
-          tabs={["Updates", "Gallery", "Activity", "Settings"]}
+          tabs={["Updates", "Gallery", "Site Map", "Activity", "Settings"]}
           activeTab={
             activeTab === "activity" ? "Activity"
             : activeTab === "details" ? "Settings"
+            : activeTab === "map" ? "Site Map"
             : viewOverride === "gallery" ? "Gallery"
             : "Updates"
           }
@@ -341,6 +342,7 @@ export function ProjectHeader({
             if (t === "Updates") { onSetActiveTab("photos"); onSetViewOverride("report"); }
             else if (t === "Activity") onSetActiveTab("activity");
             else if (t === "Gallery") { onSetActiveTab("photos"); onSetViewOverride("gallery"); }
+            else if (t === "Site Map") onSetActiveTab("map");
             else if (t === "Settings") onSetActiveTab("details");
           }}
         />
