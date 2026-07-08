@@ -302,6 +302,15 @@ const SharePage = () => {
 
   useEffect(() => { if (data?.ok) loadFeedback(); }, [data?.ok, loadFeedback]);
 
+  // Detect whether the project has any site map features to gate the sidebar button.
+  useEffect(() => {
+    if (!token || !data?.ok) return;
+    (async () => {
+      const { data: feats } = await supabase.rpc("list_share_map_features", { _token: token });
+      setHasMapFeatures(Array.isArray(feats) && feats.length > 0);
+    })();
+  }, [token, data?.ok]);
+
   const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
   const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
   const areas = useMemo(() => data?.areas ?? [], [data?.areas]);
