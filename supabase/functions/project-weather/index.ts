@@ -72,7 +72,177 @@ export async function geocode(query: string): Promise<{ lat: number; lng: number
   return await geocodeOpenMeteo(query);
 }
 
-export async function fetchWeatherRange(lat: number, lng: number, start: string, end: string): Promise<Record<string, DayWeather>> {
+// Friendly labels for Google Weather API `weatherCondition.type` enum values.
+const GOOGLE_TYPE_LABEL: Record<string, string> = {
+  TYPE_UNSPECIFIED: "Clear sky",
+  CLEAR: "Clear sky",
+  MOSTLY_CLEAR: "Mainly clear",
+  PARTLY_CLOUDY: "Partly cloudy",
+  MOSTLY_CLOUDY: "Mostly cloudy",
+  CLOUDY: "Overcast",
+  WINDY: "Windy",
+  WIND_AND_RAIN: "Wind and rain",
+  LIGHT_RAIN_SHOWERS: "Light rain showers",
+  CHANCE_OF_SHOWERS: "Chance of showers",
+  SCATTERED_SHOWERS: "Scattered showers",
+  RAIN_SHOWERS: "Rain showers",
+  HEAVY_RAIN_SHOWERS: "Heavy rain showers",
+  LIGHT_TO_MODERATE_RAIN: "Light rain",
+  MODERATE_TO_HEAVY_RAIN: "Heavy rain",
+  RAIN: "Rain",
+  LIGHT_RAIN: "Light rain",
+  HEAVY_RAIN: "Heavy rain",
+  RAIN_PERIODICALLY_HEAVY: "Rain",
+  LIGHT_SNOW_SHOWERS: "Light snow showers",
+  CHANCE_OF_SNOW_SHOWERS: "Chance of snow",
+  SCATTERED_SNOW_SHOWERS: "Scattered snow",
+  SNOW_SHOWERS: "Snow showers",
+  HEAVY_SNOW_SHOWERS: "Heavy snow showers",
+  LIGHT_TO_MODERATE_SNOW: "Light snow",
+  MODERATE_TO_HEAVY_SNOW: "Heavy snow",
+  SNOW: "Snow",
+  LIGHT_SNOW: "Light snow",
+  HEAVY_SNOW: "Heavy snow",
+  SNOWSTORM: "Snowstorm",
+  SNOW_PERIODICALLY_HEAVY: "Snow",
+  HEAVY_SNOW_STORM: "Heavy snowstorm",
+  BLOWING_SNOW: "Blowing snow",
+  RAIN_AND_SNOW: "Rain and snow",
+  HAIL: "Hail",
+  HAIL_SHOWERS: "Hail showers",
+  THUNDERSTORM: "Thunderstorm",
+  THUNDERSHOWER: "Thundershowers",
+  LIGHT_THUNDERSTORM_RAIN: "Light thunderstorm",
+  SCATTERED_THUNDERSTORMS: "Scattered thunderstorms",
+  HEAVY_THUNDERSTORM: "Heavy thunderstorm",
+  FOG: "Fog",
+  LIGHT_FOG: "Light fog",
+  MIST: "Mist",
+  HAZE: "Haze",
+  SMOKE: "Smoke",
+  DUST: "Dust",
+  SAND: "Sand",
+  ICE: "Ice",
+};
+
+const GMAPS_GATEWAY = "https://connector-gateway.lovable.dev/google_maps";
+
+function daysBetween(a: string, b: string): number {
+  const ms = new Date(b + "T00:00:00Z").getTime() - new Date(a + "T00:00:00Z").getTime();
+  return Math.round(ms / 86400000);
+}
+
+function todayUTC(): string { return new Date().toISOString().slice(0, 10); }
+
+type GoogleDay = {
+  displayDate?: { year: number; month: number; day: number };
+  interval?: { startTime?: string };
+  maxTemperature?: { degrees?: number };
+  minTemperature?: { degrees?: number };
+  daytimeForecast?: {
+    weatherCondition?: { type?: string; description?: { text?: string } };
+    wind?: { speed?: { value?: number; unit?: string } };
+  };
+  maxWindSpeed?: { value?: number; unit?: string };
+  wind?: { speed?: { value?: number; unit?: string } };
+};
+
+function isoFromDisplay(d?: { year: number; month: number; day: number }, fallback?: string): string | null {
+  if (d?.year && d?.month && d?.day) {
+    return `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+  }
+  if (fallback) return fallback.slice(0, 10);
+  return null;
+}
+
+function toKmh(value?: number, unit?: string): number | null {
+  if (value == null) return null;
+  if (!unit || unit === "KILOMETERS_PER_HOUR") return value;
+  if (unit === "MILES_PER_HOUR") return value * 1.60934;
+  if (unit === "METERS_PER_SECOND") return value * 3.6;
+  return value;
+}
+
+function mapGoogleDay(g: GoogleDay): { key: string; day: DayWeather } | null {
+  const key = isoFromDisplay(g.displayDate, g.interval?.startTime);
+  if (!key) return null;
+  const tmin = g.minTemperature?.degrees;
+  const tmax = g.maxTemperature?.degrees;
+  if (tmin == null || tmax == null) return null;
+  const cond = g.daytimeForecast?.weatherCondition;
+  const condition =
+    cond?.description?.text ||
+    (cond?.type ? GOOGLE_TYPE_LABEL[cond.type] ?? cond.type.toLowerCase().replace(/_/g, " ") : "Clear sky");
+  const windRaw =
+    g.maxWindSpeed?.value ??
+    g.daytimeForecast?.wind?.speed?.value ??
+    g.wind?.speed?.value;
+  const windUnit =
+    g.maxWindSpeed?.unit ??
+    g.daytimeForecast?.wind?.speed?.unit ??
+    g.wind?.speed?.unit;
+  const wind = toKmh(windRaw ?? 0, windUnit) ?? 0;
+  return { key, day: { tmin: Math.round(tmin), tmax: Math.round(tmax), condition, wind: Math.round(wind) } };
+}
+
+async function fetchGoogleWeather(
+  lat: number,
+  lng: number,
+  start: string,
+  end: string,
+): Promise<Record<string, DayWeather>> {
+  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+  const gmapsKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
+  if (!lovableKey || !gmapsKey) return {};
+  const headers = {
+    Authorization: `Bearer ${lovableKey}`,
+    "X-Connection-Api-Key": gmapsKey,
+  };
+  const out: Record<string, DayWeather> = {};
+  const today = todayUTC();
+  const pastEnd = end < today ? end : today;
+  const futureStart = start > today ? start : today;
+
+  // History: past dates (Google supports up to 30 days back)
+  if (start < today) {
+    const daysBack = Math.min(30, Math.max(1, daysBetween(start, pastEnd) + 1));
+    const url = `${GMAPS_GATEWAY}/weather/v1/history/days:lookup?location.latitude=${lat}&location.longitude=${lng}&days=${daysBack}&unitsSystem=METRIC&pageSize=30`;
+    try {
+      const r = await fetch(url, { headers });
+      if (!r.ok) {
+        console.log("google weather history http", r.status, await r.text().catch(() => ""));
+      } else {
+        const j = await r.json();
+        for (const g of (j?.historyDays ?? []) as GoogleDay[]) {
+          const m = mapGoogleDay(g);
+          if (m && m.key >= start && m.key <= end && !out[m.key]) out[m.key] = m.day;
+        }
+      }
+    } catch (e) { console.log("google weather history err", String(e)); }
+  }
+
+  // Forecast: today + future dates (Google supports up to 10 days forward)
+  if (end >= today) {
+    const daysFwd = Math.min(10, Math.max(1, daysBetween(today, end) + 1));
+    const url = `${GMAPS_GATEWAY}/weather/v1/forecast/days:lookup?location.latitude=${lat}&location.longitude=${lng}&days=${daysFwd}&unitsSystem=METRIC&pageSize=10`;
+    try {
+      const r = await fetch(url, { headers });
+      if (!r.ok) {
+        console.log("google weather forecast http", r.status, await r.text().catch(() => ""));
+      } else {
+        const j = await r.json();
+        for (const g of (j?.forecastDays ?? []) as GoogleDay[]) {
+          const m = mapGoogleDay(g);
+          if (m && m.key >= futureStart && m.key <= end && !out[m.key]) out[m.key] = m.day;
+        }
+      }
+    } catch (e) { console.log("google weather forecast err", String(e)); }
+  }
+
+  return out;
+}
+
+async function fetchOpenMeteoWeather(lat: number, lng: number, start: string, end: string): Promise<Record<string, DayWeather>> {
   const urls = [
     `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
@@ -96,6 +266,23 @@ export async function fetchWeatherRange(lat: number, lng: number, start: string,
     } catch (e) { console.log("weather err", String(e)); }
   }
   return out;
+}
+
+export async function fetchWeatherRange(lat: number, lng: number, start: string, end: string): Promise<Record<string, DayWeather>> {
+  // Prefer Google Weather API via connector gateway.
+  const google = await fetchGoogleWeather(lat, lng, start, end);
+  // Fill any missing days with Open-Meteo as a safety net (e.g. Google Weather API not enabled,
+  // or dates outside Google's supported range).
+  const missing: string[] = [];
+  const startD = new Date(start + "T00:00:00Z");
+  const endD = new Date(end + "T00:00:00Z");
+  for (let t = startD.getTime(); t <= endD.getTime(); t += 86400000) {
+    const k = new Date(t).toISOString().slice(0, 10);
+    if (!google[k]) missing.push(k);
+  }
+  if (missing.length === 0) return google;
+  const fallback = await fetchOpenMeteoWeather(lat, lng, missing[0], missing[missing.length - 1]);
+  return { ...fallback, ...google };
 }
 
 export function formatWeather(w: DayWeather): string {
