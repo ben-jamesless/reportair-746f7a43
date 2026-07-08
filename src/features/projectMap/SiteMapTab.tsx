@@ -222,6 +222,20 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                 <X className="h-3 w-3" />
               </Button>
             </div>
+            <label className="mb-1 block text-xs text-muted-foreground">Label</label>
+            <input
+              key={selectedFeature.id}
+              type="text"
+              defaultValue={selectedFeature.label ?? ""}
+              placeholder="e.g. Main stage"
+              maxLength={60}
+              onBlur={(e) => {
+                const v = e.target.value;
+                if ((v.trim() || null) !== (selectedFeature.label ?? null)) updateLabel(selectedFeature.id, v);
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+              className="mb-2 w-full rounded border border-input bg-background px-2 py-1 text-xs"
+            />
             <p className="mb-2 text-xs text-muted-foreground">Color</p>
             <ColorSwatches current={selectedFeature.color} onPick={(c) => updateColor(selectedFeature.id, c)} />
             <Button
