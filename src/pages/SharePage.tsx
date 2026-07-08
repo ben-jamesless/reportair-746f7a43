@@ -1067,6 +1067,14 @@ const SharePage = () => {
                   </SelectContent>
                 </Select>
               )}
+              {hasMapFeatures && (
+                <Button
+                  type="button" variant="outline" className="w-full justify-start"
+                  onClick={() => setMapOpen(true)}
+                >
+                  <MapIcon className="mr-2 h-4 w-4" /> Site map
+                </Button>
+              )}
             </div>
 
             {/* MOBILE: collapsible latest update */}
