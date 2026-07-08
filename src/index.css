@@ -280,3 +280,14 @@
   .bs-area-rail.is-concern  { border-left-color: var(--bs-status-concern-rail); }
   .bs-area-rail.is-archived { border-left-color: var(--bs-status-archived-rail); }
 }
+
+/* Site map feature labels */
+.site-map-label {
+  background: rgba(15, 20, 23, 0.78);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  white-space: nowrap;
+  transform: translateY(-14px);
+  display: inline-block;
+}
