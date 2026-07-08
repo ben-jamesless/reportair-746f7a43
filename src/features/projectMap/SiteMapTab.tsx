@@ -46,7 +46,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
     return m;
   }, [features]);
 
-  if (geoLat == null || geoLng == null) {
+  if (geoLoaded && !geo) {
     return (
       <Card className="p-6 text-sm">
         <p className="mb-3">
