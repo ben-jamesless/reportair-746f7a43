@@ -37,7 +37,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
-  const { features, create, updateGeometry, remove, updateColor } = useMapFeatures(projectId);
+  const { features, create, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null);
   const [drawingKind, setDrawingKind] = useState<"pin" | "polygon" | "rectangle" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -173,7 +173,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                               className="inline-block h-3 w-3 rounded-full border border-white/60"
                               style={{ backgroundColor: f.color ?? "#64748B" }}
                             />
-                            <span>{kindLabel(f.kind)}</span>
+                            <span className="truncate">{f.label?.trim() || kindLabel(f.kind)}</span>
                           </button>
                           {canEdit && (
                             <>
@@ -222,6 +222,20 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                 <X className="h-3 w-3" />
               </Button>
             </div>
+            <label className="mb-1 block text-xs text-muted-foreground">Label</label>
+            <input
+              key={selectedFeature.id}
+              type="text"
+              defaultValue={selectedFeature.label ?? ""}
+              placeholder="e.g. Main stage"
+              maxLength={60}
+              onBlur={(e) => {
+                const v = e.target.value;
+                if ((v.trim() || null) !== (selectedFeature.label ?? null)) updateLabel(selectedFeature.id, v);
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+              className="mb-2 w-full rounded border border-input bg-background px-2 py-1 text-xs"
+            />
             <p className="mb-2 text-xs text-muted-foreground">Color</p>
             <ColorSwatches current={selectedFeature.color} onPick={(c) => updateColor(selectedFeature.id, c)} />
             <Button

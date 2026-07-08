@@ -45,6 +45,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const overlaysRef = useRef<Map<string, google.maps.Marker | google.maps.Polygon | google.maps.Rectangle>>(new Map());
+  const labelsRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const drawingStateRef = useRef({ drawingAreaId, drawingKind, editable });
   const onCreateRef = useRef(onCreate);
   const onDraftChangeRef = useRef(onDraftChange);
@@ -310,10 +311,59 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
         }
       }
+
+      // Label overlay (transparent marker with text)
+      const labelText = f.label?.trim();
+      let labelPos: google.maps.LatLngLiteral | null = null;
+      if (labelText) {
+        if (f.kind === "pin") {
+          labelPos = { lat: f.geometry.lat, lng: f.geometry.lng };
+        } else if (f.kind === "polygon") {
+          const paths = (f.geometry.paths ?? []) as Array<{ lat: number; lng: number }>;
+          if (paths.length) {
+            const sum = paths.reduce((acc, p) => ({ lat: acc.lat + p.lat, lng: acc.lng + p.lng }), { lat: 0, lng: 0 });
+            labelPos = { lat: sum.lat / paths.length, lng: sum.lng / paths.length };
+          }
+        } else if (f.kind === "rectangle") {
+          labelPos = {
+            lat: (f.geometry.north + f.geometry.south) / 2,
+            lng: (f.geometry.east + f.geometry.west) / 2,
+          };
+        }
+      }
+      const existingLabel = labelsRef.current.get(f.id);
+      if (labelText && labelPos) {
+        const labelOpts: google.maps.MarkerLabel = {
+          text: labelText,
+          color: "#ffffff",
+          fontSize: "12px",
+          fontWeight: "600",
+          className: "site-map-label",
+        };
+        if (!existingLabel) {
+          const lm = new g.maps.Marker({
+            position: labelPos, map,
+            icon: { path: g.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
+            label: labelOpts,
+            clickable: false,
+            zIndex: 9999,
+          });
+          labelsRef.current.set(f.id, lm);
+        } else {
+          existingLabel.setPosition(labelPos);
+          existingLabel.setLabel(labelOpts);
+        }
+      } else if (existingLabel) {
+        existingLabel.setMap(null);
+        labelsRef.current.delete(f.id);
+      }
     }
 
     for (const [id, ov] of overlaysRef.current) {
       if (!seen.has(id)) { ov.setMap(null); overlaysRef.current.delete(id); }
+    }
+    for (const [id, lm] of labelsRef.current) {
+      if (!seen.has(id)) { lm.setMap(null); labelsRef.current.delete(id); }
     }
   }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId]);
 
