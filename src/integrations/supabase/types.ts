@@ -1408,6 +1408,7 @@ export type Database = {
         Args: { _photo_id: string; _token: string }
         Returns: string
       }
+      get_share_project_center: { Args: { _token: string }; Returns: Json }
       get_team_export_count: { Args: { _team_id: string }; Returns: number }
       get_team_pending_invites: {
         Args: never
