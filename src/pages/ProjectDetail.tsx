@@ -41,6 +41,7 @@ import {
 } from "@/lib/projectDetailTypes";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { ProjectHeader } from "@/features/projectDetail/ProjectHeader";
+import { SiteMapTab } from "@/features/projectMap/SiteMapTab";
 import { DayTimeline } from "@/features/projectDetail/DayTimeline";
 import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
 import { PhotoLightboxController } from "@/features/projectDetail/PhotoLightboxController";
