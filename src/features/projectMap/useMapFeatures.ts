@@ -63,5 +63,11 @@ export function useMapFeatures(projectId: string) {
     if (error) toast.error(error.message);
   }, []);
 
-  return { features, loading, create, updateGeometry, remove, reload: load };
+  const updateColor = useCallback(async (id: string, color: string) => {
+    setFeatures((cur) => cur.map((f) => f.id === id ? { ...f, color } : f));
+    const { error } = await supabase.from("area_map_features").update({ color }).eq("id", id);
+    if (error) toast.error(error.message);
+  }, []);
+
+  return { features, loading, create, updateGeometry, remove, updateColor, reload: load };
 }
