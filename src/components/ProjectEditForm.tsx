@@ -472,10 +472,38 @@ export const ProjectEditForm = ({
           <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="edit-location">Event location</Label>
-          <Input id="edit-location" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="e.g. London, UK" />
+          <PlacesAutocompleteInput
+            id="edit-location"
+            value={eventLocation}
+            onChange={(v) => {
+              setEventLocation(v);
+              // Free-text edit invalidates the verified place.
+              if (geoPlaceId || geoLat !== null || geoLng !== null) {
+                setGeoLat(null);
+                setGeoLng(null);
+                setGeoPlaceId(null);
+              }
+            }}
+            onPick={(p: PlacePick) => {
+              setEventLocation(p.formattedAddress);
+              setGeoLat(p.lat);
+              setGeoLng(p.lng);
+              setGeoPlaceId(p.placeId);
+            }}
+            verified={!!geoPlaceId && !!geoLat && !!geoLng}
+            placeholder="Start typing a venue, city or address…"
+          />
+          {geoLat != null && geoLng != null ? (
+            <LocationMapPreview lat={geoLat} lng={geoLng} className="mt-2 h-40 w-full overflow-hidden rounded-md border" />
+          ) : eventLocation.trim() ? (
+            <p className="text-xs text-muted-foreground">
+              Pick a suggestion to verify the location — weather uses these coordinates.
+            </p>
+          ) : null}
         </div>
+
 
         <div className="space-y-2 sm:col-span-2">
           <Label>Overall status</Label>
