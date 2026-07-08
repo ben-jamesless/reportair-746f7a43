@@ -258,17 +258,24 @@ export const ProjectEditForm = ({
   const save = async () => {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
+    const trimmedLocation = eventLocation.trim() || null;
+    // If the free-text location no longer matches the verified place, drop the
+    // cached geo so the weather function re-geocodes.
+    const locationChanged = (initialEventLocation ?? "") !== (trimmedLocation ?? "");
     const update = {
       name: name.trim(),
       description: description.trim() || null,
       color,
       event_date: toIsoDate(eventDate),
       build_start_date: toIsoDate(buildStartDate),
-      event_location: eventLocation.trim() || null,
+      event_location: trimmedLocation,
       overall_status: status,
       event_type: eventType.trim() || null,
       client_name: clientName.trim() || null,
       ...(canChangeDefaultView ? { default_view: defaultView } : {}),
+      ...(locationChanged
+        ? { geo_lat: geoLat, geo_lng: geoLng, geo_place_id: geoPlaceId, geo_location_query: trimmedLocation }
+        : {}),
     };
     const { error } = await supabase
       .from("projects")
