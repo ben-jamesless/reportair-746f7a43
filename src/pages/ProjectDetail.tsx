@@ -123,10 +123,11 @@ const ProjectDetail = () => {
     return n;
   });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
+  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details" | "map">(() => {
     const t = searchParams.get("tab");
     if (t === "activity") return "activity";
     if (t === "details") return "details";
+    if (t === "map") return "map";
     if (t === "updates" || t === "photos") return "photos";
     return "photos";
   });
