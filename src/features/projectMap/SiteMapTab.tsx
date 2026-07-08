@@ -11,14 +11,14 @@ import { Link } from "react-router-dom";
 
 interface Props {
   projectId: string;
-  geoLat: number | null;
-  geoLng: number | null;
   color?: string | null;
   canEdit: boolean;
 }
 
-export function SiteMapTab({ projectId, geoLat, geoLng, color, canEdit }: Props) {
+export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
+  const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoLoaded, setGeoLoaded] = useState(false);
   const { features, create, updateGeometry, remove } = useMapFeatures(projectId);
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null);
   const [drawingKind, setDrawingKind] = useState<"pin" | "polygon" | "rectangle" | null>(null);
@@ -26,13 +26,14 @@ export function SiteMapTab({ projectId, geoLat, geoLng, color, canEdit }: Props)
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("areas")
-        .select("id, project_id, name, sort_order")
-        .eq("project_id", projectId)
-        .is("deleted_at", null)
-        .order("sort_order");
-      setAreas((data ?? []) as Area[]);
+      const [{ data: ar }, { data: pr }] = await Promise.all([
+        supabase.from("areas").select("id, project_id, name, sort_order")
+          .eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
+        supabase.from("projects").select("geo_lat, geo_lng").eq("id", projectId).maybeSingle(),
+      ]);
+      setAreas((ar ?? []) as Area[]);
+      if (pr?.geo_lat != null && pr?.geo_lng != null) setGeo({ lat: pr.geo_lat, lng: pr.geo_lng });
+      setGeoLoaded(true);
     })();
   }, [projectId]);
 
