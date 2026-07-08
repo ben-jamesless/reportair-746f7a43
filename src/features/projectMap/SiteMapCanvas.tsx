@@ -45,6 +45,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const overlaysRef = useRef<Map<string, google.maps.Marker | google.maps.Polygon | google.maps.Rectangle>>(new Map());
+  const labelsRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const drawingStateRef = useRef({ drawingAreaId, drawingKind, editable });
   const onCreateRef = useRef(onCreate);
   const onDraftChangeRef = useRef(onDraftChange);
