@@ -26,6 +26,7 @@ interface Props {
   editable?: boolean;
   selectedId?: string | null;
   onDraftChange?: (count: number) => void;
+  fitToFeatures?: boolean;
 }
 
 function colorForArea(area: Area | undefined, fallback: string): string {
