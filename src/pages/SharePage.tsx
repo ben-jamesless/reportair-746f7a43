@@ -213,6 +213,8 @@ const SharePage = () => {
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
+  const [hasMapFeatures, setHasMapFeatures] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
   const accent = brandColour ?? TEAL;
