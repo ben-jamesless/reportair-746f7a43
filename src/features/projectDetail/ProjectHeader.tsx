@@ -142,9 +142,9 @@ export interface ProjectHeaderProps {
   areas: Area[];
   uploadAlbumId: string | null;
   uploadAreaId: string | null;
-  activeTab: "photos" | "activity" | "details";
+  activeTab: "photos" | "activity" | "details" | "map";
   viewOverride: ProjectView | null;
-  onSetActiveTab: (t: "photos" | "activity" | "details") => void;
+  onSetActiveTab: (t: "photos" | "activity" | "details" | "map") => void;
   onSetViewOverride: (v: ProjectView | null) => void;
   onSaveProjectStatus: (s: ProjectStatus) => void;
   onArchive: () => void;
