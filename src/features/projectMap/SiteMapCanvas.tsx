@@ -37,17 +37,46 @@ export function SiteMapCanvas({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
-  const drawingMgrRef = useRef<any>(null);
   const overlaysRef = useRef<Map<string, google.maps.Marker | google.maps.Polygon | google.maps.Rectangle>>(new Map());
   const drawingStateRef = useRef({ drawingAreaId, drawingKind, editable });
+  // In-progress drawing (polygon points + preview overlays, or rectangle drag start)
+  const draftRef = useRef<{
+    points: google.maps.LatLng[];
+    tempPoly: google.maps.Polyline | null;
+    tempPolygon: google.maps.Polygon | null;
+    tempRect: google.maps.Rectangle | null;
+    rectStart: google.maps.LatLng | null;
+    rectMoveListener: google.maps.MapsEventListener | null;
+    rectUpListener: google.maps.MapsEventListener | null;
+  }>({ points: [], tempPoly: null, tempPolygon: null, tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null });
 
-  // Keep current drawing intent accessible in event listeners without re-creating them
   useEffect(() => { drawingStateRef.current = { drawingAreaId, drawingKind, editable }; }, [drawingAreaId, drawingKind, editable]);
+
+  const clearDraft = () => {
+    const d = draftRef.current;
+    d.tempPoly?.setMap(null);
+    d.tempPolygon?.setMap(null);
+    d.tempRect?.setMap(null);
+    d.rectMoveListener?.remove();
+    d.rectUpListener?.remove();
+    draftRef.current = { points: [], tempPoly: null, tempPolygon: null, tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null };
+  };
+
+  const finishPolygon = () => {
+    const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
+    const pts = draftRef.current.points;
+    if (kind !== "polygon" || !aid || pts.length < 3 || !onCreate) { clearDraft(); return; }
+    const area = areas.find((a) => a.id === aid);
+    const color = colorForArea(area, fallbackColor);
+    const geometry = { paths: pts.map((p) => ({ lat: p.lat(), lng: p.lng() })) };
+    clearDraft();
+    onCreate(aid, "polygon", geometry, color);
+  };
 
   // Init map once
   useEffect(() => {
     let cancelled = false;
-    loadGoogleMaps().then(async (g) => {
+    loadGoogleMaps().then((g) => {
       if (cancelled || !containerRef.current) return;
       const map = new g.maps.Map(containerRef.current, {
         center, zoom,
@@ -59,59 +88,98 @@ export function SiteMapCanvas({
       });
       mapRef.current = map;
 
-      if (editable) {
-        await g.maps.importLibrary("drawing");
-        const mgr = new (g.maps as any).drawing.DrawingManager({
-          drawingControl: false,
-          markerOptions: { draggable: true },
-          polygonOptions: { editable: true, draggable: true, fillOpacity: 0.35, strokeWeight: 2 },
-          rectangleOptions: { editable: true, draggable: true, fillOpacity: 0.35, strokeWeight: 2 },
-        });
-        mgr.setMap(map);
-        drawingMgrRef.current = mgr;
+      if (!editable) return;
 
-        mgr.addListener("overlaycomplete", (e: any) => {
-          const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
-          if (!aid || !kind || !onCreate) { e.overlay?.setMap(null); mgr.setDrawingMode(null); return; }
-          const area = areas.find((a) => a.id === aid);
-          const color = colorForArea(area, fallbackColor);
-          let geometry: any;
-          if (e.type === "marker") {
-            const m = e.overlay as google.maps.Marker;
-            const p = m.getPosition();
-            if (!p) return;
-            geometry = { lat: p.lat(), lng: p.lng() };
-          } else if (e.type === "polygon") {
-            const poly = e.overlay as google.maps.Polygon;
-            geometry = { paths: poly.getPath().getArray().map((p) => ({ lat: p.lat(), lng: p.lng() })) };
-          } else if (e.type === "rectangle") {
-            const r = e.overlay as google.maps.Rectangle;
-            const b = r.getBounds();
-            if (!b) return;
-            const ne = b.getNorthEast(), sw = b.getSouthWest();
-            geometry = { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() };
+      map.addListener("click", (e: google.maps.MapMouseEvent) => {
+        const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
+        if (!aid || !kind || !onCreate || !e.latLng) return;
+        const area = areas.find((a) => a.id === aid);
+        const color = colorForArea(area, fallbackColor);
+
+        if (kind === "pin") {
+          onCreate(aid, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
+          return;
+        }
+        if (kind === "polygon") {
+          const d = draftRef.current;
+          d.points.push(e.latLng);
+          if (!d.tempPoly) {
+            d.tempPoly = new g.maps.Polyline({
+              map, path: d.points, strokeColor: color, strokeWeight: 2,
+            });
+          } else {
+            d.tempPoly.setPath(d.points);
           }
-          e.overlay?.setMap(null);
-          mgr.setDrawingMode(null);
-          onCreate(aid, kind, geometry, color);
+          // small vertex markers
+          new g.maps.Marker({
+            position: e.latLng, map,
+            icon: { path: g.maps.SymbolPath.CIRCLE, scale: 4, fillColor: color, fillOpacity: 1, strokeColor: "#fff", strokeWeight: 1 },
+            clickable: false,
+          });
+        }
+      });
+
+      map.addListener("dblclick", (e: google.maps.MapMouseEvent) => {
+        const { drawingKind: kind } = drawingStateRef.current;
+        if (kind === "polygon") {
+          e.stop?.();
+          finishPolygon();
+        }
+      });
+
+      map.addListener("mousedown", (e: any) => {
+        const { drawingKind: kind, drawingAreaId: aid } = drawingStateRef.current;
+        if (kind !== "rectangle" || !aid || !e.latLng) return;
+        // Block map panning while drawing
+        map.setOptions({ draggable: false });
+        const start = e.latLng as google.maps.LatLng;
+        const area = areas.find((a) => a.id === aid);
+        const color = colorForArea(area, fallbackColor);
+        const rect = new g.maps.Rectangle({
+          map,
+          bounds: new g.maps.LatLngBounds(start, start),
+          strokeColor: color, fillColor: color, fillOpacity: 0.35, strokeWeight: 2,
+          clickable: false,
         });
-      }
+        draftRef.current.rectStart = start;
+        draftRef.current.tempRect = rect;
+        draftRef.current.rectMoveListener = map.addListener("mousemove", (me: google.maps.MapMouseEvent) => {
+          if (!me.latLng) return;
+          rect.setBounds(new g.maps.LatLngBounds(start, me.latLng));
+        });
+        draftRef.current.rectUpListener = map.addListener("mouseup", (ue: google.maps.MapMouseEvent) => {
+          map.setOptions({ draggable: true });
+          const b = rect.getBounds();
+          const end = ue.latLng ?? start;
+          draftRef.current.rectMoveListener?.remove();
+          draftRef.current.rectUpListener?.remove();
+          draftRef.current.rectMoveListener = null;
+          draftRef.current.rectUpListener = null;
+          rect.setMap(null);
+          draftRef.current.tempRect = null;
+          draftRef.current.rectStart = null;
+          // Ignore accidental clicks (no drag)
+          if (Math.abs(start.lat() - end.lat()) < 1e-6 && Math.abs(start.lng() - end.lng()) < 1e-6) return;
+          const finalBounds = b ?? new g.maps.LatLngBounds(start, end);
+          const ne = finalBounds.getNorthEast(), sw = finalBounds.getSouthWest();
+          if (onCreate) onCreate(aid, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
+        });
+      });
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Switch drawing mode when parent asks
+  // Update cursor + reset draft when drawing mode changes
   useEffect(() => {
-    const mgr = drawingMgrRef.current;
-    if (!mgr || !window.google) return;
-    if (!editable || !drawingAreaId || !drawingKind) { mgr.setDrawingMode(null); return; }
-    const modes = window.google.maps.drawing.OverlayType;
-    mgr.setDrawingMode(
-      drawingKind === "pin" ? modes.MARKER :
-      drawingKind === "polygon" ? modes.POLYGON :
-      modes.RECTANGLE,
-    );
+    const map = mapRef.current;
+    if (!map) return;
+    if (editable && drawingKind) {
+      map.setOptions({ draggableCursor: "crosshair", disableDoubleClickZoom: drawingKind === "polygon" });
+    } else {
+      map.setOptions({ draggableCursor: null, disableDoubleClickZoom: false });
+      clearDraft();
+    }
   }, [drawingAreaId, drawingKind, editable]);
 
   // Render/refresh feature overlays
