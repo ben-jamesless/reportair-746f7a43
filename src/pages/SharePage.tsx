@@ -618,7 +618,7 @@ const SharePage = () => {
             </div>
             {weather[latestDayKey] && (
               <div className="mt-3">
-                <WeatherBadge w={weather[latestDayKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
+                <WeatherBadge w={weather[latestDayKey]} muted={MUTED} divider={DIVIDER} body={BODY} dark={dark} />
               </div>
             )}
             {hasAny ? (
@@ -1074,7 +1074,7 @@ const SharePage = () => {
                       </div>
                       {weather[latestDayKey] && (
                         <div className="mb-4">
-                          <WeatherBadge w={weather[latestDayKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
+                          <WeatherBadge w={weather[latestDayKey]} muted={MUTED} divider={DIVIDER} body={BODY} dark={dark} />
                         </div>
                       )}
                       {hasAny ? (
@@ -1178,7 +1178,7 @@ const SharePage = () => {
                       </summary>
                       {weather[dateKey] && (
                         <div className="px-4 py-3" style={{ borderBottom: `1px solid ${DIVIDER}` }}>
-                          <WeatherBadge w={weather[dateKey]} muted={MUTED} divider={DIVIDER} body={BODY} />
+                          <WeatherBadge w={weather[dateKey]} muted={MUTED} divider={DIVIDER} body={BODY} dark={dark} />
                         </div>
                       )}
                       {dayNotesMap.get(dateKey) && (
