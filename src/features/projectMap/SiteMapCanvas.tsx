@@ -60,8 +60,8 @@ export function SiteMapCanvas({
       mapRef.current = map;
 
       if (editable) {
-        const { DrawingManager } = (await g.maps.importLibrary("drawing")) as google.maps.DrawingLibrary;
-        const mgr = new DrawingManager({
+        await g.maps.importLibrary("drawing");
+        const mgr = new (g.maps as any).drawing.DrawingManager({
           drawingControl: false,
           markerOptions: { draggable: true },
           polygonOptions: { editable: true, draggable: true, fillOpacity: 0.35, strokeWeight: 2 },
@@ -70,7 +70,7 @@ export function SiteMapCanvas({
         mgr.setMap(map);
         drawingMgrRef.current = mgr;
 
-        mgr.addListener("overlaycomplete", (e: google.maps.drawing.OverlayCompleteEvent) => {
+        mgr.addListener("overlaycomplete", (e: any) => {
           const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
           if (!aid || !kind || !onCreate) { e.overlay?.setMap(null); mgr.setDrawingMode(null); return; }
           const area = areas.find((a) => a.id === aid);
