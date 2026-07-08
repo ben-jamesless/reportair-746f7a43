@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
