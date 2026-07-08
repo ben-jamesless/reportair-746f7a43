@@ -392,7 +392,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
       map.fitBounds(bounds, 48);
       didFitRef.current = true;
     }
-  }, [fitToFeatures, features]);
+  }, [fitToFeatures, features, mapReady]);
 
   return <div ref={containerRef} className="h-full w-full rounded-md border bg-muted/40" aria-label="Site map" />;
 });
