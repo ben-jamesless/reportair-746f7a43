@@ -37,7 +37,7 @@ export function SiteMapCanvas({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
-  const drawingMgrRef = useRef<google.maps.drawing.DrawingManager | null>(null);
+  const drawingMgrRef = useRef<any>(null);
   const overlaysRef = useRef<Map<string, google.maps.Marker | google.maps.Polygon | google.maps.Rectangle>>(new Map());
   const drawingStateRef = useRef({ drawingAreaId, drawingKind, editable });
 
