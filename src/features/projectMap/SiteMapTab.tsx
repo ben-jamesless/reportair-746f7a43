@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Square, Pentagon, Trash2, X } from "lucide-react";
-import { SiteMapCanvas } from "./SiteMapCanvas";
+import { MapPin, Square, Pentagon, Trash2, X, Undo2, Check, Palette } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SiteMapCanvas, type SiteMapCanvasHandle } from "./SiteMapCanvas";
 import { useMapFeatures, type MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { PROJECT_COLOR_PALETTE } from "@/lib/projectColors";
 
 interface Props {
   projectId: string;
@@ -15,14 +16,33 @@ interface Props {
   canEdit: boolean;
 }
 
+function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (c: string) => void }) {
+  return (
+    <div className="grid grid-cols-5 gap-1.5">
+      {PROJECT_COLOR_PALETTE.map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onPick(c)}
+          className={`h-6 w-6 rounded-full border-2 transition ${current === c ? "border-foreground ring-2 ring-offset-1 ring-foreground/30" : "border-white/60"}`}
+          style={{ backgroundColor: c }}
+          aria-label={`Color ${c}`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
-  const { features, create, updateGeometry, remove } = useMapFeatures(projectId);
+  const { features, create, updateGeometry, remove, updateColor } = useMapFeatures(projectId);
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null);
   const [drawingKind, setDrawingKind] = useState<"pin" | "polygon" | "rectangle" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [draftCount, setDraftCount] = useState(0);
+  const canvasRef = useRef<SiteMapCanvasHandle>(null);
 
   useEffect(() => {
     (async () => {
@@ -46,15 +66,16 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
     return m;
   }, [features]);
 
+  const selectedFeature = useMemo(
+    () => features.find((f) => f.id === selectedId) ?? null,
+    [features, selectedId],
+  );
+
   if (geoLoaded && !geo) {
     return (
       <Card className="p-6 text-sm">
-        <p className="mb-3">
-          Set the event location in project settings first — the map will center on it.
-        </p>
-        <p className="text-muted-foreground">
-          Open <span className="font-medium">Settings → Details</span> and search for the venue.
-        </p>
+        <p className="mb-3">Set the event location in project settings first — the map will center on it.</p>
+        <p className="text-muted-foreground">Open <span className="font-medium">Settings → Details</span> and search for the venue.</p>
       </Card>
     );
   }
@@ -62,14 +83,17 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const startDraw = (areaId: string, kind: "pin" | "polygon" | "rectangle") => {
     setDrawingAreaId(areaId);
     setDrawingKind(kind);
+    setSelectedId(null);
   };
-  const cancelDraw = () => { setDrawingAreaId(null); setDrawingKind(null); };
+  const cancelDraw = () => { setDrawingAreaId(null); setDrawingKind(null); setDraftCount(0); };
 
   const handleCreate = async (areaId: string, kind: any, geometry: any, col: string) => {
     await create(areaId, kind, geometry, col);
     cancelDraw();
     toast.success("Added to site map");
   };
+
+  const kindLabel = (k: MapFeature["kind"]) => k === "pin" ? "Pin" : k === "polygon" ? "Zone" : "Box";
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
@@ -82,10 +106,28 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
             </Button>
           )}
         </div>
+
+        {drawingKind === "polygon" && (
+          <div className="flex gap-1">
+            <Button
+              size="sm" variant="outline" className="h-8 flex-1"
+              disabled={draftCount === 0}
+              onClick={() => canvasRef.current?.undoLastPoint()}
+            >
+              <Undo2 className="mr-1 h-3 w-3" /> Undo
+            </Button>
+            <Button
+              size="sm" className="h-8 flex-1"
+              disabled={draftCount < 3}
+              onClick={() => canvasRef.current?.confirmPolygon()}
+            >
+              <Check className="mr-1 h-3 w-3" /> Confirm ({draftCount})
+            </Button>
+          </div>
+        )}
+
         {areas.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            No areas yet. Add areas in Settings → Areas.
-          </p>
+          <p className="text-xs text-muted-foreground">No areas yet. Add areas in Settings → Areas.</p>
         )}
         <ul className="space-y-2">
           {areas.map((a) => {
@@ -100,51 +142,102 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                 {canEdit && (
                   <div className="mt-2 flex gap-1">
                     <Button size="sm" variant={isActive && drawingKind === "pin" ? "default" : "outline"}
-                      className="h-7 flex-1 px-2 text-xs"
-                      onClick={() => startDraw(a.id, "pin")}>
+                      className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "pin")}>
                       <MapPin className="mr-1 h-3 w-3" /> Pin
                     </Button>
                     <Button size="sm" variant={isActive && drawingKind === "polygon" ? "default" : "outline"}
-                      className="h-7 flex-1 px-2 text-xs"
-                      onClick={() => startDraw(a.id, "polygon")}>
+                      className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "polygon")}>
                       <Pentagon className="mr-1 h-3 w-3" /> Zone
                     </Button>
                     <Button size="sm" variant={isActive && drawingKind === "rectangle" ? "default" : "outline"}
-                      className="h-7 flex-1 px-2 text-xs"
-                      onClick={() => startDraw(a.id, "rectangle")}>
+                      className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "rectangle")}>
                       <Square className="mr-1 h-3 w-3" /> Box
                     </Button>
                   </div>
                 )}
-                {items.length > 0 && canEdit && (
+                {items.length > 0 && (
                   <ul className="mt-2 space-y-1">
-                    {items.map((f) => (
-                      <li key={f.id} className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{f.kind}</span>
-                        <Button size="icon" variant="ghost" className="h-6 w-6"
-                          onClick={() => remove(f.id)} aria-label="Delete feature">
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </li>
-                    ))}
+                    {items.map((f) => {
+                      const isSel = selectedId === f.id;
+                      return (
+                        <li
+                          key={f.id}
+                          className={`flex items-center justify-between gap-1 rounded px-1.5 py-1 text-xs ${isSel ? "bg-accent" : ""}`}
+                        >
+                          <button
+                            type="button"
+                            className="flex flex-1 items-center gap-2 text-left"
+                            onClick={() => setSelectedId(isSel ? null : f.id)}
+                          >
+                            <span
+                              className="inline-block h-3 w-3 rounded-full border border-white/60"
+                              style={{ backgroundColor: f.color ?? "#64748B" }}
+                            />
+                            <span>{kindLabel(f.kind)}</span>
+                          </button>
+                          {canEdit && (
+                            <>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Change color">
+                                    <Palette className="h-3 w-3" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-2" side="right">
+                                  <ColorSwatches current={f.color} onPick={(c) => updateColor(f.id, c)} />
+                                </PopoverContent>
+                              </Popover>
+                              <Button
+                                size="icon" variant="ghost" className="h-6 w-6"
+                                onClick={() => { remove(f.id); if (isSel) setSelectedId(null); }}
+                                aria-label="Delete feature"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </li>
             );
           })}
         </ul>
+
         {drawingKind && (
           <p className="text-xs text-muted-foreground">
             {drawingKind === "pin" ? "Click on the map to drop the pin." :
-             drawingKind === "polygon" ? "Click to add points, double-click to finish." :
+             drawingKind === "polygon" ? "Click to add points, then press Confirm (or double-click)." :
              "Click and drag on the map to draw a box."}
           </p>
+        )}
+
+        {selectedFeature && canEdit && !drawingKind && (
+          <div className="rounded-md border p-2">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold">Selected: {kindLabel(selectedFeature.kind)}</span>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setSelectedId(null)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <p className="mb-2 text-xs text-muted-foreground">Color</p>
+            <ColorSwatches current={selectedFeature.color} onPick={(c) => updateColor(selectedFeature.id, c)} />
+            <Button
+              size="sm" variant="destructive" className="mt-2 h-7 w-full text-xs"
+              onClick={() => { remove(selectedFeature.id); setSelectedId(null); }}
+            >
+              <Trash2 className="mr-1 h-3 w-3" /> Delete
+            </Button>
+          </div>
         )}
       </aside>
 
       <div className="h-[70vh] min-h-[500px]">
         {geo ? (
           <SiteMapCanvas
+            ref={canvasRef}
             center={geo}
             areas={areas}
             features={features}
@@ -152,6 +245,9 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
             drawingKind={drawingKind}
             onCreate={handleCreate}
             onUpdate={updateGeometry}
+            onFeatureClick={(f) => setSelectedId(f.id)}
+            onDraftChange={setDraftCount}
+            selectedId={selectedId}
             fallbackColor={color ?? undefined}
             editable={canEdit}
           />
