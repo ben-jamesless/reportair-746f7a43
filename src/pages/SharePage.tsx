@@ -1105,6 +1105,14 @@ const SharePage = () => {
 
             </details>
 
+            {token && areas.length > 0 && (
+              <div className="mb-4">
+                <ShareSiteMap token={token} areas={areas} />
+              </div>
+            )}
+
+
+
             {visibleGroups.length === 0 ? (
               <div
                 className="rounded-xl border p-12 text-center text-sm"
