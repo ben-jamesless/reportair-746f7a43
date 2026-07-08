@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind } from "lucide-react";
+import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind, Map as MapIcon } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -213,6 +213,8 @@ const SharePage = () => {
   const [feedback, setFeedback] = useState<GuestNoteRow[]>([]);
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
+  const [hasMapFeatures, setHasMapFeatures] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
   const accent = brandColour ?? TEAL;
@@ -299,6 +301,15 @@ const SharePage = () => {
   }, [token]);
 
   useEffect(() => { if (data?.ok) loadFeedback(); }, [data?.ok, loadFeedback]);
+
+  // Detect whether the project has any site map features to gate the sidebar button.
+  useEffect(() => {
+    if (!token || !data?.ok) return;
+    (async () => {
+      const { data: feats } = await supabase.rpc("list_share_map_features", { _token: token });
+      setHasMapFeatures(Array.isArray(feats) && feats.length > 0);
+    })();
+  }, [token, data?.ok]);
 
   const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
   const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
@@ -902,6 +913,22 @@ const SharePage = () => {
               <span className="text-xs opacity-80">{photos.length}</span>
             </button>
 
+            {hasMapFeatures && (
+              <button
+                onClick={() => setMapOpen(true)}
+                className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
+                style={{ color: BODY }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = SURFACE; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+              >
+                <span className="flex items-center gap-2">
+                  <MapIcon className="h-3.5 w-3.5" />
+                  <span className="font-medium">Site map</span>
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+              </button>
+            )}
+
             <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
 
             {allDayGroups.length === 0 && (
@@ -1040,6 +1067,14 @@ const SharePage = () => {
                   </SelectContent>
                 </Select>
               )}
+              {hasMapFeatures && (
+                <Button
+                  type="button" variant="outline" className="w-full justify-start"
+                  onClick={() => setMapOpen(true)}
+                >
+                  <MapIcon className="mr-2 h-4 w-4" /> Site map
+                </Button>
+              )}
             </div>
 
             {/* MOBILE: collapsible latest update */}
@@ -1107,18 +1142,21 @@ const SharePage = () => {
             </details>
 
             {token && areas.length > 0 && (
-              <div className="mb-4">
-                <ShareSiteMap
-                  token={token}
-                  areas={areas}
-                  onAreaClick={(id) => {
-                    setActiveKey(areaKey(id));
-                    if (typeof window !== "undefined") {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }
-                  }}
-                />
-              </div>
+              <Dialog open={mapOpen} onOpenChange={setMapOpen}>
+                <DialogContent className="max-w-5xl p-0">
+                  <ShareSiteMap
+                    token={token}
+                    areas={areas}
+                    onAreaClick={(id) => {
+                      setActiveKey(areaKey(id));
+                      setMapOpen(false);
+                      if (typeof window !== "undefined") {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
             )}
 
 
