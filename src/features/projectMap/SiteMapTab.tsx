@@ -143,17 +143,23 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
       </aside>
 
       <div className="h-[70vh] min-h-[500px]">
-        <SiteMapCanvas
-          center={geo ?? { lat: 0, lng: 0 }}
-          areas={areas}
-          features={features}
-          drawingAreaId={drawingAreaId}
-          drawingKind={drawingKind}
-          onCreate={handleCreate}
-          onUpdate={updateGeometry}
-          fallbackColor={color ?? undefined}
-          editable={canEdit}
-        />
+        {geo ? (
+          <SiteMapCanvas
+            center={geo}
+            areas={areas}
+            features={features}
+            drawingAreaId={drawingAreaId}
+            drawingKind={drawingKind}
+            onCreate={handleCreate}
+            onUpdate={updateGeometry}
+            fallbackColor={color ?? undefined}
+            editable={canEdit}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-md border bg-muted/40 text-sm text-muted-foreground">
+            Loading map…
+          </div>
+        )}
       </div>
     </div>
   );
