@@ -581,7 +581,7 @@ const ProjectDetail = () => {
 
       <div className="flex flex-1 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
         {/* Main tab content */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details" | "map")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-4">
             <div className="grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_1fr]">
