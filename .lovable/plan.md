@@ -1,21 +1,41 @@
-## Plan
+## Goal
 
-1. **Make GA loading deterministic**
-   - Replace the current “fire config immediately after appending the script” flow with a safer loader that waits for `gtag.js` to load before sending GA events.
-   - Keep the existing measurement ID: `G-68MGP78M5X`.
+Accurate event location + weather via Google Maps Platform, plus a small map preview in project settings.
 
-2. **Send page views explicitly**
-   - Change the initial GA config to `send_page_view: false` so Google does not rely on an automatic pageview that may be racing consent/script load.
-   - Keep `RouteAnalytics` responsible for sending explicit `page_view` events for the first page load and route changes.
+## Steps
 
-3. **Fix consent timing**
-   - Set Consent Mode defaults before loading GA.
-   - Since cookies/analytics are meant to be automatic unless users opt out, send `analytics_storage: granted` before the first pageview unless local storage says the user opted out.
+1. **Connect Google Maps connector** — one-click, no key handling.
 
-4. **Avoid duplicate or lost events**
-   - Add a tiny internal event queue/ready promise so pageviews fired before the script is fully ready are sent once GA is available.
-   - Ensure opt-out still prevents future events.
+2. **DB migration** — add `geo_place_id text` to `projects` (nullable). Existing `geo_lat`, `geo_lng`, `geo_location_query` stay.
 
-5. **Validation instructions after publish**
-   - After implementation, publish the app, then test with Tag Assistant again.
-   - Expected result: Tag Assistant should show at least one sent `page_view` hit instead of “Deferred hits / No hits were sent,” and GA Realtime/DebugView should start showing activity.
+3. **Places Autocomplete on the Event location field**
+   - New `src/components/PlacesAutocompleteInput.tsx` using Places API (New) `AutocompleteSuggestion.fetchAutocompleteSuggestions` with a session token, loaded via the browser key (`VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`).
+   - Free-text entry still allowed (fallback for users who don't pick a suggestion).
+   - On select: save `event_location` (formatted address), `geo_lat`, `geo_lng`, `geo_place_id`.
+   - Small "Verified ✓" hint when `geo_place_id` is set.
+
+4. **Map preview in Project settings → Details**
+   - Small, cheap: load Maps JS API async with the browser key + `callback=initMap`, render a ~250px `google.maps.Map` centered on the saved lat/lng with a single `google.maps.Marker`. No `mapId`, no AdvancedMarker.
+   - Shown only when `geo_lat`/`geo_lng` exist. Updates when a new place is picked.
+   - Effort: ~1 small component (~80 lines), no backend work. Trivial.
+
+5. **Rewrite `supabase/functions/project-weather/index.ts`**
+   - Use saved `geo_lat`/`geo_lng` first.
+   - Fallback: Google Geocoding API via gateway (`/maps/api/geocode/json`), cache result on the project row.
+   - Fetch weather from Google Weather API via gateway (`/weather/v1/...`) — historical + forecast, keeps the existing `{ weather: { "YYYY-MM-DD": {tmin, tmax, condition, wind} } }` response shape so no frontend/report/share changes.
+   - Keep Open-Meteo as last-resort fallback so nothing regresses.
+
+6. **No data migration** — legacy projects self-heal: next weather fetch geocodes with Google and caches lat/lng; or the user re-picks the location.
+
+## Files touched
+
+- new `src/components/PlacesAutocompleteInput.tsx`
+- new `src/components/LocationMapPreview.tsx`
+- `src/components/ProjectEditForm.tsx` (swap location input, show map preview)
+- `supabase/functions/project-weather/index.ts` (Google geocode + weather)
+- migration adding `geo_place_id`
+
+## Notes / caveats
+
+- Google Maps has a prohibited-territories list (China, Iran, etc.) — irrelevant for you but noting it.
+- Browser key is referrer-locked to `*.lovable.app` and `*.lovableproject.com`. For custom domains (`buildfolder.com`, `reportair.co`, `buildslides.com`) the managed key will fail with `RefererNotAllowedMapError` and the map + autocomplete won't work there. Server-side geocoding/weather (via gateway) is unaffected and works on any domain. To make the map + autocomplete work on the custom domains, you'll need your own Google Cloud API key with those domains in the referrer allowlist — I can walk you through that after the build if you want.
