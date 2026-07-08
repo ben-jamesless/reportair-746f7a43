@@ -130,6 +130,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         tilt: 0,
       });
       mapRef.current = map;
+      setMapReady(true);
 
       if (!editable) return;
 
