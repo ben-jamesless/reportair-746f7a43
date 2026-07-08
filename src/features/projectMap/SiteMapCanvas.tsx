@@ -1,9 +1,15 @@
 /// <reference types="google.maps" />
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
+
+export interface SiteMapCanvasHandle {
+  undoLastPoint: () => void;
+  confirmPolygon: () => void;
+  getDraftPointCount: () => number;
+}
 
 interface Props {
   center: { lat: number; lng: number };
@@ -11,7 +17,6 @@ interface Props {
   mapType?: "roadmap" | "satellite" | "hybrid";
   areas: Area[];
   features: MapFeature[];
-  /** null = view-only (share/guest). Otherwise the area currently being placed. */
   drawingAreaId?: string | null;
   drawingKind?: "pin" | "polygon" | "rectangle" | null;
   onCreate?: (areaId: string, kind: "pin" | "polygon" | "rectangle", geometry: any, color: string) => void;
@@ -19,9 +24,10 @@ interface Props {
   onFeatureClick?: (f: MapFeature) => void;
   fallbackColor?: string;
   editable?: boolean;
+  selectedId?: string | null;
+  onDraftChange?: (count: number) => void;
 }
 
-// Distinct colours per area from the project palette hash.
 function colorForArea(area: Area | undefined, fallback: string): string {
   if (!area) return fallback;
   const palette = ["#01696F", "#0EA5E9", "#6366F1", "#8B5CF6", "#EC4899", "#EF4444", "#F59E0B", "#10B981", "#84CC16", "#64748B"];
@@ -30,48 +36,82 @@ function colorForArea(area: Area | undefined, fallback: string): string {
   return palette[h % palette.length];
 }
 
-export function SiteMapCanvas({
+export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function SiteMapCanvas({
   center, zoom = 17, mapType = "hybrid", areas, features,
   drawingAreaId, drawingKind, onCreate, onUpdate, onFeatureClick,
   fallbackColor = DEFAULT_PROJECT_COLOR, editable = false,
-}: Props) {
+  selectedId, onDraftChange,
+}, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const overlaysRef = useRef<Map<string, google.maps.Marker | google.maps.Polygon | google.maps.Rectangle>>(new Map());
   const drawingStateRef = useRef({ drawingAreaId, drawingKind, editable });
-  // In-progress drawing (polygon points + preview overlays, or rectangle drag start)
+  const onCreateRef = useRef(onCreate);
+  const onDraftChangeRef = useRef(onDraftChange);
+  const areasRef = useRef(areas);
+  const fallbackColorRef = useRef(fallbackColor);
   const draftRef = useRef<{
     points: google.maps.LatLng[];
     tempPoly: google.maps.Polyline | null;
-    tempPolygon: google.maps.Polygon | null;
+    vertexMarkers: google.maps.Marker[];
     tempRect: google.maps.Rectangle | null;
     rectStart: google.maps.LatLng | null;
     rectMoveListener: google.maps.MapsEventListener | null;
     rectUpListener: google.maps.MapsEventListener | null;
-  }>({ points: [], tempPoly: null, tempPolygon: null, tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null });
+  }>({ points: [], tempPoly: null, vertexMarkers: [], tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null });
 
   useEffect(() => { drawingStateRef.current = { drawingAreaId, drawingKind, editable }; }, [drawingAreaId, drawingKind, editable]);
+  useEffect(() => { onCreateRef.current = onCreate; }, [onCreate]);
+  useEffect(() => { onDraftChangeRef.current = onDraftChange; }, [onDraftChange]);
+  useEffect(() => { areasRef.current = areas; }, [areas]);
+  useEffect(() => { fallbackColorRef.current = fallbackColor; }, [fallbackColor]);
+
+  const notifyDraft = () => onDraftChangeRef.current?.(draftRef.current.points.length);
 
   const clearDraft = () => {
     const d = draftRef.current;
     d.tempPoly?.setMap(null);
-    d.tempPolygon?.setMap(null);
+    d.vertexMarkers.forEach((m) => m.setMap(null));
     d.tempRect?.setMap(null);
     d.rectMoveListener?.remove();
     d.rectUpListener?.remove();
-    draftRef.current = { points: [], tempPoly: null, tempPolygon: null, tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null };
+    draftRef.current = { points: [], tempPoly: null, vertexMarkers: [], tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null };
+    notifyDraft();
   };
 
   const finishPolygon = () => {
     const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
     const pts = draftRef.current.points;
-    if (kind !== "polygon" || !aid || pts.length < 3 || !onCreate) { clearDraft(); return; }
-    const area = areas.find((a) => a.id === aid);
-    const color = colorForArea(area, fallbackColor);
+    if (kind !== "polygon" || !aid || pts.length < 3 || !onCreateRef.current) { clearDraft(); return; }
+    const area = areasRef.current.find((a) => a.id === aid);
+    const color = colorForArea(area, fallbackColorRef.current);
     const geometry = { paths: pts.map((p) => ({ lat: p.lat(), lng: p.lng() })) };
     clearDraft();
-    onCreate(aid, "polygon", geometry, color);
+    onCreateRef.current(aid, "polygon", geometry, color);
   };
+
+  const undoLastPoint = () => {
+    const d = draftRef.current;
+    if (d.points.length === 0) return;
+    d.points.pop();
+    const removed = d.vertexMarkers.pop();
+    removed?.setMap(null);
+    if (d.tempPoly) {
+      if (d.points.length === 0) {
+        d.tempPoly.setMap(null);
+        d.tempPoly = null;
+      } else {
+        d.tempPoly.setPath(d.points);
+      }
+    }
+    notifyDraft();
+  };
+
+  useImperativeHandle(ref, () => ({
+    undoLastPoint,
+    confirmPolygon: finishPolygon,
+    getDraftPointCount: () => draftRef.current.points.length,
+  }));
 
   // Init map once
   useEffect(() => {
@@ -92,12 +132,12 @@ export function SiteMapCanvas({
 
       map.addListener("click", (e: google.maps.MapMouseEvent) => {
         const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
-        if (!aid || !kind || !onCreate || !e.latLng) return;
-        const area = areas.find((a) => a.id === aid);
-        const color = colorForArea(area, fallbackColor);
+        if (!aid || !kind || !onCreateRef.current || !e.latLng) return;
+        const area = areasRef.current.find((a) => a.id === aid);
+        const color = colorForArea(area, fallbackColorRef.current);
 
         if (kind === "pin") {
-          onCreate(aid, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
+          onCreateRef.current(aid, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
           return;
         }
         if (kind === "polygon") {
@@ -110,12 +150,13 @@ export function SiteMapCanvas({
           } else {
             d.tempPoly.setPath(d.points);
           }
-          // small vertex markers
-          new g.maps.Marker({
+          const vm = new g.maps.Marker({
             position: e.latLng, map,
             icon: { path: g.maps.SymbolPath.CIRCLE, scale: 4, fillColor: color, fillOpacity: 1, strokeColor: "#fff", strokeWeight: 1 },
             clickable: false,
           });
+          d.vertexMarkers.push(vm);
+          notifyDraft();
         }
       });
 
@@ -130,11 +171,10 @@ export function SiteMapCanvas({
       map.addListener("mousedown", (e: any) => {
         const { drawingKind: kind, drawingAreaId: aid } = drawingStateRef.current;
         if (kind !== "rectangle" || !aid || !e.latLng) return;
-        // Block map panning while drawing
         map.setOptions({ draggable: false });
         const start = e.latLng as google.maps.LatLng;
-        const area = areas.find((a) => a.id === aid);
-        const color = colorForArea(area, fallbackColor);
+        const area = areasRef.current.find((a) => a.id === aid);
+        const color = colorForArea(area, fallbackColorRef.current);
         const rect = new g.maps.Rectangle({
           map,
           bounds: new g.maps.LatLngBounds(start, start),
@@ -158,11 +198,10 @@ export function SiteMapCanvas({
           rect.setMap(null);
           draftRef.current.tempRect = null;
           draftRef.current.rectStart = null;
-          // Ignore accidental clicks (no drag)
           if (Math.abs(start.lat() - end.lat()) < 1e-6 && Math.abs(start.lng() - end.lng()) < 1e-6) return;
           const finalBounds = b ?? new g.maps.LatLngBounds(start, end);
           const ne = finalBounds.getNorthEast(), sw = finalBounds.getSouthWest();
-          if (onCreate) onCreate(aid, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
+          if (onCreateRef.current) onCreateRef.current(aid, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
         });
       });
     });
@@ -170,7 +209,6 @@ export function SiteMapCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update cursor + reset draft when drawing mode changes
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -182,7 +220,7 @@ export function SiteMapCanvas({
     }
   }, [drawingAreaId, drawingKind, editable]);
 
-  // Render/refresh feature overlays
+  // Render/refresh feature overlays (recreates on color change via signature)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !window.google) return;
@@ -193,18 +231,21 @@ export function SiteMapCanvas({
       seen.add(f.id);
       const area = areas.find((a) => a.id === f.area_id);
       const color = f.color || colorForArea(area, fallbackColor);
+      const isSelected = selectedId === f.id;
+      const strokeWeight = isSelected ? 4 : 2;
       let overlay = overlaysRef.current.get(f.id);
 
       if (f.kind === "pin") {
         const pos = { lat: f.geometry.lat, lng: f.geometry.lng };
+        const icon = {
+          path: g.maps.SymbolPath.CIRCLE, scale: isSelected ? 11 : 9,
+          fillColor: color, fillOpacity: 1,
+          strokeColor: "#ffffff", strokeWeight: isSelected ? 3 : 2,
+        };
         if (!overlay) {
           const m = new g.maps.Marker({
             position: pos, map, draggable: editable, title: area?.name ?? "",
-            icon: {
-              path: g.maps.SymbolPath.CIRCLE, scale: 9,
-              fillColor: color, fillOpacity: 1,
-              strokeColor: "#ffffff", strokeWeight: 2,
-            },
+            icon,
           });
           m.addListener("click", () => onFeatureClick?.(f));
           if (editable) {
@@ -216,6 +257,7 @@ export function SiteMapCanvas({
           overlaysRef.current.set(f.id, m);
         } else if (overlay instanceof g.maps.Marker) {
           overlay.setPosition(pos);
+          overlay.setIcon(icon);
         }
       } else if (f.kind === "polygon") {
         const paths = (f.geometry.paths ?? []) as Array<{ lat: number; lng: number }>;
@@ -223,7 +265,7 @@ export function SiteMapCanvas({
           const poly = new g.maps.Polygon({
             paths, map,
             strokeColor: color, fillColor: color,
-            fillOpacity: 0.35, strokeWeight: 2,
+            fillOpacity: 0.35, strokeWeight,
             editable, draggable: editable,
           });
           poly.addListener("click", () => onFeatureClick?.(f));
@@ -239,6 +281,8 @@ export function SiteMapCanvas({
             poly.addListener("dragend", persist);
           }
           overlaysRef.current.set(f.id, poly);
+        } else if (overlay instanceof g.maps.Polygon) {
+          overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
         }
       } else if (f.kind === "rectangle") {
         const b = new g.maps.LatLngBounds(
@@ -249,7 +293,7 @@ export function SiteMapCanvas({
           const rect = new g.maps.Rectangle({
             bounds: b, map,
             strokeColor: color, fillColor: color,
-            fillOpacity: 0.35, strokeWeight: 2,
+            fillOpacity: 0.35, strokeWeight,
             editable, draggable: editable,
           });
           rect.addListener("click", () => onFeatureClick?.(f));
@@ -262,15 +306,16 @@ export function SiteMapCanvas({
             rect.addListener("bounds_changed", persist);
           }
           overlaysRef.current.set(f.id, rect);
+        } else if (overlay instanceof g.maps.Rectangle) {
+          overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
         }
       }
     }
 
-    // Remove stale overlays
     for (const [id, ov] of overlaysRef.current) {
       if (!seen.has(id)) { ov.setMap(null); overlaysRef.current.delete(id); }
     }
-  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate]);
+  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId]);
 
   return <div ref={containerRef} className="h-full w-full rounded-md border bg-muted/40" aria-label="Site map" />;
-}
+});
