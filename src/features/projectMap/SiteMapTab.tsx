@@ -144,7 +144,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
 
       <div className="h-[70vh] min-h-[500px]">
         <SiteMapCanvas
-          center={{ lat: geoLat, lng: geoLng }}
+          center={geo ?? { lat: 0, lng: 0 }}
           areas={areas}
           features={features}
           drawingAreaId={drawingAreaId}
