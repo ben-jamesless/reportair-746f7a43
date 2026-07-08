@@ -29,7 +29,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
     const params = new URLSearchParams({
       key,
       v: "weekly",
-      libraries: "places,marker,drawing",
+      libraries: "places,marker",
       loading: "async",
       callback: "__lovableInitGoogleMaps",
     });
