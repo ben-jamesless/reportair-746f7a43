@@ -1143,7 +1143,7 @@ const SharePage = () => {
 
             {token && areas.length > 0 && (
               <Dialog open={mapOpen} onOpenChange={setMapOpen}>
-                <DialogContent className="max-w-5xl p-0">
+                <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] p-0 sm:max-w-[1400px]">
                   <ShareSiteMap
                     token={token}
                     areas={areas}

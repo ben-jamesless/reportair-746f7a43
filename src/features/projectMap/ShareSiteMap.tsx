@@ -52,12 +52,12 @@ export function ShareSiteMap({ token, areas, onAreaClick }: Props) {
   const areasWithFeatures = areas.filter((a) => areaColor.has(a.id));
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-card">
       <div className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold">Site map</h3>
         <p className="text-xs text-muted-foreground">Click an area on the map to view its photos.</p>
       </div>
-      <div className="h-[420px] w-full">
+      <div className="min-h-0 flex-1 w-full">
         <SiteMapCanvas
           center={center ?? fallbackCenter}
           zoom={17}

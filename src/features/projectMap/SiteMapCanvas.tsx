@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
@@ -45,6 +45,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const overlaysRef = useRef<Map<string, google.maps.Marker | google.maps.Polygon | google.maps.Rectangle>>(new Map());
   const labelsRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const drawingStateRef = useRef({ drawingAreaId, drawingKind, editable });
@@ -129,6 +130,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         tilt: 0,
       });
       mapRef.current = map;
+      setMapReady(true);
 
       if (!editable) return;
 
@@ -366,7 +368,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const [id, lm] of labelsRef.current) {
       if (!seen.has(id)) { lm.setMap(null); labelsRef.current.delete(id); }
     }
-  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId]);
+  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady]);
 
   // Fit map to all features (read-only share view)
   const didFitRef = useRef(false);
@@ -390,7 +392,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
       map.fitBounds(bounds, 48);
       didFitRef.current = true;
     }
-  }, [fitToFeatures, features]);
+  }, [fitToFeatures, features, mapReady]);
 
   return <div ref={containerRef} className="h-full w-full rounded-md border bg-muted/40" aria-label="Site map" />;
 });
