@@ -1108,7 +1108,16 @@ const SharePage = () => {
 
             {token && areas.length > 0 && (
               <div className="mb-4">
-                <ShareSiteMap token={token} areas={areas} />
+                <ShareSiteMap
+                  token={token}
+                  areas={areas}
+                  onAreaClick={(id) => {
+                    setActiveKey(areaKey(id));
+                    if (typeof window !== "undefined") {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                />
               </div>
             )}
 
