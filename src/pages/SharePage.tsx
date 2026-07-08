@@ -913,6 +913,22 @@ const SharePage = () => {
               <span className="text-xs opacity-80">{photos.length}</span>
             </button>
 
+            {hasMapFeatures && (
+              <button
+                onClick={() => setMapOpen(true)}
+                className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
+                style={{ color: BODY }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = SURFACE; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+              >
+                <span className="flex items-center gap-2">
+                  <MapIcon className="h-3.5 w-3.5" />
+                  <span className="font-medium">Site map</span>
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 opacity-60" />
+              </button>
+            )}
+
             <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
 
             {allDayGroups.length === 0 && (
