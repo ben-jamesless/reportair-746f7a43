@@ -178,7 +178,38 @@ export const ProjectEditForm = ({
     })();
   }, [projectId, initialBuildStartDate]);
 
-  // Load existing logo + signed preview URL
+  // Load existing logo + signed preview URL, and existing geo coordinates.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("logo_path, geo_lat, geo_lng, geo_place_id")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (cancelled) return;
+      const row = data as {
+        logo_path?: string | null;
+        geo_lat?: number | null;
+        geo_lng?: number | null;
+        geo_place_id?: string | null;
+      } | null;
+      setGeoLat(row?.geo_lat ?? null);
+      setGeoLng(row?.geo_lng ?? null);
+      setGeoPlaceId(row?.geo_place_id ?? null);
+      const path = row?.logo_path ?? null;
+      setLogoPath(path);
+      if (path) {
+        const { data: signed } = await supabase.storage.from("export-assets").createSignedUrl(path, 600);
+        if (!cancelled) setLogoUrl(signed?.signedUrl ?? null);
+      } else {
+        setLogoUrl(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId]);
+
+  // Legacy loader kept as no-op replacement (removed duplicate).
   useEffect(() => {
     let cancelled = false;
     (async () => {
