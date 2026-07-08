@@ -130,29 +130,51 @@ const weatherIconFor = (condition: string) => {
   if (c.includes("thunder")) return CloudLightning;
   if (c.includes("snow")) return CloudSnow;
   if (c.includes("drizzle")) return CloudDrizzle;
-  if (c.includes("rain")) return CloudRain;
-  if (c.includes("fog")) return CloudFog;
+  if (c.includes("rain") || c.includes("shower")) return CloudRain;
+  if (c.includes("fog") || c.includes("mist") || c.includes("haze")) return CloudFog;
+  if (c.includes("partly") || c.includes("mainly clear") || c.includes("mostly clear")) return Cloud;
   if (c.includes("overcast") || c.includes("cloud")) return Cloud;
-  if (c.includes("clear")) return Sun;
+  if (c.includes("clear") || c.includes("sun")) return Sun;
   return Cloud;
 };
-const WeatherBadge = ({ w, muted, divider, body }: { w: Wx; muted: string; divider: string; body: string }) => {
+
+type WxTint = { bg: string; border: string; icon: string };
+const weatherTintFor = (condition: string, dark: boolean): WxTint => {
+  const c = condition.toLowerCase();
+  // [hue, iconLight, iconDark] — bg/border are derived from the hue.
+  let hue = "148, 163, 184"; // slate default
+  let icon = "#64748B";
+  if (c.includes("thunder")) { hue = "124, 58, 237"; icon = "#7C3AED"; }
+  else if (c.includes("snow")) { hue = "99, 102, 241"; icon = "#6366F1"; }
+  else if (c.includes("drizzle") || c.includes("rain") || c.includes("shower")) { hue = "37, 99, 235"; icon = "#2563EB"; }
+  else if (c.includes("fog") || c.includes("mist") || c.includes("haze")) { hue = "120, 113, 108"; icon = "#78716C"; }
+  else if (c.includes("partly") || c.includes("mainly clear") || c.includes("mostly clear")) { hue = "14, 165, 233"; icon = "#0EA5E9"; }
+  else if (c.includes("overcast") || c.includes("cloud")) { hue = "100, 116, 139"; icon = "#64748B"; }
+  else if (c.includes("clear") || c.includes("sun")) { hue = "245, 158, 11"; icon = "#F59E0B"; }
+  return dark
+    ? { bg: `rgba(${hue}, 0.18)`, border: `rgba(${hue}, 0.45)`, icon }
+    : { bg: `rgba(${hue}, 0.14)`, border: `rgba(${hue}, 0.38)`, icon };
+};
+
+const WeatherBadge = ({ w, muted, body, dark }: { w: Wx; muted: string; divider?: string; body: string; dark: boolean }) => {
   const Icon = weatherIconFor(w.condition);
+  const tint = weatherTintFor(w.condition, dark);
   return (
     <span
       className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium"
-      style={{ borderColor: divider, color: body }}
+      style={{ backgroundColor: tint.bg, borderColor: tint.border, color: body }}
     >
-      <Icon className="h-3.5 w-3.5" style={{ color: muted }} />
+      <Icon className="h-3.5 w-3.5" style={{ color: tint.icon }} />
       <span>{w.tmin}°–{w.tmax}°C</span>
       <span style={{ color: muted }}>·</span>
-      <span style={{ color: muted }}>{w.condition}</span>
+      <span style={{ color: body }}>{w.condition}</span>
       <span style={{ color: muted }}>·</span>
-      <Wind className="h-3 w-3" style={{ color: muted }} />
+      <Wind className="h-3 w-3" style={{ color: tint.icon }} />
       <span style={{ color: muted }}>{w.wind} km/h</span>
     </span>
   );
 };
+
 
 
 const isoDateKey = (d: Date) => {
