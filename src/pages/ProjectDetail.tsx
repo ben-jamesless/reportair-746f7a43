@@ -723,6 +723,10 @@ const ProjectDetail = () => {
             <ActivityFeed projectId={project.id} />
           </TabsContent>
 
+          <TabsContent value="map" className="mt-6">
+            <SiteMapTab projectId={project.id} color={project.color} canEdit={canEdit} />
+          </TabsContent>
+
           <TabsContent value="details" className="mt-6">
             <ProjectDetailsTab
               project={project}
