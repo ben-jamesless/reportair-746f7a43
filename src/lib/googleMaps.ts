@@ -28,7 +28,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
     const s = document.createElement("script");
     const params = new URLSearchParams({
       key,
-      v: "3.64",
+      v: "weekly",
       libraries: "places,marker,drawing",
       loading: "async",
       callback: "__lovableInitGoogleMaps",
