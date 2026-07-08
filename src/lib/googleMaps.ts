@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 // Shared async loader for Google Maps JS API. Loads once per page.
 // Uses the referrer-restricted browser key from the Google Maps connector.
 

@@ -1,41 +1,55 @@
 ## Goal
 
-Accurate event location + weather via Google Maps Platform, plus a small map preview in project settings.
+Two changes to the live share page (`/s/:token`):
 
-## Steps
+1. Source weather from Google's Weather API (via the Google Maps connector gateway) instead of Open-Meteo.
+2. Colour the weather badge by condition so sunny days look sunny, rainy days look wet, etc.
 
-1. **Connect Google Maps connector** — one-click, no key handling.
+## 1. Switch weather source to Google Weather API
 
-2. **DB migration** — add `geo_place_id text` to `projects` (nullable). Existing `geo_lat`, `geo_lng`, `geo_location_query` stay.
+Edit `supabase/functions/project-weather/index.ts`:
 
-3. **Places Autocomplete on the Event location field**
-   - New `src/components/PlacesAutocompleteInput.tsx` using Places API (New) `AutocompleteSuggestion.fetchAutocompleteSuggestions` with a session token, loaded via the browser key (`VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`).
-   - Free-text entry still allowed (fallback for users who don't pick a suggestion).
-   - On select: save `event_location` (formatted address), `geo_lat`, `geo_lng`, `geo_place_id`.
-   - Small "Verified ✓" hint when `geo_place_id` is set.
+- Keep the existing geocoding pipeline (stored `geo_lat/lng` → Google Geocoding → Open-Meteo geocode fallback). That part already works.
+- Replace `fetchWeatherRange` (Open-Meteo forecast/archive) with calls to Google's Weather API through the connector gateway:
+  - Forecast (dates in the next ~10 days): `GET /weather/v1/forecast/days:lookup?location.latitude=..&location.longitude=..&days=10`
+  - History (past dates): `GET /weather/v1/history/days:lookup?location.latitude=..&location.longitude=..&days=N` (Google returns up to ~30 days back)
+  - Gateway base: `https://connector-gateway.lovable.dev/google_maps/weather/...` with `Authorization: Bearer $LOVABLE_API_KEY` and `X-Connection-Api-Key: $GOOGLE_MAPS_API_KEY`.
+- Map Google's response fields to the existing `DayWeather` shape:
+  - `tmin` ← `minTemperature.degrees` (round)
+  - `tmax` ← `maxTemperature.degrees` (round)
+  - `wind` ← `maxWindSpeed.value` converted to km/h (round)
+  - `condition` ← `daytimeForecast.weatherCondition.description.text` (fallback to `type` mapped to a friendly string like "Clear sky", "Partly cloudy", "Rain", "Snow", "Thunderstorm", "Fog")
+- Keep a single Open-Meteo fallback only if the Google call fails (network error / non-2xx), so the share page never breaks.
+- Preserve the existing response envelope: `{ weather: { "YYYY-MM-DD": { tmin, tmax, condition, wind } } }`. No changes needed on the frontend fetch.
+- Surface provider errors (log status + body) but still return `weather: {}` for missing days so the UI degrades gracefully.
 
-4. **Map preview in Project settings → Details**
-   - Small, cheap: load Maps JS API async with the browser key + `callback=initMap`, render a ~250px `google.maps.Map` centered on the saved lat/lng with a single `google.maps.Marker`. No `mapId`, no AdvancedMarker.
-   - Shown only when `geo_lat`/`geo_lng` exist. Updates when a new place is picked.
-   - Effort: ~1 small component (~80 lines), no backend work. Trivial.
+No new secrets — the Google Maps connector is already linked and `LOVABLE_API_KEY` + `GOOGLE_MAPS_API_KEY` are available in the function environment.
 
-5. **Rewrite `supabase/functions/project-weather/index.ts`**
-   - Use saved `geo_lat`/`geo_lng` first.
-   - Fallback: Google Geocoding API via gateway (`/maps/api/geocode/json`), cache result on the project row.
-   - Fetch weather from Google Weather API via gateway (`/weather/v1/...`) — historical + forecast, keeps the existing `{ weather: { "YYYY-MM-DD": {tmin, tmax, condition, wind} } }` response shape so no frontend/report/share changes.
-   - Keep Open-Meteo as last-resort fallback so nothing regresses.
+## 2. Colour the weather badge
 
-6. **No data migration** — legacy projects self-heal: next weather fetch geocodes with Google and caches lat/lng; or the user re-picks the location.
+Edit `src/pages/SharePage.tsx` (only the `WeatherBadge` component and `weatherIconFor`; nothing else changes):
 
-## Files touched
+- Add a `weatherTintFor(condition)` helper returning `{ bg, border, icon, text }` per condition family, using semantic hex tints that read well in both light and dark share themes:
+  - Clear / sunny → amber (`#FEF3C7` bg, `#F59E0B` icon)
+  - Partly cloudy / mainly clear → soft sky (`#E0F2FE` bg, `#0EA5E9` icon)
+  - Cloudy / overcast → neutral slate (`#F1F5F9` bg, `#64748B` icon)
+  - Fog → warm grey (`#F5F5F4` bg, `#78716C` icon)
+  - Drizzle / rain → blue (`#DBEAFE` bg, `#2563EB` icon)
+  - Snow → cool slate (`#E0E7FF` bg, `#6366F1` icon)
+  - Thunderstorm → violet (`#EDE9FE` bg, `#7C3AED` icon)
+- In dark mode (`dark === true` on the page), swap to a darker translucent version of the same hue (e.g. `bg: rgba(hue, 0.15)`, keep the same icon colour, text stays `body`).
+- Update `WeatherBadge` to accept `dark: boolean` and apply the tint to the pill background + border, and to the weather icon (currently muted grey). Temperature text keeps `body` colour so it stays readable; the "·" separators and the wind number stay muted.
+- Pass `dark` from `SharePage` where `<WeatherBadge />` is rendered (three call sites: latest-update card, day header in expanded All Days, and single-day header).
 
-- new `src/components/PlacesAutocompleteInput.tsx`
-- new `src/components/LocationMapPreview.tsx`
-- `src/components/ProjectEditForm.tsx` (swap location input, show map preview)
-- `supabase/functions/project-weather/index.ts` (Google geocode + weather)
-- migration adding `geo_place_id`
+No layout / size / typography changes to the badge — just colour.
 
-## Notes / caveats
+## Verification
 
-- Google Maps has a prohibited-territories list (China, Iran, etc.) — irrelevant for you but noting it.
-- Browser key is referrer-locked to `*.lovable.app` and `*.lovableproject.com`. For custom domains (`buildfolder.com`, `reportair.co`, `buildslides.com`) the managed key will fail with `RefererNotAllowedMapError` and the map + autocomplete won't work there. Server-side geocoding/weather (via gateway) is unaffected and works on any domain. To make the map + autocomplete work on the custom domains, you'll need your own Google Cloud API key with those domains in the referrer allowlist — I can walk you through that after the build if you want.
+- Deploy the edge function, then hit it with `supabase--curl_edge_functions` for a known token + a mix of past and future dates; confirm Google returns data and the response shape matches. Log any non-OK Google response body so we can spot API-enablement issues in one pass.
+- Open the share page in the preview, screenshot the latest-update card and one day header in both light and dark mode; verify the pill picks up the right tint for the current "Clear sky" example and that dark mode remains legible.
+
+## Technical notes
+
+- Google's Weather API requires the "Weather API" to be enabled on the user's Google Cloud project. If the first call returns 403 with `SERVICE_DISABLED`, the function will fall back to Open-Meteo and we'll surface a one-line note in the response (`source: "open-meteo-fallback"`) so we can tell the user to enable it in Cloud Console.
+- Wind: Google returns `maxWindSpeed` with a `unit` field — we'll request/normalise to `KILOMETERS_PER_HOUR` via the `unitsSystem=METRIC` query parameter so no client-side conversion is needed.
+- No DB migration, no new secrets, no changes to `ProjectEditForm`, and no changes to weather fetch code on the client.
