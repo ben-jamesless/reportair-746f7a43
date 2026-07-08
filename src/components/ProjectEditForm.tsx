@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/projectStatus";
 import { usePlan } from "@/hooks/usePlan";
+import { PlacesAutocompleteInput, type PlacePick } from "./PlacesAutocompleteInput";
+import { LocationMapPreview } from "./LocationMapPreview";
 
 export type ProjectDefaultView = "report" | "gallery";
 
