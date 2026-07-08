@@ -172,6 +172,60 @@ export type Database = {
         }
         Relationships: []
       }
+      area_map_features: {
+        Row: {
+          area_id: string
+          color: string | null
+          created_at: string
+          created_by: string | null
+          geometry: Json
+          id: string
+          kind: string
+          label: string | null
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          area_id: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          geometry: Json
+          id?: string
+          kind: string
+          label?: string | null
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          area_id?: string
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          geometry?: Json
+          id?: string
+          kind?: string
+          label?: string | null
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "area_map_features_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "area_map_features_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       areas: {
         Row: {
           created_at: string
@@ -852,6 +906,9 @@ export type Database = {
           last_activity_at: string | null
           location: string | null
           logo_path: string | null
+          map_center: Json | null
+          map_type: string | null
+          map_zoom: number | null
           name: string
           overall_status: Database["public"]["Enums"]["project_status"]
           phase: string | null
@@ -883,6 +940,9 @@ export type Database = {
           last_activity_at?: string | null
           location?: string | null
           logo_path?: string | null
+          map_center?: Json | null
+          map_type?: string | null
+          map_zoom?: number | null
           name: string
           overall_status?: Database["public"]["Enums"]["project_status"]
           phase?: string | null
@@ -914,6 +974,9 @@ export type Database = {
           last_activity_at?: string | null
           location?: string | null
           logo_path?: string | null
+          map_center?: Json | null
+          map_type?: string | null
+          map_zoom?: number | null
           name?: string
           overall_status?: Database["public"]["Enums"]["project_status"]
           phase?: string | null
@@ -1437,6 +1500,17 @@ export type Database = {
           created_at: string
           guest_name: string
           id: string
+        }[]
+      }
+      list_share_map_features: {
+        Args: { _token: string }
+        Returns: {
+          area_id: string
+          color: string
+          geometry: Json
+          id: string
+          kind: string
+          label: string
         }[]
       }
       mark_notifications_read: { Args: { _ids?: string[] }; Returns: number }

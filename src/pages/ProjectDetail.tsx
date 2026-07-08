@@ -41,6 +41,7 @@ import {
 } from "@/lib/projectDetailTypes";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { ProjectHeader } from "@/features/projectDetail/ProjectHeader";
+import { SiteMapTab } from "@/features/projectMap/SiteMapTab";
 import { DayTimeline } from "@/features/projectDetail/DayTimeline";
 import { SelectionToolbar } from "@/features/projectDetail/SelectionToolbar";
 import { PhotoLightboxController } from "@/features/projectDetail/PhotoLightboxController";
@@ -123,10 +124,11 @@ const ProjectDetail = () => {
     return n;
   });
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details">(() => {
+  const [activeTab, setActiveTab] = useState<"photos" | "activity" | "details" | "map">(() => {
     const t = searchParams.get("tab");
     if (t === "activity") return "activity";
     if (t === "details") return "details";
+    if (t === "map") return "map";
     if (t === "updates" || t === "photos") return "photos";
     return "photos";
   });
@@ -580,7 +582,7 @@ const ProjectDetail = () => {
 
       <div className="flex flex-1 overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
         {/* Main tab content */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "photos" | "activity" | "details" | "map")} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
 
           <TabsContent value="photos" className="mt-4">
             <div className="grid grid-cols-1 gap-0 md:grid-cols-[200px_1fr] xl:grid-cols-[220px_1fr]">
@@ -720,6 +722,10 @@ const ProjectDetail = () => {
 
           <TabsContent value="activity" className="mt-6">
             <ActivityFeed projectId={project.id} />
+          </TabsContent>
+
+          <TabsContent value="map" className="mt-6">
+            <SiteMapTab projectId={project.id} color={project.color} canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="details" className="mt-6">

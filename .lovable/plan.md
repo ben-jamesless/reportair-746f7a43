@@ -1,55 +1,80 @@
-## Goal
 
-Two changes to the live share page (`/s/:token`):
+# Site Map feature (v2: pins + polygons)
 
-1. Source weather from Google's Weather API (via the Google Maps connector gateway) instead of Open-Meteo.
-2. Colour the weather badge by condition so sunny days look sunny, rainy days look wet, etc.
+Add a new "Site Map" tab to project detail so organisers can plot each Area as a pin and/or polygon zone on a Google satellite map, and share it read-only with guests.
 
-## 1. Switch weather source to Google Weather API
+## Effort estimate
+~4–6 focused days. No new vendors — reuses the existing Google Maps connector and browser key.
 
-Edit `supabase/functions/project-weather/index.ts`:
+## User flow
 
-- Keep the existing geocoding pipeline (stored `geo_lat/lng` → Google Geocoding → Open-Meteo geocode fallback). That part already works.
-- Replace `fetchWeatherRange` (Open-Meteo forecast/archive) with calls to Google's Weather API through the connector gateway:
-  - Forecast (dates in the next ~10 days): `GET /weather/v1/forecast/days:lookup?location.latitude=..&location.longitude=..&days=10`
-  - History (past dates): `GET /weather/v1/history/days:lookup?location.latitude=..&location.longitude=..&days=N` (Google returns up to ~30 days back)
-  - Gateway base: `https://connector-gateway.lovable.dev/google_maps/weather/...` with `Authorization: Bearer $LOVABLE_API_KEY` and `X-Connection-Api-Key: $GOOGLE_MAPS_API_KEY`.
-- Map Google's response fields to the existing `DayWeather` shape:
-  - `tmin` ← `minTemperature.degrees` (round)
-  - `tmax` ← `maxTemperature.degrees` (round)
-  - `wind` ← `maxWindSpeed.value` converted to km/h (round)
-  - `condition` ← `daytimeForecast.weatherCondition.description.text` (fallback to `type` mapped to a friendly string like "Clear sky", "Partly cloudy", "Rain", "Snow", "Thunderstorm", "Fog")
-- Keep a single Open-Meteo fallback only if the Google call fails (network error / non-2xx), so the share page never breaks.
-- Preserve the existing response envelope: `{ weather: { "YYYY-MM-DD": { tmin, tmax, condition, wind } } }`. No changes needed on the frontend fetch.
-- Surface provider errors (log status + body) but still return `weather: {}` for missing days so the UI degrades gracefully.
+**Owner (edit mode)**
+1. Open project → "Site Map" tab.
+2. First visit: map auto-centers on the project's `geo_lat/lng` (already stored from Places autocomplete). If missing, prompt to set the event location in Settings.
+3. Toggle satellite / hybrid / roadmap.
+4. Sidebar lists all Areas. Click an Area → "Add pin" or "Draw zone" (polygon/rectangle).
+5. Drag pins to reposition; edit polygon vertices; recolor per Area (reuses `areas` color if we add one, else project color).
+6. Autosave on change.
 
-No new secrets — the Google Maps connector is already linked and `LOVABLE_API_KEY` + `GOOGLE_MAPS_API_KEY` are available in the function environment.
+**Guest (share link)**
+- Read-only map with all pins + zones. Click a pin/zone → scrolls the share page to that Area's photos/notes.
 
-## 2. Colour the weather badge
+## Data model
 
-Edit `src/pages/SharePage.tsx` (only the `WeatherBadge` component and `weatherIconFor`; nothing else changes):
+One new table `area_map_features`:
 
-- Add a `weatherTintFor(condition)` helper returning `{ bg, border, icon, text }` per condition family, using semantic hex tints that read well in both light and dark share themes:
-  - Clear / sunny → amber (`#FEF3C7` bg, `#F59E0B` icon)
-  - Partly cloudy / mainly clear → soft sky (`#E0F2FE` bg, `#0EA5E9` icon)
-  - Cloudy / overcast → neutral slate (`#F1F5F9` bg, `#64748B` icon)
-  - Fog → warm grey (`#F5F5F4` bg, `#78716C` icon)
-  - Drizzle / rain → blue (`#DBEAFE` bg, `#2563EB` icon)
-  - Snow → cool slate (`#E0E7FF` bg, `#6366F1` icon)
-  - Thunderstorm → violet (`#EDE9FE` bg, `#7C3AED` icon)
-- In dark mode (`dark === true` on the page), swap to a darker translucent version of the same hue (e.g. `bg: rgba(hue, 0.15)`, keep the same icon colour, text stays `body`).
-- Update `WeatherBadge` to accept `dark: boolean` and apply the tint to the pill background + border, and to the weather icon (currently muted grey). Temperature text keeps `body` colour so it stays readable; the "·" separators and the wind number stay muted.
-- Pass `dark` from `SharePage` where `<WeatherBadge />` is rendered (three call sites: latest-update card, day header in expanded All Days, and single-day header).
+```text
+id              uuid pk
+project_id      uuid fk projects
+area_id         uuid fk areas (cascade delete)
+kind            text check in ('pin','polygon','rectangle')
+geometry        jsonb   -- pin: {lat,lng}; polygon: {paths:[{lat,lng}...]}
+label           text nullable
+color           text nullable  -- hex override
+created_by      uuid
+created_at, updated_at
+```
 
-No layout / size / typography changes to the badge — just colour.
+Also add to `projects`:
+- `map_zoom int` (default 17)
+- `map_type text` (default 'hybrid')
+- `map_center jsonb` nullable — falls back to `geo_lat/lng`
 
-## Verification
+RLS mirrors `areas`: project members read/write; share-link viewers read via existing share-link policy pattern.
 
-- Deploy the edge function, then hit it with `supabase--curl_edge_functions` for a known token + a mix of past and future dates; confirm Google returns data and the response shape matches. Log any non-OK Google response body so we can spot API-enablement issues in one pass.
-- Open the share page in the preview, screenshot the latest-update card and one day header in both light and dark mode; verify the pill picks up the right tint for the current "Clear sky" example and that dark mode remains legible.
+## Components / files
+
+New:
+- `src/features/projectMap/SiteMapTab.tsx` — main container, mode switch (view/edit).
+- `src/features/projectMap/SiteMapCanvas.tsx` — Google Map + Drawing Manager, renders features.
+- `src/features/projectMap/AreaMapSidebar.tsx` — area list, per-area feature actions.
+- `src/features/projectMap/useMapFeatures.ts` — CRUD hook with optimistic updates.
+- `src/features/projectMap/featureGeometry.ts` — geometry ↔ jsonb helpers.
+
+Edited:
+- `src/lib/googleMaps.ts` — add `drawing` to libraries list.
+- `src/pages/ProjectDetail.tsx` — add "Site Map" tab.
+- `src/pages/SharePage.tsx` — read-only map section above/below Areas list; clicking a feature scrolls to `#area-{id}`.
 
 ## Technical notes
 
-- Google's Weather API requires the "Weather API" to be enabled on the user's Google Cloud project. If the first call returns 403 with `SERVICE_DISABLED`, the function will fall back to Open-Meteo and we'll surface a one-line note in the response (`source: "open-meteo-fallback"`) so we can tell the user to enable it in Cloud Console.
-- Wind: Google returns `maxWindSpeed` with a `unit` field — we'll request/normalise to `KILOMETERS_PER_HOUR` via the `unitsSystem=METRIC` query parameter so no client-side conversion is needed.
-- No DB migration, no new secrets, no changes to `ProjectEditForm`, and no changes to weather fetch code on the client.
+- Use `google.maps.Map` + `google.maps.drawing.DrawingManager` (no `mapId`, per project rules — that's why we can't use `AdvancedMarkerElement`; stick with `Marker` and `Polygon`).
+- Polygon editing: `polygon.setEditable(true)` + `setDraggable(true)`, persist on `mouseup` of any vertex path via `path.addListener('set_at'|'insert_at'|'remove_at')`.
+- Debounce autosave (500 ms). Optimistic UI; toast on save error.
+- Share-link read path: fetch features via existing share-link RPC/policy — no new edge function needed.
+- Bounds: on load, `fitBounds` to include all features; fall back to project center + saved zoom.
+- All colour, spacing, and typography stay on the existing semantic tokens (no hardcoded hex in components — feature colour comes from `areas.color` or project color token converted at render time).
+
+## Out of scope for v1
+
+- Custom icon library (tents, stages, toilets — OnePlan's "items")
+- Measurements / area calc
+- Layers, print-ready export, versioning
+- ESRI / Mapbox alternates
+
+We can layer any of those in later without changing the schema much (add `icon` and `metadata` cols to `area_map_features`).
+
+## Verification
+
+- Playwright: create project → set location → open Site Map → drop pin → reload → pin persists.
+- Share link: open in incognito, confirm features render and clicking scrolls to the right Area.
