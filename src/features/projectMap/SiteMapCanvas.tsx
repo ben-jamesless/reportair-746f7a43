@@ -26,6 +26,7 @@ interface Props {
   editable?: boolean;
   selectedId?: string | null;
   onDraftChange?: (count: number) => void;
+  fitToFeatures?: boolean;
 }
 
 function colorForArea(area: Area | undefined, fallback: string): string {
@@ -40,7 +41,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   center, zoom = 17, mapType = "hybrid", areas, features,
   drawingAreaId, drawingKind, onCreate, onUpdate, onFeatureClick,
   fallbackColor = DEFAULT_PROJECT_COLOR, editable = false,
-  selectedId, onDraftChange,
+  selectedId, onDraftChange, fitToFeatures = false,
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -366,6 +367,30 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
       if (!seen.has(id)) { lm.setMap(null); labelsRef.current.delete(id); }
     }
   }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId]);
+
+  // Fit map to all features (read-only share view)
+  const didFitRef = useRef(false);
+  useEffect(() => {
+    if (!fitToFeatures || didFitRef.current) return;
+    const map = mapRef.current;
+    if (!map || !window.google || features.length === 0) return;
+    const g = window.google;
+    const bounds = new g.maps.LatLngBounds();
+    for (const f of features) {
+      if (f.kind === "pin") {
+        bounds.extend({ lat: f.geometry.lat, lng: f.geometry.lng });
+      } else if (f.kind === "rectangle") {
+        bounds.extend({ lat: f.geometry.north, lng: f.geometry.east });
+        bounds.extend({ lat: f.geometry.south, lng: f.geometry.west });
+      } else if (f.kind === "polygon") {
+        for (const p of (f.geometry.paths ?? [])) bounds.extend({ lat: p.lat, lng: p.lng });
+      }
+    }
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, 48);
+      didFitRef.current = true;
+    }
+  }, [fitToFeatures, features]);
 
   return <div ref={containerRef} className="h-full w-full rounded-md border bg-muted/40" aria-label="Site map" />;
 });
