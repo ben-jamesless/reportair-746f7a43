@@ -37,7 +37,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
-  const { features, create, updateGeometry, remove, updateColor } = useMapFeatures(projectId);
+  const { features, create, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null);
   const [drawingKind, setDrawingKind] = useState<"pin" | "polygon" | "rectangle" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
