@@ -26,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { PROJECT_COLOR_PALETTE, DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { PROJECT_STATUSES, type ProjectStatus } from "@/lib/projectStatus";
 import { usePlan } from "@/hooks/usePlan";
+import { PlacesAutocompleteInput, type PlacePick } from "./PlacesAutocompleteInput";
+import { LocationMapPreview } from "./LocationMapPreview";
 
 export type ProjectDefaultView = "report" | "gallery";
 
@@ -95,6 +97,9 @@ export const ProjectEditForm = ({
   const [eventDate, setEventDate] = useState<Date | undefined>(fromIsoDate(initialEventDate));
   const [buildStartDate, setBuildStartDate] = useState<Date | undefined>(fromIsoDate(initialBuildStartDate ?? null));
   const [eventLocation, setEventLocation] = useState(initialEventLocation ?? "");
+  const [geoLat, setGeoLat] = useState<number | null>(null);
+  const [geoLng, setGeoLng] = useState<number | null>(null);
+  const [geoPlaceId, setGeoPlaceId] = useState<string | null>(null);
   const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
   const [eventType, setEventType] = useState(initialEventType ?? "");
   const [clientName, setClientName] = useState(initialClient ?? "");
@@ -173,13 +178,26 @@ export const ProjectEditForm = ({
     })();
   }, [projectId, initialBuildStartDate]);
 
-  // Load existing logo + signed preview URL
+  // Load existing logo + signed preview URL, and existing geo coordinates.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.from("projects").select("logo_path").eq("id", projectId).maybeSingle();
+      const { data } = await supabase
+        .from("projects")
+        .select("logo_path, geo_lat, geo_lng, geo_place_id")
+        .eq("id", projectId)
+        .maybeSingle();
       if (cancelled) return;
-      const path = (data as { logo_path?: string | null } | null)?.logo_path ?? null;
+      const row = data as {
+        logo_path?: string | null;
+        geo_lat?: number | null;
+        geo_lng?: number | null;
+        geo_place_id?: string | null;
+      } | null;
+      setGeoLat(row?.geo_lat ?? null);
+      setGeoLng(row?.geo_lng ?? null);
+      setGeoPlaceId(row?.geo_place_id ?? null);
+      const path = row?.logo_path ?? null;
       setLogoPath(path);
       if (path) {
         const { data: signed } = await supabase.storage.from("export-assets").createSignedUrl(path, 600);
@@ -190,6 +208,7 @@ export const ProjectEditForm = ({
     })();
     return () => { cancelled = true; };
   }, [projectId]);
+
 
   const onLogoFile = async (file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
@@ -239,17 +258,24 @@ export const ProjectEditForm = ({
   const save = async () => {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setBusy(true);
+    const trimmedLocation = eventLocation.trim() || null;
+    // If the free-text location no longer matches the verified place, drop the
+    // cached geo so the weather function re-geocodes.
+    const locationChanged = (initialEventLocation ?? "") !== (trimmedLocation ?? "");
     const update = {
       name: name.trim(),
       description: description.trim() || null,
       color,
       event_date: toIsoDate(eventDate),
       build_start_date: toIsoDate(buildStartDate),
-      event_location: eventLocation.trim() || null,
+      event_location: trimmedLocation,
       overall_status: status,
       event_type: eventType.trim() || null,
       client_name: clientName.trim() || null,
       ...(canChangeDefaultView ? { default_view: defaultView } : {}),
+      ...(locationChanged
+        ? { geo_lat: geoLat, geo_lng: geoLng, geo_place_id: geoPlaceId, geo_location_query: trimmedLocation }
+        : {}),
     };
     const { error } = await supabase
       .from("projects")
@@ -446,10 +472,38 @@ export const ProjectEditForm = ({
           <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="edit-location">Event location</Label>
-          <Input id="edit-location" value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="e.g. London, UK" />
+          <PlacesAutocompleteInput
+            id="edit-location"
+            value={eventLocation}
+            onChange={(v) => {
+              setEventLocation(v);
+              // Free-text edit invalidates the verified place.
+              if (geoPlaceId || geoLat !== null || geoLng !== null) {
+                setGeoLat(null);
+                setGeoLng(null);
+                setGeoPlaceId(null);
+              }
+            }}
+            onPick={(p: PlacePick) => {
+              setEventLocation(p.formattedAddress);
+              setGeoLat(p.lat);
+              setGeoLng(p.lng);
+              setGeoPlaceId(p.placeId);
+            }}
+            verified={!!geoPlaceId && !!geoLat && !!geoLng}
+            placeholder="Start typing a venue, city or address…"
+          />
+          {geoLat != null && geoLng != null ? (
+            <LocationMapPreview lat={geoLat} lng={geoLng} className="mt-2 h-40 w-full overflow-hidden rounded-md border" />
+          ) : eventLocation.trim() ? (
+            <p className="text-xs text-muted-foreground">
+              Pick a suggestion to verify the location — weather uses these coordinates.
+            </p>
+          ) : null}
         </div>
+
 
         <div className="space-y-2 sm:col-span-2">
           <Label>Overall status</Label>

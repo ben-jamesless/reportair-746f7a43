@@ -847,6 +847,7 @@ export type Database = {
           geo_lat: number | null
           geo_lng: number | null
           geo_location_query: string | null
+          geo_place_id: string | null
           id: string
           last_activity_at: string | null
           location: string | null
@@ -877,6 +878,7 @@ export type Database = {
           geo_lat?: number | null
           geo_lng?: number | null
           geo_location_query?: string | null
+          geo_place_id?: string | null
           id?: string
           last_activity_at?: string | null
           location?: string | null
@@ -907,6 +909,7 @@ export type Database = {
           geo_lat?: number | null
           geo_lng?: number | null
           geo_location_query?: string | null
+          geo_place_id?: string | null
           id?: string
           last_activity_at?: string | null
           location?: string | null

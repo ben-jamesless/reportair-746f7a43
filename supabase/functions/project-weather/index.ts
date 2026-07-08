@@ -1,5 +1,8 @@
 // Returns weather for a project on given dates. Public via share token.
-// Caches project lat/lng on first geocode. Silently returns {} on any failure.
+// Geocoding: prefers stored geo_lat/lng (set via Places Autocomplete),
+// falls back to Google Geocoding via the connector gateway, then Open-Meteo
+// as a last resort. Weather data comes from Open-Meteo, which is accurate
+// once the coordinates are correct.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
@@ -22,36 +25,54 @@ const WMO: Record<number, string> = {
 
 export type DayWeather = { tmin: number; tmax: number; condition: string; wind: number };
 
-async function geocodeOne(query: string): Promise<{ lat: number; lng: number } | null> {
+const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
+
+async function geocodeGoogle(query: string): Promise<{ lat: number; lng: number } | null> {
+  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+  const gmapsKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
+  if (!lovableKey || !gmapsKey) return null;
+  try {
+    const url = `${GATEWAY_URL}/maps/api/geocode/json?address=${encodeURIComponent(query)}`;
+    const r = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${lovableKey}`,
+        "X-Connection-Api-Key": gmapsKey,
+      },
+    });
+    if (!r.ok) { console.log("google geocode http", r.status, await r.text().catch(() => "")); return null; }
+    const j = await r.json();
+    const hit = j?.results?.[0];
+    const loc = hit?.geometry?.location;
+    if (!loc) { console.log("google geocode no result", query, j?.status); return null; }
+    return { lat: loc.lat, lng: loc.lng };
+  } catch (e) { console.log("google geocode err", String(e)); return null; }
+}
+
+async function geocodeOpenMeteo(query: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
     const r = await fetch(url);
-    if (!r.ok) { console.log("geocode http", r.status, query); return null; }
+    if (!r.ok) return null;
     const j = await r.json();
     const hit = j?.results?.[0];
-    if (!hit) { console.log("geocode no result", query); return null; }
+    if (!hit) return null;
     return { lat: hit.latitude, lng: hit.longitude };
-  } catch (e) { console.log("geocode err", String(e)); return null; }
+  } catch { return null; }
 }
 
 export async function geocode(query: string): Promise<{ lat: number; lng: number } | null> {
-  const tries = new Set<string>();
-  tries.add(query);
-  // Strip common venue suffixes
+  const g = await geocodeGoogle(query);
+  if (g) return g;
+  // Fallbacks: strip venue suffixes, then first word.
   const stripped = query.replace(/\b(Golf Club|Country Club|Club|Resort|Hotel|Stadium|Arena|Centre|Center)\b/gi, "").replace(/\s+/g, " ").trim();
-  if (stripped && stripped !== query) tries.add(stripped);
-  // First word fallback
-  const first = query.split(/[\s,]+/)[0];
-  if (first && first.length > 2) tries.add(first);
-  for (const q of tries) {
-    const r = await geocodeOne(q);
-    if (r) return r;
+  if (stripped && stripped !== query) {
+    const g2 = await geocodeGoogle(stripped);
+    if (g2) return g2;
   }
-  return null;
+  return await geocodeOpenMeteo(query);
 }
 
 export async function fetchWeatherRange(lat: number, lng: number, start: string, end: string): Promise<Record<string, DayWeather>> {
-  // Try archive (historical) first, fall back to forecast (covers very recent + future).
   const urls = [
     `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,windspeed_10m_max,weathercode&start_date=${start}&end_date=${end}&timezone=auto`,
