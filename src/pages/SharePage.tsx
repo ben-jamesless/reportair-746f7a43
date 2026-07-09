@@ -205,7 +205,26 @@ const SharePage = () => {
   const [needPassword, setNeedPassword] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
-  const [activeKey, setActiveKey] = useState<string>(ALL_DAYS); // ALL_DAYS | dateKey | __album_<id>
+  const [activeKey, _setActiveKey] = useState<string>(() => {
+    // Hydrate from ?zone= if present
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const z = sp.get("zone");
+      if (z) return areaKey(z);
+    }
+    return ALL_DAYS;
+  }); // ALL_DAYS | dateKey | __album_<id> | __area_<id>
+  const setActiveKey = useCallback((k: string) => {
+    _setActiveKey(k);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (isAreaKey(k)) {
+      url.searchParams.set("zone", k.replace("__area_", ""));
+    } else {
+      url.searchParams.delete("zone");
+    }
+    window.history.replaceState({}, "", url.toString());
+  }, []);
   const [allDaysExpanded, setAllDaysExpanded] = useState(true);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [guest, setGuest] = useState<{ name: string; email: string }>({ name: "", email: "" });
@@ -1147,6 +1166,7 @@ const SharePage = () => {
                   <ShareSiteMap
                     token={token}
                     areas={areas}
+                    highlightAreaId={isAreaKey(activeKey) ? activeKey.replace("__area_", "") : null}
                     onAreaClick={(id) => {
                       setActiveKey(areaKey(id));
                       setMapOpen(false);

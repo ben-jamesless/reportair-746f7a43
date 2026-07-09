@@ -11,6 +11,8 @@ export interface SiteMapCanvasHandle {
   getDraftPointCount: () => number;
 }
 
+export type StatusTint = { fill: string; stroke: string };
+
 interface Props {
   center: { lat: number; lng: number };
   zoom?: number;
@@ -19,7 +21,7 @@ interface Props {
   features: MapFeature[];
   drawingAreaId?: string | null;
   drawingKind?: "pin" | "polygon" | "rectangle" | null;
-  onCreate?: (areaId: string, kind: "pin" | "polygon" | "rectangle", geometry: any, color: string) => void;
+  onCreate?: (areaId: string | null, kind: "pin" | "polygon" | "rectangle", geometry: any, color: string) => void;
   onUpdate?: (id: string, geometry: any) => void;
   onFeatureClick?: (f: MapFeature) => void;
   fallbackColor?: string;
@@ -27,6 +29,10 @@ interface Props {
   selectedId?: string | null;
   onDraftChange?: (count: number) => void;
   fitToFeatures?: boolean;
+  /** areaId -> tint applied only to that area's PRIMARY polygon/rectangle */
+  statusTintByArea?: Record<string, StatusTint | undefined>;
+  /** When set, this area's primary feature is emphasised and others are dimmed */
+  highlightAreaId?: string | null;
 }
 
 function colorForArea(area: Area | undefined, fallback: string): string {
@@ -42,6 +48,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   drawingAreaId, drawingKind, onCreate, onUpdate, onFeatureClick,
   fallbackColor = DEFAULT_PROJECT_COLOR, editable = false,
   selectedId, onDraftChange, fitToFeatures = false,
+  statusTintByArea, highlightAreaId,
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -85,12 +92,12 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   const finishPolygon = () => {
     const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
     const pts = draftRef.current.points;
-    if (kind !== "polygon" || !aid || pts.length < 3 || !onCreateRef.current) { clearDraft(); return; }
-    const area = areasRef.current.find((a) => a.id === aid);
+    if (kind !== "polygon" || pts.length < 3 || !onCreateRef.current) { clearDraft(); return; }
+    const area = aid ? areasRef.current.find((a) => a.id === aid) : undefined;
     const color = colorForArea(area, fallbackColorRef.current);
     const geometry = { paths: pts.map((p) => ({ lat: p.lat(), lng: p.lng() })) };
     clearDraft();
-    onCreateRef.current(aid, "polygon", geometry, color);
+    onCreateRef.current(aid ?? null, "polygon", geometry, color);
   };
 
   const undoLastPoint = () => {
@@ -136,12 +143,12 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
 
       map.addListener("click", (e: google.maps.MapMouseEvent) => {
         const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
-        if (!aid || !kind || !onCreateRef.current || !e.latLng) return;
-        const area = areasRef.current.find((a) => a.id === aid);
+        if (!kind || !onCreateRef.current || !e.latLng) return;
+        const area = aid ? areasRef.current.find((a) => a.id === aid) : undefined;
         const color = colorForArea(area, fallbackColorRef.current);
 
         if (kind === "pin") {
-          onCreateRef.current(aid, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
+          onCreateRef.current(aid ?? null, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
           return;
         }
         if (kind === "polygon") {
@@ -174,10 +181,10 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
 
       map.addListener("mousedown", (e: any) => {
         const { drawingKind: kind, drawingAreaId: aid } = drawingStateRef.current;
-        if (kind !== "rectangle" || !aid || !e.latLng) return;
+        if (kind !== "rectangle" || !e.latLng) return;
         map.setOptions({ draggable: false });
         const start = e.latLng as google.maps.LatLng;
-        const area = areasRef.current.find((a) => a.id === aid);
+        const area = aid ? areasRef.current.find((a) => a.id === aid) : undefined;
         const color = colorForArea(area, fallbackColorRef.current);
         const rect = new g.maps.Rectangle({
           map,
@@ -205,7 +212,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           if (Math.abs(start.lat() - end.lat()) < 1e-6 && Math.abs(start.lng() - end.lng()) < 1e-6) return;
           const finalBounds = b ?? new g.maps.LatLngBounds(start, end);
           const ne = finalBounds.getNorthEast(), sw = finalBounds.getSouthWest();
-          if (onCreateRef.current) onCreateRef.current(aid, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
+          if (onCreateRef.current) onCreateRef.current(aid ?? null, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
         });
       });
     });
@@ -234,16 +241,25 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const f of features) {
       seen.add(f.id);
       const area = areas.find((a) => a.id === f.area_id);
-      const color = f.color || colorForArea(area, fallbackColor);
+      const baseColor = f.color || colorForArea(area, fallbackColor);
+      const tint = statusTintByArea?.[f.area_id];
+      const isPrimary = f.is_primary;
+      const applyTint = isPrimary && tint && (f.kind === "polygon" || f.kind === "rectangle");
+      const fillColor = applyTint ? tint!.fill : baseColor;
+      const strokeColor = applyTint ? tint!.stroke : baseColor;
       const isSelected = selectedId === f.id;
-      const strokeWeight = isSelected ? 4 : 2;
+      const isHighlighted = highlightAreaId && f.area_id === highlightAreaId;
+      const isDimmed = highlightAreaId && f.area_id !== highlightAreaId;
+      const strokeWeight = isSelected || (isHighlighted && isPrimary) ? 4 : (isPrimary ? 2.5 : 1.5);
+      const fillOpacity = isDimmed ? 0.08 : (isHighlighted && isPrimary ? 0.5 : (isPrimary ? 0.35 : 0.2));
+      const strokeOpacity = isDimmed ? 0.25 : 1;
       let overlay = overlaysRef.current.get(f.id);
 
       if (f.kind === "pin") {
         const pos = { lat: f.geometry.lat, lng: f.geometry.lng };
         const icon = {
           path: g.maps.SymbolPath.CIRCLE, scale: isSelected ? 11 : 9,
-          fillColor: color, fillOpacity: 1,
+          fillColor: baseColor, fillOpacity: isDimmed ? 0.35 : 1,
           strokeColor: "#ffffff", strokeWeight: isSelected ? 3 : 2,
         };
         if (!overlay) {
@@ -268,9 +284,10 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         if (!overlay) {
           const poly = new g.maps.Polygon({
             paths, map,
-            strokeColor: color, fillColor: color,
-            fillOpacity: 0.35, strokeWeight,
+            strokeColor, fillColor,
+            fillOpacity, strokeOpacity, strokeWeight,
             editable, draggable: editable,
+            zIndex: isPrimary ? 2 : 1,
           });
           poly.addListener("click", () => onFeatureClick?.(f));
           const persist = () => {
@@ -286,7 +303,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           }
           overlaysRef.current.set(f.id, poly);
         } else if (overlay instanceof g.maps.Polygon) {
-          overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
+          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: isPrimary ? 2 : 1 });
         }
       } else if (f.kind === "rectangle") {
         const b = new g.maps.LatLngBounds(
@@ -296,9 +313,10 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         if (!overlay) {
           const rect = new g.maps.Rectangle({
             bounds: b, map,
-            strokeColor: color, fillColor: color,
-            fillOpacity: 0.35, strokeWeight,
+            strokeColor, fillColor,
+            fillOpacity, strokeOpacity, strokeWeight,
             editable, draggable: editable,
+            zIndex: isPrimary ? 2 : 1,
           });
           rect.addListener("click", () => onFeatureClick?.(f));
           if (editable) {
@@ -311,7 +329,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           }
           overlaysRef.current.set(f.id, rect);
         } else if (overlay instanceof g.maps.Rectangle) {
-          overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
+          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: isPrimary ? 2 : 1 });
         }
       }
 
@@ -368,7 +386,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const [id, lm] of labelsRef.current) {
       if (!seen.has(id)) { lm.setMap(null); labelsRef.current.delete(id); }
     }
-  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady]);
+  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady, statusTintByArea, highlightAreaId]);
 
   // Fit map to all features (read-only share view)
   const didFitRef = useRef(false);
