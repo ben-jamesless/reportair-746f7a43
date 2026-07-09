@@ -99,7 +99,8 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
   const photo = index !== null ? photos[i] : null;
-  const url = useSignedUrl(photo?.storage_path ?? null);
+  const url = useLightboxSignedUrl(photo?.storage_path ?? null);
+  const thumbUrl = useThumbSignedUrl(photo?.storage_path ?? null);
   const [notes, setNotes] = useState<GuestNote[]>([]);
 
   const photoId = photo?.id ?? null;
