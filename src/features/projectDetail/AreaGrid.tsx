@@ -119,12 +119,14 @@ export function AreaGrid({
                       alt={p.caption || p.file_name}
                       selectable={selectMode}
                       selected={selectedIds.has(p.id)}
+                      gpsAuto={p.assignment_source === 'gps_auto'}
                       onClick={() =>
                         selectMode
                           ? onToggleSelect(p.id)
                           : onSetLightboxIndex(photoIndexById.get(p.id) ?? 0)
                       }
                     />
+
                   ))}
                 </div>
               )}

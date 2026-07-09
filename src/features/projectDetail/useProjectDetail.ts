@@ -132,7 +132,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         supabase
           .from("photos")
           .select(
-            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
+            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height, assignment_source"
           )
           .eq("project_id", projectId)
           .order("captured_at", { ascending: false, nullsFirst: false })
@@ -443,7 +443,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
       if (photoIds.length === 0) return;
       const { error } = await supabase
         .from("photos")
-        .update({ area_id: areaId })
+        .update({ area_id: areaId, assignment_source: 'manual' })
         .in("id", photoIds);
       if (error) {
         toast.error(error.message);
@@ -455,7 +455,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         `Assigned ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"} to ${label}`
       );
       const idSet = new Set(photoIds);
-      setPhotos((cur) => cur.map((p) => (idSet.has(p.id) ? { ...p, area_id: areaId } : p)));
+      setPhotos((cur) => cur.map((p) => (idSet.has(p.id) ? { ...p, area_id: areaId, assignment_source: 'manual' } : p)));
+
     },
     [areas]
   );
@@ -570,7 +571,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
 
   // ---- Local photo cache updates ----
   const applyPhotoAreaChange = useCallback((photoId: string, areaId: string | null) => {
-    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, area_id: areaId } : p)));
+    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, area_id: areaId, assignment_source: 'manual' } : p)));
+
   }, []);
 
   const applyPhotoAlbumChange = useCallback((photoId: string, albumId: string | null) => {
