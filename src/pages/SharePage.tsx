@@ -1166,6 +1166,7 @@ const SharePage = () => {
                   <ShareSiteMap
                     token={token}
                     areas={areas}
+                    highlightAreaId={isAreaKey(activeKey) ? activeKey.replace("__area_", "") : null}
                     onAreaClick={(id) => {
                       setActiveKey(areaKey(id));
                       setMapOpen(false);
