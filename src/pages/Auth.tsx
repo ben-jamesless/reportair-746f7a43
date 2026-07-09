@@ -196,6 +196,11 @@ const Auth = () => {
           Your account has been suspended. Please contact support.
         </div>
       )}
+      {timedOut && !suspendedError && (
+        <div className="mb-4 rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          Signed out for your security {timeoutKind === "absolute" ? "(session expired)" : "(inactivity)"}. Please sign in again.
+        </div>
+      )}
       <form onSubmit={handleSignIn} className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor="email-in">Email</Label>
