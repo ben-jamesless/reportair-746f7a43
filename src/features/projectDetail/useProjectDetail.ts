@@ -571,7 +571,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
 
   // ---- Local photo cache updates ----
   const applyPhotoAreaChange = useCallback((photoId: string, areaId: string | null) => {
-    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, area_id: areaId } : p)));
+    setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, area_id: areaId, assignment_source: 'manual' } : p)));
+
   }, []);
 
   const applyPhotoAlbumChange = useCallback((photoId: string, albumId: string | null) => {
