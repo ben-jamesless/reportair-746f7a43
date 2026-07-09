@@ -250,9 +250,9 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
       const isSelected = selectedId === f.id;
       const isHighlighted = highlightAreaId && f.area_id === highlightAreaId;
       const isDimmed = highlightAreaId && f.area_id !== highlightAreaId;
-      const strokeWeight = isSelected || (isHighlighted && isPrimary) ? 4 : (isPrimary ? 2.5 : 1.5);
-      const fillOpacity = isDimmed ? 0.08 : (isHighlighted && isPrimary ? 0.5 : (isPrimary ? 0.35 : 0.2));
-      const strokeOpacity = isDimmed ? 0.25 : 1;
+      const strokeWeight = (isHighlighted && isPrimary) ? 6 : (isSelected ? 4 : (isPrimary ? 2.5 : 1.5));
+      const fillOpacity = isDimmed ? 0.05 : (isHighlighted && isPrimary ? 0.6 : (isPrimary ? 0.35 : 0.2));
+      const strokeOpacity = isDimmed ? 0.2 : 1;
       let overlay = overlaysRef.current.get(f.id);
 
       if (f.kind === "pin") {
