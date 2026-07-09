@@ -132,7 +132,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         supabase
           .from("photos")
           .select(
-            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height"
+            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height, assignment_source"
           )
           .eq("project_id", projectId)
           .order("captured_at", { ascending: false, nullsFirst: false })
