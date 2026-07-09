@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { useThumbSignedUrl } from "@/hooks/useSignedUrl";
 
 import type { GuestNote } from "@/lib/types";
 
