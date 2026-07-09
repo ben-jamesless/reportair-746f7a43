@@ -40,6 +40,8 @@ const Auth = () => {
   const rawRedirect = params.get("redirect") || "/projects";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
   const suspendedError = params.get("error") === "suspended";
+  const timedOut = params.get("reason") === "timeout";
+  const timeoutKind = params.get("kind");
 
   useEffect(() => {
     document.title = mode === "signup" ? "Create account — BuildFolder" : "Sign in — BuildFolder";
@@ -55,6 +57,8 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) return toast.error(error.message);
+    const { markSessionStart } = await import("@/hooks/useSessionTimeout");
+    markSessionStart();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -190,6 +194,11 @@ const Auth = () => {
       {suspendedError && (
         <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           Your account has been suspended. Please contact support.
+        </div>
+      )}
+      {timedOut && !suspendedError && (
+        <div className="mb-4 rounded-md border border-border bg-muted/50 p-3 text-sm text-muted-foreground">
+          Signed out for your security {timeoutKind === "absolute" ? "(session expired)" : "(inactivity)"}. Please sign in again.
         </div>
       )}
       <form onSubmit={handleSignIn} className="space-y-3">

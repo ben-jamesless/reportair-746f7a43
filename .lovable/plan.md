@@ -1,58 +1,38 @@
-# Phase 2 · Item 1 — Assignment transparency & recovery
+## Session timeout policy: 12h idle / 7d absolute
 
-Goal: make it obvious, per photo, **how** a photo landed in its zone (GPS auto vs manual), and give a fast recovery path when auto-assignment is wrong or missing. Small, additive UI — no rework of the gallery.
+Add a two-layer session policy to Build Folder:
+- **Idle timeout:** 12 hours of no activity → sign out
+- **Absolute timeout:** 7 days since sign-in → sign out regardless of activity
 
-## Scope (in)
-- Record assignment provenance on each photo: `gps_auto`, `manual`, or null (unassigned/legacy).
-- Subtle "Auto" indicator on thumbnails and in the lightbox when a photo was GPS-assigned.
-- One-click "Change zone" in the lightbox that flips provenance to `manual`; ensure the existing bulk move path also stamps `manual`.
-- New gallery filter chip **"Unassigned · has GPS"** so users can quickly triage photos that didn't match any primary zone.
+### Behaviour
+- Any user interaction (mouse, keyboard, touch, scroll, route change) resets the idle timer.
+- 2 minutes before idle logout, show a small toast: "You'll be signed out soon due to inactivity" with a "Stay signed in" button that resets the timer.
+- On idle or absolute expiry: call `supabase.auth.signOut()`, redirect to `/auth?reason=timeout`, and show a friendly message on the auth page ("Signed out for your security").
+- Share pages (`/s/...`), the marketing site, and other public routes are exempt — the timer only runs when a user is authenticated.
+- Timer state is shared across tabs via a `localStorage` "last activity" timestamp so activity in one tab keeps the others alive, and sign-out in one tab signs out the others.
 
-## Scope (out — deferred)
-- Server-side re-parse auto-assign (that's item 2).
-- Backfill of historical `area_id` values.
-- Confidence scores, multi-zone suggestions, map-picker reassignment UI.
+### Backend enforcement
+- Set Supabase Auth JWT expiry to 12 hours (matches idle window; refresh token still allows silent renewal within the 7-day absolute cap).
+- Set refresh token reuse interval / inactivity to 7 days so a truly idle session can't be silently refreshed past the absolute cap.
+- These are configured via the `configure_auth` capability; no schema changes.
 
-## Proposed UX
-1. **Thumbnail badge**: small map-pin icon in one corner when `assignment_source = 'gps_auto'`. Tooltip: "Auto-assigned by GPS". Nothing shown for manual (default assumption) or null.
-2. **Lightbox**: existing zone chip gains a "· Auto" suffix when GPS-assigned. Inline "Change zone" dropdown (zones + Unassigned) writes `area_id` and sets `assignment_source = 'manual'`.
-3. **Gallery filter row**: new "Unassigned · has GPS" chip appears only when the project has ≥1 primary zone AND ≥1 photo matches. Clicking filters to those photos for triage.
-4. **Upload toast**: unchanged — keep the loop quiet.
+### Files to add / change
+- **New:** `src/hooks/useSessionTimeout.ts` — tracks last-activity timestamp in `localStorage`, records sign-in time, runs the idle + absolute checks on an interval, fires the warning toast, and calls `signOut()` on expiry.
+- **New:** `src/components/SessionTimeoutProvider.tsx` — thin wrapper that mounts the hook once for any authenticated route.
+- **Edit:** `src/App.tsx` (or wherever the auth-gated layout lives) — mount `SessionTimeoutProvider` inside the authenticated tree so it doesn't run on public share/marketing pages.
+- **Edit:** `src/pages/Auth.tsx` — read `?reason=timeout` and show a small "Signed out for your security" banner.
+- **Backend:** update Supabase auth settings (JWT expiry 12h, refresh token absolute lifetime 7d).
 
-## Data changes
-Single schema migration:
-- Add `photos.assignment_source text` (nullable). Allowed values: `'gps_auto' | 'manual' | null`.
-- No new index needed — filtering is scoped within a project's already-fetched photo list.
-- No RLS changes (photos already project-scoped).
+### Edge cases
+- User closes laptop for 3 hours then reopens: idle timer catches up on next tick and signs out if >12h passed.
+- User leaves a tab open exactly at hour 12: warning toast fires at 11h58m; if ignored, sign-out at 12h00m.
+- Multiple tabs: shared `localStorage` key means the most recent activity in any tab wins.
+- Share links and unauthenticated visitors: unaffected — timer never mounts.
+- Password reset / magic link flows: absolute timer starts at that new sign-in, as expected.
 
-Uploader writes:
-- `'gps_auto'` when the client-side zone match fires.
-- `'manual'` when the user explicitly picked an area at upload.
-- `null` when Unassigned and no match.
+### Out of scope for this change
+- Per-role timeouts (e.g. stricter for admins) — can add later if needed.
+- Server-side "kill switch" to force-logout a specific user — separate feature.
+- Remember-me toggle to opt into longer sessions.
 
-## Files / components affected
-- New migration adding the column.
-- `src/components/PhotoUploader.tsx` — stamp `assignment_source` on insert.
-- `src/lib/projectDetailTypes.ts` + `src/features/projectDetail/useProjectDetail.ts` — include column in the Photo type and select list.
-- `src/components/PhotoThumb.tsx` — corner GPS badge.
-- `src/components/PhotoLightbox.tsx` — "· Auto" suffix + inline "Change zone" dropdown that stamps `manual`.
-- `src/features/projectDetail/SelectionToolbar.tsx` — confirm the bulk reassignment path also writes `'manual'`.
-- `src/features/projectDetail/PhotoGallery.tsx` — add the "Unassigned · has GPS" filter chip.
-- Share page: no changes (read-only surface ignores provenance).
-
-## Edge cases
-- Legacy photos: `assignment_source = null` → treated as manual for display, no badge, no backfill.
-- Auto-assigned photo dragged/reassigned → becomes `manual`, badge disappears.
-- User reassigns to the same zone the auto pick chose → still recorded as `manual` (intent preserved).
-- Photo has GPS but no primary zones exist yet → stays unassigned/null; filter chip hidden until a primary zone exists.
-- iOS-stripped uploads (no GPS) → null source, never appears in the new filter chip.
-- Server re-parse (item 2, later) can reuse the same `gps_auto` value without any schema change.
-
-## Delivery order
-1. Migration: add `assignment_source` column.
-2. Uploader: stamp `gps_auto` / `manual` on insert.
-3. Type + fetch query: include the new column.
-4. Read-only surfaces first: thumb badge + lightbox "· Auto" suffix.
-5. Write surfaces: lightbox "Change zone" dropdown; verify bulk toolbar path stamps `manual`.
-6. Gallery "Unassigned · has GPS" filter chip.
-7. Manual pass: upload inside/outside a zone, reassign, confirm badge disappears, confirm filter chip behavior.
+After implementation I'll verify by simulating an expired `last activity` timestamp and confirming the sign-out + redirect + banner all fire cleanly.

@@ -94,6 +94,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     clearSignedUrlCache();
+    try {
+      localStorage.removeItem("bf.session.lastActivity");
+      localStorage.removeItem("bf.session.startedAt");
+    } catch { /* ignore */ }
     await supabase.auth.signOut();
   };
 

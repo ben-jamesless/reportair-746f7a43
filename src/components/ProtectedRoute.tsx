@@ -1,12 +1,14 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { Loader2 } from "lucide-react";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading, signOut } = useAuth();
   const location = useLocation();
   const signedOutRef = useRef(false);
+  useSessionTimeout(!!user && !profile?.suspended_at);
 
   // Suspended users get force-signed-out; the render below handles the redirect.
   useEffect(() => {
