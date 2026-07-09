@@ -635,6 +635,28 @@ const ProjectDetail = () => {
                     <h2 className="truncate text-base font-bold text-foreground">{selectionTitle}</h2>
                   </div>
                   <div className="flex items-center gap-2">
+                    {unassignedWithGpsCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !needsZoneOnly;
+                          setNeedsZoneOnly(next);
+                          if (next && activeArea !== NO_AREA) setActiveArea(NO_AREA);
+                        }}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition",
+                          needsZoneOnly
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background text-muted-foreground hover:text-foreground",
+                        )}
+                        title="Photos with GPS that didn't match any primary zone"
+                      >
+                        Unassigned · has GPS
+                        <span className="rounded-full bg-black/10 px-1.5 py-0.5 text-[10px]">
+                          {unassignedWithGpsCount}
+                        </span>
+                      </button>
+                    )}
                     {visiblePhotos.length > 0 && selectMode && (
                       <Button
                         size="sm"
@@ -656,6 +678,7 @@ const ProjectDetail = () => {
                       </Button>
                     )}
                   </div>
+
                 </div>
 
                 {/* Status accent colors for the 3px left bar (matches share view). */}
