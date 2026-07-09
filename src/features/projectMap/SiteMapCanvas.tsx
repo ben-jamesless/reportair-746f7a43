@@ -11,6 +11,8 @@ export interface SiteMapCanvasHandle {
   getDraftPointCount: () => number;
 }
 
+export type StatusTint = { fill: string; stroke: string };
+
 interface Props {
   center: { lat: number; lng: number };
   zoom?: number;
@@ -19,7 +21,7 @@ interface Props {
   features: MapFeature[];
   drawingAreaId?: string | null;
   drawingKind?: "pin" | "polygon" | "rectangle" | null;
-  onCreate?: (areaId: string, kind: "pin" | "polygon" | "rectangle", geometry: any, color: string) => void;
+  onCreate?: (areaId: string | null, kind: "pin" | "polygon" | "rectangle", geometry: any, color: string) => void;
   onUpdate?: (id: string, geometry: any) => void;
   onFeatureClick?: (f: MapFeature) => void;
   fallbackColor?: string;
@@ -27,6 +29,10 @@ interface Props {
   selectedId?: string | null;
   onDraftChange?: (count: number) => void;
   fitToFeatures?: boolean;
+  /** areaId -> tint applied only to that area's PRIMARY polygon/rectangle */
+  statusTintByArea?: Record<string, StatusTint | undefined>;
+  /** When set, this area's primary feature is emphasised and others are dimmed */
+  highlightAreaId?: string | null;
 }
 
 function colorForArea(area: Area | undefined, fallback: string): string {
