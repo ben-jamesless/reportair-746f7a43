@@ -69,7 +69,9 @@ export type LightboxPhoto = {
   area_id: string | null;
   album_id?: string | null;
   created_at?: string | null;
+  assignment_source?: string | null;
 };
+
 
 export type LightboxArea = { id: string; name: string };
 export type LightboxAlbum = { id: string; name: string };
