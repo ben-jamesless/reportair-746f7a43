@@ -40,6 +40,8 @@ const Auth = () => {
   const rawRedirect = params.get("redirect") || "/projects";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
   const suspendedError = params.get("error") === "suspended";
+  const timedOut = params.get("reason") === "timeout";
+  const timeoutKind = params.get("kind");
 
   useEffect(() => {
     document.title = mode === "signup" ? "Create account — BuildFolder" : "Sign in — BuildFolder";
