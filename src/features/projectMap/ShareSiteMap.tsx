@@ -8,10 +8,11 @@ interface Props {
   token: string;
   areas: Array<{ id: string; name: string }>;
   onAreaClick?: (areaId: string) => void;
+  highlightAreaId?: string | null;
 }
 
 // Read-only site map for the public share page. Renders only if features exist.
-export function ShareSiteMap({ token, areas, onAreaClick }: Props) {
+export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Props) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
 
