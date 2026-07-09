@@ -1,0 +1,1 @@
+ALTER TABLE public.photos ADD COLUMN IF NOT EXISTS assignment_source text CHECK (assignment_source IN ('gps_auto','manual'));

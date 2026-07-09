@@ -610,6 +610,7 @@ export type Database = {
           album_id: string | null
           aperture: number | null
           area_id: string | null
+          assignment_source: string | null
           camera_make: string | null
           camera_model: string | null
           caption: string | null
@@ -638,6 +639,7 @@ export type Database = {
           album_id?: string | null
           aperture?: number | null
           area_id?: string | null
+          assignment_source?: string | null
           camera_make?: string | null
           camera_model?: string | null
           caption?: string | null
@@ -666,6 +668,7 @@ export type Database = {
           album_id?: string | null
           aperture?: number | null
           area_id?: string | null
+          assignment_source?: string | null
           camera_make?: string | null
           camera_model?: string | null
           caption?: string | null
