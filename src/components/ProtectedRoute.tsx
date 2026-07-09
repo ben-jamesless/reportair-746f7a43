@@ -8,6 +8,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading, signOut } = useAuth();
   const location = useLocation();
   const signedOutRef = useRef(false);
+  useSessionTimeout(!!user && !profile?.suspended_at);
 
   // Suspended users get force-signed-out; the render below handles the redirect.
   useEffect(() => {
