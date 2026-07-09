@@ -15,6 +15,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 import { event as gaEvent } from "@/lib/analytics";
+import { fetchPrimaryZones, assignZoneForPoint } from "@/lib/zoneAssign";
 
 type AreaOption = { id: string; name: string };
 
@@ -96,8 +97,14 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     setProgress({ done: 0, total: list.length });
     let failures = 0;
     let gpsDetectedCount = 0;
+    let autoAssignedCount = 0;
+    const autoAssignedNames = new Set<string>();
     const errors: string[] = [];
     const insertedIds: string[] = [];
+
+    // Fetch primary zones once per batch. Only used when the user leaves the
+    // batch as "Unassigned" — an explicit area choice always wins.
+    const primaryZones = targetArea == null ? await fetchPrimaryZones(projectId) : [];
 
     for (const original of list) {
       let file = original;
@@ -142,10 +149,27 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           }
         } catch (e) { console.warn("Report variant failed", e); }
 
+        // Silent EXIF-based zone assignment: only when the user picked
+        // "Unassigned", the photo has GPS, and exactly one primary zone matches.
+        let assignedAreaId: string | null = targetArea;
+        let assignedZoneName: string | null = null;
+        if (
+          assignedAreaId == null &&
+          exif.gps_lat != null &&
+          exif.gps_lng != null &&
+          primaryZones.length > 0
+        ) {
+          const match = assignZoneForPoint(exif.gps_lat, exif.gps_lng, primaryZones);
+          if (match) {
+            assignedAreaId = match.area_id;
+            assignedZoneName = match.area_name;
+          }
+        }
+
         const { data: inserted, error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
-          area_id: targetArea,
+          area_id: assignedAreaId,
           storage_path: key,
           report_path: reportKey,
           file_name: file.name,
@@ -161,6 +185,10 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
         }
         if (inserted?.id) insertedIds.push(inserted.id);
         if (exif.gps_lat != null && exif.gps_lng != null) gpsDetectedCount++;
+        if (assignedZoneName && targetArea == null) {
+          autoAssignedCount++;
+          autoAssignedNames.add(assignedZoneName);
+        }
       } catch (e: any) {
         failures++;
         const msg = e?.message || e?.error || (typeof e === "string" ? e : JSON.stringify(e));
@@ -186,6 +214,15 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (failures === 0) toast.success(`Uploaded ${list.length} photo${list.length > 1 ? "s" : ""}`);
     else if (failures < list.length) toast.warning(`Uploaded ${list.length - failures} of ${list.length} (${failures} failed)`, { description: firstErr });
     else toast.error("All uploads failed", { description: firstErr ?? "Check console for details", duration: 10000 });
+    if (autoAssignedCount > 0) {
+      const names = Array.from(autoAssignedNames);
+      const label = names.length === 1
+        ? names[0]
+        : `${names.length} zones`;
+      toast.message(`Auto-assigned ${autoAssignedCount} photo${autoAssignedCount === 1 ? "" : "s"} by location`, {
+        description: `Matched to ${label} using GPS.`,
+      });
+    }
     const successful = insertedIds.length;
     if (successful > 0) {
       const zoneName = targetArea
