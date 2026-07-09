@@ -1,38 +1,59 @@
-## Session timeout policy: 12h idle / 7d absolute
+## Goal
+Make photo grids and share links feel much faster by serving Supabase-transformed thumbnails and mid-size lightbox images instead of full originals. No schema changes, no backfill, no upload-time processing.
 
-Add a two-layer session policy to Build Folder:
-- **Idle timeout:** 12 hours of no activity → sign out
-- **Absolute timeout:** 7 days since sign-in → sign out regardless of activity
+## Transform settings
+- **Grid thumbnail**: width 400, height 400, resize `cover`, quality 70
+- **Lightbox**: width 1600 (no height), resize `contain`, quality 78
+- **Original**: used only for PDF export (`generate-pdf`), cover/logo management, and any explicit download action — untouched
 
-### Behaviour
-- Any user interaction (mouse, keyboard, touch, scroll, route change) resets the idle timer.
-- 2 minutes before idle logout, show a small toast: "You'll be signed out soon due to inactivity" with a "Stay signed in" button that resets the timer.
-- On idle or absolute expiry: call `supabase.auth.signOut()`, redirect to `/auth?reason=timeout`, and show a friendly message on the auth page ("Signed out for your security").
-- Share pages (`/s/...`), the marketing site, and other public routes are exempt — the timer only runs when a user is authenticated.
-- Timer state is shared across tabs via a `localStorage` "last activity" timestamp so activity in one tab keeps the others alive, and sign-out in one tab signs out the others.
+## Files to change
 
-### Backend enforcement
-- Set Supabase Auth JWT expiry to 12 hours (matches idle window; refresh token still allows silent renewal within the 7-day absolute cap).
-- Set refresh token reuse interval / inactivity to 7 days so a truly idle session can't be silently refreshed past the absolute cap.
-- These are configured via the `configure_auth` capability; no schema changes.
+### 1. `src/hooks/useSignedUrl.ts` (authenticated app)
+- Accept an optional `transform` argument: `{ width, height, resize, quality }`.
+- Key the cache by `path + JSON.stringify(transform)` so thumb and lightbox variants coexist.
+- Pass `{ transform }` into `supabase.storage.from("photos").createSignedUrl(path, TTL, { transform })`.
+- Keep single-file signing (Supabase's `createSignedUrls` bulk API does not accept transforms).
+- Export two convenience hooks: `useThumbSignedUrl(path)` and `useLightboxSignedUrl(path)` that pass the standard presets. Keep raw `useSignedUrl(path)` for originals.
 
-### Files to add / change
-- **New:** `src/hooks/useSessionTimeout.ts` — tracks last-activity timestamp in `localStorage`, records sign-in time, runs the idle + absolute checks on an interval, fires the warning toast, and calls `signOut()` on expiry.
-- **New:** `src/components/SessionTimeoutProvider.tsx` — thin wrapper that mounts the hook once for any authenticated route.
-- **Edit:** `src/App.tsx` (or wherever the auth-gated layout lives) — mount `SessionTimeoutProvider` inside the authenticated tree so it doesn't run on public share/marketing pages.
-- **Edit:** `src/pages/Auth.tsx` — read `?reason=timeout` and show a small "Signed out for your security" banner.
-- **Backend:** update Supabase auth settings (JWT expiry 12h, refresh token absolute lifetime 7d).
+### 2. `src/components/PhotoThumb.tsx`
+- Switch to `useThumbSignedUrl` (400×400 cover, q70).
+- Keep existing IntersectionObserver + lazy `<img>` behaviour.
 
-### Edge cases
-- User closes laptop for 3 hours then reopens: idle timer catches up on next tick and signs out if >12h passed.
-- User leaves a tab open exactly at hour 12: warning toast fires at 11h58m; if ignored, sign-out at 12h00m.
-- Multiple tabs: shared `localStorage` key means the most recent activity in any tab wins.
-- Share links and unauthenticated visitors: unaffected — timer never mounts.
-- Password reset / magic link flows: absolute timer starts at that new sign-in, as expected.
+### 3. `src/components/PhotoLightbox.tsx`
+- Switch primary `<img>` to `useLightboxSignedUrl` (1600w, q78).
+- Optionally also request the thumb URL and use it as a low-quality placeholder while the full lightbox variant loads (fast perceived swap).
 
-### Out of scope for this change
-- Per-role timeouts (e.g. stricter for admins) — can add later if needed.
-- Server-side "kill switch" to force-logout a specific user — separate feature.
-- Remember-me toggle to opt into longer sessions.
+### 4. `src/components/FeedbackPanel.tsx`
+- Its inline preview uses `useSignedUrl` at small size → switch to `useThumbSignedUrl`.
 
-After implementation I'll verify by simulating an expired `last activity` timestamp and confirming the sign-out + redirect + banner all fire cleanly.
+### 5. `supabase/functions/share-photo-url/index.ts` (public share)
+- Accept optional `variant: "thumb" | "lightbox" | "original"` in the POST body (default `thumb`).
+- Map to the same transform presets and pass `{ transform }` to `createSignedUrl`.
+- Backwards-compatible: missing variant = thumb (fastest default for the grid).
+
+### 6. `src/pages/SharePage.tsx`
+- Update `useShareSignedUrl(token, photoId, variant)` to send `variant`.
+- `SharePhotoThumb` and `SharePhotoMiniThumb` request `"thumb"`.
+- `ShareLightbox` requests `"lightbox"`; optionally prefetch `"thumb"` first as LQIP.
+
+### 7. Originals kept as-is (documented, not changed)
+- `supabase/functions/generate-pdf/index.ts` — PDF needs full quality
+- `src/components/CoverPhotoManager.tsx`, `ProjectEditForm.tsx`, `Settings.tsx` — cover/logo/profile uploads
+- `share-export-url`, `share-logo-url` — non-photo assets
+
+## Perceived-responsiveness extras (low risk, in scope)
+- Reduce initial share-page grid page size from 150 → 60 in `SharePage.tsx` (matches `PhotoGallery.tsx` pattern), with a "Load more" affordance. Cuts first-paint signed-URL requests by ~60%.
+- In lightbox, render the cached thumb URL underneath the loading full image so navigation feels instant.
+
+## Constraints / notes on Supabase transforms
+- **Pro plan required.** Smart CDN caches transformed variants, so repeat views are cheap; first request per (path, transform) triggers a transform (small latency + counted as an image-transformation invocation for billing).
+- `createSignedUrls` (plural) does **not** accept transform options — we continue signing one-by-one, which is what the current code already does.
+- Format negotiation (WebP/AVIF) is automatic when the client `Accept` header supports it.
+
+## Verification
+- Build + typecheck.
+- Manual: open a share link with many photos, confirm image responses are ~20–60 KB (thumbs) instead of multi-MB, and lightbox images are ~150–300 KB.
+- Confirm PDF export still uses originals (unchanged code path).
+
+## Sensible next step (not in this pass)
+If transform costs or first-hit latency become a concern, move to upload-time thumbnail generation (add `thumb_path`, generate a 400px JPEG client-side during `PhotoUploader` and store alongside the original). That eliminates transform billing entirely but requires a schema change + backfill, which you asked to defer.
