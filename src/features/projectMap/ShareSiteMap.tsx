@@ -88,22 +88,38 @@ export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Pro
         />
       </div>
       {areasWithFeatures.length > 0 && (
-        <div className="flex flex-wrap gap-2 border-t px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t px-4 py-3">
           {areasWithFeatures.map((a) => {
             const active = highlightAreaId === a.id;
             return (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => onAreaClick?.(a.id)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${active ? "bg-foreground text-background border-foreground" : "bg-background hover:bg-accent"}`}
-              >
-                <span
-                  className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
-                  style={{ backgroundColor: areaColor.get(a.id) ?? "#64748B" }}
-                />
-                <span>{a.name}</span>
-              </button>
+              <div key={a.id} className="inline-flex items-center">
+                <button
+                  type="button"
+                  onClick={() => onAreaClick?.(a.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${
+                    active
+                      ? "bg-foreground text-background border-foreground font-semibold shadow-sm ring-2 ring-foreground/30"
+                      : "bg-background hover:bg-accent"
+                  } ${active ? "rounded-r-none border-r-0" : ""}`}
+                >
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
+                    style={{ backgroundColor: areaColor.get(a.id) ?? "#64748B" }}
+                  />
+                  <span>{a.name}</span>
+                </button>
+                {active && (
+                  <button
+                    type="button"
+                    onClick={() => copyZoneLink(a.id, a.name)}
+                    title="Copy link to this zone"
+                    aria-label={`Copy link to ${a.name}`}
+                    className="inline-flex items-center gap-1 rounded-r-full border border-l-0 border-foreground bg-foreground px-2 py-1 text-xs text-background hover:bg-foreground/90"
+                  >
+                    {copiedId === a.id ? <Check className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>
