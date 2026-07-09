@@ -9,7 +9,6 @@ import { useMapFeatures, type MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
 import { toast } from "sonner";
 import { PROJECT_COLOR_PALETTE } from "@/lib/projectColors";
-import { STATUS_META, type ProjectStatus } from "@/lib/projectStatus";
 
 interface Props {
   projectId: string;
@@ -17,11 +16,19 @@ interface Props {
   canEdit: boolean;
 }
 
-// Tint palette for area status — matches the app-wide status meta.
+// Status → hex, aligned with PROJECT_STATUSES in src/lib/projectStatus.ts
+const STATUS_HEX: Record<string, string> = {
+  no_status: "#9C9A93",
+  on_track: "#3A6EA5",
+  requires_discussion: "#D94F2A",
+  concern: "#C7382A",
+  behind_schedule: "#C7382A",
+  complete: "#3A7D44",
+};
+
 function tintForStatus(status: string | undefined): StatusTint | undefined {
-  if (!status) return undefined;
-  const meta = (STATUS_META as any)[status as ProjectStatus];
-  const stroke = meta?.dot ?? meta?.color ?? "#64748B";
+  if (!status || status === "no_status") return undefined;
+  const stroke = STATUS_HEX[status] ?? "#64748B";
   return { fill: stroke, stroke };
 }
 
