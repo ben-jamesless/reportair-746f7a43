@@ -142,12 +142,12 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
 
       map.addListener("click", (e: google.maps.MapMouseEvent) => {
         const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
-        if (!aid || !kind || !onCreateRef.current || !e.latLng) return;
-        const area = areasRef.current.find((a) => a.id === aid);
+        if (!kind || !onCreateRef.current || !e.latLng) return;
+        const area = aid ? areasRef.current.find((a) => a.id === aid) : undefined;
         const color = colorForArea(area, fallbackColorRef.current);
 
         if (kind === "pin") {
-          onCreateRef.current(aid, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
+          onCreateRef.current(aid ?? null, "pin", { lat: e.latLng.lat(), lng: e.latLng.lng() }, color);
           return;
         }
         if (kind === "polygon") {
