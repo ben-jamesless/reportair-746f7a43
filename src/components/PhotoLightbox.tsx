@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, MapPin, Calendar, MapPinned, ChevronDown } from "lucide-react";
-import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { useLightboxSignedUrl, useThumbSignedUrl } from "@/hooks/useSignedUrl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
