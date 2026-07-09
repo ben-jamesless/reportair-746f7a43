@@ -91,12 +91,12 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   const finishPolygon = () => {
     const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
     const pts = draftRef.current.points;
-    if (kind !== "polygon" || !aid || pts.length < 3 || !onCreateRef.current) { clearDraft(); return; }
-    const area = areasRef.current.find((a) => a.id === aid);
+    if (kind !== "polygon" || pts.length < 3 || !onCreateRef.current) { clearDraft(); return; }
+    const area = aid ? areasRef.current.find((a) => a.id === aid) : undefined;
     const color = colorForArea(area, fallbackColorRef.current);
     const geometry = { paths: pts.map((p) => ({ lat: p.lat(), lng: p.lng() })) };
     clearDraft();
-    onCreateRef.current(aid, "polygon", geometry, color);
+    onCreateRef.current(aid ?? null, "polygon", geometry, color);
   };
 
   const undoLastPoint = () => {
