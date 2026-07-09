@@ -8,8 +8,8 @@ export type SignedUrlTransform = {
   quality?: number;
 };
 
-export const THUMB_TRANSFORM: SignedUrlTransform = { width: 400, height: 400, resize: "cover", quality: 70 };
-export const LIGHTBOX_TRANSFORM: SignedUrlTransform = { width: 1600, resize: "contain", quality: 78 };
+export const THUMB_TRANSFORM: SignedUrlTransform = { width: 600, height: 600, resize: "cover", quality: 75 };
+export const LIGHTBOX_TRANSFORM: SignedUrlTransform = { width: 2400, resize: "contain", quality: 82 };
 
 type Entry = { url: string; expiresAt: number };
 const cache = new Map<string, Entry>();
