@@ -150,6 +150,9 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
       <DialogContent className="max-h-[100dvh] max-w-6xl overflow-y-auto border-0 bg-background p-0 sm:max-h-[90vh] [&>button]:hidden">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_320px]">
           <div className="relative flex min-h-[50vh] items-center justify-center bg-black md:min-h-[70vh]">
+            {thumbUrl && !url && (
+              <img src={thumbUrl} alt="" aria-hidden className="max-h-[70vh] w-full object-contain blur-sm" />
+            )}
             {url && (
               <img src={url} alt={photo.caption || photo.file_name} className="max-h-[70vh] w-full object-contain" />
             )}
