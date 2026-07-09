@@ -42,18 +42,42 @@ export function DayReport({
 
   return (
     <div className="space-y-6">
-      {/* Daily updates — 4 separate fields used by the report PDF cover */}
+      {/* Daily updates — 4 separate fields used by the report PDF cover.
+          Headers use a color-coded band + left rail so they stay visible
+          when the body fills with dense notes. */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        {DAILY_BLOCKS.map((b) => {
+        {DAILY_BLOCKS.map((b, idx) => {
           const value = getDailyField(activeDay, b.key);
+          const accents = [
+            "hsl(var(--primary))",       // Today's Objectives
+            "hsl(var(--success))",       // Today's Achievements
+            "hsl(var(--warning))",       // Tomorrow's Objectives
+            "hsl(var(--destructive))",   // Open Issues / Risks
+          ];
+          const accent = accents[idx] ?? "hsl(var(--primary))";
           return (
-            <div key={b.key} className="rounded-xl border border-border bg-card overflow-hidden flex flex-col min-h-[160px]">
-              <div className="px-4 pt-3 pb-1">
-                <span className="text-[11px] font-bold tracking-widest uppercase text-foreground dark:text-white">
+            <div
+              key={b.key}
+              className="rounded-xl border border-border bg-card overflow-hidden flex flex-col min-h-[160px] border-l-4"
+              style={{ borderLeftColor: accent }}
+            >
+              <div
+                className="px-4 py-2 flex items-center gap-2 border-b border-border"
+                style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)` }}
+              >
+                <span
+                  aria-hidden
+                  className="inline-block h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: accent }}
+                />
+                <span
+                  className="text-[11px] font-bold tracking-widest uppercase"
+                  style={{ color: accent }}
+                >
                   {b.label}
                 </span>
               </div>
-              <div className="px-4 pb-3 flex-1 text-sm text-foreground">
+              <div className="px-4 py-3 flex-1 text-sm text-foreground">
                 <EditableNote
                   value={value}
                   placeholder={`Add ${b.label.toLowerCase()}…`}
