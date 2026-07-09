@@ -1532,7 +1532,7 @@ const ShareDailySection = ({ label, text, body }: { label: string; text: string;
   return (
     <li
       className="rounded-lg border overflow-hidden"
-      style={{ borderColor: DIVIDER, borderLeftWidth: 4, borderLeftColor: accent }}
+      style={{ borderColor: DIVIDER }}
     >
       <div
         className="px-3 py-2 flex items-center gap-2"
