@@ -42,10 +42,8 @@ export function useSessionTimeout(enabled: boolean) {
       writeNum(LAST_ACTIVITY_KEY, now());
     };
 
-    const events: (keyof WindowEventMap)[] = [
-      "mousedown", "keydown", "touchstart", "scroll", "visibilitychange",
-    ];
-    events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
+    const events = ["mousedown", "keydown", "touchstart", "scroll", "visibilitychange"] as const;
+    events.forEach((e) => window.addEventListener(e, bump, { passive: true } as AddEventListenerOptions));
 
     const forceSignOut = async (reason: "idle" | "absolute") => {
       if (signingOutRef.current) return;
