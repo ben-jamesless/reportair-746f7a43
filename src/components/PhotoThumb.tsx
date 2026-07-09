@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { useThumbSignedUrl } from "@/hooks/useSignedUrl";
 import { Check, ImageIcon, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +31,7 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = 
   const [loaded, setLoaded] = useState(false);
 
   // Only request a signed URL once we're near the viewport.
-  const url = useSignedUrl(inView ? path : null);
+  const url = useThumbSignedUrl(inView ? path : null);
 
   useEffect(() => {
     if (priority || inView) return;

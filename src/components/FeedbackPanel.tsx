@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { useThumbSignedUrl } from "@/hooks/useSignedUrl";
 
 import type { GuestNote } from "@/lib/types";
 
@@ -366,7 +366,7 @@ const EntryList = ({
 };
 
 const Thumb = ({ path, alt }: { path: string; alt: string }) => {
-  const url = useSignedUrl(path);
+  const url = useThumbSignedUrl(path);
   return (
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
       {url && <img src={url} alt={alt} className="h-full w-full object-cover" loading="lazy" />}
