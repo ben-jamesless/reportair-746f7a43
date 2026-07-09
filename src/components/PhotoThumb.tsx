@@ -121,6 +121,16 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = 
           </span>
         </>
       )}
+      {gpsAuto && (
+        <span
+          aria-label="Auto-assigned by GPS"
+          title="Auto-assigned by GPS"
+          className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white shadow-sm"
+        >
+          <MapPin className="h-3 w-3" />
+        </span>
+      )}
     </button>
   );
 };
+
