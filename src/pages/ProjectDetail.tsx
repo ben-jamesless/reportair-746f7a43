@@ -314,16 +314,27 @@ const ProjectDetail = () => {
     []
   );
 
+  // Filter chip: "Unassigned · has GPS" triage for zone auto-assignment misses.
+  const [needsZoneOnly, setNeedsZoneOnly] = useState(false);
+
   // Photos shown in main grid
   const visiblePhotos = (() => {
     let pool: LightboxPhoto[];
     if (activeDay === ALL_DAYS) pool = photos;
     else if (isAlbumKey(activeDay)) pool = albumPhotos.get(albumIdFromKey(activeDay)!) ?? [];
     else pool = days.find((d) => d.key === activeDay)?.photos ?? [];
-    if (activeArea === null) return pool;
-    if (activeArea === NO_AREA) return pool.filter((p) => !p.area_id);
-    return pool.filter((p) => p.area_id === activeArea);
+    let out = pool;
+    if (activeArea === NO_AREA) out = out.filter((p) => !p.area_id);
+    else if (activeArea !== null) out = out.filter((p) => p.area_id === activeArea);
+    if (needsZoneOnly) out = out.filter((p) => !p.area_id && p.gps_lat != null && p.gps_lng != null);
+    return out;
   })();
+
+  const unassignedWithGpsCount = photos.reduce(
+    (n, p) => (!p.area_id && p.gps_lat != null && p.gps_lng != null ? n + 1 : n),
+    0,
+  );
+
 
   const photoIndexById = (() => {
     const m = new Map<string, number>();
