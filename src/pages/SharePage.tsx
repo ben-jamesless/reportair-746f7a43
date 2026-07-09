@@ -653,22 +653,10 @@ const SharePage = () => {
               </div>
             )}
             {hasAny ? (
-              <ul className="mt-5 space-y-5">
+              <ul className="mt-5 space-y-4">
                 {sections.map((s) => {
                   if (!s.text || !s.text.trim()) return null;
-                  return (
-                    <li key={s.label}>
-                      <p
-                        className="text-xs font-semibold uppercase tracking-wide"
-                        style={{ color: MUTED }}
-                      >
-                        {s.label}
-                      </p>
-                      <div className="mt-1.5 text-base leading-relaxed" style={{ color: BODY }}>
-                        <RichNotes text={s.text} />
-                      </div>
-                    </li>
-                  );
+                  return <ShareDailySection key={s.label} label={s.label} text={s.text} body={BODY} />;
                 })}
               </ul>
             ) : (
@@ -1133,19 +1121,10 @@ const SharePage = () => {
                         </div>
                       )}
                       {hasAny ? (
-                        <ul className="space-y-4">
+                        <ul className="space-y-3">
                           {sections.map((s) => {
                             if (!s.text || !s.text.trim()) return null;
-                            return (
-                              <li key={s.label}>
-                                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
-                                  {s.label}
-                                </p>
-                                <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
-                                  <RichNotes text={s.text} />
-                                </div>
-                              </li>
-                            );
+                            return <ShareDailySection key={s.label} label={s.label} text={s.text} body={BODY} />;
                           })}
                         </ul>
                       ) : (
@@ -1272,23 +1251,10 @@ const SharePage = () => {
                         ].filter((s) => s.text && s.text.trim());
                         if (sections.length === 0) return null;
                         return (
-                          <div
-                            className="mx-4 my-3 rounded-lg border p-4"
-                            style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
-                          >
-                            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
-                              Daily report
-                            </p>
-                            <ul className="mt-3 space-y-4">
+                          <div className="mx-4 my-3">
+                            <ul className="space-y-3">
                               {sections.map((s) => (
-                                <li key={s.label}>
-                                  <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
-                                    {s.label}
-                                  </p>
-                                  <div className="mt-1 text-sm leading-relaxed" style={{ color: BODY }}>
-                                    <RichNotes text={s.text!} />
-                                  </div>
-                                </li>
+                                <ShareDailySection key={s.label} label={s.label} text={s.text!} body={BODY} />
                               ))}
                             </ul>
                           </div>
@@ -1551,6 +1517,36 @@ const RichNotes = ({ text }: { text: string }) => {
         );
       })}
     </div>
+  );
+};
+
+const DAILY_SECTION_COLORS: Record<string, string> = {
+  "Today's objectives": "#D94F2A",
+  "Today's achievements": "#3A7D44",
+  "Tomorrow's objectives": "#D97706",
+  "Open issues": "#C7382A",
+};
+
+const ShareDailySection = ({ label, text, body }: { label: string; text: string; body: string }) => {
+  const accent = DAILY_SECTION_COLORS[label] ?? "#D94F2A";
+  return (
+    <li
+      className="rounded-lg border overflow-hidden"
+      style={{ borderColor: DIVIDER, borderLeftWidth: 4, borderLeftColor: accent }}
+    >
+      <div
+        className="px-3 py-2 flex items-center gap-2"
+        style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)`, borderBottom: `1px solid ${DIVIDER}` }}
+      >
+        <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
+        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>
+          {label}
+        </span>
+      </div>
+      <div className="px-3 py-2.5 text-sm leading-relaxed" style={{ color: body }}>
+        <RichNotes text={text} />
+      </div>
+    </li>
   );
 };
 
