@@ -386,7 +386,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const [id, lm] of labelsRef.current) {
       if (!seen.has(id)) { lm.setMap(null); labelsRef.current.delete(id); }
     }
-  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady]);
+  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady, statusTintByArea, highlightAreaId]);
 
   // Fit map to all features (read-only share view)
   const didFitRef = useRef(false);
