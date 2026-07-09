@@ -14,6 +14,7 @@ interface Props {
   projectId: string;
   color?: string | null;
   canEdit: boolean;
+  onAreasChanged?: () => void;
 }
 
 // Status → hex, aligned with PROJECT_STATUSES in src/lib/projectStatus.ts
@@ -51,7 +52,7 @@ function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (
 
 const NEW_ZONE = "__new_zone__";
 
-export function SiteMapTab({ projectId, color, canEdit }: Props) {
+export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
@@ -145,6 +146,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
       const newAreaId = await createZone(`Zone ${nextIdx}`, kind, geometry, col);
       if (newAreaId) {
         await reloadAreas();
+        onAreasChanged?.();
         toast.success("Zone added");
       }
     } else if (areaId) {

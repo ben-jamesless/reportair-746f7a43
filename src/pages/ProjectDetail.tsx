@@ -759,7 +759,7 @@ const ProjectDetail = () => {
           </TabsContent>
 
           <TabsContent value="map" className="mt-6">
-            <SiteMapTab projectId={project.id} color={project.color} canEdit={canEdit} />
+            <SiteMapTab projectId={project.id} color={project.color} canEdit={canEdit} onAreasChanged={loadAll} />
           </TabsContent>
 
           <TabsContent value="details" className="mt-6">
