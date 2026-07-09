@@ -241,16 +241,25 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const f of features) {
       seen.add(f.id);
       const area = areas.find((a) => a.id === f.area_id);
-      const color = f.color || colorForArea(area, fallbackColor);
+      const baseColor = f.color || colorForArea(area, fallbackColor);
+      const tint = statusTintByArea?.[f.area_id];
+      const isPrimary = f.is_primary;
+      const applyTint = isPrimary && tint && (f.kind === "polygon" || f.kind === "rectangle");
+      const fillColor = applyTint ? tint!.fill : baseColor;
+      const strokeColor = applyTint ? tint!.stroke : baseColor;
       const isSelected = selectedId === f.id;
-      const strokeWeight = isSelected ? 4 : 2;
+      const isHighlighted = highlightAreaId && f.area_id === highlightAreaId;
+      const isDimmed = highlightAreaId && f.area_id !== highlightAreaId;
+      const strokeWeight = isSelected || (isHighlighted && isPrimary) ? 4 : (isPrimary ? 2.5 : 1.5);
+      const fillOpacity = isDimmed ? 0.08 : (isHighlighted && isPrimary ? 0.5 : (isPrimary ? 0.35 : 0.2));
+      const strokeOpacity = isDimmed ? 0.25 : 1;
       let overlay = overlaysRef.current.get(f.id);
 
       if (f.kind === "pin") {
         const pos = { lat: f.geometry.lat, lng: f.geometry.lng };
         const icon = {
           path: g.maps.SymbolPath.CIRCLE, scale: isSelected ? 11 : 9,
-          fillColor: color, fillOpacity: 1,
+          fillColor: baseColor, fillOpacity: isDimmed ? 0.35 : 1,
           strokeColor: "#ffffff", strokeWeight: isSelected ? 3 : 2,
         };
         if (!overlay) {
@@ -275,9 +284,10 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         if (!overlay) {
           const poly = new g.maps.Polygon({
             paths, map,
-            strokeColor: color, fillColor: color,
-            fillOpacity: 0.35, strokeWeight,
+            strokeColor, fillColor,
+            fillOpacity, strokeOpacity, strokeWeight,
             editable, draggable: editable,
+            zIndex: isPrimary ? 2 : 1,
           });
           poly.addListener("click", () => onFeatureClick?.(f));
           const persist = () => {
@@ -293,7 +303,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           }
           overlaysRef.current.set(f.id, poly);
         } else if (overlay instanceof g.maps.Polygon) {
-          overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
+          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: isPrimary ? 2 : 1 });
         }
       } else if (f.kind === "rectangle") {
         const b = new g.maps.LatLngBounds(
@@ -303,9 +313,10 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         if (!overlay) {
           const rect = new g.maps.Rectangle({
             bounds: b, map,
-            strokeColor: color, fillColor: color,
-            fillOpacity: 0.35, strokeWeight,
+            strokeColor, fillColor,
+            fillOpacity, strokeOpacity, strokeWeight,
             editable, draggable: editable,
+            zIndex: isPrimary ? 2 : 1,
           });
           rect.addListener("click", () => onFeatureClick?.(f));
           if (editable) {
@@ -318,7 +329,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           }
           overlaysRef.current.set(f.id, rect);
         } else if (overlay instanceof g.maps.Rectangle) {
-          overlay.setOptions({ strokeColor: color, fillColor: color, strokeWeight });
+          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: isPrimary ? 2 : 1 });
         }
       }
 
