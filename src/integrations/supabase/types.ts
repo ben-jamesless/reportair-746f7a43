@@ -180,6 +180,7 @@ export type Database = {
           created_by: string | null
           geometry: Json
           id: string
+          is_primary: boolean
           kind: string
           label: string | null
           project_id: string
@@ -192,6 +193,7 @@ export type Database = {
           created_by?: string | null
           geometry: Json
           id?: string
+          is_primary?: boolean
           kind: string
           label?: string | null
           project_id: string
@@ -204,6 +206,7 @@ export type Database = {
           created_by?: string | null
           geometry?: Json
           id?: string
+          is_primary?: boolean
           kind?: string
           label?: string | null
           project_id?: string
@@ -228,6 +231,8 @@ export type Database = {
       }
       areas: {
         Row: {
+          boundary_source: string
+          color: string | null
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -238,6 +243,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          boundary_source?: string
+          color?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -248,6 +255,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          boundary_source?: string
+          color?: string | null
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -1381,6 +1390,16 @@ export type Database = {
         Args: { _name: string; _user: string }
         Returns: boolean
       }
+      create_zone_with_geometry: {
+        Args: {
+          _color?: string
+          _geometry: Json
+          _kind: string
+          _name: string
+          _project_id: string
+        }
+        Returns: string
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1564,6 +1583,10 @@ export type Database = {
       resolve_share_link: {
         Args: { _password?: string; _token: string }
         Returns: Json
+      }
+      set_primary_map_feature: {
+        Args: { _feature_id: string }
+        Returns: undefined
       }
     }
     Enums: {
