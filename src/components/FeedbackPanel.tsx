@@ -366,7 +366,7 @@ const EntryList = ({
 };
 
 const Thumb = ({ path, alt }: { path: string; alt: string }) => {
-  const url = useSignedUrl(path);
+  const url = useThumbSignedUrl(path);
   return (
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
       {url && <img src={url} alt={alt} className="h-full w-full object-cover" loading="lazy" />}
