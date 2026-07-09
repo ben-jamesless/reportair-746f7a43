@@ -14,6 +14,7 @@ interface Props {
   projectId: string;
   color?: string | null;
   canEdit: boolean;
+  onAreasChanged?: () => void;
 }
 
 // Status → hex, aligned with PROJECT_STATUSES in src/lib/projectStatus.ts
