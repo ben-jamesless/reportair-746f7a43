@@ -287,7 +287,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
             strokeColor, fillColor,
             fillOpacity, strokeOpacity, strokeWeight,
             editable, draggable: editable,
-            zIndex: isPrimary ? 2 : 1,
+            zIndex: (isHighlighted && isPrimary) ? 5 : (isPrimary ? 2 : 1),
           });
           poly.addListener("click", () => onFeatureClick?.(f));
           const persist = () => {
@@ -303,7 +303,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           }
           overlaysRef.current.set(f.id, poly);
         } else if (overlay instanceof g.maps.Polygon) {
-          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: isPrimary ? 2 : 1 });
+          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: (isHighlighted && isPrimary) ? 5 : (isPrimary ? 2 : 1) });
         }
       } else if (f.kind === "rectangle") {
         const b = new g.maps.LatLngBounds(
@@ -316,7 +316,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
             strokeColor, fillColor,
             fillOpacity, strokeOpacity, strokeWeight,
             editable, draggable: editable,
-            zIndex: isPrimary ? 2 : 1,
+            zIndex: (isHighlighted && isPrimary) ? 5 : (isPrimary ? 2 : 1),
           });
           rect.addListener("click", () => onFeatureClick?.(f));
           if (editable) {
@@ -329,7 +329,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           }
           overlaysRef.current.set(f.id, rect);
         } else if (overlay instanceof g.maps.Rectangle) {
-          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: isPrimary ? 2 : 1 });
+          overlay.setOptions({ strokeColor, fillColor, fillOpacity, strokeOpacity, strokeWeight, zIndex: (isHighlighted && isPrimary) ? 5 : (isPrimary ? 2 : 1) });
         }
       }
 
