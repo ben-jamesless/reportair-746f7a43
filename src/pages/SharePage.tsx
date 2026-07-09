@@ -1550,41 +1550,41 @@ const ShareDailySection = ({ label, text, body }: { label: string; text: string;
   );
 };
 
-const useShareSignedUrl = (token: string, photoId: string) => {
+const useShareSignedUrl = (token: string, photoId: string, variant: "thumb" | "lightbox" | "original" = "thumb") => {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
     (async () => {
       const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-photo-url`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, photo_id: photoId }),
+        body: JSON.stringify({ token, photo_id: photoId, variant }),
       });
       const json = await res.json();
       if (alive && json.url) setUrl(json.url);
     })();
     return () => { alive = false; };
-  }, [token, photoId]);
+  }, [token, photoId, variant]);
   return url;
 };
 
 const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: SharePhoto; onClick: () => void }) => {
-  const url = useShareSignedUrl(token, photo.id);
+  const url = useShareSignedUrl(token, photo.id, "thumb");
   return (
     <button
       onClick={onClick}
       className="group relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-[#f3f4f6]"
     >
-      {url ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" /> : null}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" /> : null}
     </button>
   );
 };
 
 
 const SharePhotoMiniThumb = ({ token, photo }: { token: string; photo: SharePhoto }) => {
-  const url = useShareSignedUrl(token, photo.id);
+  const url = useShareSignedUrl(token, photo.id, "thumb");
   return (
     <div className="h-10 w-10 shrink-0 overflow-hidden rounded" style={{ backgroundColor: DIVIDER }}>
-      {url && <img src={url} alt={photo.caption || photo.file_name} className="h-full w-full object-cover" loading="lazy" />}
+      {url && <img src={url} alt={photo.caption || photo.file_name} className="h-full w-full object-cover" loading="lazy" decoding="async" />}
     </div>
   );
 };
