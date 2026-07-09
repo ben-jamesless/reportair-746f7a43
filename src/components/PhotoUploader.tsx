@@ -15,6 +15,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 import { event as gaEvent } from "@/lib/analytics";
+import { fetchPrimaryZones, assignZoneForPoint } from "@/lib/zoneAssign";
 
 type AreaOption = { id: string; name: string };
 
