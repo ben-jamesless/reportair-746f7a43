@@ -153,6 +153,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
         // "Unassigned", the photo has GPS, and exactly one primary zone matches.
         let assignedAreaId: string | null = targetArea;
         let assignedZoneName: string | null = null;
+        let autoAssignedByGps = false;
         if (
           assignedAreaId == null &&
           exif.gps_lat != null &&
@@ -163,6 +164,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           if (match) {
             assignedAreaId = match.area_id;
             assignedZoneName = match.area_name;
+            autoAssignedByGps = true;
           }
         }
 
@@ -170,6 +172,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           project_id: projectId,
           album_id: albumId,
           area_id: assignedAreaId,
+          assignment_source: assignedAreaId ? (autoAssignedByGps ? 'gps_auto' : 'manual') : null,
           storage_path: key,
           report_path: reportKey,
           file_name: file.name,
@@ -178,6 +181,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           uploaded_by: user.id,
           ...exif,
         } as never).select("id").single();
+
         if (insErr) {
           await supabase.storage.from("photos").remove([key]);
           if (reportKey) await supabase.storage.from("photos").remove([reportKey]);
