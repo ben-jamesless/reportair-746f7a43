@@ -443,7 +443,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
       if (photoIds.length === 0) return;
       const { error } = await supabase
         .from("photos")
-        .update({ area_id: areaId })
+        .update({ area_id: areaId, assignment_source: 'manual' })
         .in("id", photoIds);
       if (error) {
         toast.error(error.message);
@@ -455,7 +455,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         `Assigned ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"} to ${label}`
       );
       const idSet = new Set(photoIds);
-      setPhotos((cur) => cur.map((p) => (idSet.has(p.id) ? { ...p, area_id: areaId } : p)));
+      setPhotos((cur) => cur.map((p) => (idSet.has(p.id) ? { ...p, area_id: areaId, assignment_source: 'manual' } : p)));
+
     },
     [areas]
   );
