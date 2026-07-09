@@ -52,7 +52,7 @@ function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (
 
 const NEW_ZONE = "__new_zone__";
 
-export function SiteMapTab({ projectId, color, canEdit }: Props) {
+export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
