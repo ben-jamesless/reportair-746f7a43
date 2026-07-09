@@ -17,6 +17,21 @@ interface Props {
 export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Props) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyZoneLink = async (areaId: string, name: string) => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("zone", areaId);
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      setCopiedId(areaId);
+      toast.success(`Link to "${name}" copied`);
+      setTimeout(() => setCopiedId((c) => (c === areaId ? null : c)), 1500);
+    } catch {
+      toast.error("Could not copy link");
+    }
+  };
 
   useEffect(() => {
     (async () => {
