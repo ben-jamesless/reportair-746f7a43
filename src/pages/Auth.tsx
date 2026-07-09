@@ -57,6 +57,8 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) return toast.error(error.message);
+    const { markSessionStart } = await import("@/hooks/useSessionTimeout");
+    markSessionStart();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
