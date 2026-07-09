@@ -146,6 +146,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props)
       const newAreaId = await createZone(`Zone ${nextIdx}`, kind, geometry, col);
       if (newAreaId) {
         await reloadAreas();
+        onAreasChanged?.();
         toast.success("Zone added");
       }
     } else if (areaId) {
