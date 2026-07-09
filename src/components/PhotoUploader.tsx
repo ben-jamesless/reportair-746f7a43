@@ -149,10 +149,27 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           }
         } catch (e) { console.warn("Report variant failed", e); }
 
+        // Silent EXIF-based zone assignment: only when the user picked
+        // "Unassigned", the photo has GPS, and exactly one primary zone matches.
+        let assignedAreaId: string | null = targetArea;
+        let assignedZoneName: string | null = null;
+        if (
+          assignedAreaId == null &&
+          exif.gps_lat != null &&
+          exif.gps_lng != null &&
+          primaryZones.length > 0
+        ) {
+          const match = assignZoneForPoint(exif.gps_lat, exif.gps_lng, primaryZones);
+          if (match) {
+            assignedAreaId = match.area_id;
+            assignedZoneName = match.area_name;
+          }
+        }
+
         const { data: inserted, error: insErr } = await supabase.from("photos").insert({
           project_id: projectId,
           album_id: albumId,
-          area_id: targetArea,
+          area_id: assignedAreaId,
           storage_path: key,
           report_path: reportKey,
           file_name: file.name,
