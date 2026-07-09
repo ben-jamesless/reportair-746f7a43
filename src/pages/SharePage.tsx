@@ -1521,7 +1521,7 @@ const RichNotes = ({ text }: { text: string }) => {
 };
 
 const DAILY_SECTION_COLORS: Record<string, string> = {
-  "Today's objectives": "#D94F2A",
+  "Today's objectives": "#3A6EA5",
   "Today's achievements": "#3A7D44",
   "Tomorrow's objectives": "#D97706",
   "Open issues": "#C7382A",
