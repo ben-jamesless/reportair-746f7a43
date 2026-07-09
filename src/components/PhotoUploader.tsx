@@ -185,6 +185,10 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
         }
         if (inserted?.id) insertedIds.push(inserted.id);
         if (exif.gps_lat != null && exif.gps_lng != null) gpsDetectedCount++;
+        if (assignedZoneName && targetArea == null) {
+          autoAssignedCount++;
+          autoAssignedNames.add(assignedZoneName);
+        }
       } catch (e: any) {
         failures++;
         const msg = e?.message || e?.error || (typeof e === "string" ? e : JSON.stringify(e));
