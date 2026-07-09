@@ -29,7 +29,10 @@ export function loadGoogleMaps(): Promise<typeof google> {
     const params = new URLSearchParams({
       key,
       v: "weekly",
-      libraries: "places,marker",
+      // Only the `marker` library is needed at bootstrap (SiteMapCanvas markers).
+      // `places` is imported on demand via importLibrary("places") inside
+      // PlacesAutocompleteInput, so it no longer needs to load on every map view.
+      libraries: "marker",
       loading: "async",
       callback: "__lovableInitGoogleMaps",
     });
