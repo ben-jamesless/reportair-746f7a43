@@ -31,7 +31,7 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = 
   const [loaded, setLoaded] = useState(false);
 
   // Only request a signed URL once we're near the viewport.
-  const url = useSignedUrl(inView ? path : null);
+  const url = useThumbSignedUrl(inView ? path : null);
 
   useEffect(() => {
     if (priority || inView) return;
