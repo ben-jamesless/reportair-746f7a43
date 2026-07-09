@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
-import { Check, ImageIcon } from "lucide-react";
+import { Check, ImageIcon, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -13,6 +13,8 @@ interface Props {
   selectable?: boolean;
   /** Whether this photo is currently selected. */
   selected?: boolean;
+  /** Show a small map-pin badge indicating the photo was auto-assigned to a zone by GPS. */
+  gpsAuto?: boolean;
 }
 
 /**
@@ -22,7 +24,8 @@ interface Props {
  * - Shows a soft animated placeholder until the bitmap finishes decoding,
  *   then fades in (blurhash-style behaviour without requiring a hash payload).
  */
-export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = false, selected = false }: Props) => {
+export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = false, selected = false, gpsAuto = false }: Props) => {
+
   const ref = useRef<HTMLButtonElement | null>(null);
   const [inView, setInView] = useState(priority);
   const [loaded, setLoaded] = useState(false);
