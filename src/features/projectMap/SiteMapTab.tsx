@@ -2,18 +2,27 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Square, Pentagon, Trash2, X, Undo2, Check, Palette } from "lucide-react";
+import { MapPin, Square, Pentagon, Trash2, X, Undo2, Check, Palette, Star, Plus } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SiteMapCanvas, type SiteMapCanvasHandle } from "./SiteMapCanvas";
+import { SiteMapCanvas, type SiteMapCanvasHandle, type StatusTint } from "./SiteMapCanvas";
 import { useMapFeatures, type MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
 import { toast } from "sonner";
 import { PROJECT_COLOR_PALETTE } from "@/lib/projectColors";
+import { STATUS_META, type ProjectStatus } from "@/lib/projectStatus";
 
 interface Props {
   projectId: string;
   color?: string | null;
   canEdit: boolean;
+}
+
+// Tint palette for area status — matches the app-wide status meta.
+function tintForStatus(status: string | undefined): StatusTint | undefined {
+  if (!status) return undefined;
+  const meta = (STATUS_META as any)[status as ProjectStatus];
+  const stroke = meta?.dot ?? meta?.color ?? "#64748B";
+  return { fill: stroke, stroke };
 }
 
 function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (c: string) => void }) {
@@ -33,26 +42,47 @@ function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (
   );
 }
 
+const NEW_ZONE = "__new_zone__";
+
 export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
-  const { features, create, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
-  const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null);
+  const [statusByArea, setStatusByArea] = useState<Record<string, string>>({});
+  const { features, create, createZone, setPrimary, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
+  const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null); // null + drawingKind set → new zone
   const [drawingKind, setDrawingKind] = useState<"pin" | "polygon" | "rectangle" | null>(null);
+  const [drawingMode, setDrawingMode] = useState<"attach" | "new" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draftCount, setDraftCount] = useState(0);
   const canvasRef = useRef<SiteMapCanvasHandle>(null);
 
+  const reloadAreas = async () => {
+    const { data: ar } = await supabase.from("areas")
+      .select("id, project_id, name, sort_order, color")
+      .eq("project_id", projectId).is("deleted_at", null).order("sort_order");
+    setAreas((ar ?? []) as Area[]);
+  };
+
   useEffect(() => {
     (async () => {
-      const [{ data: ar }, { data: pr }] = await Promise.all([
-        supabase.from("areas").select("id, project_id, name, sort_order")
+      const [{ data: ar }, { data: pr }, { data: st }] = await Promise.all([
+        supabase.from("areas").select("id, project_id, name, sort_order, color")
           .eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
         supabase.from("projects").select("geo_lat, geo_lng").eq("id", projectId).maybeSingle(),
+        // Today's status per area — one row per area, latest date
+        supabase.from("area_day_status")
+          .select("area_id, date, status")
+          .eq("project_id", projectId)
+          .order("date", { ascending: false }),
       ]);
       setAreas((ar ?? []) as Area[]);
       if (pr?.geo_lat != null && pr?.geo_lng != null) setGeo({ lat: pr.geo_lat, lng: pr.geo_lng });
+      const latest: Record<string, string> = {};
+      for (const row of (st ?? []) as any[]) {
+        if (!latest[row.area_id]) latest[row.area_id] = row.status;
+      }
+      setStatusByArea(latest);
       setGeoLoaded(true);
     })();
   }, [projectId]);
@@ -65,6 +95,12 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
     }
     return m;
   }, [features]);
+
+  const statusTintByArea = useMemo(() => {
+    const out: Record<string, StatusTint | undefined> = {};
+    for (const [id, s] of Object.entries(statusByArea)) out[id] = tintForStatus(s);
+    return out;
+  }, [statusByArea]);
 
   const selectedFeature = useMemo(
     () => features.find((f) => f.id === selectedId) ?? null,
@@ -83,17 +119,42 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
   const startDraw = (areaId: string, kind: "pin" | "polygon" | "rectangle") => {
     setDrawingAreaId(areaId);
     setDrawingKind(kind);
+    setDrawingMode("attach");
     setSelectedId(null);
   };
-  const cancelDraw = () => { setDrawingAreaId(null); setDrawingKind(null); setDraftCount(0); };
+  const startNewZone = (kind: "polygon" | "rectangle") => {
+    setDrawingAreaId(null);
+    setDrawingKind(kind);
+    setDrawingMode("new");
+    setSelectedId(null);
+  };
+  const cancelDraw = () => {
+    setDrawingAreaId(null); setDrawingKind(null); setDrawingMode(null); setDraftCount(0);
+  };
 
-  const handleCreate = async (areaId: string, kind: any, geometry: any, col: string) => {
-    await create(areaId, kind, geometry, col);
+  const handleCreate = async (areaId: string | null, kind: any, geometry: any, col: string) => {
+    if (drawingMode === "new") {
+      const nextIdx = areas.length + 1;
+      const newAreaId = await createZone(`Zone ${nextIdx}`, kind, geometry, col);
+      if (newAreaId) {
+        await reloadAreas();
+        toast.success("Zone added");
+      }
+    } else if (areaId) {
+      await create(areaId, kind, geometry, col);
+      toast.success("Added to site map");
+    }
     cancelDraw();
-    toast.success("Added to site map");
   };
 
   const kindLabel = (k: MapFeature["kind"]) => k === "pin" ? "Pin" : k === "polygon" ? "Zone" : "Box";
+
+  const drawHintText =
+    drawingMode === "new"
+      ? (drawingKind === "polygon" ? "Click to add points — a new zone is created on Confirm." : "Click and drag to draw a new zone as a box.")
+      : drawingKind === "pin" ? "Click on the map to drop the pin."
+      : drawingKind === "polygon" ? "Click to add points, then press Confirm (or double-click)."
+      : "Click and drag on the map to draw a box.";
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
@@ -106,6 +167,17 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
             </Button>
           )}
         </div>
+
+        {canEdit && !drawingKind && (
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" className="h-8 flex-1" onClick={() => startNewZone("polygon")}>
+              <Plus className="mr-1 h-3 w-3" /> New zone
+            </Button>
+            <Button size="sm" variant="outline" className="h-8 flex-1" onClick={() => startNewZone("rectangle")}>
+              <Plus className="mr-1 h-3 w-3" /> New box
+            </Button>
+          </div>
+        )}
 
         {drawingKind === "polygon" && (
           <div className="flex gap-1">
@@ -127,18 +199,33 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
         )}
 
         {areas.length === 0 && (
-          <p className="text-xs text-muted-foreground">No areas yet. Add areas in Settings → Areas.</p>
+          <p className="text-xs text-muted-foreground">
+            No areas yet. Use <span className="font-medium">New zone</span> above to draw one, or add areas in Settings → Areas.
+          </p>
         )}
         <ul className="space-y-2">
           {areas.map((a) => {
             const items = byArea.get(a.id) ?? [];
+            const hasPrimary = items.some((f) => f.is_primary);
             const isActive = drawingAreaId === a.id;
             return (
               <li key={a.id} className="rounded-md border p-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{a.name}</span>
-                  <span className="text-xs text-muted-foreground">{items.length}</span>
+                  <div className="flex items-center gap-1">
+                    {statusByArea[a.id] && (
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
+                        style={{ backgroundColor: tintForStatus(statusByArea[a.id])?.stroke }}
+                        title={`Status: ${statusByArea[a.id]}`}
+                      />
+                    )}
+                    <span className="text-xs text-muted-foreground">{items.length}</span>
+                  </div>
                 </div>
+                {!hasPrimary && items.length > 0 && (
+                  <p className="mt-1 text-[11px] text-amber-600">No primary boundary — add or promote one.</p>
+                )}
                 {canEdit && (
                   <div className="mt-2 flex gap-1">
                     <Button size="sm" variant={isActive && drawingKind === "pin" ? "default" : "outline"}
@@ -147,7 +234,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                     </Button>
                     <Button size="sm" variant={isActive && drawingKind === "polygon" ? "default" : "outline"}
                       className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "polygon")}>
-                      <Pentagon className="mr-1 h-3 w-3" /> Zone
+                      <Pentagon className="mr-1 h-3 w-3" /> {hasPrimary ? "Zone" : "Boundary"}
                     </Button>
                     <Button size="sm" variant={isActive && drawingKind === "rectangle" ? "default" : "outline"}
                       className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "rectangle")}>
@@ -173,7 +260,12 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
                               className="inline-block h-3 w-3 rounded-full border border-white/60"
                               style={{ backgroundColor: f.color ?? "#64748B" }}
                             />
-                            <span className="truncate">{f.label?.trim() || kindLabel(f.kind)}</span>
+                            <span className="truncate">
+                              {f.label?.trim() || kindLabel(f.kind)}
+                            </span>
+                            {f.is_primary && (
+                              <Star className="h-3 w-3 text-amber-500 shrink-0" aria-label="Primary boundary" />
+                            )}
                           </button>
                           {canEdit && (
                             <>
@@ -207,11 +299,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
         </ul>
 
         {drawingKind && (
-          <p className="text-xs text-muted-foreground">
-            {drawingKind === "pin" ? "Click on the map to drop the pin." :
-             drawingKind === "polygon" ? "Click to add points, then press Confirm (or double-click)." :
-             "Click and drag on the map to draw a box."}
-          </p>
+          <p className="text-xs text-muted-foreground">{drawHintText}</p>
         )}
 
         {selectedFeature && canEdit && !drawingKind && (
@@ -238,6 +326,14 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
             />
             <p className="mb-2 text-xs text-muted-foreground">Color</p>
             <ColorSwatches current={selectedFeature.color} onPick={(c) => updateColor(selectedFeature.id, c)} />
+            {(selectedFeature.kind === "polygon" || selectedFeature.kind === "rectangle") && !selectedFeature.is_primary && (
+              <Button
+                size="sm" variant="outline" className="mt-2 h-7 w-full text-xs"
+                onClick={() => setPrimary(selectedFeature.id)}
+              >
+                <Star className="mr-1 h-3 w-3" /> Set as primary boundary
+              </Button>
+            )}
             <Button
               size="sm" variant="destructive" className="mt-2 h-7 w-full text-xs"
               onClick={() => { remove(selectedFeature.id); setSelectedId(null); }}
@@ -264,6 +360,7 @@ export function SiteMapTab({ projectId, color, canEdit }: Props) {
             selectedId={selectedId}
             fallbackColor={color ?? undefined}
             editable={canEdit}
+            statusTintByArea={statusTintByArea}
           />
         ) : (
           <div className="flex h-full items-center justify-center rounded-md border bg-muted/40 text-sm text-muted-foreground">
