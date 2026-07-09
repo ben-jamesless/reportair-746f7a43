@@ -180,10 +180,10 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
 
       map.addListener("mousedown", (e: any) => {
         const { drawingKind: kind, drawingAreaId: aid } = drawingStateRef.current;
-        if (kind !== "rectangle" || !aid || !e.latLng) return;
+        if (kind !== "rectangle" || !e.latLng) return;
         map.setOptions({ draggable: false });
         const start = e.latLng as google.maps.LatLng;
-        const area = areasRef.current.find((a) => a.id === aid);
+        const area = aid ? areasRef.current.find((a) => a.id === aid) : undefined;
         const color = colorForArea(area, fallbackColorRef.current);
         const rect = new g.maps.Rectangle({
           map,
@@ -211,7 +211,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
           if (Math.abs(start.lat() - end.lat()) < 1e-6 && Math.abs(start.lng() - end.lng()) < 1e-6) return;
           const finalBounds = b ?? new g.maps.LatLngBounds(start, end);
           const ne = finalBounds.getNorthEast(), sw = finalBounds.getSouthWest();
-          if (onCreateRef.current) onCreateRef.current(aid, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
+          if (onCreateRef.current) onCreateRef.current(aid ?? null, "rectangle", { north: ne.lat(), east: ne.lng(), south: sw.lat(), west: sw.lng() }, color);
         });
       });
     });
