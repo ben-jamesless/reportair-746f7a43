@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSignedUrl } from "@/hooks/useSignedUrl";
+import { useThumbSignedUrl } from "@/hooks/useSignedUrl";
 import { Check, ImageIcon, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
