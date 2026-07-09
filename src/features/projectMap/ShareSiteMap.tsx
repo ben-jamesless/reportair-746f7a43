@@ -66,6 +66,7 @@ export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Pro
           features={features}
           editable={false}
           fitToFeatures
+          highlightAreaId={highlightAreaId ?? null}
           onFeatureClick={(f) => onAreaClick?.(f.area_id)}
         />
       </div>
