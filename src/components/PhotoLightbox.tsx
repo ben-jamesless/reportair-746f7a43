@@ -184,7 +184,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 value={photo.area_id ?? UNASSIGNED}
                 onValueChange={async (val) => {
                   const newAreaId = val === UNASSIGNED ? null : val;
-                  const { error } = await supabase.from("photos").update({ area_id: newAreaId }).eq("id", photo.id);
+                  const { error } = await supabase.from("photos").update({ area_id: newAreaId, assignment_source: 'manual' }).eq("id", photo.id);
                   if (error) { toast.error(error.message); return; }
                   onAreaChanged?.(photo.id, newAreaId);
                 }}
@@ -199,7 +199,11 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                   ))}
                 </SelectContent>
               </Select>
+              {photo.area_id && photo.assignment_source === 'gps_auto' && (
+                <p className="mt-1 text-[11px] text-muted-foreground">Auto-assigned by GPS</p>
+              )}
             </MobileSection>
+
 
             {albums.length > 0 && (
               <MobileSection title="Album">
