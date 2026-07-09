@@ -48,6 +48,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   drawingAreaId, drawingKind, onCreate, onUpdate, onFeatureClick,
   fallbackColor = DEFAULT_PROJECT_COLOR, editable = false,
   selectedId, onDraftChange, fitToFeatures = false,
+  statusTintByArea, highlightAreaId,
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
