@@ -72,20 +72,23 @@ export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Pro
       </div>
       {areasWithFeatures.length > 0 && (
         <div className="flex flex-wrap gap-2 border-t px-4 py-3">
-          {areasWithFeatures.map((a) => (
-            <button
-              key={a.id}
-              type="button"
-              onClick={() => onAreaClick?.(a.id)}
-              className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1 text-xs hover:bg-accent"
-            >
-              <span
-                className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
-                style={{ backgroundColor: areaColor.get(a.id) ?? "#64748B" }}
-              />
-              <span>{a.name}</span>
-            </button>
-          ))}
+          {areasWithFeatures.map((a) => {
+            const active = highlightAreaId === a.id;
+            return (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => onAreaClick?.(a.id)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${active ? "bg-foreground text-background border-foreground" : "bg-background hover:bg-accent"}`}
+              >
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
+                  style={{ backgroundColor: areaColor.get(a.id) ?? "#64748B" }}
+                />
+                <span>{a.name}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
