@@ -97,8 +97,14 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     setProgress({ done: 0, total: list.length });
     let failures = 0;
     let gpsDetectedCount = 0;
+    let autoAssignedCount = 0;
+    const autoAssignedNames = new Set<string>();
     const errors: string[] = [];
     const insertedIds: string[] = [];
+
+    // Fetch primary zones once per batch. Only used when the user leaves the
+    // batch as "Unassigned" — an explicit area choice always wins.
+    const primaryZones = targetArea == null ? await fetchPrimaryZones(projectId) : [];
 
     for (const original of list) {
       let file = original;
