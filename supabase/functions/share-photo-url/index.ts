@@ -10,8 +10,8 @@ const corsHeaders = {
 
 type Variant = "thumb" | "lightbox" | "original";
 const TRANSFORMS: Record<Exclude<Variant, "original">, { width?: number; height?: number; resize?: "cover" | "contain" | "fill"; quality?: number }> = {
-  thumb: { width: 400, height: 400, resize: "cover", quality: 70 },
-  lightbox: { width: 1600, resize: "contain", quality: 78 },
+  thumb: { width: 600, height: 600, resize: "cover", quality: 75 },
+  lightbox: { width: 2400, resize: "contain", quality: 82 },
 };
 
 Deno.serve(async (req) => {
