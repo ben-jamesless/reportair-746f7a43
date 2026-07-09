@@ -12,11 +12,13 @@ export type PrimaryZone = {
 };
 
 export async function fetchPrimaryZones(projectId: string): Promise<PrimaryZone[]> {
+  // Considers ALL boundary features (primary and secondary) so photos taken
+  // inside any drawn zone get auto-assigned. The exactly-one-match policy in
+  // assignZoneForPoint still prevents ambiguous hits.
   const { data, error } = await supabase
     .from("area_map_features")
     .select("area_id, kind, geometry, areas!inner(name)")
     .eq("project_id", projectId)
-    .eq("is_primary", true)
     .in("kind", ["polygon", "rectangle"]);
   if (error || !data) return [];
   return data.map((r: any) => ({
