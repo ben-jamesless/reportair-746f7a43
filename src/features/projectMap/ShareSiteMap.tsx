@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteMapCanvas } from "@/features/projectMap/SiteMapCanvas";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
 import type { Area } from "@/components/AreasManager";
+import { toast } from "sonner";
 
 interface Props {
   token: string;
