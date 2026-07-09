@@ -214,6 +214,15 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (failures === 0) toast.success(`Uploaded ${list.length} photo${list.length > 1 ? "s" : ""}`);
     else if (failures < list.length) toast.warning(`Uploaded ${list.length - failures} of ${list.length} (${failures} failed)`, { description: firstErr });
     else toast.error("All uploads failed", { description: firstErr ?? "Check console for details", duration: 10000 });
+    if (autoAssignedCount > 0) {
+      const names = Array.from(autoAssignedNames);
+      const label = names.length === 1
+        ? names[0]
+        : `${names.length} zones`;
+      toast.message(`Auto-assigned ${autoAssignedCount} photo${autoAssignedCount === 1 ? "" : "s"} by location`, {
+        description: `Matched to ${label} using GPS.`,
+      });
+    }
     const successful = insertedIds.length;
     if (successful > 0) {
       const zoneName = targetArea
