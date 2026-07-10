@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
+import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
+
 
 const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
   { key: "today_objectives", label: "Today's Objectives" },
