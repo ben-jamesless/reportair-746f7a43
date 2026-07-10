@@ -1,108 +1,90 @@
-# Build Folder v3 — Phase 1
+# Build Folder v3 — Canonical Plan
 
-Scope: merge Updates + Gallery into a single Daily Report, ship the Overview tab, add `photo_day_hidden`, wire lazy Objectives rollover, and add the "Copy yesterday's statuses" button. All work stays behind `profiles.beta_ui`; classic shell is untouched.
+Source of truth: `buildslides-backend-ux-plan-4.md` (10 Jul 2026 PM). This file syncs §6 locked decisions, §7 build sequence + build log, §8 screen set. Rationale lives in the source doc.
 
-Gate to close phase: Ben runs two consecutive build days exclusively in v2 without falling back.
+---
 
-## 1.1 — Schema (one migration)
+## §6 Locked decisions (1–20)
 
-New junction table:
+### Locked 9 July 2026
+1. Merge Updates + Gallery into a single **Daily Report**.
+2. **No publish step** — shared link updates live as the day is edited. Client-preview toggle retained.
+3. **Area status resets daily** — every day starts at "No status" so delays/issues are visible per build day.
+4. **Map geometry**: collapsed to a single area object, polygon tool only. No Pin/Box.
+5. **Client link two-axis model**: Day view (default, latest day) + Area story (tap polygon → area's full history, before/after slider).
 
-```text
-photo_day_hidden(
-  photo_id uuid,
-  project_id uuid,
-  date_key text,          -- project-local YYYY-MM-DD
-  hidden_by uuid,
-  hidden_at timestamptz,
-  primary key (photo_id, date_key)
-)
-```
+### Locked 10 July 2026
+6. **Rebrand to Build Folder** across all surfaces, URLs, and client link.
+7. **No event-type templates** in the wizard — areas drawn on the real site.
+8. **Overview: Client Link card removed** — Today card extends into that space; view stats fold into Activity feed + compact card in Share/Deliver panel. Per-area pills dropped from the Today card (thin Overview).
+9. **Mobile: one role-scoped app, web-first** — crew opens straight into camera; managers get a check-and-nudge pocket view; deep curation stays on desktop. Ship as responsive web, wrap with Capacitor when validated. Client link stays responsive web.
 
-- Grants: `authenticated` (SELECT/INSERT/DELETE), `service_role` all
-- RLS: user must be a project member of `project_id` (matches `photos` policy pattern)
-- Index on `(project_id, date_key)` for day-view filters
-- No other schema changes — Objectives already live in `day_notes.objectives` / `day_notes.tomorrow_objectives`; area statuses already live in `area_day_status`
+### Locked 10 July 2026 PM (post Lovable engineering review)
+10. **Daily status reset stands** — honest per-day record is the positioning. Revisit only on real pill fatigue.
+11. **Delete semantics: hide from day** in the Daily Report; destructive delete lives only in the Library, with confirm.
+12. **Share / Deliver gets a designed screen** (hi-fi 11): live link + copy/QR, password + named invites (existing share-links infra, no new schema), compact view stats, daily digest email at 18:00, Day PDF + full-record exports, revoke-and-reissue.
+13. **Global Reports page deprecated** — retire at Phase 5 with the old shell. Projects list unchanged in this pass.
+14. **Terminology: "Area" everywhere** — one user-facing word. "Zone"/"Box" survive only as history. Component names can stay until Phase 0's rename pass.
 
-## 1.2 — Daily Report tab (the merge)
+### Locked 10 July 2026 — pre-build spec gaps
+15. **Hide-from-day data model**: `photo_day_hidden(photo_id, project_id, date_key)` junction table.
+16. **Daily-reset click cost**: **"Copy yesterday's statuses"** button — one deliberate act per day. Bulk "Set all to On track" rejected. Shortcuts parked.
+17. **Objectives rollover: yes** — today's Objectives pre-fill from yesterday's "Tomorrow's objectives", editable.
+18. **Role-scoped UI lands in Phase 4** — minimal: crew sees upload/capture only. Mobile app (Phase 5) must not land role-blind.
+19. **Beta flag: `profiles.beta_ui` boolean** (not `?ux=v2`) — survives refresh + URL sharing.
+20. **Responsive mid-state (Phases 1–4)**: Overview + Daily Report usable at 375px; Library/Map soft-banners below 768px, never a lock-out. Map-skipped events get a "Draw now →" coach on Overview mini-map and Map tab.
 
-Replaces the Phase 0 placeholder with the real screen. Single day picker at the top; below it, one scroll:
+Review pushbacks retained: dark days stay visible-but-dimmed on client timeline; Objectives ≠ Achievements (plan vs actual); no carry-forward status.
 
-```text
-┌ Day header ─────────────────────────────┐
-│ Objectives · Achievements · Open issues │  ← from day_notes
-├ Area section (one card per area) ───────┤
-│ Status pill · notes · today's photos    │
-└─────────────────────────────────────────┘
-```
+---
 
-- One `?day=YYYY-MM-DD` param drives the whole tab (removes the two sidebar day pickers)
-- Edit / Client-preview toggle: preview renders the same component tree the share page uses so "what you edit is what they get"
-- Per-photo "Hide from day" action writes to `photo_day_hidden` — photo stays in Library and area story
-- Destructive delete is removed from the Daily Report; it now lives only in Library (Phase 2)
-- No separate "day note" concept — Objectives / Achievements / Issues fields on the day header are the note
+## §7 Build sequence + build log
 
-## 1.3 — Overview tab
+Guiding principle: current routes keep working until each new surface has been used in anger. Responsive rule Phases 1–4: Overview + Daily Report at 375px; deep curation soft-banners below 768px.
 
-Thin dashboard, no per-area pills, no Client Link card:
+| Phase | Scope | Est. |
+|---|---|---|
+| **0 — Foundations behind a flag** | `profiles.beta_ui` + `ProjectDetailV2` shell; extract DayReport / PhotoGallery / SiteMapTab / ActivityFeed; "Area" terminology pass | 3–4 days |
+| **1 — Daily Report merge** | DailyReportTab (notes + day-scoped photos, one picker); Edit / Client-preview toggle; Copy-yesterday-statuses; Objectives rollover; `photo_day_hidden`; old tabs stay mounted. Gate: two consecutive build days exclusively in v2 | 1 week |
+| **2 — Library as first-class tab** | Promote Event Gallery; filters, search, unassigned tray | 3–4 days |
+| **3 — Upload flow visible** | Modal streams GPS-sorted results from existing `zoneAssign.ts`; fallback for desktop drops without EXIF | 1 week |
+| **4 — Map consolidation + wizard + roles** | Single "+ Add area"; wizard at `/projects/new?wizard=1`; minimal role-scoping (crew → upload/capture) | 1–2 weeks |
+| **5 — Retire the old shell** | Remove flag, delete old tab shells, retire global Reports page | — |
 
-- Today card: date, weather, one-line status roll-up (`X of Y areas updated today`)
-- Recent activity (existing `activity_events` feed, trimmed to last 10)
-- Quick actions: Upload · Jump to today's report · Open share link
-- Empty-map coach mark when the project has no `areas`: "Draw your site →" links to Map tab
+### Build log
 
-## 1.4 — Lazy Objectives rollover
+- **Phase 0 landed 10 July PM** — flag-gated V2 shell (4 tabs + classic escape hatch), shared-module extraction. Punch-list: Map tab terminology missed, fixed with Phase 1 fixes.
+- **Phase 1 landed 10 July PM** — Daily Report merge, day picker, copy-yesterday (today only), lazy Objectives rollover (`day_notes.objectives_seeded_at`), `photo_day_hidden` respected by share page + PDF, thin-spec Overview with "Open today's report →".
+- **Post-review fixes landed same day** — (1) area-only terminology sweep across v2 + share page; area-only grep added to DoD for every new v2 surface; (2) per-area status chip row removed from Overview; (3) day-level status: `day_notes.day_status` (defaults `no_status`) with picker in Daily Report header, read-only in Overview header.
 
-On first open of today's Daily Report where `day_notes.objectives` is empty:
+### Open follow-ups
 
-1. Look up yesterday's `day_notes.tomorrow_objectives` for the same project
-2. If present, seed today's `objectives` with those values (editable, one-time seed)
-3. Mark the row so we don't reseed if the user clears it
+- **Share-page day chip must read `day_status`** — MUST land before any real client link goes out. Currently orphaned: `day_notes.day_status` is written from the Daily Report header but not surfaced on `SharePage`. Blocker for external delivery in the gate window.
+- **Capture-time badges on Daily Report thumbnails** — deferred to Phase 2.
+- **Advisory (no action)**: Overview's Objectives + Open Issues cards duplicate the Daily Report — held; first candidates to trim if Overview weight grows.
 
-Implementation: a `seed_todays_objectives(project_id, date_key)` RPC called on tab mount when the today row is empty. Idempotent via a `objectives_seeded_at` timestamp on `day_notes`.
+### Gate in progress
 
-## 1.5 — "Copy yesterday's statuses" button
+Ben runs two consecutive build days exclusively in v2 before Phase 2.
 
-- Button lives on the Daily Report day header, only visible when viewing today
-- One click: copies `area_day_status.status` values from the most recent prior day that has any statuses into today, for every area that has no status set today
-- Notes are NOT copied (locked decision 4)
-- Toast confirms count copied; single undo via a follow-up toast action
+---
 
-RPC: `copy_prior_day_statuses(project_id, date_key)` returns count.
+## §8 Screen set (branded hi-fi v3, 10 Jul PM)
 
-## 1.6 — Share page + Day PDF filtering
+1. Event Overview — thin Today card, no Client Link card, no per-area pills
+2. Daily Report — edit (merged Updates + Gallery, hide-from-day, one live signal)
+3. Client link — day view
+   - 3b. Client link — day timeline (dark days dimmed, not hidden)
+   - 3c. Client link — area story (before/after slider, full history)
+4. Library — grid with filters + Unassigned tray
+5. Upload flow — GPS sorter
+6. Map — Edit mode (polygon areas only)
+7. Map — Live mode with photo counts
+8. New event wizard — 4 steps, no templates
+9. Mobile capture screen (crew, camera-first)
+10. Mobile app — manager overview · daily report · client link on the phone
+11. Share / Deliver panel — link · access · view stats · email digest · exports
 
-- Share page day view filters photos by `photo_day_hidden` for the requested `date_key`
-- Day PDF export applies the same filter
-- Area story / Library views ignore the table (photo still visible everywhere else)
+---
 
-## 1.7 — Beta shell polish
-
-- v2 top bar keeps the "Beta · Switch back" pill from Phase 0
-- Old Updates + Gallery tabs stay mounted in the classic shell — no removal until Phase 5
-- Responsive: Daily Report usable at 375px; below 768px show the "best on a bigger screen" banner on Library/Map only (not on Daily Report)
-
-## Files (est.)
-
-- 1 migration (table + grants + RLS + two RPCs)
-- `src/features/projectDetailV2/tabs/DailyReportTab.tsx` (real screen)
-- `src/features/projectDetailV2/tabs/OverviewTab.tsx` (real screen)
-- `src/features/projectDetailV2/dailyReport/` — DayHeader, AreaCard, EditPreviewToggle, CopyYesterdayButton, HidePhotoAction
-- `src/hooks/useDayHiddenPhotos.ts`, `src/hooks/useSeedObjectives.ts`
-- `src/pages/SharePage.tsx` + PDF export path — apply hidden-photo filter
-- Small edits to existing photo components to add the "Hide from day" affordance in the v2 context only
-
-## Out of scope (later phases)
-
-- Library as its own tab with filters/search/unassigned tray → Phase 2
-- Upload flow modal with visible GPS sorting → Phase 3
-- Map Edit/Live modes + single "+ Add area" + wizard → Phase 4
-- Retiring classic shell → Phase 5
-
-## Acceptance
-
-- `beta_ui = true` users can run a full build day inside Daily Report + Overview without opening a classic tab
-- Hiding a photo from a day removes it from the share day view + Day PDF and nowhere else
-- Today's Objectives seed from yesterday's Tomorrow objectives exactly once, editable after
-- "Copy yesterday's statuses" fills only empty statuses, never overwrites, notes untouched
-- Zero regression for `beta_ui = false` users
+*Build Folder — Every build, filed.*
