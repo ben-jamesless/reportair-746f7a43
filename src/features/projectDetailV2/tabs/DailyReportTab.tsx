@@ -162,9 +162,13 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
       {/* Day picker + toggles */}
       <div className="flex flex-wrap items-center gap-3">
         <Select value={activeDay} onValueChange={setActiveDay}>
-          <SelectTrigger className="w-[280px]">
+          <SelectTrigger
+            className="w-[280px]"
+            style={{ borderColor: SHEET_BORDER }}
+          >
             <SelectValue />
           </SelectTrigger>
+
           <SelectContent>
             {days.map((k) => (
               <SelectItem key={k} value={k}>
