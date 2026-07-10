@@ -82,7 +82,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     searchParams.get("filter") === "unassigned" ? UNASSIGNED : ALL
   );
   const [dayFilter, setDayFilter] = useState<string>(ALL);
-  const [search, setSearch] = useState("");
+  // Search removed for now — filters below carry the load.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
