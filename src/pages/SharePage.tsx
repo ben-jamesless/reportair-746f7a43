@@ -30,6 +30,7 @@ type DayNote = {
   today_achievements: string | null;
   tomorrow_objectives: string | null;
   open_issues: string | null;
+  day_status?: string | null;
 };
 type AreaDayStatus = { area_id: string; date: string; status: string };
 type AreaDayNote = { area_id: string; date: string; notes: string | null };
@@ -1205,7 +1206,11 @@ const SharePage = () => {
                     .filter((k) => k !== "__noarea__")
                     .map((aid) => statusMap.get(`${aid}|${dateKey}`))
                     .filter(Boolean) as string[];
-                  const dominantDayStatus = pickDominantStatus(dayStatusKeys);
+                  const explicitDayStatus = dayNoteByDate.get(dateKey)?.day_status ?? null;
+                  const dominantDayStatus =
+                    explicitDayStatus && explicitDayStatus !== "no_status"
+                      ? explicitDayStatus
+                      : pickDominantStatus(dayStatusKeys);
 
                   const orderedAreas = areas.filter((ar) => byArea.has(ar.id));
                   const hasUnassigned = byArea.has("__noarea__");
