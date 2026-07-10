@@ -390,8 +390,11 @@ Deno.serve(async (req) => {
     }
 
     // Photos for the report date, grouped by area
+    // Photos for the report date, grouped by area — exclude any explicitly hidden from this day
+    const hiddenIds = new Set<string>(((hiddenRows ?? []) as Array<{ photo_id: string }>).map((r) => r.photo_id));
     const dayPhotos = ((photos ?? []) as Array<{ id: string; storage_path: string; report_path: string | null; area_id: string | null; captured_at: string | null; created_at: string; caption: string | null }>)
-      .filter((p) => dateKeyOf(p) === reportDateStr);
+      .filter((p) => dateKeyOf(p) === reportDateStr && !hiddenIds.has(p.id));
+
     const photosByArea = new Map<string, typeof dayPhotos>();
     for (const p of dayPhotos) {
       if (!p.area_id) continue;
