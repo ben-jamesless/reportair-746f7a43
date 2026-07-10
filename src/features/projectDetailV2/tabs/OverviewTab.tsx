@@ -117,22 +117,6 @@ export function OverviewTab({ projectId }: { projectId: string }) {
         </Panel>
       </div>
 
-      {/* Zone status today */}
-      {areas.length > 0 && (
-        <Panel title="Zone status — today">
-          <div className="flex flex-wrap gap-2">
-            {areas.map((a) => {
-              const st = areaStatusToday.get(a.id);
-              return (
-                <Badge key={a.id} variant="outline" className="gap-1.5">
-                  <AreaStatusDot status={(st as "no_status" | "on_track" | "requires_discussion" | "concern" | "complete") ?? "no_status"} />
-                  {a.name}
-                </Badge>
-              );
-            })}
-          </div>
-        </Panel>
-      )}
     </div>
   );
 }
