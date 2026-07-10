@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Search, Trash2, ImagePlus, X, RotateCcw, EyeOff, Check } from "lucide-react";
+import { Trash2, ImagePlus, RotateCcw, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
