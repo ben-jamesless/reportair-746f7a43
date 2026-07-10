@@ -15,6 +15,8 @@ interface Props {
   selected?: boolean;
   /** Show a small map-pin badge indicating the photo was auto-assigned to a zone by GPS. */
   gpsAuto?: boolean;
+  /** Optional capture-time string (e.g. "14:32"). Rendered as a bottom-left pill. */
+  captureTime?: string | null;
 }
 
 /**
@@ -24,7 +26,7 @@ interface Props {
  * - Shows a soft animated placeholder until the bitmap finishes decoding,
  *   then fades in (blurhash-style behaviour without requiring a hash payload).
  */
-export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = false, selected = false, gpsAuto = false }: Props) => {
+export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = false, selected = false, gpsAuto = false, captureTime = null }: Props) => {
 
   const ref = useRef<HTMLButtonElement | null>(null);
   const [inView, setInView] = useState(priority);
