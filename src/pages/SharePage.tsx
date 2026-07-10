@@ -1216,9 +1216,6 @@ const SharePage = () => {
                   const hasUnassigned = byArea.has("__noarea__");
                   const totalBlocks = orderedAreas.length + (hasUnassigned ? 1 : 0);
 
-                  const accentBar = dominantDayStatus
-                    ? STATUS_META[dominantDayStatus]?.bg ?? DIVIDER
-                    : DIVIDER;
 
                   return (
                     <details
