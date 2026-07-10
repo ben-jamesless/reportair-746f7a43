@@ -21,7 +21,7 @@ export function MapTab({ projectId }: Props) {
     (async () => {
       const { data: project } = await supabase
         .from("projects")
-        .select("color, owner_user_id, team_id")
+        .select("color, created_by, team_id")
         .eq("id", projectId)
         .maybeSingle();
 
@@ -30,7 +30,7 @@ export function MapTab({ projectId }: Props) {
 
       let edit = false;
       if (uid && project) {
-        if (project.owner_user_id === uid) {
+        if (project.created_by === uid) {
           edit = true;
         } else {
           const { data: pm } = await supabase
