@@ -143,7 +143,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         supabase
           .from("day_notes")
           .select(
-            "date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues"
+            "date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues, day_status"
           )
           .eq("project_id", projectId),
         supabase
