@@ -116,7 +116,11 @@ export function SharePanel({
     return { key, label, date, count };
   }, [photos]);
 
-  const shareUrl = link ? `${window.location.origin}/s/${link.token}` : null;
+  // Canonical share host — never derived from window.location so preview,
+  // custom-domain and lovable.app all copy/QR to the same public URL clients use.
+  const SHARE_BASE = "https://buildfolder.com";
+  const shareUrl = link ? `${SHARE_BASE}/s/${link.token}` : null;
+
 
   const createLink = async () => {
     setCreating(true);
