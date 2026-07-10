@@ -14,12 +14,18 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
 
-const DAILY_BLOCKS: { key: DailyField; label: string; tint: string }[] = [
-  { key: "today_objectives", label: "Today's Objectives", tint: "#3A6EA5" },
-  { key: "today_achievements", label: "Today's Achievements", tint: "#10b981" },
-  { key: "tomorrow_objectives", label: "Tomorrow's Objectives", tint: "#8b5cf6" },
-  { key: "open_issues", label: "Open Issues / Risks", tint: "#ef4444" },
+const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
+  { key: "today_objectives", label: "Today's Objectives" },
+  { key: "today_achievements", label: "Today's Achievements" },
+  { key: "tomorrow_objectives", label: "Tomorrow's Objectives", sublabel: "pre-fills next day" },
+  { key: "open_issues", label: "Open Issues / Risks" },
 ];
+
+// Presentational tokens for the "filed sheet" pattern — literal hex per brief.
+const SHEET_BG = "#FAF8F2";
+const SHEET_BORDER = "#E3DFD4";
+const LABEL_INK = "#5C5850";
+const SUBLABEL_INK = "#8A867C";
 
 function toTodayKey(): string {
   const d = new Date();
@@ -194,31 +200,61 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
         </div>
       </div>
 
-      {/* Day header — 4 fields */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {DAILY_BLOCKS.map((b) => {
+      {/* Day header — one "filed sheet" card, four rows */}
+      <div
+        className="rounded-xl border overflow-hidden"
+        style={{ backgroundColor: SHEET_BG, borderColor: SHEET_BORDER }}
+      >
+        {DAILY_BLOCKS.map((b, idx) => {
           const value = dailyFields.get(activeDay)?.[b.key] ?? null;
+          const isLast = idx === DAILY_BLOCKS.length - 1;
           return (
             <div
               key={b.key}
-              className="flex min-h-[160px] flex-col rounded-xl border border-border bg-card overflow-hidden border-l-4"
-              style={{ borderLeftColor: b.tint }}
+              className="grid px-5"
+              style={{
+                gridTemplateColumns: "190px 1fr",
+                columnGap: "20px",
+                paddingTop: "16px",
+                paddingBottom: "16px",
+                borderBottom: isLast ? "none" : `1px dashed ${SHEET_BORDER}`,
+              }}
             >
-              <p
-                className="px-4 py-2 text-xs font-medium uppercase tracking-wide"
-                style={{ backgroundColor: `${b.tint}14`, color: b.tint }}
-              >
-                {b.label}
-              </p>
-              <div className="flex-1 p-4 text-sm text-foreground">
+              <div className="pt-1">
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: LABEL_INK,
+                  }}
+                >
+                  {b.label}
+                </div>
+                {b.sublabel && (
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                      fontSize: "11px",
+                      fontWeight: 400,
+                      color: SUBLABEL_INK,
+                      marginTop: "2px",
+                    }}
+                  >
+                    {b.sublabel}
+                  </div>
+                )}
+              </div>
+              <div className="text-sm text-foreground">
                 <EditableNote
                   value={value}
                   placeholder={previewMode ? "" : `Add ${b.label.toLowerCase()}…`}
                   onSave={(next) => setDailyField(activeDay, b.key, next)}
                   rich
-                  rows={5}
+                  rows={3}
                   readOnly={!canEdit || previewMode}
-                  className="h-full"
                 />
               </div>
             </div>
@@ -236,13 +272,12 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
           {areas.map((ar) => {
             const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "no_status";
             const note = areaDayNotes.get(`${ar.id}|${activeDay}`) ?? null;
-            const accent = areaStatusAccent(st as AreaStatus);
             const ps = photosByArea.get(ar.id) ?? [];
             return (
               <article
                 key={ar.id}
-                className="overflow-hidden rounded-xl border border-border bg-card border-l-4"
-                style={{ borderLeftColor: accent }}
+                className="overflow-hidden rounded-xl border bg-card"
+                style={{ borderColor: SHEET_BORDER }}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
                   <span className="text-sm font-semibold text-foreground">{ar.name}</span>

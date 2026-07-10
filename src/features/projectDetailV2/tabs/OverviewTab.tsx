@@ -103,14 +103,14 @@ export function OverviewTab({ projectId }: { projectId: string }) {
 
       {/* Today's snapshot */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Panel title="Today's objectives" tint="#3A6EA5">
+        <Panel title="Today's objectives" dotColor="#3A6EA5">
           {todaysObjectives ? (
             <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground" dangerouslySetInnerHTML={{ __html: todaysObjectives }} />
           ) : (
             <EmptyLine label="Nothing planned for today yet." to={`/projects/${projectId}?tab=daily`} cta="Set objectives" />
           )}
         </Panel>
-        <Panel title="Open issues" tint="#ef4444">
+        <Panel title="Open issues" dotColor="#C7382A">
           {openIssues ? (
             <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground" dangerouslySetInnerHTML={{ __html: openIssues }} />
           ) : (
@@ -132,19 +132,30 @@ function StatCard({ label, value, icon }: { label: string; value: string | numbe
   );
 }
 
-function Panel({ title, tint, children }: { title: string; tint?: string; children: React.ReactNode }) {
+function Panel({ title, dotColor, children }: { title: string; dotColor?: string; children: React.ReactNode }) {
   return (
-    <div
-      className="overflow-hidden rounded-xl border border-border bg-card"
-      style={tint ? { borderLeft: `4px solid ${tint}` } : undefined}
-    >
-      <p
-        className="px-4 py-2 text-xs font-medium uppercase tracking-wide"
-        style={tint ? { backgroundColor: `${tint}14`, color: tint } : { color: "hsl(var(--muted-foreground))" }}
-      >
-        {title}
-      </p>
-      <div className="p-4">{children}</div>
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="flex items-center gap-2 px-4 py-3">
+        {dotColor && (
+          <span
+            aria-hidden
+            className="inline-block h-[9px] w-[9px] shrink-0 rounded-full"
+            style={{ backgroundColor: dotColor }}
+          />
+        )}
+        <span
+          className="font-semibold"
+          style={{
+            fontSize: "11px",
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            color: "#5C5850",
+          }}
+        >
+          {title}
+        </span>
+      </div>
+      <div className="px-4 pb-4">{children}</div>
     </div>
   );
 }

@@ -1216,9 +1216,6 @@ const SharePage = () => {
                   const hasUnassigned = byArea.has("__noarea__");
                   const totalBlocks = orderedAreas.length + (hasUnassigned ? 1 : 0);
 
-                  const accentBar = dominantDayStatus
-                    ? STATUS_META[dominantDayStatus]?.bg ?? DIVIDER
-                    : DIVIDER;
 
                   return (
                     <details
@@ -1232,14 +1229,13 @@ const SharePage = () => {
                       }}
                       className="group/day"
                     >
-                      {/* Day header — transparent band with status accent bar on the left */}
+                      {/* Day header — transparent band, no coloured spine */}
                       <summary
                         className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 py-3 pl-4 pr-4 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
                         style={{
                           backgroundColor: dark ? "rgba(23,22,20,0.78)" : "rgba(247,246,242,0.78)",
                           borderTop: `1px solid ${DIVIDER}`,
                           borderBottom: `1px solid ${DIVIDER}`,
-                          borderLeft: `3px solid ${accentBar}`,
                         }}
                       >
                         <div className="flex items-baseline gap-3 min-w-0">
@@ -1288,25 +1284,18 @@ const SharePage = () => {
                         );
                       })()}
 
-                      {/* Area blocks — flush, no cards */}
+                      {/* Area blocks — flush, no cards, dashed dividers */}
                       <div>
                         {orderedAreas.map((ar, idx) => {
                           const areaPhotos = byArea.get(ar.id) ?? [];
                           const sKey = statusMap.get(`${ar.id}|${dateKey}`);
                           const note = areaDayNotesMap.get(`${ar.id}|${dateKey}`);
-                          const accent = sKey ? STATUS_META[sKey]?.bg ?? DIVIDER : DIVIDER;
                           const isLast = idx === totalBlocks - 1;
                           return (
                             <div key={ar.id}>
-                              <article
-                                className="py-7 pl-4"
-                                style={{ borderLeft: `3px solid ${accent}` }}
-                              >
+                              <article className="py-7 px-4">
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
-                                  <h3
-                                    className="text-base font-bold"
-                                    style={{ color: NEAR_BLACK }}
-                                  >
+                                  <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>
                                     {ar.name}
                                   </h3>
                                   {sKey && <StatusPill statusKey={sKey} />}
@@ -1320,7 +1309,6 @@ const SharePage = () => {
 
                                 {areaPhotos.length > 0 && (
                                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-
                                     {areaPhotos.map((p) => (
                                       <SharePhotoThumb
                                         key={p.id}
@@ -1333,22 +1321,19 @@ const SharePage = () => {
                                 )}
                               </article>
                               {!isLast && (
-                                <div className="ml-4 border-t" style={{ borderColor: DIVIDER }} />
+                                <div
+                                  className="mx-4"
+                                  style={{ borderTop: `1px dashed ${DIVIDER}` }}
+                                />
                               )}
                             </div>
                           );
                         })}
 
                         {hasUnassigned && (
-                          <article
-                            className="py-7 pl-4"
-                            style={{ borderLeft: `3px solid ${DIVIDER}` }}
-                          >
+                          <article className="py-7 px-4">
                             <header className="mb-3">
-                              <h3
-                                className="text-base font-bold"
-                                style={{ color: NEAR_BLACK }}
-                              >
+                              <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>
                                 Unassigned
                               </h3>
                             </header>
@@ -1555,22 +1540,32 @@ const DAILY_SECTION_COLORS: Record<string, string> = {
 };
 
 const ShareDailySection = ({ label, text, body }: { label: string; text: string; body: string }) => {
-  const accent = DAILY_SECTION_COLORS[label] ?? "#D94F2A";
+  const dot = DAILY_SECTION_COLORS[label] ?? "#D94F2A";
+  // Dashed-block pattern — no per-block background, no coloured spine.
+  // Adjacent siblings separate via border-top; the first one drops it via :first-child.
   return (
     <li
-      className="rounded-lg border overflow-hidden"
-      style={{ borderColor: DIVIDER }}
+      className="pt-4 first:pt-0 first:border-t-0"
+      style={{ borderTop: `1px dashed ${DIVIDER}` }}
     >
-      <div
-        className="px-3 py-2 flex items-center gap-2"
-        style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)`, borderBottom: `1px solid ${DIVIDER}` }}
-      >
-        <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
-        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>
+      <div className="mb-2 flex items-center gap-2">
+        <span
+          aria-hidden
+          className="inline-block shrink-0 rounded-full"
+          style={{ width: "9px", height: "9px", backgroundColor: dot }}
+        />
+        <span
+          className="font-semibold uppercase"
+          style={{
+            fontSize: "11px",
+            letterSpacing: "0.08em",
+            color: "#5C5850",
+          }}
+        >
           {label}
         </span>
       </div>
-      <div className="px-3 py-2.5 text-sm leading-relaxed" style={{ color: body }}>
+      <div className="text-sm leading-relaxed" style={{ color: body }}>
         <RichNotes text={text} />
       </div>
     </li>
