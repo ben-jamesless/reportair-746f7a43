@@ -132,6 +132,14 @@ export const PhotoThumb = ({ path, alt, onClick, priority = false, selectable = 
           <MapPin className="h-3 w-3" />
         </span>
       )}
+      {captureTime && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-white shadow-sm"
+        >
+          {captureTime}
+        </span>
+      )}
     </button>
   );
 };
