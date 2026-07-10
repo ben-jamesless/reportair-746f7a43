@@ -26,7 +26,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword.tsx"));
 const Onboarding = lazy(() => import("./pages/Onboarding.tsx"));
 const Plan = lazy(() => import("./pages/Plan.tsx"));
 const Projects = lazy(() => import("./pages/Projects.tsx"));
-const ProjectDetail = lazy(() => import("./pages/ProjectDetail.tsx"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetailRouter.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
