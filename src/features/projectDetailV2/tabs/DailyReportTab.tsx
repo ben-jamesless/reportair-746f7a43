@@ -200,31 +200,61 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
         </div>
       </div>
 
-      {/* Day header — 4 fields */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {DAILY_BLOCKS.map((b) => {
+      {/* Day header — one "filed sheet" card, four rows */}
+      <div
+        className="rounded-xl border overflow-hidden"
+        style={{ backgroundColor: SHEET_BG, borderColor: SHEET_BORDER }}
+      >
+        {DAILY_BLOCKS.map((b, idx) => {
           const value = dailyFields.get(activeDay)?.[b.key] ?? null;
+          const isLast = idx === DAILY_BLOCKS.length - 1;
           return (
             <div
               key={b.key}
-              className="flex min-h-[160px] flex-col rounded-xl border border-border bg-card overflow-hidden border-l-4"
-              style={{ borderLeftColor: b.tint }}
+              className="grid px-5"
+              style={{
+                gridTemplateColumns: "190px 1fr",
+                columnGap: "20px",
+                paddingTop: "16px",
+                paddingBottom: "16px",
+                borderBottom: isLast ? "none" : `1px dashed ${SHEET_BORDER}`,
+              }}
             >
-              <p
-                className="px-4 py-2 text-xs font-medium uppercase tracking-wide"
-                style={{ backgroundColor: `${b.tint}14`, color: b.tint }}
-              >
-                {b.label}
-              </p>
-              <div className="flex-1 p-4 text-sm text-foreground">
+              <div className="pt-1">
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: LABEL_INK,
+                  }}
+                >
+                  {b.label}
+                </div>
+                {b.sublabel && (
+                  <div
+                    style={{
+                      fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                      fontSize: "11px",
+                      fontWeight: 400,
+                      color: SUBLABEL_INK,
+                      marginTop: "2px",
+                    }}
+                  >
+                    {b.sublabel}
+                  </div>
+                )}
+              </div>
+              <div className="text-sm text-foreground">
                 <EditableNote
                   value={value}
                   placeholder={previewMode ? "" : `Add ${b.label.toLowerCase()}…`}
                   onSave={(next) => setDailyField(activeDay, b.key, next)}
                   rich
-                  rows={5}
+                  rows={3}
                   readOnly={!canEdit || previewMode}
-                  className="h-full"
                 />
               </div>
             </div>
