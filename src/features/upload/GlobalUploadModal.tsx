@@ -460,6 +460,7 @@ export function GlobalUploadModal({
     });
     setPhase("done");
     onUploaded?.();
+    window.dispatchEvent(new CustomEvent("bf:photos-updated", { detail: { projectId } }));
 
     if (failures === 0) {
       toast.success(`${insertedIds.length} photo${insertedIds.length === 1 ? "" : "s"} added to ${dayLabel}`);
