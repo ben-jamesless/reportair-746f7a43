@@ -71,11 +71,21 @@ export function OverviewTab({ projectId }: { projectId: string }) {
               )}
             </div>
           </div>
-          <Button asChild>
-            <Link to={`/projects/${projectId}?tab=daily`}>
-              Open today's report <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
+              <AreaStatusPicker
+                value={(dayStatus.get(today) ?? "no_status") as AreaStatus}
+                onChange={() => { /* read-only surface — set on Daily Report */ }}
+                readOnly
+              />
+            </div>
+            <Button asChild>
+              <Link to={`/projects/${projectId}?tab=daily`}>
+                Open today's report <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
