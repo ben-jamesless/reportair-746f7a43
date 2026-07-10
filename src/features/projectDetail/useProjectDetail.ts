@@ -161,7 +161,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
       setPhotos((ph ?? []) as LightboxPhoto[]);
       const map = new Map<string, string | null>();
       const fieldMap = new Map<string, DailyFields>();
-      for (const row of (dn ?? []) as DayNote[]) {
+      const dsMap = new Map<string, AreaStatus>();
+      for (const row of (dn ?? []) as (DayNote & { day_status?: AreaStatus | null })[]) {
         map.set(row.date, row.notes ?? null);
         fieldMap.set(row.date, {
           today_objectives: row.today_objectives ?? null,
@@ -169,9 +170,11 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
           tomorrow_objectives: row.tomorrow_objectives ?? null,
           open_issues: row.open_issues ?? null,
         });
+        dsMap.set(row.date, (row.day_status ?? "no_status") as AreaStatus);
       }
       setDayNotes(map);
       setDailyFields(fieldMap);
+      setDayStatus(dsMap);
       const sm = new Map<string, AreaStatus>();
       for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) {
         sm.set(`${row.area_id}|${row.date}`, row.status);
