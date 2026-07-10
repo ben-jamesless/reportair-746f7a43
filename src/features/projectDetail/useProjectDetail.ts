@@ -198,6 +198,17 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     refetch();
   }, [refetch]);
 
+  // Listen for cross-component photo mutations (e.g. GlobalUploadModal completes)
+  // so every consumer of this hook picks up new photos without a manual reload.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { projectId?: string } | undefined;
+      if (!detail?.projectId || detail.projectId === projectId) refetch();
+    };
+    window.addEventListener("bf:photos-updated", handler as EventListener);
+    return () => window.removeEventListener("bf:photos-updated", handler as EventListener);
+  }, [projectId, refetch]);
+
   // ---- Membership / permissions ----
   useEffect(() => {
     (async () => {
