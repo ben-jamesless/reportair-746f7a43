@@ -272,13 +272,12 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
           {areas.map((ar) => {
             const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "no_status";
             const note = areaDayNotes.get(`${ar.id}|${activeDay}`) ?? null;
-            const accent = areaStatusAccent(st as AreaStatus);
             const ps = photosByArea.get(ar.id) ?? [];
             return (
               <article
                 key={ar.id}
-                className="overflow-hidden rounded-xl border border-border bg-card border-l-4"
-                style={{ borderLeftColor: accent }}
+                className="overflow-hidden rounded-xl border bg-card"
+                style={{ borderColor: SHEET_BORDER }}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
                   <span className="text-sm font-semibold text-foreground">{ar.name}</span>
