@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { CalendarDays, MapPin, Users, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AreaStatusPicker, type AreaStatus } from "@/components/AreaStatusPicker";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
