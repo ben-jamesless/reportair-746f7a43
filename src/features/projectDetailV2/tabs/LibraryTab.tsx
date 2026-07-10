@@ -77,7 +77,10 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   } = useProjectDetail(projectId);
   const hidden = useDayHiddenPhotos(projectId);
 
-  const [areaFilter, setAreaFilter] = useState<string>(ALL);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [areaFilter, setAreaFilter] = useState<string>(
+    searchParams.get("filter") === "unassigned" ? UNASSIGNED : ALL
+  );
   const [dayFilter, setDayFilter] = useState<string>(ALL);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
