@@ -159,6 +159,14 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
             ))}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
+          <AreaStatusPicker
+            value={(dayStatus.get(activeDay) ?? "no_status") as AreaStatus}
+            onChange={(s) => setDayStatus(activeDay, s)}
+            readOnly={!canEdit || previewMode}
+          />
+        </div>
         {isToday && canEdit && (
           <Button variant="outline" size="sm" onClick={handleCopyYesterday} disabled={copying}>
             {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
