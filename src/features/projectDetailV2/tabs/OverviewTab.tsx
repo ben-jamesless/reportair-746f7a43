@@ -8,7 +8,7 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 const DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
 export function OverviewTab({ projectId }: { projectId: string }) {
-  const { project, areas, photos, dailyFields, areaDayStatus, loading, loadError } = useProjectDetail(projectId);
+  const { project, areas, photos, dailyFields, loading, loadError } = useProjectDetail(projectId);
 
   const today = useMemo(() => {
     const d = new Date();
