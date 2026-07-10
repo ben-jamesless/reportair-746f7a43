@@ -45,6 +45,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
     dailyFields,
     areaDayNotes,
     areaDayStatus,
+    dayStatus,
     canEdit,
     loading,
     loadError,
@@ -52,6 +53,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
     setDailyField,
     setAreaDayNote,
     setAreaDayStatus,
+    setDayStatus,
   } = useProjectDetail(projectId);
 
 
