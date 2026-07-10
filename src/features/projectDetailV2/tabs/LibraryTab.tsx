@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, Trash2, ImagePlus, X, RotateCcw, EyeOff } from "lucide-react";
+import { Search, Trash2, ImagePlus, X, RotateCcw, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -54,17 +54,25 @@ function formatDayShort(key: string): string {
  * Library — the everything-store. Every photo in the project shown as a grid
  * with filters (area, day, search), an Unassigned tray, per-photo hide-from-day
  * markers with restore, and the ONLY destructive delete affordance in the app.
+ *
+ * Single source of truth: every surface (badge, lightbox, filter counts, share)
+ * reads `photos[].area_id` — the stored assignment. No badge = unassigned.
+ * GPS suggestions never appear as assignments here.
  */
 export function LibraryTab({ projectId }: { projectId: string }) {
   const {
     areas,
+    albums,
     photos,
     canEdit,
+    isOwner,
     loading,
     loadError,
     bulkAssignArea,
     bulkDelete,
     deleting,
+    applyPhotoAreaChange,
+    applyPhotoAlbumChange,
   } = useProjectDetail(projectId);
   const hidden = useDayHiddenPhotos(projectId);
 
@@ -72,6 +80,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const [dayFilter, setDayFilter] = useState<string>(ALL);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -113,16 +122,44 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     });
   }, [photos, areaFilter, dayFilter, search]);
 
-  const toggleSelect = useCallback((id: string) => {
-    setSelected((cur) => {
-      const n = new Set(cur);
-      if (n.has(id)) n.delete(id);
-      else n.add(id);
-      return n;
-    });
+  const clearSelection = useCallback(() => {
+    setSelected(new Set());
+    setLastSelectedId(null);
   }, []);
 
-  const clearSelection = useCallback(() => setSelected(new Set()), []);
+  // Selection: single toggle + shift-click range across the currently filtered grid.
+  const handleSelectClick = useCallback(
+    (id: string, shift: boolean) => {
+      setSelected((cur) => {
+        const n = new Set(cur);
+        if (shift && lastSelectedId && lastSelectedId !== id) {
+          const ids = filtered.map((p) => p.id);
+          const a = ids.indexOf(lastSelectedId);
+          const b = ids.indexOf(id);
+          if (a !== -1 && b !== -1) {
+            const [lo, hi] = a < b ? [a, b] : [b, a];
+            for (let i = lo; i <= hi; i++) n.add(ids[i]);
+            return n;
+          }
+        }
+        if (n.has(id)) n.delete(id);
+        else n.add(id);
+        return n;
+      });
+      setLastSelectedId(id);
+    },
+    [filtered, lastSelectedId]
+  );
+
+  // Escape exits selection mode.
+  useEffect(() => {
+    if (selected.size === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") clearSelection();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected.size, clearSelection]);
 
   const handleAssign = useCallback(
     async (ids: string[], areaId: string | null) => {
@@ -166,6 +203,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   if (loadError) return <p className="text-sm text-destructive">Failed to load project.</p>;
 
   const selectedCount = selected.size;
+  const inSelectionMode = selectedCount > 0;
 
   return (
     <div className="space-y-6">
@@ -286,7 +324,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
       )}
 
       {/* Selection toolbar */}
-      {selectedCount > 0 && (
+      {inSelectionMode && (
         <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur">
           <span className="text-sm font-medium">
             {selectedCount} selected
@@ -295,7 +333,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
             {canEdit && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">Assign to area</Button>
+                  <Button variant="outline" size="sm">Assign to Area</Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Move to</DropdownMenuLabel>
@@ -326,7 +364,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
               </Button>
             )}
             <Button variant="ghost" size="sm" onClick={clearSelection}>
-              Cancel
+              Clear
             </Button>
           </div>
         </div>
@@ -348,27 +386,54 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                   <PhotoThumb
                     path={p.storage_path}
                     alt={p.caption || p.file_name}
-                    onClick={() => (selectedCount > 0 ? toggleSelect(p.id) : openLightbox(p.id))}
-                    selectable={canEdit}
+                    onClick={() => openLightbox(p.id)}
                     selected={isSel}
                     captureTime={captureTimeLabel(p)}
                   />
                 </div>
+                {/* Selection circle — always available when canEdit, permanently
+                    visible in selection mode, hover-visible otherwise. Clicks
+                    are captured here and never fall through to the thumb. */}
                 {canEdit && (
-                  <button
-                    type="button"
+                  <div
+                    role="checkbox"
+                    aria-checked={isSel}
+                    aria-label={isSel ? "Unselect photo" : "Select photo"}
+                    tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleSelect(p.id);
+                      e.preventDefault();
+                      handleSelectClick(p.id, e.shiftKey);
                     }}
-                    aria-label={isSel ? "Unselect" : "Select"}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        handleSelectClick(p.id, e.shiftKey);
+                      }
+                    }}
                     className={cn(
-                      "absolute inset-0 rounded-md",
-                      isSel ? "" : "hidden"
+                      "absolute left-2 top-2 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 shadow-sm transition",
+                      isSel
+                        ? "border-primary bg-primary text-primary-foreground opacity-100"
+                        : cn(
+                            "border-white/80 bg-black/40 text-transparent",
+                            inSelectionMode
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          )
                     )}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                )}
+                {/* Selected ring overlay */}
+                {isSel && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-primary ring-offset-2 ring-offset-background"
                   />
                 )}
-                {/* Area label */}
+                {/* Area label — stored assignment only. No badge = unassigned. */}
                 {p.area_id && (
                   <span className="pointer-events-none absolute right-1.5 top-1.5 max-w-[70%] truncate rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm">
                     {areaMap.get(p.area_id) ?? "Area"}
@@ -413,6 +478,12 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onIndexChange={setLightboxIndex}
+          areas={areas}
+          albums={albums}
+          projectId={projectId}
+          isOwner={isOwner}
+          onAreaChanged={applyPhotoAreaChange}
+          onAlbumChanged={applyPhotoAlbumChange}
         />
       )}
 
@@ -424,10 +495,10 @@ export function LibraryTab({ projectId }: { projectId: string }) {
               Delete {selectedCount} photo{selectedCount === 1 ? "" : "s"}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the photo{selectedCount === 1 ? "" : "s"} from storage and every
-              view — the Daily Report, area stories, and the client link. This can't be
-              undone. To remove a photo from just one day, use "Hide from day" in the
-              Daily Report instead.
+              This permanently removes {selectedCount === 1 ? "this photo" : `these ${selectedCount} photos`} from
+              storage and every view — the Daily Report, area stories, exports and
+              the client share link. This can't be undone. To remove a photo from
+              just one day, use "Hide from day" in the Daily Report instead.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
