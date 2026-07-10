@@ -91,6 +91,7 @@ function ShellBody({
 }) {
   const { areas, refetch } = useProjectDetail(projectId);
   const areaOptions = areas.map((a) => ({ id: a.id, name: a.name }));
+  const [shareOpen, setShareOpen] = useState(false);
 
   return (
     <UploadModalProvider projectId={projectId} areas={areaOptions} onUploaded={refetch}>
@@ -109,11 +110,18 @@ function ShellBody({
           </div>
           <div className="flex items-center gap-2">
             <UploadButton />
-            <Button asChild variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+            <Button asChild variant="ghost" size="sm">
               <Link to={`/projects/${projectId}?classic=1`}>Switch to classic view</Link>
             </Button>
           </div>
         </div>
+
+        <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />
+
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 sm:w-auto sm:inline-grid">
