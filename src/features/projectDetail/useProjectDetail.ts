@@ -95,6 +95,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
   const [dailyFields, setDailyFields] = useState<Map<string, DailyFields>>(new Map());
   const [areaDayNotes, setAreaDayNotes] = useState<Map<string, string | null>>(new Map());
   const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
+  const [dayStatus, setDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [downloading, setDownloading] = useState(false);
