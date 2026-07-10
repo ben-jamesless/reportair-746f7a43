@@ -40,6 +40,7 @@ export interface ProjectDetailState {
   setDailyField: (dayKey: string, field: DailyField, value: string | null) => Promise<void>;
   setAreaDayNote: (areaId: string, dayKey: string, value: string | null) => Promise<void>;
   setAreaDayStatus: (areaId: string, dayKey: string, status: AreaStatus) => Promise<void>;
+  setDayStatus: (dayKey: string, status: AreaStatus) => Promise<void>;
 
   // Project-level mutations
   saveProjectStatus: (next: ProjectStatus) => Promise<void>;
