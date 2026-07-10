@@ -105,7 +105,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   const handleCopyYesterday = useCallback(async () => {
     if (!projectId) return;
     setCopying(true);
-    const { data, error } = await supabase.rpc("copy_prior_day_statuses", {
+    const { data, error } = await (supabase as any).rpc("copy_prior_day_statuses", {
       _project_id: projectId,
       _date_key: activeDay,
     });

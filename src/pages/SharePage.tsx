@@ -331,7 +331,7 @@ const SharePage = () => {
       setHasMapFeatures(Array.isArray(feats) && feats.length > 0);
     })();
     (async () => {
-      const { data: rows } = await supabase.rpc("list_share_hidden_photos", { _token: token });
+      const { data: rows } = await (supabase as any).rpc("list_share_hidden_photos", { _token: token });
       const s = new Set<string>();
       for (const r of (rows ?? []) as Array<{ photo_id: string; date_key: string }>) {
         s.add(`${r.photo_id}|${r.date_key}`);

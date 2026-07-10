@@ -44,7 +44,7 @@ export function useDayHiddenPhotos(projectId: string | undefined) {
       if (!projectId) return;
       const key = `${photoId}|${dateKey}`;
       setHidden((cur) => new Set(cur).add(key));
-      const { error } = await supabase.from("photo_day_hidden").insert({
+      const { error } = await (supabase as any).from("photo_day_hidden").insert({
         project_id: projectId,
         photo_id: photoId,
         date_key: dateKey,

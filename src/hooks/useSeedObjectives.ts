@@ -21,7 +21,7 @@ export function useSeedObjectives(
     if (seenRef.current.has(cacheKey)) return;
     seenRef.current.add(cacheKey);
     (async () => {
-      const { data, error } = await supabase.rpc("seed_todays_objectives", {
+      const { data, error } = await (supabase as any).rpc("seed_todays_objectives", {
         _project_id: projectId,
         _date_key: dateKey,
       });
