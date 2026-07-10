@@ -721,6 +721,7 @@ export type Database = {
         Row: {
           auth_method: string | null
           avatar_url: string | null
+          beta_ui: boolean
           created_at: string
           email: string | null
           full_name: string | null
@@ -733,6 +734,7 @@ export type Database = {
         Insert: {
           auth_method?: string | null
           avatar_url?: string | null
+          beta_ui?: boolean
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -745,6 +747,7 @@ export type Database = {
         Update: {
           auth_method?: string | null
           avatar_url?: string | null
+          beta_ui?: boolean
           created_at?: string
           email?: string | null
           full_name?: string | null

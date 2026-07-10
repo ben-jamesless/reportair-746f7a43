@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS beta_ui boolean NOT NULL DEFAULT false;

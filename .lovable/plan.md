@@ -1,59 +1,73 @@
-## Goal
-Make photo grids and share links feel much faster by serving Supabase-transformed thumbnails and mid-size lightbox images instead of full originals. No schema changes, no backfill, no upload-time processing.
+# Build Folder v3 — Phase 0
 
-## Transform settings
-- **Grid thumbnail**: width 400, height 400, resize `cover`, quality 70
-- **Lightbox**: width 1600 (no height), resize `contain`, quality 78
-- **Original**: used only for PDF export (`generate-pdf`), cover/logo management, and any explicit download action — untouched
+Seven clarifications locked as recommended:
 
-## Files to change
+1. Objectives rollover: **lazy** (seed on first open of today's Daily Report when empty)
+2. Share render + Day PDF filter photos by `photo_day_hidden`
+3. `date_key` stored as **project-local `YYYY-MM-DD`** (matches existing `dayKey`)
+4. "Copy yesterday's statuses" copies **statuses only**, not notes
+5. Overview tab lands in **Phase 1** alongside Daily Report
+6. v2 shell renders the **new 4-tab bar from Phase 0**; each tab points at its current-shell equivalent until the real screen ships
+7. Phase 5 flag removal: `beta_ui = true` users just see v2, no data migration
 
-### 1. `src/hooks/useSignedUrl.ts` (authenticated app)
-- Accept an optional `transform` argument: `{ width, height, resize, quality }`.
-- Key the cache by `path + JSON.stringify(transform)` so thumb and lightbox variants coexist.
-- Pass `{ transform }` into `supabase.storage.from("photos").createSignedUrl(path, TTL, { transform })`.
-- Keep single-file signing (Supabase's `createSignedUrls` bulk API does not accept transforms).
-- Export two convenience hooks: `useThumbSignedUrl(path)` and `useLightboxSignedUrl(path)` that pass the standard presets. Keep raw `useSignedUrl(path)` for originals.
+## Phase 0 scope (this plan)
 
-### 2. `src/components/PhotoThumb.tsx`
-- Switch to `useThumbSignedUrl` (400×400 cover, q70).
-- Keep existing IntersectionObserver + lazy `<img>` behaviour.
+Ship the runway. Zero behaviour change for anyone with `beta_ui = false` (everyone, until we opt them in).
 
-### 3. `src/components/PhotoLightbox.tsx`
-- Switch primary `<img>` to `useLightboxSignedUrl` (1600w, q78).
-- Optionally also request the thumb URL and use it as a low-quality placeholder while the full lightbox variant loads (fast perceived swap).
+### 0.1 — Schema
 
-### 4. `src/components/FeedbackPanel.tsx`
-- Its inline preview uses `useSignedUrl` at small size → switch to `useThumbSignedUrl`.
+Single migration:
 
-### 5. `supabase/functions/share-photo-url/index.ts` (public share)
-- Accept optional `variant: "thumb" | "lightbox" | "original"` in the POST body (default `thumb`).
-- Map to the same transform presets and pass `{ transform }` to `createSignedUrl`.
-- Backwards-compatible: missing variant = thumb (fastest default for the grid).
+- `profiles.beta_ui boolean not null default false`
+- Settings toggle reads/writes this column (RLS already covers `profiles`; no new policy needed)
 
-### 6. `src/pages/SharePage.tsx`
-- Update `useShareSignedUrl(token, photoId, variant)` to send `variant`.
-- `SharePhotoThumb` and `SharePhotoMiniThumb` request `"thumb"`.
-- `ShareLightbox` requests `"lightbox"`; optionally prefetch `"thumb"` first as LQIP.
+No other tables in Phase 0. `photo_day_hidden` lands in Phase 1 with the Hide-from-day affordance so we don't ship a dead table.
 
-### 7. Originals kept as-is (documented, not changed)
-- `supabase/functions/generate-pdf/index.ts` — PDF needs full quality
-- `src/components/CoverPhotoManager.tsx`, `ProjectEditForm.tsx`, `Settings.tsx` — cover/logo/profile uploads
-- `share-export-url`, `share-logo-url` — non-photo assets
+### 0.2 — v2 shell
 
-## Perceived-responsiveness extras (low risk, in scope)
-- Reduce initial share-page grid page size from 150 → 60 in `SharePage.tsx` (matches `PhotoGallery.tsx` pattern), with a "Load more" affordance. Cuts first-paint signed-URL requests by ~60%.
-- In lightbox, render the cached thumb URL underneath the loading full image so navigation feels instant.
+New route tree, gated by `beta_ui`:
 
-## Constraints / notes on Supabase transforms
-- **Pro plan required.** Smart CDN caches transformed variants, so repeat views are cheap; first request per (path, transform) triggers a transform (small latency + counted as an image-transformation invocation for billing).
-- `createSignedUrls` (plural) does **not** accept transform options — we continue signing one-by-one, which is what the current code already does.
-- Format negotiation (WebP/AVIF) is automatic when the client `Accept` header supports it.
+```text
+/projects/:id            → if beta_ui then <ProjectDetailV2/> else <ProjectDetail/> (current)
+  ├── ?tab=overview      → <OverviewTab/>       Phase 0: placeholder → current summary block
+  ├── ?tab=daily         → <DailyReportTab/>    Phase 0: placeholder → current DayReport list
+  ├── ?tab=library       → <LibraryTab/>        Phase 0: placeholder → current Gallery
+  └── ?tab=map           → <MapTab/>            Phase 0: reuses <SiteMapTab/> as-is
+```
 
-## Verification
-- Build + typecheck.
-- Manual: open a share link with many photos, confirm image responses are ~20–60 KB (thumbs) instead of multi-MB, and lightbox images are ~150–300 KB.
-- Confirm PDF export still uses originals (unchanged code path).
+- New `ProjectShellV2` component renders the 4-tab bar + tab content router
+- Each placeholder tab is a thin wrapper that renders the current-shell component so nothing regresses
+- URL uses `?tab=` (not path segments) so deep links, share links, and existing internal links keep working
 
-## Sensible next step (not in this pass)
-If transform costs or first-hit latency become a concern, move to upload-time thumbnail generation (add `thumb_path`, generate a 400px JPEG client-side during `PhotoUploader` and store alongside the original). That eliminates transform billing entirely but requires a schema change + backfill, which you asked to defer.
+### 0.3 — Beta opt-in
+
+- Settings → Account: "Try the new project workspace (beta)" toggle bound to `profiles.beta_ui`
+- Add a small "Beta" pill in the v2 top bar with a "Switch back" link that flips the flag
+- No admin surface needed — self-serve only
+
+### 0.4 — What Phase 0 does NOT touch
+
+- No changes to `photos`, `day_notes`, `areas`, share pages, PDF, or edge functions
+- No merge of Updates + Gallery yet (Phase 1)
+- No `photo_day_hidden`, no Objectives rollover, no "Copy yesterday's statuses" (all Phase 1)
+- Current `/projects/:id` stays the default for every user
+
+### Acceptance
+
+- Users with `beta_ui = false` see zero difference
+- Toggling on in Settings reloads `/projects/:id` into `ProjectDetailV2` with the 4-tab bar
+- All four tabs render current-shell content without console errors
+- Toggling off returns to the current shell
+
+### Files (est.)
+
+- 1 migration
+- `src/features/projectDetailV2/ProjectShellV2.tsx` (new)
+- `src/features/projectDetailV2/tabs/{Overview,DailyReport,Library,Map}Tab.tsx` (4 new thin wrappers)
+- `src/pages/ProjectDetail.tsx` (branch on `beta_ui`)
+- `src/pages/Settings.tsx` or account section (toggle)
+- `src/hooks/useBetaUi.ts` (new)
+
+## After Phase 0
+
+Phase 1 spec (Daily Report merge, Overview, `photo_day_hidden` + share/PDF filtering, lazy Objectives rollover, "Copy yesterday's statuses") will be written as its own plan once Phase 0 lands and we've clicked around the shell.
