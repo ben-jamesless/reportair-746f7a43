@@ -5,7 +5,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     <PlaceholderTab
       projectId={projectId}
       title="Library"
-      description="Every photo on the project — filter by zone, day, or status. Destructive delete lives here. Lands in Phase 2."
+      description="Every photo on the project — filter by area, day, or status. Destructive delete lives here. Lands in Phase 2."
     />
   );
 }
