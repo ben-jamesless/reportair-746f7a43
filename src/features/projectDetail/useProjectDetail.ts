@@ -626,6 +626,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     dailyFields,
     areaDayNotes,
     areaDayStatus,
+    dayStatus,
+    setDayStatus: setDayStatusFn,
     loading,
     loadError,
     refetch,
