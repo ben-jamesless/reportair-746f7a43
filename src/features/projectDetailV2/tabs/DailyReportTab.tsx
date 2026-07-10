@@ -14,12 +14,18 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
 
-const DAILY_BLOCKS: { key: DailyField; label: string; tint: string }[] = [
-  { key: "today_objectives", label: "Today's Objectives", tint: "#3A6EA5" },
-  { key: "today_achievements", label: "Today's Achievements", tint: "#10b981" },
-  { key: "tomorrow_objectives", label: "Tomorrow's Objectives", tint: "#8b5cf6" },
-  { key: "open_issues", label: "Open Issues / Risks", tint: "#ef4444" },
+const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
+  { key: "today_objectives", label: "Today's Objectives" },
+  { key: "today_achievements", label: "Today's Achievements" },
+  { key: "tomorrow_objectives", label: "Tomorrow's Objectives", sublabel: "pre-fills next day" },
+  { key: "open_issues", label: "Open Issues / Risks" },
 ];
+
+// Presentational tokens for the "filed sheet" pattern — literal hex per brief.
+const SHEET_BG = "#FAF8F2";
+const SHEET_BORDER = "#E3DFD4";
+const LABEL_INK = "#5C5850";
+const SUBLABEL_INK = "#8A867C";
 
 function toTodayKey(): string {
   const d = new Date();
