@@ -1287,25 +1287,18 @@ const SharePage = () => {
                         );
                       })()}
 
-                      {/* Area blocks — flush, no cards */}
+                      {/* Area blocks — flush, no cards, dashed dividers */}
                       <div>
                         {orderedAreas.map((ar, idx) => {
                           const areaPhotos = byArea.get(ar.id) ?? [];
                           const sKey = statusMap.get(`${ar.id}|${dateKey}`);
                           const note = areaDayNotesMap.get(`${ar.id}|${dateKey}`);
-                          const accent = sKey ? STATUS_META[sKey]?.bg ?? DIVIDER : DIVIDER;
                           const isLast = idx === totalBlocks - 1;
                           return (
                             <div key={ar.id}>
-                              <article
-                                className="py-7 pl-4"
-                                style={{ borderLeft: `3px solid ${accent}` }}
-                              >
+                              <article className="py-7 px-4">
                                 <header className="mb-3 flex flex-wrap items-center gap-2">
-                                  <h3
-                                    className="text-base font-bold"
-                                    style={{ color: NEAR_BLACK }}
-                                  >
+                                  <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>
                                     {ar.name}
                                   </h3>
                                   {sKey && <StatusPill statusKey={sKey} />}
@@ -1319,7 +1312,6 @@ const SharePage = () => {
 
                                 {areaPhotos.length > 0 && (
                                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-
                                     {areaPhotos.map((p) => (
                                       <SharePhotoThumb
                                         key={p.id}
@@ -1332,22 +1324,19 @@ const SharePage = () => {
                                 )}
                               </article>
                               {!isLast && (
-                                <div className="ml-4 border-t" style={{ borderColor: DIVIDER }} />
+                                <div
+                                  className="mx-4"
+                                  style={{ borderTop: `1px dashed ${DIVIDER}` }}
+                                />
                               )}
                             </div>
                           );
                         })}
 
                         {hasUnassigned && (
-                          <article
-                            className="py-7 pl-4"
-                            style={{ borderLeft: `3px solid ${DIVIDER}` }}
-                          >
+                          <article className="py-7 px-4">
                             <header className="mb-3">
-                              <h3
-                                className="text-base font-bold"
-                                style={{ color: NEAR_BLACK }}
-                              >
+                              <h3 className="text-base font-bold" style={{ color: NEAR_BLACK }}>
                                 Unassigned
                               </h3>
                             </header>
