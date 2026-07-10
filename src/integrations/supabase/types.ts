@@ -307,6 +307,7 @@ export type Database = {
           date: string
           id: string
           notes: string | null
+          objectives_seeded_at: string | null
           open_issues: string | null
           project_id: string
           today_achievements: string | null
@@ -320,6 +321,7 @@ export type Database = {
           date: string
           id?: string
           notes?: string | null
+          objectives_seeded_at?: string | null
           open_issues?: string | null
           project_id: string
           today_achievements?: string | null
@@ -333,6 +335,7 @@ export type Database = {
           date?: string
           id?: string
           notes?: string | null
+          objectives_seeded_at?: string | null
           open_issues?: string | null
           project_id?: string
           today_achievements?: string | null
@@ -604,6 +607,45 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      photo_day_hidden: {
+        Row: {
+          date_key: string
+          hidden_at: string
+          hidden_by: string | null
+          photo_id: string
+          project_id: string
+        }
+        Insert: {
+          date_key: string
+          hidden_at?: string
+          hidden_by?: string | null
+          photo_id: string
+          project_id: string
+        }
+        Update: {
+          date_key?: string
+          hidden_at?: string
+          hidden_by?: string | null
+          photo_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_day_hidden_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_day_hidden_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       photos: {
         Row: {
@@ -1396,6 +1438,10 @@ export type Database = {
         Args: { _name: string; _user: string }
         Returns: boolean
       }
+      copy_prior_day_statuses: {
+        Args: { _date_key: string; _project_id: string }
+        Returns: number
+      }
       create_zone_with_geometry: {
         Args: {
           _color?: string
@@ -1528,6 +1574,13 @@ export type Database = {
           id: string
         }[]
       }
+      list_share_hidden_photos: {
+        Args: { _token: string }
+        Returns: {
+          date_key: string
+          photo_id: string
+        }[]
+      }
       list_share_map_features: {
         Args: { _token: string }
         Returns: {
@@ -1589,6 +1642,10 @@ export type Database = {
       resolve_share_link: {
         Args: { _password?: string; _token: string }
         Returns: Json
+      }
+      seed_todays_objectives: {
+        Args: { _date_key: string; _project_id: string }
+        Returns: boolean
       }
       set_primary_map_feature: {
         Args: { _feature_id: string }
