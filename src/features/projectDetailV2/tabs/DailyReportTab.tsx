@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
+import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
+
 
 const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
   { key: "today_objectives", label: "Today's Objectives" },
@@ -160,9 +162,13 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
       {/* Day picker + toggles */}
       <div className="flex flex-wrap items-center gap-3">
         <Select value={activeDay} onValueChange={setActiveDay}>
-          <SelectTrigger className="w-[280px]">
+          <SelectTrigger
+            className="w-[280px]"
+            style={{ borderColor: SHEET_BORDER }}
+          >
             <SelectValue />
           </SelectTrigger>
+
           <SelectContent>
             {days.map((k) => (
               <SelectItem key={k} value={k}>
@@ -248,19 +254,27 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                 )}
               </div>
               <div className="text-sm text-foreground">
-                <EditableNote
-                  value={value}
-                  placeholder={previewMode ? "" : `Add ${b.label.toLowerCase()}…`}
-                  onSave={(next) => setDailyField(activeDay, b.key, next)}
-                  rich
-                  rows={3}
-                  readOnly={!canEdit || previewMode}
-                />
+                {!canEdit || previewMode ? (
+                  <DayFieldContent
+                    value={value}
+                    placeholder={previewMode ? undefined : `No ${b.label.toLowerCase()} recorded.`}
+                  />
+                ) : (
+                  <EditableNote
+                    value={value}
+                    placeholder={`Add ${b.label.toLowerCase()}…`}
+                    onSave={(next) => setDailyField(activeDay, b.key, next)}
+                    rich
+                    rows={3}
+                    readOnly={false}
+                  />
+                )}
               </div>
             </div>
           );
         })}
       </div>
+
 
       {/* Per-area cards */}
       {areas.length === 0 ? (

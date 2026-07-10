@@ -5,6 +5,8 @@ import { CalendarDays, MapPin, Users, Image as ImageIcon, ArrowRight } from "luc
 import { Button } from "@/components/ui/button";
 import { AreaStatusPicker, type AreaStatus } from "@/components/AreaStatusPicker";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
+import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
+
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
@@ -105,19 +107,20 @@ export function OverviewTab({ projectId }: { projectId: string }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel title="Today's objectives" dotColor="#3A6EA5">
           {todaysObjectives ? (
-            <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground" dangerouslySetInnerHTML={{ __html: todaysObjectives }} />
+            <DayFieldContent value={todaysObjectives} />
           ) : (
             <EmptyLine label="Nothing planned for today yet." to={`/projects/${projectId}?tab=daily`} cta="Set objectives" />
           )}
         </Panel>
         <Panel title="Open issues" dotColor="#C7382A">
           {openIssues ? (
-            <div className="prose prose-sm max-w-none whitespace-pre-wrap text-foreground" dangerouslySetInnerHTML={{ __html: openIssues }} />
+            <DayFieldContent value={openIssues} />
           ) : (
             <EmptyLine label="No open issues logged." to={`/projects/${projectId}?tab=daily`} cta="Log an issue" />
           )}
         </Panel>
       </div>
+
 
     </div>
   );
