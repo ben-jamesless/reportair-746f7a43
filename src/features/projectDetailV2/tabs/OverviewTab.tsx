@@ -5,6 +5,8 @@ import { CalendarDays, MapPin, Users, Image as ImageIcon, ArrowRight } from "luc
 import { Button } from "@/components/ui/button";
 import { AreaStatusPicker, type AreaStatus } from "@/components/AreaStatusPicker";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
+import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
+
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
