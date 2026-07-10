@@ -28,6 +28,7 @@ export interface ProjectDetailState {
   dailyFields: Map<string, DailyFields>;
   areaDayNotes: Map<string, string | null>;
   areaDayStatus: Map<string, AreaStatus>;
+  dayStatus: Map<string, AreaStatus>;
 
   // Load lifecycle
   loading: boolean;
