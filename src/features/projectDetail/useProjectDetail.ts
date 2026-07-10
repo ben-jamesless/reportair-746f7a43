@@ -336,6 +336,36 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     [projectId, areaDayStatus]
   );
 
+  const setDayStatusFn = useCallback(
+    async (dateKey: string, next: AreaStatus) => {
+      if (!projectId) return;
+      const prev = new Map(dayStatus);
+      setDayStatus((cur) => {
+        const n = new Map(cur);
+        n.set(dateKey, next);
+        return n;
+      });
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      const payload = {
+        project_id: projectId,
+        date: dateKey,
+        day_status: next,
+        updated_by: authUser?.id,
+      } as never;
+      const { error } = await supabase
+        .from("day_notes")
+        .upsert(payload, { onConflict: "project_id,date" });
+      if (error) {
+        toast.error(error.message);
+        setDayStatus(prev);
+      }
+    },
+    [projectId, dayStatus]
+  );
+
+
   // ---- Project-level mutations ----
   const saveProjectStatus = useCallback(
     async (next: ProjectStatus) => {
