@@ -91,7 +91,7 @@ export function OverviewTab({ projectId }: { projectId: string }) {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Photos" value={photoCount} icon={<ImageIcon className="h-4 w-4" />} />
         <StatCard label="Days documented" value={daysWithPhotos} icon={<CalendarDays className="h-4 w-4" />} />
-        <StatCard label="Zones" value={areas.length} icon={<MapPin className="h-4 w-4" />} />
+        <StatCard label="Areas" value={areas.length} icon={<MapPin className="h-4 w-4" />} />
         <StatCard
           label="Last upload"
           value={latestUpload ?? "—"}
