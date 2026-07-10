@@ -35,15 +35,6 @@ export function OverviewTab({ projectId }: { projectId: string }) {
     ? formatDistanceToNow(new Date(latestPhoto.created_at), { addSuffix: true })
     : null;
 
-  // Latest status per area from today's status map (best-effort — we only have today's key set loaded here)
-  const areaStatusToday = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const a of areas) {
-      const st = areaDayStatus.get(`${a.id}|${today}`);
-      if (st) m.set(a.id, st);
-    }
-    return m;
-  }, [areas, areaDayStatus, today]);
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (loadError || !project) return <p className="text-sm text-destructive">Failed to load project.</p>;
