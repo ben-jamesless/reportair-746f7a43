@@ -1540,22 +1540,32 @@ const DAILY_SECTION_COLORS: Record<string, string> = {
 };
 
 const ShareDailySection = ({ label, text, body }: { label: string; text: string; body: string }) => {
-  const accent = DAILY_SECTION_COLORS[label] ?? "#D94F2A";
+  const dot = DAILY_SECTION_COLORS[label] ?? "#D94F2A";
+  // Dashed-block pattern — no per-block background, no coloured spine.
+  // Adjacent siblings separate via border-top; the first one drops it via :first-child.
   return (
     <li
-      className="rounded-lg border overflow-hidden"
-      style={{ borderColor: DIVIDER }}
+      className="pt-4 first:pt-0 first:border-t-0"
+      style={{ borderTop: `1px dashed ${DIVIDER}` }}
     >
-      <div
-        className="px-3 py-2 flex items-center gap-2"
-        style={{ backgroundColor: `color-mix(in srgb, ${accent} 10%, transparent)`, borderBottom: `1px solid ${DIVIDER}` }}
-      >
-        <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
-        <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: accent }}>
+      <div className="mb-2 flex items-center gap-2">
+        <span
+          aria-hidden
+          className="inline-block shrink-0 rounded-full"
+          style={{ width: "9px", height: "9px", backgroundColor: dot }}
+        />
+        <span
+          className="font-semibold uppercase"
+          style={{
+            fontSize: "11px",
+            letterSpacing: "0.08em",
+            color: "#5C5850",
+          }}
+        >
           {label}
         </span>
       </div>
-      <div className="px-3 py-2.5 text-sm leading-relaxed" style={{ color: body }}>
+      <div className="text-sm leading-relaxed" style={{ color: body }}>
         <RichNotes text={text} />
       </div>
     </li>
