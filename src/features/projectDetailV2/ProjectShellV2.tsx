@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload } from "lucide-react";
+import { Upload, Share2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { LibraryTab } from "./tabs/LibraryTab";
 import { MapTab } from "./tabs/MapTab";
 import { UploadModalProvider, useUploadModal } from "@/features/upload/UploadModalContext";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
+import { SharePanel } from "./SharePanel";
+
 
 type TabKey = "overview" | "daily" | "library" | "map";
 const VALID: TabKey[] = ["overview", "daily", "library", "map"];
