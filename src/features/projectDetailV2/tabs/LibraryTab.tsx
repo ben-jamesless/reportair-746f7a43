@@ -90,6 +90,17 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
   const areaMap = useMemo(() => new Map(areas.map((a) => [a.id, a.name])), [areas]);
 
+  // Sync ?filter=unassigned → clear the URL flag once consumed so page reloads don't relock.
+  useEffect(() => {
+    if (searchParams.get("filter") === "unassigned") {
+      setAreaFilter(UNASSIGNED);
+      const p = new URLSearchParams(searchParams);
+      p.delete("filter");
+      setSearchParams(p, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   // Hidden-days lookup per photo id
   const hiddenDaysByPhoto = useMemo(() => {
     const m = new Map<string, string[]>();
