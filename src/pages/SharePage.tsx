@@ -1206,7 +1206,11 @@ const SharePage = () => {
                     .filter((k) => k !== "__noarea__")
                     .map((aid) => statusMap.get(`${aid}|${dateKey}`))
                     .filter(Boolean) as string[];
-                  const dominantDayStatus = pickDominantStatus(dayStatusKeys);
+                  const explicitDayStatus = dayNoteByDate.get(dateKey)?.day_status ?? null;
+                  const dominantDayStatus =
+                    explicitDayStatus && explicitDayStatus !== "no_status"
+                      ? explicitDayStatus
+                      : pickDominantStatus(dayStatusKeys);
 
                   const orderedAreas = areas.filter((ar) => byArea.has(ar.id));
                   const hasUnassigned = byArea.has("__noarea__");
