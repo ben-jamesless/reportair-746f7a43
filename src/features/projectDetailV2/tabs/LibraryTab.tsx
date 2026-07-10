@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Search, Trash2, ImagePlus, X, RotateCcw, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,10 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   } = useProjectDetail(projectId);
   const hidden = useDayHiddenPhotos(projectId);
 
-  const [areaFilter, setAreaFilter] = useState<string>(ALL);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [areaFilter, setAreaFilter] = useState<string>(
+    searchParams.get("filter") === "unassigned" ? UNASSIGNED : ALL
+  );
   const [dayFilter, setDayFilter] = useState<string>(ALL);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -85,6 +89,17 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const areaMap = useMemo(() => new Map(areas.map((a) => [a.id, a.name])), [areas]);
+
+  // Sync ?filter=unassigned → clear the URL flag once consumed so page reloads don't relock.
+  useEffect(() => {
+    if (searchParams.get("filter") === "unassigned") {
+      setAreaFilter(UNASSIGNED);
+      const p = new URLSearchParams(searchParams);
+      p.delete("filter");
+      setSearchParams(p, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Hidden-days lookup per photo id
   const hiddenDaysByPhoto = useMemo(() => {
