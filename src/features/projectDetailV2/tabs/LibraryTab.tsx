@@ -124,18 +124,14 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const unassigned = useMemo(() => photos.filter((p) => !p.area_id), [photos]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return photos.filter((p) => {
       if (areaFilter === UNASSIGNED && p.area_id) return false;
       if (areaFilter !== ALL && areaFilter !== UNASSIGNED && p.area_id !== areaFilter) return false;
       if (dayFilter !== ALL && dayKey(p) !== dayFilter) return false;
-      if (q) {
-        const hay = `${p.file_name ?? ""} ${p.caption ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
       return true;
     });
-  }, [photos, areaFilter, dayFilter, search]);
+  }, [photos, areaFilter, dayFilter]);
+
 
   const clearSelection = useCallback(() => {
     setSelected(new Set());
