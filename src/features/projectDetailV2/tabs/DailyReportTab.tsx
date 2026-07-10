@@ -254,19 +254,27 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                 )}
               </div>
               <div className="text-sm text-foreground">
-                <EditableNote
-                  value={value}
-                  placeholder={previewMode ? "" : `Add ${b.label.toLowerCase()}…`}
-                  onSave={(next) => setDailyField(activeDay, b.key, next)}
-                  rich
-                  rows={3}
-                  readOnly={!canEdit || previewMode}
-                />
+                {!canEdit || previewMode ? (
+                  <DayFieldContent
+                    value={value}
+                    placeholder={previewMode ? undefined : `No ${b.label.toLowerCase()} recorded.`}
+                  />
+                ) : (
+                  <EditableNote
+                    value={value}
+                    placeholder={`Add ${b.label.toLowerCase()}…`}
+                    onSave={(next) => setDailyField(activeDay, b.key, next)}
+                    rich
+                    rows={3}
+                    readOnly={false}
+                  />
+                )}
               </div>
             </div>
           );
         })}
       </div>
+
 
       {/* Per-area cards */}
       {areas.length === 0 ? (
