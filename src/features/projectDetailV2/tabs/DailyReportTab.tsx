@@ -277,6 +277,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                                 path={p.storage_path}
                                 alt={p.caption || p.file_name}
                                 onClick={() => openLightbox(p.id)}
+                                captureTime={captureTimeLabel(p)}
                               />
                             </div>
                             {canEdit && !previewMode && (
