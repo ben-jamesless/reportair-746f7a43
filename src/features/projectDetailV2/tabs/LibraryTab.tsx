@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Search, Trash2, ImagePlus, X, RotateCcw, EyeOff, Check } from "lucide-react";
+import { Trash2, ImagePlus, RotateCcw, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -82,7 +82,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     searchParams.get("filter") === "unassigned" ? UNASSIGNED : ALL
   );
   const [dayFilter, setDayFilter] = useState<string>(ALL);
-  const [search, setSearch] = useState("");
+  // Search removed for now — filters below carry the load.
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -124,18 +124,14 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const unassigned = useMemo(() => photos.filter((p) => !p.area_id), [photos]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return photos.filter((p) => {
       if (areaFilter === UNASSIGNED && p.area_id) return false;
       if (areaFilter !== ALL && areaFilter !== UNASSIGNED && p.area_id !== areaFilter) return false;
       if (dayFilter !== ALL && dayKey(p) !== dayFilter) return false;
-      if (q) {
-        const hay = `${p.file_name ?? ""} ${p.caption ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
       return true;
     });
-  }, [photos, areaFilter, dayFilter, search]);
+  }, [photos, areaFilter, dayFilter]);
+
 
   const clearSelection = useCallback(() => {
     setSelected(new Set());
@@ -228,7 +224,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
         deleting photos work best on a laptop or desktop.
       </div>
 
-      {/* Filter chips + search */}
+      {/* Filter chips */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -236,7 +232,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           </span>
           <FilterChip active={areaFilter === ALL} onClick={() => setAreaFilter(ALL)}>
             All
-            <span className="ml-1.5 text-muted-foreground">{photos.length}</span>
+            <span className="ml-1.5 opacity-70">{photos.length}</span>
           </FilterChip>
           <FilterChip
             active={areaFilter === UNASSIGNED}
@@ -244,7 +240,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           >
             Unassigned
             {unassigned.length > 0 && (
-              <span className="ml-1.5 text-muted-foreground">{unassigned.length}</span>
+              <span className="ml-1.5 opacity-70">{unassigned.length}</span>
             )}
           </FilterChip>
           {areas.map((a) => {
@@ -256,7 +252,8 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                 onClick={() => setAreaFilter(a.id)}
               >
                 {a.name}
-                <span className="ml-1.5 text-muted-foreground">{n}</span>
+                <span className="ml-1.5 opacity-70">{n}</span>
+
               </FilterChip>
             );
           })}
@@ -280,29 +277,11 @@ export function LibraryTab({ projectId }: { projectId: string }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search file names, captions…"
-              className="pl-8"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
           <span className="text-xs text-muted-foreground">
             {filtered.length} of {photos.length}
           </span>
         </div>
+
       </div>
 
       {/* Unassigned tray */}
