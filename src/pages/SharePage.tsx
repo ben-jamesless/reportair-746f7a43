@@ -233,6 +233,8 @@ const SharePage = () => {
   const [weather, setWeather] = useState<Record<string, { tmin: number; tmax: number; condition: string; wind: number }>>({});
   const [brandColour, setBrandColour] = useState<string | null>(null);
   const [hasMapFeatures, setHasMapFeatures] = useState(false);
+  const [hiddenDayPhotos, setHiddenDayPhotos] = useState<Set<string>>(new Set());
+
   const [mapOpen, setMapOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
@@ -328,7 +330,16 @@ const SharePage = () => {
       const { data: feats } = await supabase.rpc("list_share_map_features", { _token: token });
       setHasMapFeatures(Array.isArray(feats) && feats.length > 0);
     })();
+    (async () => {
+      const { data: rows } = await (supabase as any).rpc("list_share_hidden_photos", { _token: token });
+      const s = new Set<string>();
+      for (const r of (rows ?? []) as Array<{ photo_id: string; date_key: string }>) {
+        s.add(`${r.photo_id}|${r.date_key}`);
+      }
+      setHiddenDayPhotos(s);
+    })();
   }, [token, data?.ok]);
+
 
   const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
   const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
@@ -360,7 +371,18 @@ const SharePage = () => {
   }, [data?.day_notes]);
 
   // Photos grouped by day (for full project)
-  const allDayGroups = useMemo(() => groupPhotosByDate(photos), [photos]);
+  // Photos grouped by day (for full project) — respects per-day "hidden" flags.
+  const dayViewPhotos = useMemo(() => {
+    if (hiddenDayPhotos.size === 0) return photos;
+    return photos.filter((p) => {
+      const raw = p.captured_at || p.created_at;
+      const d = raw ? new Date(raw) : new Date(0);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return !hiddenDayPhotos.has(`${p.id}|${k}`);
+    });
+  }, [photos, hiddenDayPhotos]);
+  const allDayGroups = useMemo(() => groupPhotosByDate(dayViewPhotos), [dayViewPhotos]);
+
 
   // Fetch weather for all visible days
   useEffect(() => {

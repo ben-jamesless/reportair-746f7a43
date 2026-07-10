@@ -360,7 +360,17 @@ Deno.serve(async (req) => {
       { data: areaStatusRows },
       { data: areaNotesRows },
       { data: photos },
+      { data: hiddenRows },
     ] = await Promise.all([
+      supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id, cover_photo_id, cover_asset_path").eq("id", projectId).single(),
+      supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
+      supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
+      supabase.from("area_day_status").select("area_id, status").eq("project_id", projectId).eq("date", reportDateStr),
+      supabase.from("area_day_notes").select("area_id, notes").eq("project_id", projectId).eq("date", reportDateStr),
+      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, report_path, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
+      supabase.from("photo_day_hidden").select("photo_id").eq("project_id", projectId).eq("date_key", reportDateStr),
+    ]);
+
       supabase.from("projects").select("name, event_location, event_date, build_start_date, overall_status, geo_lat, geo_lng, geo_location_query, client_name, logo_path, team_id, cover_photo_id, cover_asset_path").eq("id", projectId).single(),
       supabase.from("areas").select("id, name, sort_order").eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
       supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
@@ -380,8 +390,11 @@ Deno.serve(async (req) => {
     }
 
     // Photos for the report date, grouped by area
+    // Photos for the report date, grouped by area — exclude any explicitly hidden from this day
+    const hiddenIds = new Set<string>(((hiddenRows ?? []) as Array<{ photo_id: string }>).map((r) => r.photo_id));
     const dayPhotos = ((photos ?? []) as Array<{ id: string; storage_path: string; report_path: string | null; area_id: string | null; captured_at: string | null; created_at: string; caption: string | null }>)
-      .filter((p) => dateKeyOf(p) === reportDateStr);
+      .filter((p) => dateKeyOf(p) === reportDateStr && !hiddenIds.has(p.id));
+
     const photosByArea = new Map<string, typeof dayPhotos>();
     for (const p of dayPhotos) {
       if (!p.area_id) continue;
