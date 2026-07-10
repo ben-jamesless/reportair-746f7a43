@@ -504,15 +504,20 @@ const SharePage = () => {
   }, [exportOpen, exportDaysAsc]);
 
   const downloadFromUrl = async (url: string, filename = "site-story.pdf") => {
-    const fileRes = await fetch(url);
-    if (!fileRes.ok) throw new Error(`http ${fileRes.status}`);
-    const blob = await fileRes.blob();
-    const blobUrl = URL.createObjectURL(blob);
+    // The signed URL already has Content-Disposition: attachment (set via the
+    // `download:` param in createSignedUrl), so navigate to it directly.
+    // Fetching as a blob can be blocked by Storage CORS on some browsers and
+    // silently do nothing.
     const a = document.createElement("a");
-    a.href = blobUrl; a.rel = "noopener"; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    a.href = url;
+    a.rel = "noopener";
+    a.download = filename;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
+
 
   const runShareExport = async () => {
     if (!token) return;
