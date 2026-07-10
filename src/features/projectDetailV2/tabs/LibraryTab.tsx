@@ -224,7 +224,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
         deleting photos work best on a laptop or desktop.
       </div>
 
-      {/* Filter chips + search */}
+      {/* Filter chips */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -232,7 +232,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           </span>
           <FilterChip active={areaFilter === ALL} onClick={() => setAreaFilter(ALL)}>
             All
-            <span className="ml-1.5 text-muted-foreground">{photos.length}</span>
+            <span className="ml-1.5 opacity-70">{photos.length}</span>
           </FilterChip>
           <FilterChip
             active={areaFilter === UNASSIGNED}
@@ -240,7 +240,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           >
             Unassigned
             {unassigned.length > 0 && (
-              <span className="ml-1.5 text-muted-foreground">{unassigned.length}</span>
+              <span className="ml-1.5 opacity-70">{unassigned.length}</span>
             )}
           </FilterChip>
           {areas.map((a) => {
@@ -252,7 +252,8 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                 onClick={() => setAreaFilter(a.id)}
               >
                 {a.name}
-                <span className="ml-1.5 text-muted-foreground">{n}</span>
+                <span className="ml-1.5 opacity-70">{n}</span>
+
               </FilterChip>
             );
           })}
