@@ -1232,14 +1232,13 @@ const SharePage = () => {
                       }}
                       className="group/day"
                     >
-                      {/* Day header — transparent band with status accent bar on the left */}
+                      {/* Day header — transparent band, no coloured spine */}
                       <summary
                         className="sticky top-0 z-20 flex cursor-pointer flex-wrap items-center justify-between gap-3 py-3 pl-4 pr-4 list-none backdrop-blur-sm [&::-webkit-details-marker]:hidden"
                         style={{
                           backgroundColor: dark ? "rgba(23,22,20,0.78)" : "rgba(247,246,242,0.78)",
                           borderTop: `1px solid ${DIVIDER}`,
                           borderBottom: `1px solid ${DIVIDER}`,
-                          borderLeft: `3px solid ${accentBar}`,
                         }}
                       >
                         <div className="flex items-baseline gap-3 min-w-0">
