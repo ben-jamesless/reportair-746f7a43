@@ -3,14 +3,13 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { CalendarDays, MapPin, Users, Image as ImageIcon, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AreaStatusDot } from "@/components/AreaStatusPicker";
+import { AreaStatusPicker, type AreaStatus } from "@/components/AreaStatusPicker";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 
 const DATE_FMT = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" });
 
 export function OverviewTab({ projectId }: { projectId: string }) {
-  const { project, areas, photos, dailyFields, areaDayStatus, loading, loadError } = useProjectDetail(projectId);
+  const { project, areas, photos, dailyFields, dayStatus, loading, loadError } = useProjectDetail(projectId);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -37,15 +36,6 @@ export function OverviewTab({ projectId }: { projectId: string }) {
     ? formatDistanceToNow(new Date(latestPhoto.created_at), { addSuffix: true })
     : null;
 
-  // Latest status per area from today's status map (best-effort — we only have today's key set loaded here)
-  const areaStatusToday = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const a of areas) {
-      const st = areaDayStatus.get(`${a.id}|${today}`);
-      if (st) m.set(a.id, st);
-    }
-    return m;
-  }, [areas, areaDayStatus, today]);
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (loadError || !project) return <p className="text-sm text-destructive">Failed to load project.</p>;
@@ -81,11 +71,21 @@ export function OverviewTab({ projectId }: { projectId: string }) {
               )}
             </div>
           </div>
-          <Button asChild>
-            <Link to={`/projects/${projectId}?tab=daily`}>
-              Open today's report <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
+              <AreaStatusPicker
+                value={(dayStatus.get(today) ?? "no_status") as AreaStatus}
+                onChange={() => { /* read-only surface — set on Daily Report */ }}
+                readOnly
+              />
+            </div>
+            <Button asChild>
+              <Link to={`/projects/${projectId}?tab=daily`}>
+                Open today's report <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -93,7 +93,7 @@ export function OverviewTab({ projectId }: { projectId: string }) {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Photos" value={photoCount} icon={<ImageIcon className="h-4 w-4" />} />
         <StatCard label="Days documented" value={daysWithPhotos} icon={<CalendarDays className="h-4 w-4" />} />
-        <StatCard label="Zones" value={areas.length} icon={<MapPin className="h-4 w-4" />} />
+        <StatCard label="Areas" value={areas.length} icon={<MapPin className="h-4 w-4" />} />
         <StatCard
           label="Last upload"
           value={latestUpload ?? "—"}
@@ -119,22 +119,6 @@ export function OverviewTab({ projectId }: { projectId: string }) {
         </Panel>
       </div>
 
-      {/* Zone status today */}
-      {areas.length > 0 && (
-        <Panel title="Zone status — today">
-          <div className="flex flex-wrap gap-2">
-            {areas.map((a) => {
-              const st = areaStatusToday.get(a.id);
-              return (
-                <Badge key={a.id} variant="outline" className="gap-1.5">
-                  <AreaStatusDot status={(st as "no_status" | "on_track" | "requires_discussion" | "concern" | "complete") ?? "no_status"} />
-                  {a.name}
-                </Badge>
-              );
-            })}
-          </div>
-        </Panel>
-      )}
     </div>
   );
 }

@@ -305,6 +305,7 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          day_status: Database["public"]["Enums"]["area_status"]
           id: string
           notes: string | null
           objectives_seeded_at: string | null
@@ -319,6 +320,7 @@ export type Database = {
         Insert: {
           created_at?: string
           date: string
+          day_status?: Database["public"]["Enums"]["area_status"]
           id?: string
           notes?: string | null
           objectives_seeded_at?: string | null
@@ -333,6 +335,7 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          day_status?: Database["public"]["Enums"]["area_status"]
           id?: string
           notes?: string | null
           objectives_seeded_at?: string | null

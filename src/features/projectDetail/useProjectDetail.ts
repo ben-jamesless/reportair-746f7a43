@@ -28,6 +28,7 @@ export interface ProjectDetailState {
   dailyFields: Map<string, DailyFields>;
   areaDayNotes: Map<string, string | null>;
   areaDayStatus: Map<string, AreaStatus>;
+  dayStatus: Map<string, AreaStatus>;
 
   // Load lifecycle
   loading: boolean;
@@ -39,6 +40,7 @@ export interface ProjectDetailState {
   setDailyField: (dayKey: string, field: DailyField, value: string | null) => Promise<void>;
   setAreaDayNote: (areaId: string, dayKey: string, value: string | null) => Promise<void>;
   setAreaDayStatus: (areaId: string, dayKey: string, status: AreaStatus) => Promise<void>;
+  setDayStatus: (dayKey: string, status: AreaStatus) => Promise<void>;
 
   // Project-level mutations
   saveProjectStatus: (next: ProjectStatus) => Promise<void>;
@@ -93,6 +95,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
   const [dailyFields, setDailyFields] = useState<Map<string, DailyFields>>(new Map());
   const [areaDayNotes, setAreaDayNotes] = useState<Map<string, string | null>>(new Map());
   const [areaDayStatus, setAreaDayStatus] = useState<Map<string, AreaStatus>>(new Map());
+  const [dayStatus, setDayStatus] = useState<Map<string, AreaStatus>>(new Map());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -140,7 +143,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         supabase
           .from("day_notes")
           .select(
-            "date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues"
+            "date, notes, today_objectives, today_achievements, tomorrow_objectives, open_issues, day_status"
           )
           .eq("project_id", projectId),
         supabase
@@ -158,7 +161,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
       setPhotos((ph ?? []) as LightboxPhoto[]);
       const map = new Map<string, string | null>();
       const fieldMap = new Map<string, DailyFields>();
-      for (const row of (dn ?? []) as DayNote[]) {
+      const dsMap = new Map<string, AreaStatus>();
+      for (const row of (dn ?? []) as (DayNote & { day_status?: AreaStatus | null })[]) {
         map.set(row.date, row.notes ?? null);
         fieldMap.set(row.date, {
           today_objectives: row.today_objectives ?? null,
@@ -166,9 +170,11 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
           tomorrow_objectives: row.tomorrow_objectives ?? null,
           open_issues: row.open_issues ?? null,
         });
+        dsMap.set(row.date, (row.day_status ?? "no_status") as AreaStatus);
       }
       setDayNotes(map);
       setDailyFields(fieldMap);
+      setDayStatus(dsMap);
       const sm = new Map<string, AreaStatus>();
       for (const row of (ads ?? []) as { area_id: string; date: string; status: AreaStatus }[]) {
         sm.set(`${row.area_id}|${row.date}`, row.status);
@@ -329,6 +335,36 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     },
     [projectId, areaDayStatus]
   );
+
+  const setDayStatusFn = useCallback(
+    async (dateKey: string, next: AreaStatus) => {
+      if (!projectId) return;
+      const prev = new Map(dayStatus);
+      setDayStatus((cur) => {
+        const n = new Map(cur);
+        n.set(dateKey, next);
+        return n;
+      });
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+      const payload = {
+        project_id: projectId,
+        date: dateKey,
+        day_status: next,
+        updated_by: authUser?.id,
+      } as never;
+      const { error } = await supabase
+        .from("day_notes")
+        .upsert(payload, { onConflict: "project_id,date" });
+      if (error) {
+        toast.error(error.message);
+        setDayStatus(prev);
+      }
+    },
+    [projectId, dayStatus]
+  );
+
 
   // ---- Project-level mutations ----
   const saveProjectStatus = useCallback(
@@ -590,6 +626,8 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     dailyFields,
     areaDayNotes,
     areaDayStatus,
+    dayStatus,
+    setDayStatus: setDayStatusFn,
     loading,
     loadError,
     refetch,
