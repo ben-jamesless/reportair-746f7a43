@@ -1,0 +1,1 @@
+ALTER TABLE public.day_notes ADD COLUMN IF NOT EXISTS day_status public.area_status NOT NULL DEFAULT 'no_status';
