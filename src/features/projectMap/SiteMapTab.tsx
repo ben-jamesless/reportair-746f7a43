@@ -270,14 +270,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Areas</h3>
           {drawingKind && (
-            <Button size="sm" variant="ghost" onClick={cancelDraw}>
+            <Button size="sm" variant="ghost" className="rounded-none" onClick={cancelDraw}>
               <X className="mr-1 h-3 w-3" /> Cancel
             </Button>
           )}
         </div>
 
         {canEdit && !drawingKind && (
-          <Button size="sm" variant="outline" className="h-8 w-full" onClick={() => startNewZone("polygon")}>
+          <Button size="sm" variant="outline" className="h-8 w-full rounded-none" onClick={() => startNewZone("polygon")}>
             <Plus className="mr-1 h-3 w-3" /> Add zone
           </Button>
         )}
@@ -285,14 +285,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         {drawingKind === "polygon" && (
           <div className="flex gap-1">
             <Button
-              size="sm" variant="outline" className="h-8 flex-1"
+              size="sm" variant="outline" className="h-8 flex-1 rounded-none"
               disabled={draftCount === 0}
               onClick={() => canvasRef.current?.undoLastPoint()}
             >
               <Undo2 className="mr-1 h-3 w-3" /> Undo
             </Button>
             <Button
-              size="sm" className="h-8 flex-1"
+              size="sm" className="h-8 flex-1 rounded-none"
               disabled={draftCount < 3}
               onClick={() => canvasRef.current?.confirmPolygon()}
             >
