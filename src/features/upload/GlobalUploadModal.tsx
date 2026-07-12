@@ -255,6 +255,21 @@ export function GlobalUploadModal({
             }
           }
           const noCaptureDate = !exif.captured_at;
+
+          // HEIC → JPEG conversion for both the thumbnail preview and the
+          // eventual upload. Do this once here so the upload step can skip it.
+          let convertedFile: File | null = null;
+          let previewUrl: string | null = null;
+          if (it.isHeic) {
+            try {
+              convertedFile = await convertHeicFileToJpegFile(it.file);
+              previewUrl = URL.createObjectURL(convertedFile);
+            } catch (convErr) {
+              // Leave preview null → placeholder tile. Upload will retry conversion.
+              console.warn("HEIC preview conversion failed", it.file.name, convErr);
+            }
+          }
+
           setItems((cur) =>
             cur.map((c) => {
               if (c.id !== it.id) return c;
@@ -273,6 +288,8 @@ export function GlobalUploadModal({
                 assignedAreaId: assigned,
                 source,
                 noCaptureDate,
+                convertedFile: convertedFile ?? c.convertedFile,
+                previewUrl: previewUrl ?? c.previewUrl,
               };
             })
           );
