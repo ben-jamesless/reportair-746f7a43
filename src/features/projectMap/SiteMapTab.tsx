@@ -219,12 +219,13 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
           <Button
             size="sm"
             variant="outline"
+            className="rounded-none"
             onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
           >
             <Eye className="mr-1 h-3 w-3" /> Done editing
           </Button>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
+          <Button size="sm" variant="outline" className="rounded-none" onClick={() => setMode("edit")}>
             <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
           </Button>
         )
