@@ -35,9 +35,9 @@ export const PROJECT_STATUSES: StatusMeta[] = [
   },
   {
     value: "requires_discussion",
-    label: "Discuss",
-    dotClass: "bg-[#D94F2A]",
-    pillClass: "bg-[#D94F2A]/15 text-[#D94F2A] dark:text-orange-300 border-[#D94F2A]/40",
+    label: "Flagged",
+    dotClass: "bg-[#D4A017]",
+    pillClass: "bg-[#D4A017]/15 text-[#D4A017] dark:text-yellow-300 border-[#D4A017]/40",
   },
   {
     value: "concern",
