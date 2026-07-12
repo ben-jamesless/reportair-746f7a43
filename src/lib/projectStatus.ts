@@ -19,7 +19,7 @@ type StatusMeta = {
 
 // BuildFolder v5 brand colors:
 // NONE      #9C9A93   ON TRACK  #3A6EA5   DELAYED  #C7382A
-// DISCUSS   #D94F2A   COMPLETE  #3A7D44
+// FLAGGED   #D4A017   COMPLETE  #3A7D44
 export const PROJECT_STATUSES: StatusMeta[] = [
   {
     value: "no_status",
