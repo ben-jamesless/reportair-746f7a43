@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ShareBrandingFooter } from "@/components/ShareBrandingFooter";
 import { ShareSiteMap } from "@/features/projectMap/ShareSiteMap";
+import { StatusTypographic } from "@/components/StatusTypographic";
 
 type SharePhoto = {
   id: string; storage_path: string; file_name: string; caption: string | null;
@@ -99,21 +100,9 @@ const STATUS_META: Record<string, { label: string; bg: string }> = {
 const AREA_PALETTE = ["#437a22", "#006494", "#da7101", "#7a39bb", "#01696f", "#a13544"];
 const colourForArea = (id: string, idx: number) => AREA_PALETTE[idx % AREA_PALETTE.length];
 
-const StatusPill = ({ statusKey, size = "sm" }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
+const StatusPill = ({ statusKey }: { statusKey: string | null | undefined; size?: "sm" | "md" }) => {
   if (!statusKey) return null;
-  const meta = STATUS_META[statusKey];
-  if (!meta) return null;
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full font-semibold text-white",
-        size === "md" ? "px-3 py-1 text-xs" : "px-2 py-0.5 text-xs",
-      )}
-      style={{ backgroundColor: meta.bg }}
-    >
-      {meta.label}
-    </span>
-  );
+  return <StatusTypographic statusKey={statusKey} />;
 };
 
 const StatusDot = ({ statusKey }: { statusKey: string | null | undefined }) => {
