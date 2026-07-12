@@ -216,18 +216,25 @@ export function GlobalUploadModal({
   const analyzeFiles = useCallback(
     async (files: File[]) => {
       if (!files.length) return;
-      const newItems: Item[] = files.map((f) => ({
-        id: crypto.randomUUID(),
-        file: f,
-        previewUrl: URL.createObjectURL(f),
-        status: "queued" as ItemStatus,
-        exif: null,
-        gpsMatchAreaId: null,
-        gpsMatchAreaName: null,
-        assignedAreaId: initialAreaId, // if launched from within an area, default there
-        source: initialAreaId ? "manual" : "none",
-        noCaptureDate: false,
-      }));
+      const newItems: Item[] = files.map((f) => {
+        const heic = isHeicFile(f);
+        return {
+          id: crypto.randomUUID(),
+          file: f,
+          convertedFile: null,
+          // HEIC can't decode in browsers — leave preview null and show a placeholder
+          // until the client-side conversion below produces a JPEG blob URL.
+          previewUrl: heic ? null : URL.createObjectURL(f),
+          isHeic: heic,
+          status: "queued" as ItemStatus,
+          exif: null,
+          gpsMatchAreaId: null,
+          gpsMatchAreaName: null,
+          assignedAreaId: initialAreaId, // if launched from within an area, default there
+          source: initialAreaId ? "manual" : "none",
+          noCaptureDate: false,
+        };
+      });
       setItems((cur) => [...cur, ...newItems]);
 
       const zones = zonesRef.current ?? (await (zonesPromiseRef.current ?? fetchPrimaryZones(projectId)));
