@@ -466,6 +466,27 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         )}
       </div>
       </div>
+      <AlertDialog open={!!deleteArea} onOpenChange={(o) => !o && setDeleteArea(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete area "{deleteArea?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the area from the map, Daily Report and Library. Any drawn
+              zones will be deleted and photos assigned to this area will become unassigned.
+              This can be undone from Settings → Areas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteArea && handleDeleteArea(deleteArea)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
