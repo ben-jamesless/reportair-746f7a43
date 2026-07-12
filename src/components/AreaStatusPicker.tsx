@@ -19,9 +19,9 @@ export const STATUS_META: Record<
     activeBg: "bg-[#3A6EA5]/15", activeText: "text-[#3A6EA5] dark:text-blue-300", activeBorder: "border-[#3A6EA5]/40",
   },
   requires_discussion: {
-    label: "Discuss", short: "Discuss",
-    dot: "bg-[#D94F2A]",
-    activeBg: "bg-[#D94F2A]/15", activeText: "text-[#D94F2A] dark:text-orange-300", activeBorder: "border-[#D94F2A]/40",
+    label: "Flagged", short: "Flagged",
+    dot: "bg-[#D4A017]",
+    activeBg: "bg-[#D4A017]/15", activeText: "text-[#D4A017] dark:text-yellow-300", activeBorder: "border-[#D4A017]/40",
   },
   concern: {
     label: "Delayed", short: "Delayed",
