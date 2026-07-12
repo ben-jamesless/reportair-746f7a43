@@ -203,9 +203,11 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
             clickable: false,
           });
           d.vertexMarkers.push(vm);
+          updateEdgeLabels();
           notifyDraft();
         }
       });
+
 
       map.addListener("dblclick", (e: google.maps.MapMouseEvent) => {
         const { drawingKind: kind } = drawingStateRef.current;
