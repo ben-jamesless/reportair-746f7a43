@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Square, Pentagon, Trash2, X, Undo2, Check, Palette, Star, Plus, Pencil, Eye } from "lucide-react";
+import { Pentagon, Trash2, X, Undo2, Check, Star, Plus, Pencil, Eye } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SiteMapCanvas, type SiteMapCanvasHandle, type StatusTint } from "./SiteMapCanvas";
 import { useMapFeatures, type MapFeature } from "./useMapFeatures";
