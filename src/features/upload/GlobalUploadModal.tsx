@@ -369,7 +369,7 @@ export function GlobalUploadModal({
 
     for (const it of items) {
       setItems((cur) => cur.map((c) => (c.id === it.id ? { ...c, status: "uploading" } : c)));
-      let file = it.file;
+      let file = it.convertedFile ?? it.file;
       try {
         if (isHeicFile(file)) {
           try {
