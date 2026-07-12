@@ -53,7 +53,7 @@ const C = {
   GREEN:   hex("#3A7D44"),  // complete
   BLUE:    hex("#3A6EA5"),  // on track
   GREY:    hex("#9C9A93"),  // none
-  AMBER:   hex("#D94F2A"),  // discuss (accent)
+  AMBER:   hex("#D4A017"),  // flagged (yellow)
   RED:     hex("#C7382A"),  // delayed
   // Photo placeholder
   PHOTO_BG: hex("#E8E6E0"),
