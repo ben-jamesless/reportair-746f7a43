@@ -112,7 +112,7 @@ type StatusKey = "on_track" | "complete" | "requires_discussion" | "delayed" | "
 const STATUS: Record<StatusKey, { label: string; text: ReturnType<typeof rgb>; bg: ReturnType<typeof rgb> }> = {
   on_track:            { label: "On Track", text: HEX("#FFFFFF"), bg: HEX("#3A6EA5") },
   complete:            { label: "Complete", text: HEX("#FFFFFF"), bg: HEX("#3A7D44") },
-  requires_discussion: { label: "Discuss",  text: HEX("#FFFFFF"), bg: HEX("#D94F2A") },
+  requires_discussion: { label: "Flagged",  text: HEX("#FFFFFF"), bg: HEX("#D4A017") },
   delayed:             { label: "Delayed",  text: HEX("#FFFFFF"), bg: HEX("#C7382A") },
   no_status:           { label: "None",     text: HEX("#FFFFFF"), bg: HEX("#9C9A93") },
 };
