@@ -769,15 +769,35 @@ function ItemCard({
 }) {
   return (
     <div className="group relative aspect-square overflow-hidden rounded-md border bg-muted">
-      <img
-        src={item.previewUrl}
-        alt={item.file.name}
-        className={cn(
-          "h-full w-full object-cover transition-opacity",
-          item.status === "uploading" && "opacity-60",
-          item.status === "error" && "opacity-40"
-        )}
-      />
+      {item.previewUrl ? (
+        <img
+          src={item.previewUrl}
+          alt={item.file.name}
+          className={cn(
+            "h-full w-full object-cover transition-opacity",
+            item.status === "uploading" && "opacity-60",
+            item.status === "error" && "opacity-40"
+          )}
+        />
+      ) : (
+        // HEIC preview still decoding, or decode failed. Show a clean placeholder
+        // (icon + truncated filename) instead of a broken image.
+        <div
+          className={cn(
+            "flex h-full w-full flex-col items-center justify-center gap-1 bg-muted p-2 text-center transition-opacity",
+            item.status === "uploading" && "opacity-60",
+            item.status === "error" && "opacity-40"
+          )}
+        >
+          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+          <p className="w-full truncate text-[10px] text-muted-foreground" title={item.file.name}>
+            {item.file.name}
+          </p>
+          {item.isHeic && (
+            <span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">HEIC</span>
+          )}
+        </div>
+      )}
       {(item.status === "analyzing" || item.status === "queued") && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/25">
           <Loader2 className="h-4 w-4 animate-spin text-white" />
