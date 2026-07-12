@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronDown, Check } from "lucide-react";
+import { StatusTypographic } from "@/components/StatusTypographic";
 
 export type AreaStatus = "no_status" | "on_track" | "requires_discussion" | "concern" | "complete";
 
