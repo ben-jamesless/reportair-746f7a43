@@ -227,7 +227,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6">
       {/* Soft-block banner below 768px — Library is deep-curation work */}
-      <div className="md:hidden rounded-xl border border-dashed border-border bg-muted/40 p-4 text-xs text-muted-foreground">
+      <div className="md:hidden border border-dashed border-border bg-muted/40 p-4 text-xs text-muted-foreground">
         The Library is built for the big screen. Filtering, bulk-assigning and
         deleting photos work best on a laptop or desktop.
       </div>
@@ -294,7 +294,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
       {/* Unassigned tray */}
       {unassigned.length > 0 && areaFilter !== UNASSIGNED && (
-        <section className="rounded-xl border border-dashed border-border bg-muted/30 p-4">
+        <section className="border border-dashed border-border bg-muted/30 p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <ImagePlus className="h-4 w-4 text-muted-foreground" />
@@ -327,7 +327,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
       {/* Selection toolbar */}
       {inSelectionMode && (
-        <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur">
+        <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur">
           <span className="text-sm font-medium">
             {selectedCount} selected
           </span>
@@ -374,7 +374,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
       {/* Main grid */}
       {filtered.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        <p className="border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
           No photos match these filters.
         </p>
       ) : (
