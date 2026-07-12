@@ -150,6 +150,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         d.tempPoly.setPath(d.points);
       }
     }
+    updateEdgeLabels();
     notifyDraft();
   };
 
