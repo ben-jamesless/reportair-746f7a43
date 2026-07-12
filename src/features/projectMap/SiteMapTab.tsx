@@ -173,8 +173,81 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
       : drawingKind === "polygon" ? "Click to add points, then press Confirm (or double-click)."
       : "Click and drag on the map to draw a box.";
 
+  // Header: mode toggle + status legend. Present in both modes so switching feels obvious.
+  const legendStatuses = useMemo(() => {
+    const used = new Set(Object.values(statusByArea).filter(Boolean));
+    return Array.from(used);
+  }, [statusByArea]);
+
+  const header = (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center gap-3">
+        <h3 className="text-sm font-semibold">Site map</h3>
+        {legendStatuses.length > 0 && (
+          <div className="hidden items-center gap-2 text-xs text-muted-foreground md:flex">
+            {legendStatuses.map((s) => (
+              <span key={s} className="inline-flex items-center gap-1">
+                <span
+                  className="inline-block h-2 w-2 rounded-full border border-white/60"
+                  style={{ backgroundColor: tintForStatus(s)?.stroke }}
+                />
+                {s.replace(/_/g, " ")}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      {canEdit && (
+        isEditMode ? (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
+          >
+            <Eye className="mr-1 h-3 w-3" /> Done editing
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
+            <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
+          </Button>
+        )
+      )}
+    </div>
+  );
+
+  // VIEW MODE — single-column map, read-only. Tapping a polygon opens that area
+  // (via onAreaOpen, or nothing if not provided).
+  if (!isEditMode) {
+    return (
+      <div className="space-y-3">
+        {header}
+        <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-md border border-[#E3DFD4] bg-card">
+          {geo ? (
+            <SiteMapCanvas
+              center={geo}
+              areas={areas}
+              features={features}
+              onFeatureClick={(f) => onAreaOpen?.(f.area_id)}
+              fallbackColor={color ?? undefined}
+              editable={false}
+              statusTintByArea={statusTintByArea}
+              fitToFeatures
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              Loading map…
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // EDIT MODE — original two-column layout with drawing tools.
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
+    <div className="space-y-3">
+      {header}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
       <aside className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Areas</h3>
@@ -361,7 +434,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         )}
       </aside>
 
-      <div className="h-[70vh] min-h-[500px]">
+      <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-md border border-[#E3DFD4] bg-card">
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}
@@ -380,10 +453,11 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             statusTintByArea={statusTintByArea}
           />
         ) : (
-          <div className="flex h-full items-center justify-center rounded-md border bg-muted/40 text-sm text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Loading map…
           </div>
         )}
+      </div>
       </div>
     </div>
   );
