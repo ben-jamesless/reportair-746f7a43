@@ -1539,7 +1539,7 @@ const ShareDailySection = ({ label, text, body }: { label: string; text: string;
   // Adjacent siblings separate via border-top; the first one drops it via :first-child.
   return (
     <li
-      className="pt-4 first:pt-0 first:border-t-0"
+      className="pt-4 first:border-t-0"
       style={{ borderTop: `1px dashed ${DIVIDER}` }}
     >
       <div className="mb-2 flex items-center gap-2">
