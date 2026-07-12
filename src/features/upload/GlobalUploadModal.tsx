@@ -176,7 +176,7 @@ export function GlobalUploadModal({
   // Cleanup object URLs
   useEffect(() => {
     return () => {
-      for (const it of items) URL.revokeObjectURL(it.previewUrl);
+      for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
