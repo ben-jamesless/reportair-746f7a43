@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -65,12 +65,12 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props)
   const [draftCount, setDraftCount] = useState(0);
   const canvasRef = useRef<SiteMapCanvasHandle>(null);
 
-  const reloadAreas = async () => {
+  const reloadAreas = useCallback(async () => {
     const { data: ar } = await supabase.from("areas")
       .select("id, project_id, name, sort_order, color")
       .eq("project_id", projectId).is("deleted_at", null).order("sort_order");
     setAreas((ar ?? []) as Area[]);
-  };
+  }, [projectId]);
 
   useEffect(() => {
     (async () => {
@@ -115,32 +115,25 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props)
     [features, selectedId],
   );
 
-  if (geoLoaded && !geo) {
-    return (
-      <Card className="p-6 text-sm">
-        <p className="mb-3">Set the event location in project settings first — the map will center on it.</p>
-        <p className="text-muted-foreground">Open <span className="font-medium">Settings → Details</span> and search for the venue.</p>
-      </Card>
-    );
-  }
-
-  const startDraw = (areaId: string, kind: "pin" | "polygon" | "rectangle") => {
+  const startDraw = useCallback((areaId: string, kind: "pin" | "polygon" | "rectangle") => {
     setDrawingAreaId(areaId);
     setDrawingKind(kind);
     setDrawingMode("attach");
     setSelectedId(null);
-  };
-  const startNewZone = (kind: "polygon" | "rectangle") => {
+  }, []);
+  const startNewZone = useCallback((kind: "polygon" | "rectangle") => {
     setDrawingAreaId(null);
     setDrawingKind(kind);
     setDrawingMode("new");
     setSelectedId(null);
-  };
-  const cancelDraw = () => {
+  }, []);
+  const cancelDraw = useCallback(() => {
     setDrawingAreaId(null); setDrawingKind(null); setDrawingMode(null); setDraftCount(0);
-  };
+  }, []);
 
-  const handleCreate = async (areaId: string | null, kind: any, geometry: any, col: string) => {
+  // Stable identity so SiteMapCanvas's overlay effect isn't re-run on every
+  // parent render (the effect lists onCreate/onUpdate/onFeatureClick as deps).
+  const handleCreate = useCallback(async (areaId: string | null, kind: any, geometry: any, col: string) => {
     if (drawingMode === "new") {
       const nextIdx = areas.length + 1;
       const newAreaId = await createZone(`Zone ${nextIdx}`, kind, geometry, col);
@@ -154,7 +147,19 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props)
       toast.success("Added to site map");
     }
     cancelDraw();
-  };
+  }, [drawingMode, areas.length, createZone, reloadAreas, create, cancelDraw]);
+
+  const handleFeatureClick = useCallback((f: MapFeature) => setSelectedId(f.id), []);
+
+  // Keep all hooks above this early return (Rules of Hooks).
+  if (geoLoaded && !geo) {
+    return (
+      <Card className="p-6 text-sm">
+        <p className="mb-3">Set the event location in project settings first — the map will center on it.</p>
+        <p className="text-muted-foreground">Open <span className="font-medium">Settings → Details</span> and search for the venue.</p>
+      </Card>
+    );
+  }
 
   const kindLabel = (k: MapFeature["kind"]) => k === "pin" ? "Pin" : k === "polygon" ? "Zone" : "Box";
 
@@ -364,7 +369,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props)
             drawingKind={drawingKind}
             onCreate={handleCreate}
             onUpdate={updateGeometry}
-            onFeatureClick={(f) => setSelectedId(f.id)}
+            onFeatureClick={handleFeatureClick}
             onDraftChange={setDraftCount}
             selectedId={selectedId}
             fallbackColor={color ?? undefined}
