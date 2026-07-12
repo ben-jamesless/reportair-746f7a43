@@ -14,6 +14,7 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
 import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
+import { useMapFeatures } from "@/features/projectMap/useMapFeatures";
 
 
 const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
@@ -79,6 +80,11 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   const [previewMode, setPreviewMode] = useState(false);
 
   const hidden = useDayHiddenPhotos(projectId);
+  const { features: mapFeatures } = useMapFeatures(projectId);
+  const areasWithBoundary = useMemo(() => {
+    const ids = new Set(mapFeatures.map((f) => f.area_id));
+    return areas.filter((a) => ids.has(a.id));
+  }, [areas, mapFeatures]);
 
   useSeedObjectives(projectId, todayKey, activeDay === todayKey, canEdit, () => {
     refetch();
@@ -277,13 +283,13 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
 
       {/* Per-area cards */}
-      {areas.length === 0 ? (
+      {areasWithBoundary.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No areas defined yet. Draw your site on the Map tab to start grouping photos by area.
+          No areas with boundaries yet. Draw a zone for an area on the Map tab to see it here.
         </p>
       ) : (
         <div className="space-y-4">
-          {areas.map((ar) => {
+          {areasWithBoundary.map((ar) => {
             const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "no_status";
             const note = areaDayNotes.get(`${ar.id}|${activeDay}`) ?? null;
             const ps = photosByArea.get(ar.id) ?? [];

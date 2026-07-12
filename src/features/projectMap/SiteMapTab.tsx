@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Pentagon, Trash2, X, Undo2, Check, Star, Plus, Pencil, Eye } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SiteMapCanvas, type SiteMapCanvasHandle, type StatusTint } from "./SiteMapCanvas";
 import { useMapFeatures, type MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
@@ -72,6 +76,19 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [mode, setMode] = useState<"view" | "edit">(defaultMode ?? "view");
   const isEditMode = canEdit && mode === "edit";
   const canvasRef = useRef<SiteMapCanvasHandle>(null);
+  const [deleteArea, setDeleteArea] = useState<Area | null>(null);
+
+  const handleDeleteArea = async (area: Area) => {
+    const { error } = await supabase
+      .from("areas")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", area.id);
+    if (error) { toast.error(error.message); return; }
+    setAreas((cur) => cur.filter((a) => a.id !== area.id));
+    setDeleteArea(null);
+    onAreasChanged?.();
+    toast.success(`Area "${area.name}" deleted`);
+  };
 
   const reloadAreas = async () => {
     const { data: ar } = await supabase.from("areas")
@@ -306,6 +323,16 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                       />
                     )}
                     <span className="text-xs text-muted-foreground">{items.length}</span>
+                    {canEdit && (
+                      <Button
+                        size="icon" variant="ghost" className="h-6 w-6"
+                        onClick={() => setDeleteArea(a)}
+                        aria-label={`Delete area ${a.name}`}
+                        title="Delete area"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {!hasPrimary && items.length > 0 && (
@@ -439,6 +466,27 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         )}
       </div>
       </div>
+      <AlertDialog open={!!deleteArea} onOpenChange={(o) => !o && setDeleteArea(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete area "{deleteArea?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the area from the map, Daily Report and Library. Any drawn
+              zones will be deleted and photos assigned to this area will become unassigned.
+              This can be undone from Settings → Areas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteArea && handleDeleteArea(deleteArea)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
