@@ -402,14 +402,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                                   <ColorSwatches current={f.color} onPick={(c) => updateColor(f.id, c)} />
                                   {!f.is_primary && (
                                     <Button
-                                      size="sm" variant="outline" className="h-7 w-full text-xs"
+                                      size="sm" variant="outline" className="h-7 w-full text-xs rounded-none"
                                       onClick={() => setPrimary(f.id)}
                                     >
                                       <Star className="mr-1 h-3 w-3" /> Set as primary boundary
                                     </Button>
                                   )}
                                   <Button
-                                    size="sm" variant="destructive" className="h-7 w-full text-xs"
+                                    size="sm" variant="destructive" className="h-7 w-full text-xs rounded-none"
                                     onClick={() => { remove(f.id); setSelectedId(null); }}
                                   >
                                     <Trash2 className="mr-1 h-3 w-3" /> Delete
