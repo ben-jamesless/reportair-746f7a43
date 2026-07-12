@@ -290,10 +290,13 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
             return (
               <article
                 key={ar.id}
-                className="overflow-hidden rounded-xl border bg-card"
-                style={{ borderColor: SHEET_BORDER }}
+                className="overflow-hidden border bg-card shadow-none"
+                style={{ borderColor: SHEET_BORDER, borderRadius: 0 }}
               >
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <div
+                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                  style={{ borderBottom: `1px solid ${SHEET_BORDER}` }}
+                >
                   <span className="text-sm font-semibold text-foreground">{ar.name}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground">
