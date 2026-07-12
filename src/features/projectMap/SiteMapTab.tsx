@@ -442,7 +442,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
       </aside>
 
 
-      <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-md border border-[#E3DFD4] bg-card">
+      <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}
