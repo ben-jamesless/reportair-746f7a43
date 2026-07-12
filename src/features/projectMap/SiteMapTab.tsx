@@ -219,12 +219,13 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
           <Button
             size="sm"
             variant="outline"
+            className="rounded-none"
             onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
           >
             <Eye className="mr-1 h-3 w-3" /> Done editing
           </Button>
         ) : (
-          <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
+          <Button size="sm" variant="outline" className="rounded-none" onClick={() => setMode("edit")}>
             <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
           </Button>
         )
@@ -269,14 +270,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Areas</h3>
           {drawingKind && (
-            <Button size="sm" variant="ghost" onClick={cancelDraw}>
+            <Button size="sm" variant="ghost" className="rounded-none" onClick={cancelDraw}>
               <X className="mr-1 h-3 w-3" /> Cancel
             </Button>
           )}
         </div>
 
         {canEdit && !drawingKind && (
-          <Button size="sm" variant="outline" className="h-8 w-full" onClick={() => startNewZone("polygon")}>
+          <Button size="sm" variant="outline" className="h-8 w-full rounded-none" onClick={() => startNewZone("polygon")}>
             <Plus className="mr-1 h-3 w-3" /> Add zone
           </Button>
         )}
@@ -284,14 +285,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         {drawingKind === "polygon" && (
           <div className="flex gap-1">
             <Button
-              size="sm" variant="outline" className="h-8 flex-1"
+              size="sm" variant="outline" className="h-8 flex-1 rounded-none"
               disabled={draftCount === 0}
               onClick={() => canvasRef.current?.undoLastPoint()}
             >
               <Undo2 className="mr-1 h-3 w-3" /> Undo
             </Button>
             <Button
-              size="sm" className="h-8 flex-1"
+              size="sm" className="h-8 flex-1 rounded-none"
               disabled={draftCount < 3}
               onClick={() => canvasRef.current?.confirmPolygon()}
             >
@@ -341,7 +342,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                 {canEdit && (
                   <div className="mt-2">
                     <Button size="sm" variant={isActive && drawingKind === "polygon" ? "default" : "outline"}
-                      className="h-7 w-full px-2 text-xs" onClick={() => startDraw(a.id, "polygon")}>
+                      className="h-7 w-full px-2 text-xs rounded-none" onClick={() => startDraw(a.id, "polygon")}>
                       <Pentagon className="mr-1 h-3 w-3" /> {hasPrimary ? "Add zone" : "Draw boundary"}
                     </Button>
                   </div>
@@ -395,20 +396,20 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                                       if ((v.trim() || null) !== (f.label ?? null)) updateLabel(f.id, v);
                                     }}
                                     onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                                    className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                    className="w-full rounded-none border border-input bg-background px-2 py-1 text-xs"
                                   />
                                   <p className="text-[11px] text-muted-foreground">Color</p>
                                   <ColorSwatches current={f.color} onPick={(c) => updateColor(f.id, c)} />
                                   {!f.is_primary && (
                                     <Button
-                                      size="sm" variant="outline" className="h-7 w-full text-xs"
+                                      size="sm" variant="outline" className="h-7 w-full text-xs rounded-none"
                                       onClick={() => setPrimary(f.id)}
                                     >
                                       <Star className="mr-1 h-3 w-3" /> Set as primary boundary
                                     </Button>
                                   )}
                                   <Button
-                                    size="sm" variant="destructive" className="h-7 w-full text-xs"
+                                    size="sm" variant="destructive" className="h-7 w-full text-xs rounded-none"
                                     onClick={() => { remove(f.id); setSelectedId(null); }}
                                   >
                                     <Trash2 className="mr-1 h-3 w-3" /> Delete
@@ -441,7 +442,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
       </aside>
 
 
-      <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-md border border-[#E3DFD4] bg-card">
+      <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}
