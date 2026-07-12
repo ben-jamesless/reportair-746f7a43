@@ -89,7 +89,7 @@ function statusLabel(s: string | null): string {
   const k = normaliseStatus(s);
   return k === "none" ? "NONE"
        : k === "on_track" ? "ON TRACK"
-       : k === "requires_discussion" ? "DISCUSS"
+       : k === "requires_discussion" ? "FLAGGED"
        : k === "concern" ? "DELAYED"
        : "COMPLETE";
 }
