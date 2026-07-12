@@ -21,7 +21,7 @@ interface Props {
 const STATUS_HEX: Record<string, string> = {
   no_status: "#9C9A93",
   on_track: "#3A6EA5",
-  requires_discussion: "#D94F2A",
+  requires_discussion: "#D4A017",
   concern: "#C7382A",
   behind_schedule: "#C7382A",
   complete: "#3A7D44",
