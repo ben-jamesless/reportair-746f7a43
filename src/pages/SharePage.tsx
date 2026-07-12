@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ShareBrandingFooter } from "@/components/ShareBrandingFooter";
 import { ShareSiteMap } from "@/features/projectMap/ShareSiteMap";
+import { StatusTypographic } from "@/components/StatusTypographic";
 
 type SharePhoto = {
   id: string; storage_path: string; file_name: string; caption: string | null;
