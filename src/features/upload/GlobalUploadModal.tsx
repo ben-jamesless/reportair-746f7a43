@@ -584,7 +584,7 @@ export function GlobalUploadModal({
                 <div className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300/60 bg-amber-50 px-3 py-2 text-sm dark:border-amber-700/50 dark:bg-amber-950/30">
                   <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                   <span className="flex-1 text-amber-900 dark:text-amber-100">
-                    {unassignedCount} photo{unassignedCount === 1 ? "" : "s"} have no location — assign an area
+                    {unassignedCount === 1 ? "1 photo has" : `${unassignedCount} photos have`} no location — assign an area
                   </span>
                   {areas.length > 0 && (
                     <DropdownMenu>
