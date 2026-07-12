@@ -323,6 +323,16 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                       />
                     )}
                     <span className="text-xs text-muted-foreground">{items.length}</span>
+                    {canEdit && (
+                      <Button
+                        size="icon" variant="ghost" className="h-6 w-6"
+                        onClick={() => setDeleteArea(a)}
+                        aria-label={`Delete area ${a.name}`}
+                        title="Delete area"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {!hasPrimary && items.length > 0 && (
