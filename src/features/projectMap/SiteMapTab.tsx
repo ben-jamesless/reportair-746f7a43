@@ -342,7 +342,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                 {canEdit && (
                   <div className="mt-2">
                     <Button size="sm" variant={isActive && drawingKind === "polygon" ? "default" : "outline"}
-                      className="h-7 w-full px-2 text-xs" onClick={() => startDraw(a.id, "polygon")}>
+                      className="h-7 w-full px-2 text-xs rounded-none" onClick={() => startDraw(a.id, "polygon")}>
                       <Pentagon className="mr-1 h-3 w-3" /> {hasPrimary ? "Add zone" : "Draw boundary"}
                     </Button>
                   </div>
