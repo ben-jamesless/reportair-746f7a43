@@ -396,7 +396,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                                       if ((v.trim() || null) !== (f.label ?? null)) updateLabel(f.id, v);
                                     }}
                                     onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                                    className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                    className="w-full rounded-none border border-input bg-background px-2 py-1 text-xs"
                                   />
                                   <p className="text-[11px] text-muted-foreground">Color</p>
                                   <ColorSwatches current={f.color} onPick={(c) => updateColor(f.id, c)} />
