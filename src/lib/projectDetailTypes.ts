@@ -69,7 +69,7 @@ export const areaStatusAccent = (s: AreaStatus | null | undefined): string => {
     case "on_track":
       return "#3b82f6";
     case "requires_discussion":
-      return "#f97316";
+      return "#D4A017";
     case "concern":
       return "#ef4444";
     case "complete":
