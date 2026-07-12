@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Pentagon, Trash2, X, Undo2, Check, Star, Plus, Pencil, Eye } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SiteMapCanvas, type SiteMapCanvasHandle, type StatusTint } from "./SiteMapCanvas";
 import { useMapFeatures, type MapFeature } from "./useMapFeatures";
 import type { Area } from "@/components/AreasManager";
