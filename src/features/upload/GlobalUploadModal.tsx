@@ -74,7 +74,12 @@ type ItemStatus = "queued" | "analyzing" | "ready" | "uploading" | "done" | "err
 type Item = {
   id: string;
   file: File;
-  previewUrl: string;
+  /** Pre-converted JPEG for HEIC uploads, so we don't re-convert at upload time. */
+  convertedFile: File | null;
+  /** Object URL for the thumbnail. Null while a HEIC preview is still decoding. */
+  previewUrl: string | null;
+  /** True for HEIC/HEIF originals — used to show a placeholder tile while decoding. */
+  isHeic: boolean;
   status: ItemStatus;
   exif: ExifData | null;
   /** GPS auto-detected area (before user override) */
