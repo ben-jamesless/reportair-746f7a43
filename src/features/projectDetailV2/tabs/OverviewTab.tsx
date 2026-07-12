@@ -45,7 +45,7 @@ export function OverviewTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="border border-border bg-card p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold text-foreground">{project.name}</h2>
@@ -128,7 +128,7 @@ export function OverviewTab({ projectId }: { projectId: string }) {
 
 function StatCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="border border-border bg-card p-4">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon} {label}</div>
       <div className="mt-2 text-2xl font-semibold text-foreground">{value}</div>
     </div>
@@ -137,7 +137,7 @@ function StatCard({ label, value, icon }: { label: string; value: string | numbe
 
 function Panel({ title, dotColor, children }: { title: string; dotColor?: string; children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
+    <div className="overflow-hidden border border-border bg-card">
       <div className="flex items-center gap-2 px-4 py-3">
         {dotColor && (
           <span

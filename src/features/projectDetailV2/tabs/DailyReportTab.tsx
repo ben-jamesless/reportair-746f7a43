@@ -214,8 +214,8 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
       {/* Day header — one "filed sheet" card, four rows */}
       <div
-        className="rounded-xl border overflow-hidden"
-        style={{ backgroundColor: SHEET_BG, borderColor: SHEET_BORDER }}
+        className="border overflow-hidden"
+        style={{ backgroundColor: SHEET_BG, borderColor: SHEET_BORDER, borderRadius: 0 }}
       >
         {DAILY_BLOCKS.map((b, idx) => {
           const value = dailyFields.get(activeDay)?.[b.key] ?? null;
@@ -284,7 +284,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
       {/* Per-area cards */}
       {areasWithBoundary.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        <p className="border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           No areas with boundaries yet. Draw a zone for an area on the Map tab to see it here.
         </p>
       ) : (
@@ -371,7 +371,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
           {/* Unassigned bucket for the day */}
           {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
-            <article className="rounded-xl border border-dashed border-border p-4">
+            <article className="border border-dashed border-border p-4">
               <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Unassigned photos this day
               </p>
