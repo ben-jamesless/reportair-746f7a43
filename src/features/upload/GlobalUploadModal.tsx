@@ -502,7 +502,7 @@ export function GlobalUploadModal({
 
   const handleClose = useCallback(() => {
     if (phase === "uploading") return; // block close mid-upload
-    for (const it of items) URL.revokeObjectURL(it.previewUrl);
+    for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     onClose();
   }, [phase, items, onClose]);
 
