@@ -19,7 +19,7 @@ type StatusMeta = {
 
 // BuildFolder v5 brand colors:
 // NONE      #9C9A93   ON TRACK  #3A6EA5   DELAYED  #C7382A
-// DISCUSS   #D94F2A   COMPLETE  #3A7D44
+// FLAGGED   #D4A017   COMPLETE  #3A7D44
 export const PROJECT_STATUSES: StatusMeta[] = [
   {
     value: "no_status",
@@ -35,9 +35,9 @@ export const PROJECT_STATUSES: StatusMeta[] = [
   },
   {
     value: "requires_discussion",
-    label: "Discuss",
-    dotClass: "bg-[#D94F2A]",
-    pillClass: "bg-[#D94F2A]/15 text-[#D94F2A] dark:text-orange-300 border-[#D94F2A]/40",
+    label: "Flagged",
+    dotClass: "bg-[#D4A017]",
+    pillClass: "bg-[#D4A017]/15 text-[#D4A017] dark:text-yellow-300 border-[#D4A017]/40",
   },
   {
     value: "concern",
