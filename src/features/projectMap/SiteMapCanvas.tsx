@@ -64,11 +64,12 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     points: google.maps.LatLng[];
     tempPoly: google.maps.Polyline | null;
     vertexMarkers: google.maps.Marker[];
+    edgeLabels: google.maps.Marker[];
     tempRect: google.maps.Rectangle | null;
     rectStart: google.maps.LatLng | null;
     rectMoveListener: google.maps.MapsEventListener | null;
     rectUpListener: google.maps.MapsEventListener | null;
-  }>({ points: [], tempPoly: null, vertexMarkers: [], tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null });
+  }>({ points: [], tempPoly: null, vertexMarkers: [], edgeLabels: [], tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null });
 
   useEffect(() => { drawingStateRef.current = { drawingAreaId, drawingKind, editable }; }, [drawingAreaId, drawingKind, editable]);
   useEffect(() => { onCreateRef.current = onCreate; }, [onCreate]);
@@ -78,16 +79,51 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
 
   const notifyDraft = () => onDraftChangeRef.current?.(draftRef.current.points.length);
 
+  const formatDistance = (m: number) => (m < 1000 ? `${m.toFixed(1)} m` : `${(m / 1000).toFixed(2)} km`);
+
+  const updateEdgeLabels = () => {
+    const g = window.google;
+    const map = mapRef.current;
+    const d = draftRef.current;
+    if (!g || !map) return;
+    // Clear existing
+    d.edgeLabels.forEach((m) => m.setMap(null));
+    d.edgeLabels = [];
+    if (d.points.length < 2 || !g.maps.geometry?.spherical) return;
+    for (let i = 0; i < d.points.length - 1; i++) {
+      const a = d.points[i];
+      const b = d.points[i + 1];
+      const dist = g.maps.geometry.spherical.computeDistanceBetween(a, b);
+      const mid = { lat: (a.lat() + b.lat()) / 2, lng: (a.lng() + b.lng()) / 2 };
+      const lm = new g.maps.Marker({
+        position: mid, map,
+        icon: { path: g.maps.SymbolPath.CIRCLE, scale: 0, fillOpacity: 0, strokeOpacity: 0 },
+        label: {
+          text: formatDistance(dist),
+          color: "#ffffff",
+          fontSize: "11px",
+          fontWeight: "600",
+          className: "site-map-edge-label",
+        },
+        clickable: false,
+        zIndex: 10000,
+      });
+      d.edgeLabels.push(lm);
+    }
+  };
+
   const clearDraft = () => {
     const d = draftRef.current;
     d.tempPoly?.setMap(null);
     d.vertexMarkers.forEach((m) => m.setMap(null));
+    d.edgeLabels.forEach((m) => m.setMap(null));
     d.tempRect?.setMap(null);
     d.rectMoveListener?.remove();
     d.rectUpListener?.remove();
-    draftRef.current = { points: [], tempPoly: null, vertexMarkers: [], tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null };
+    draftRef.current = { points: [], tempPoly: null, vertexMarkers: [], edgeLabels: [], tempRect: null, rectStart: null, rectMoveListener: null, rectUpListener: null };
     notifyDraft();
   };
+
 
   const finishPolygon = () => {
     const { drawingAreaId: aid, drawingKind: kind } = drawingStateRef.current;
@@ -114,6 +150,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         d.tempPoly.setPath(d.points);
       }
     }
+    updateEdgeLabels();
     notifyDraft();
   };
 
@@ -167,9 +204,11 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
             clickable: false,
           });
           d.vertexMarkers.push(vm);
+          updateEdgeLabels();
           notifyDraft();
         }
       });
+
 
       map.addListener("dblclick", (e: google.maps.MapMouseEvent) => {
         const { drawingKind: kind } = drawingStateRef.current;
