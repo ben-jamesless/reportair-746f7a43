@@ -259,14 +259,9 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         </div>
 
         {canEdit && !drawingKind && (
-          <div className="flex gap-1">
-            <Button size="sm" variant="outline" className="h-8 flex-1" onClick={() => startNewZone("polygon")}>
-              <Plus className="mr-1 h-3 w-3" /> New zone
-            </Button>
-            <Button size="sm" variant="outline" className="h-8 flex-1" onClick={() => startNewZone("rectangle")}>
-              <Plus className="mr-1 h-3 w-3" /> New box
-            </Button>
-          </div>
+          <Button size="sm" variant="outline" className="h-8 w-full" onClick={() => startNewZone("polygon")}>
+            <Plus className="mr-1 h-3 w-3" /> Add zone
+          </Button>
         )}
 
         {drawingKind === "polygon" && (
@@ -290,7 +285,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
 
         {areas.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            No areas yet. Use <span className="font-medium">New zone</span> above to draw one, or add areas in Settings → Areas.
+            No areas yet. Use <span className="font-medium">Add zone</span> above to draw one, or add areas in Settings → Areas.
           </p>
         )}
         <ul className="space-y-2">
@@ -317,18 +312,10 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                   <p className="mt-1 text-[11px] text-amber-600">No primary boundary — add or promote one.</p>
                 )}
                 {canEdit && (
-                  <div className="mt-2 flex gap-1">
-                    <Button size="sm" variant={isActive && drawingKind === "pin" ? "default" : "outline"}
-                      className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "pin")}>
-                      <MapPin className="mr-1 h-3 w-3" /> Pin
-                    </Button>
+                  <div className="mt-2">
                     <Button size="sm" variant={isActive && drawingKind === "polygon" ? "default" : "outline"}
-                      className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "polygon")}>
-                      <Pentagon className="mr-1 h-3 w-3" /> {hasPrimary ? "Zone" : "Boundary"}
-                    </Button>
-                    <Button size="sm" variant={isActive && drawingKind === "rectangle" ? "default" : "outline"}
-                      className="h-7 flex-1 px-2 text-xs" onClick={() => startDraw(a.id, "rectangle")}>
-                      <Square className="mr-1 h-3 w-3" /> Box
+                      className="h-7 w-full px-2 text-xs" onClick={() => startDraw(a.id, "polygon")}>
+                      <Pentagon className="mr-1 h-3 w-3" /> {hasPrimary ? "Add zone" : "Draw boundary"}
                     </Button>
                   </div>
                 )}
@@ -336,18 +323,15 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                   <ul className="mt-2 space-y-1">
                     {items.map((f) => {
                       const isSel = selectedId === f.id;
+                      const isEditable = canEdit && (f.kind === "polygon" || f.kind === "rectangle");
                       return (
                         <li
                           key={f.id}
-                          className={`flex items-center justify-between gap-1 rounded px-1.5 py-1 text-xs ${isSel ? "bg-accent" : ""}`}
+                          className={`flex items-center justify-between gap-1 rounded px-1.5 py-1 text-xs ${isSel ? "ring-1 ring-inset ring-border" : ""}`}
                         >
-                          <button
-                            type="button"
-                            className="flex flex-1 items-center gap-2 text-left"
-                            onClick={() => setSelectedId(isSel ? null : f.id)}
-                          >
+                          <div className="flex flex-1 items-center gap-2 min-w-0">
                             <span
-                              className="inline-block h-3 w-3 rounded-full border border-white/60"
+                              className="inline-block h-3 w-3 rounded-full border border-white/60 shrink-0"
                               style={{ backgroundColor: f.color ?? "#64748B" }}
                             />
                             <span className="truncate">
@@ -356,27 +340,63 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                             {f.is_primary && (
                               <Star className="h-3 w-3 text-amber-500 shrink-0" aria-label="Primary boundary" />
                             )}
-                          </button>
-                          {canEdit && (
-                            <>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Change color">
-                                    <Palette className="h-3 w-3" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-2" side="right">
+                          </div>
+                          {isEditable ? (
+                            <Popover
+                              open={isSel}
+                              onOpenChange={(o) => setSelectedId(o ? f.id : (isSel ? null : selectedId))}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button size="icon" variant="ghost" className="h-6 w-6" aria-label="Edit zone">
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-64 p-3" side="right" align="start">
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-semibold">Edit zone</span>
+                                  </div>
+                                  <label className="block text-[11px] text-muted-foreground">Label</label>
+                                  <input
+                                    key={f.id}
+                                    type="text"
+                                    defaultValue={f.label ?? ""}
+                                    placeholder="e.g. Main stage"
+                                    maxLength={60}
+                                    onBlur={(e) => {
+                                      const v = e.target.value;
+                                      if ((v.trim() || null) !== (f.label ?? null)) updateLabel(f.id, v);
+                                    }}
+                                    onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                                    className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                  />
+                                  <p className="text-[11px] text-muted-foreground">Color</p>
                                   <ColorSwatches current={f.color} onPick={(c) => updateColor(f.id, c)} />
-                                </PopoverContent>
-                              </Popover>
-                              <Button
-                                size="icon" variant="ghost" className="h-6 w-6"
-                                onClick={() => { remove(f.id); if (isSel) setSelectedId(null); }}
-                                aria-label="Delete feature"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </>
+                                  {!f.is_primary && (
+                                    <Button
+                                      size="sm" variant="outline" className="h-7 w-full text-xs"
+                                      onClick={() => setPrimary(f.id)}
+                                    >
+                                      <Star className="mr-1 h-3 w-3" /> Set as primary boundary
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm" variant="destructive" className="h-7 w-full text-xs"
+                                    onClick={() => { remove(f.id); setSelectedId(null); }}
+                                  >
+                                    <Trash2 className="mr-1 h-3 w-3" /> Delete
+                                  </Button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          ) : canEdit && (
+                            <Button
+                              size="icon" variant="ghost" className="h-6 w-6"
+                              onClick={() => { remove(f.id); if (isSel) setSelectedId(null); }}
+                              aria-label="Delete feature"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           )}
                         </li>
                       );
@@ -391,48 +411,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         {drawingKind && (
           <p className="text-xs text-muted-foreground">{drawHintText}</p>
         )}
-
-        {selectedFeature && canEdit && !drawingKind && (
-          <div className="rounded-md border p-2">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold">Selected: {kindLabel(selectedFeature.kind)}</span>
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setSelectedId(null)}>
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            <label className="mb-1 block text-xs text-muted-foreground">Label</label>
-            <input
-              key={selectedFeature.id}
-              type="text"
-              defaultValue={selectedFeature.label ?? ""}
-              placeholder="e.g. Main stage"
-              maxLength={60}
-              onBlur={(e) => {
-                const v = e.target.value;
-                if ((v.trim() || null) !== (selectedFeature.label ?? null)) updateLabel(selectedFeature.id, v);
-              }}
-              onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-              className="mb-2 w-full rounded border border-input bg-background px-2 py-1 text-xs"
-            />
-            <p className="mb-2 text-xs text-muted-foreground">Color</p>
-            <ColorSwatches current={selectedFeature.color} onPick={(c) => updateColor(selectedFeature.id, c)} />
-            {(selectedFeature.kind === "polygon" || selectedFeature.kind === "rectangle") && !selectedFeature.is_primary && (
-              <Button
-                size="sm" variant="outline" className="mt-2 h-7 w-full text-xs"
-                onClick={() => setPrimary(selectedFeature.id)}
-              >
-                <Star className="mr-1 h-3 w-3" /> Set as primary boundary
-              </Button>
-            )}
-            <Button
-              size="sm" variant="destructive" className="mt-2 h-7 w-full text-xs"
-              onClick={() => { remove(selectedFeature.id); setSelectedId(null); }}
-            >
-              <Trash2 className="mr-1 h-3 w-3" /> Delete
-            </Button>
-          </div>
-        )}
       </aside>
+
 
       <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-md border border-[#E3DFD4] bg-card">
         {geo ? (
