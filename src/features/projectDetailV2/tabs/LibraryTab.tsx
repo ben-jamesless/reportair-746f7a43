@@ -78,8 +78,9 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const hidden = useDayHiddenPhotos(projectId);
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const initialFilterParam = searchParams.get("filter");
   const [areaFilter, setAreaFilter] = useState<string>(
-    searchParams.get("filter") === "unassigned" ? UNASSIGNED : ALL
+    initialFilterParam === "unassigned" ? UNASSIGNED : (initialFilterParam ?? ALL)
   );
   const [dayFilter, setDayFilter] = useState<string>(ALL);
   // Search removed for now — filters below carry the load.
@@ -90,16 +91,23 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
   const areaMap = useMemo(() => new Map(areas.map((a) => [a.id, a.name])), [areas]);
 
-  // Sync ?filter=unassigned → clear the URL flag once consumed so page reloads don't relock.
+  // Sync ?filter=<area_id|unassigned> → apply once, then clear the URL flag so
+  // reloads don't relock, and switching tabs later doesn't force a stale filter.
   useEffect(() => {
-    if (searchParams.get("filter") === "unassigned") {
+    const f = searchParams.get("filter");
+    if (!f) return;
+    if (f === "unassigned") {
       setAreaFilter(UNASSIGNED);
-      const p = new URLSearchParams(searchParams);
-      p.delete("filter");
-      setSearchParams(p, { replace: true });
+    } else if (areaMap.has(f)) {
+      setAreaFilter(f);
+    } else if (f !== ALL) {
+      // unknown filter value — ignore and fall through to clearing the param
     }
+    const p = new URLSearchParams(searchParams);
+    p.delete("filter");
+    setSearchParams(p, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, areaMap]);
 
   // Hidden-days lookup per photo id
   const hiddenDaysByPhoto = useMemo(() => {

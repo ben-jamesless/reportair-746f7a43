@@ -333,8 +333,12 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
         }
       }
 
-      // Label overlay (transparent marker with text)
-      const labelText = f.label?.trim();
+      // Label overlay (transparent marker with text).
+      // Fallback: on a primary polygon/rectangle with no custom label, show the area name.
+      let labelText = f.label?.trim();
+      if (!labelText && f.is_primary && (f.kind === "polygon" || f.kind === "rectangle")) {
+        labelText = area?.name?.trim() || undefined;
+      }
       let labelPos: google.maps.LatLngLiteral | null = null;
       if (labelText) {
         if (f.kind === "pin") {

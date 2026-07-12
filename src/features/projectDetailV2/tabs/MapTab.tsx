@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteMapTab } from "@/features/projectMap/SiteMapTab";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,13 +9,15 @@ interface Props {
 }
 
 /**
- * Phase 0: the Map tab is the one screen that ships real functionality in v2 —
- * it wraps the existing `SiteMapTab` with the props it needs.
+ * v2 Map tab — a single surface with View / Edit modes toggled from the header
+ * (see SiteMapTab). Tapping a polygon in View mode routes to the Library tab
+ * filtered to that area.
  */
 export function MapTab({ projectId }: Props) {
   const [color, setColor] = useState<string | null>(null);
   const [canEdit, setCanEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +65,20 @@ export function MapTab({ projectId }: Props) {
     };
   }, [projectId]);
 
+  const openAreaInLibrary = (areaId: string) => {
+    const p = new URLSearchParams(searchParams);
+    p.set("tab", "library");
+    p.set("filter", areaId);
+    setSearchParams(p, { replace: false });
+  };
+
   if (loading) return <Skeleton className="h-[600px] w-full" />;
-  return <SiteMapTab projectId={projectId} color={color} canEdit={canEdit} />;
+  return (
+    <SiteMapTab
+      projectId={projectId}
+      color={color}
+      canEdit={canEdit}
+      onAreaOpen={openAreaInLibrary}
+    />
+  );
 }
