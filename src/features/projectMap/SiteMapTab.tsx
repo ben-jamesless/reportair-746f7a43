@@ -56,7 +56,7 @@ function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (
 
 const NEW_ZONE = "__new_zone__";
 
-export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props) {
+export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOpen, defaultMode }: Props) {
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
@@ -67,6 +67,10 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged }: Props)
   const [drawingMode, setDrawingMode] = useState<"attach" | "new" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draftCount, setDraftCount] = useState(0);
+  // Consolidated Map tab: one surface, two modes. View mode is the default read-only surface;
+  // Edit mode exposes draw/edit/delete for boundaries. Toggle sits in the tab header.
+  const [mode, setMode] = useState<"view" | "edit">(defaultMode ?? "view");
+  const isEditMode = canEdit && mode === "edit";
   const canvasRef = useRef<SiteMapCanvasHandle>(null);
 
   const reloadAreas = async () => {
