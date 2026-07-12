@@ -337,7 +337,7 @@ export function GlobalUploadModal({
   const removeItem = useCallback((itemId: string) => {
     setItems((cur) => {
       const it = cur.find((c) => c.id === itemId);
-      if (it) URL.revokeObjectURL(it.previewUrl);
+      if (it && it.previewUrl) URL.revokeObjectURL(it.previewUrl);
       return cur.filter((c) => c.id !== itemId);
     });
   }, []);
