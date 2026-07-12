@@ -238,7 +238,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     return (
       <div className="space-y-3">
         {header}
-        <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-md border border-[#E3DFD4] bg-card">
+        <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
           {geo ? (
             <SiteMapCanvas
               center={geo}
@@ -311,7 +311,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             const hasPrimary = items.some((f) => f.is_primary);
             const isActive = drawingAreaId === a.id;
             return (
-              <li key={a.id} className="rounded-md border p-2">
+              <li key={a.id} className="border border-[#E3DFD4] p-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{a.name}</span>
                   <div className="flex items-center gap-1">
