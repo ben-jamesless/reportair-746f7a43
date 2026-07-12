@@ -80,13 +80,13 @@ const SURFACE = "var(--surface-2)";
 // brand palette (see src/lib/projectStatus.ts) so the share page matches the
 // rest of the app.
 //   ON TRACK  #3A6EA5 (blue)
-//   DISCUSS   #D94F2A (orange)
+//   FLAGGED   #D4A017 (yellow)
 //   DELAYED   #C7382A (red)
 //   COMPLETE  #3A7D44 (green)
 //   NONE      #9C9A93 (grey)
 const STATUS_META: Record<string, { label: string; bg: string }> = {
   on_track: { label: "On track", bg: "#3A6EA5" },
-  requires_discussion: { label: "Discuss", bg: "#D94F2A" },
+  requires_discussion: { label: "Flagged", bg: "#D4A017" },
   at_risk: { label: "Delayed", bg: "#C7382A" },
   delayed: { label: "Delayed", bg: "#C7382A" },
   concern: { label: "Delayed", bg: "#C7382A" },
