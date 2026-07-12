@@ -74,7 +74,12 @@ type ItemStatus = "queued" | "analyzing" | "ready" | "uploading" | "done" | "err
 type Item = {
   id: string;
   file: File;
-  previewUrl: string;
+  /** Pre-converted JPEG for HEIC uploads, so we don't re-convert at upload time. */
+  convertedFile: File | null;
+  /** Object URL for the thumbnail. Null while a HEIC preview is still decoding. */
+  previewUrl: string | null;
+  /** True for HEIC/HEIF originals — used to show a placeholder tile while decoding. */
+  isHeic: boolean;
   status: ItemStatus;
   exif: ExifData | null;
   /** GPS auto-detected area (before user override) */
@@ -171,7 +176,7 @@ export function GlobalUploadModal({
   // Cleanup object URLs
   useEffect(() => {
     return () => {
-      for (const it of items) URL.revokeObjectURL(it.previewUrl);
+      for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -211,18 +216,25 @@ export function GlobalUploadModal({
   const analyzeFiles = useCallback(
     async (files: File[]) => {
       if (!files.length) return;
-      const newItems: Item[] = files.map((f) => ({
-        id: crypto.randomUUID(),
-        file: f,
-        previewUrl: URL.createObjectURL(f),
-        status: "queued" as ItemStatus,
-        exif: null,
-        gpsMatchAreaId: null,
-        gpsMatchAreaName: null,
-        assignedAreaId: initialAreaId, // if launched from within an area, default there
-        source: initialAreaId ? "manual" : "none",
-        noCaptureDate: false,
-      }));
+      const newItems: Item[] = files.map((f) => {
+        const heic = isHeicFile(f);
+        return {
+          id: crypto.randomUUID(),
+          file: f,
+          convertedFile: null,
+          // HEIC can't decode in browsers — leave preview null and show a placeholder
+          // until the client-side conversion below produces a JPEG blob URL.
+          previewUrl: heic ? null : URL.createObjectURL(f),
+          isHeic: heic,
+          status: "queued" as ItemStatus,
+          exif: null,
+          gpsMatchAreaId: null,
+          gpsMatchAreaName: null,
+          assignedAreaId: initialAreaId, // if launched from within an area, default there
+          source: initialAreaId ? "manual" : "none",
+          noCaptureDate: false,
+        };
+      });
       setItems((cur) => [...cur, ...newItems]);
 
       const zones = zonesRef.current ?? (await (zonesPromiseRef.current ?? fetchPrimaryZones(projectId)));
@@ -243,6 +255,21 @@ export function GlobalUploadModal({
             }
           }
           const noCaptureDate = !exif.captured_at;
+
+          // HEIC → JPEG conversion for both the thumbnail preview and the
+          // eventual upload. Do this once here so the upload step can skip it.
+          let convertedFile: File | null = null;
+          let previewUrl: string | null = null;
+          if (it.isHeic) {
+            try {
+              convertedFile = await convertHeicFileToJpegFile(it.file);
+              previewUrl = URL.createObjectURL(convertedFile);
+            } catch (convErr) {
+              // Leave preview null → placeholder tile. Upload will retry conversion.
+              console.warn("HEIC preview conversion failed", it.file.name, convErr);
+            }
+          }
+
           setItems((cur) =>
             cur.map((c) => {
               if (c.id !== it.id) return c;
@@ -261,6 +288,8 @@ export function GlobalUploadModal({
                 assignedAreaId: assigned,
                 source,
                 noCaptureDate,
+                convertedFile: convertedFile ?? c.convertedFile,
+                previewUrl: previewUrl ?? c.previewUrl,
               };
             })
           );
@@ -308,7 +337,7 @@ export function GlobalUploadModal({
   const removeItem = useCallback((itemId: string) => {
     setItems((cur) => {
       const it = cur.find((c) => c.id === itemId);
-      if (it) URL.revokeObjectURL(it.previewUrl);
+      if (it && it.previewUrl) URL.revokeObjectURL(it.previewUrl);
       return cur.filter((c) => c.id !== itemId);
     });
   }, []);
@@ -340,7 +369,7 @@ export function GlobalUploadModal({
 
     for (const it of items) {
       setItems((cur) => cur.map((c) => (c.id === it.id ? { ...c, status: "uploading" } : c)));
-      let file = it.file;
+      let file = it.convertedFile ?? it.file;
       try {
         if (isHeicFile(file)) {
           try {
@@ -473,12 +502,12 @@ export function GlobalUploadModal({
 
   const handleClose = useCallback(() => {
     if (phase === "uploading") return; // block close mid-upload
-    for (const it of items) URL.revokeObjectURL(it.previewUrl);
+    for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     onClose();
   }, [phase, items, onClose]);
 
   const openUnassignedTray = useCallback(() => {
-    for (const it of items) URL.revokeObjectURL(it.previewUrl);
+    for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     onClose();
     navigate(`/projects/${projectId}?tab=library&filter=unassigned`);
   }, [items, onClose, navigate, projectId]);
@@ -555,7 +584,7 @@ export function GlobalUploadModal({
                 <div className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300/60 bg-amber-50 px-3 py-2 text-sm dark:border-amber-700/50 dark:bg-amber-950/30">
                   <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                   <span className="flex-1 text-amber-900 dark:text-amber-100">
-                    {unassignedCount} photo{unassignedCount === 1 ? "" : "s"} have no location — assign an area
+                    {unassignedCount === 1 ? "1 photo has" : `${unassignedCount} photos have`} no location — assign an area
                   </span>
                   {areas.length > 0 && (
                     <DropdownMenu>
@@ -740,15 +769,35 @@ function ItemCard({
 }) {
   return (
     <div className="group relative aspect-square overflow-hidden rounded-md border bg-muted">
-      <img
-        src={item.previewUrl}
-        alt={item.file.name}
-        className={cn(
-          "h-full w-full object-cover transition-opacity",
-          item.status === "uploading" && "opacity-60",
-          item.status === "error" && "opacity-40"
-        )}
-      />
+      {item.previewUrl ? (
+        <img
+          src={item.previewUrl}
+          alt={item.file.name}
+          className={cn(
+            "h-full w-full object-cover transition-opacity",
+            item.status === "uploading" && "opacity-60",
+            item.status === "error" && "opacity-40"
+          )}
+        />
+      ) : (
+        // HEIC preview still decoding, or decode failed. Show a clean placeholder
+        // (icon + truncated filename) instead of a broken image.
+        <div
+          className={cn(
+            "flex h-full w-full flex-col items-center justify-center gap-1 bg-muted p-2 text-center transition-opacity",
+            item.status === "uploading" && "opacity-60",
+            item.status === "error" && "opacity-40"
+          )}
+        >
+          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+          <p className="w-full truncate text-[10px] text-muted-foreground" title={item.file.name}>
+            {item.file.name}
+          </p>
+          {item.isHeic && (
+            <span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">HEIC</span>
+          )}
+        </div>
+      )}
       {(item.status === "analyzing" || item.status === "queued") && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/25">
           <Loader2 className="h-4 w-4 animate-spin text-white" />
