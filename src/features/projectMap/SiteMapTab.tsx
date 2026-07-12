@@ -76,6 +76,19 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [mode, setMode] = useState<"view" | "edit">(defaultMode ?? "view");
   const isEditMode = canEdit && mode === "edit";
   const canvasRef = useRef<SiteMapCanvasHandle>(null);
+  const [deleteArea, setDeleteArea] = useState<Area | null>(null);
+
+  const handleDeleteArea = async (area: Area) => {
+    const { error } = await supabase
+      .from("areas")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", area.id);
+    if (error) { toast.error(error.message); return; }
+    setAreas((cur) => cur.filter((a) => a.id !== area.id));
+    setDeleteArea(null);
+    onAreasChanged?.();
+    toast.success(`Area "${area.name}" deleted`);
+  };
 
   const reloadAreas = async () => {
     const { data: ar } = await supabase.from("areas")
