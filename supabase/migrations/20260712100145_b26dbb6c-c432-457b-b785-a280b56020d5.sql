@@ -1,0 +1,1 @@
+UPDATE public.areas SET deleted_at = now() WHERE id = 'f8e4a330-a236-4a3d-ad95-5cd4d76255e3' AND deleted_at IS NULL;
