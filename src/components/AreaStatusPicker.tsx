@@ -52,25 +52,11 @@ export const AreaStatusDot = ({ status, className }: { status: AreaStatus; class
   />
 );
 
-/** Single active status pill that opens a popover to change the status. */
+/** Dot + uppercase typographic status; opens a popover to change when interactive. */
 export const AreaStatusPicker = ({ value, onChange, className, readOnly = false }: Props) => {
-  const meta = STATUS_META[value];
   if (readOnly) {
     return (
-      <span
-        aria-label={`Status: ${meta.label}`}
-        title={meta.label}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-          meta.activeBg,
-          meta.activeText,
-          meta.activeBorder,
-          className,
-        )}
-      >
-        <span className={cn("inline-block h-2 w-2 rounded-full", meta.dot)} />
-        <span>{meta.short}</span>
-      </span>
+      <StatusTypographic statusKey={value} className={className} />
     );
   }
   return (
@@ -78,19 +64,14 @@ export const AreaStatusPicker = ({ value, onChange, className, readOnly = false 
       <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
-          aria-label={`Status: ${meta.label}`}
-          title={meta.label}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
-            meta.activeBg,
-            meta.activeText,
-            meta.activeBorder,
+            "inline-flex items-center rounded-sm transition-colors hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             className,
           )}
         >
-          <span className={cn("inline-block h-2 w-2 rounded-full", meta.dot)} />
-          <span>{meta.short}</span>
-          <ChevronDown className="h-3 w-3 opacity-70" />
+          <StatusTypographic statusKey={value}>
+            <ChevronDown className="h-3 w-3 opacity-60" />
+          </StatusTypographic>
         </button>
       </PopoverTrigger>
       <PopoverContent
