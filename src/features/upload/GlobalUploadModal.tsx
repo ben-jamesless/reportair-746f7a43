@@ -507,7 +507,7 @@ export function GlobalUploadModal({
   }, [phase, items, onClose]);
 
   const openUnassignedTray = useCallback(() => {
-    for (const it of items) URL.revokeObjectURL(it.previewUrl);
+    for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     onClose();
     navigate(`/projects/${projectId}?tab=library&filter=unassigned`);
   }, [items, onClose, navigate, projectId]);
