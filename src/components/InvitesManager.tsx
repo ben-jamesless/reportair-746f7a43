@@ -21,6 +21,8 @@ import { Trash2, Mail, Copy, Send, LogOut, Crown, UserPlus } from "lucide-react"
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
+import { useTeamSeatSummary } from "@/hooks/useTeamSeatSummary";
+
 
 type Invite = {
   id: string;
