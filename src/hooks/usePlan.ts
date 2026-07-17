@@ -55,12 +55,11 @@ export const usePlan = (): PlanState => {
     (async () => {
       if (!user?.id) { setState(s => ({ ...s, loading: false })); return; }
 
-      const [{ data: team }, { data: ownedCount }, { data: members }] = await Promise.all([
+      const [{ data: team }, { data: ownedCount }] = await Promise.all([
         supabase.from("teams").select(
           "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at, payment_failed_at"
         ).eq("billing_owner_user_id", user.id).maybeSingle(),
         supabase.rpc("my_owned_projects_count"),
-        supabase.from("team_members").select("id"),
       ]);
 
       if (cancelled) return;
@@ -68,19 +67,29 @@ export const usePlan = (): PlanState => {
       const planName = normalisePlan(team?.plan);
       const limits   = LIMITS[planName];
       const projectCount = typeof ownedCount === "number" ? ownedCount : 0;
-      const memberCount  = members?.length ?? 1;
 
-      setState({
-        plan:             planName,
-        limits,
-        teamId:           team?.id ?? null,
-        projectCount,
-        memberCount,
-        exportsThisMonth: team?.exports_this_month ?? 0,
-        subscriptionStatus: team?.subscription_status ?? null,
-        trialEndsAt:      team?.trial_ends_at ?? null,
-        currentPeriodEnd: team?.current_period_end ?? null,
-        paymentFailedAt:  (team as { payment_failed_at?: string | null })?.payment_failed_at ?? null,
+      // Seat counts and canInviteMember come from team_seat_summary — the single
+      // server-authoritative source of truth. Never count team_members client-side:
+      // (a) it under-counts for non-owners, (b) it drifts from the trigger's caps,
+      // and (c) it duplicates the RPC's job.
+      let memberCount = 0;
+      let canInviteMember = false;
+      if (team?.id) {
+        const { data: seat } = await supabase.rpc("team_seat_summary", { _team_id: team.id });
+        if (seat && typeof seat === "object") {
+          const s = seat as Record<string, unknown>;
+          const core = Number(s.core_count ?? 0);
+          const ext  = Number(s.external_count ?? 0);
+          const coreCap = Number(s.core_cap ?? 1);
+          memberCount = core + ext;
+          // Room for at least one more core seat OR (if the plan allows externals)
+          // room under the 5:1 ratio for at least one more external.
+          const coreRoom = coreCap === -1 || core < coreCap;
+          const extRoom  = limits.allowsExternals && ext + 1 <= core * 5;
+          canInviteMember = coreRoom || extRoom;
+        }
+      }
+
         loading:          false,
         canCreateProject: limits.maxProjects === -1 || projectCount < limits.maxProjects,
         canInviteMember:  limits.maxMembers  === -1 || memberCount  < limits.maxMembers,
