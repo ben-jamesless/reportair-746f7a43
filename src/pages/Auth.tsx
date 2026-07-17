@@ -86,7 +86,7 @@ const Auth = () => {
       if (error) return toast.error(error.message, { description: NETWORK_HELP });
       gaEvent("sign_up", { method: "email" });
       if (data.session) {
-        navigate("/onboarding", { replace: true });
+        navigate(redirect, { replace: true });
       } else {
         setSignupSent(true);
       }
