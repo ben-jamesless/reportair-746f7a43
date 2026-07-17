@@ -9,6 +9,7 @@ export interface SiteMapCanvasHandle {
   undoLastPoint: () => void;
   confirmPolygon: () => void;
   getDraftPointCount: () => number;
+  getCameraState: () => { lat: number; lng: number; zoom: number } | null;
 }
 
 export type StatusTint = { fill: string; stroke: string };
