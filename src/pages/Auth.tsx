@@ -27,8 +27,12 @@ const Auth = () => {
   const params = new URLSearchParams(location.search);
   const prefillEmail = params.get("email") ?? "";
   const tabParam = params.get("tab");
+  const inviteProject = params.get("invite_project") ?? "";
+  const isInvite = params.get("invite") === "1" || !!inviteProject;
   const [mode, setMode] = useState<"signin" | "signup">(
-    tabParam === "signup" || (prefillEmail && tabParam !== "signin") ? "signup" : "signin"
+    tabParam === "signup" || (prefillEmail && !isInvite && tabParam !== "signin") ? "signup"
+      : tabParam === "signin" ? "signin"
+      : "signin"
   );
 
   const [email, setEmail] = useState(prefillEmail);
