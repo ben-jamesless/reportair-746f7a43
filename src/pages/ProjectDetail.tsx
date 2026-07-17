@@ -23,7 +23,7 @@ import { MobileProjectToolbar } from "@/components/MobileProjectToolbar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 import {
   ALBUM_PREFIX,
   ALL_DAYS,
