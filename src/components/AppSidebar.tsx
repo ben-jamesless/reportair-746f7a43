@@ -70,7 +70,6 @@ interface Props {
 
 const navItems = [
   { label: "Events", icon: CalendarDays, href: "/projects" },
-  { label: "Templates", icon: FileText, href: "/reports" },
   { label: "Share Links", icon: Share2, href: "/share-links" },
 ];
 
@@ -260,7 +259,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           {/* ── Primary nav ── */}
           <nav className="mt-2 space-y-0.5 px-2 lg:px-3">
             {navItems.filter((item) => {
-              if ((item.href === "/reports" || item.href === "/share-links") && plan !== "pro" && plan !== "studio") return false;
+              if ((item.href === "/share-links") && plan !== "pro" && plan !== "studio") return false;
               return true;
             }).map((item) => {
 
