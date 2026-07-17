@@ -1558,7 +1558,15 @@ export type Database = {
         Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
+      is_project_crew: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_project_member: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_project_reader: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
