@@ -208,8 +208,14 @@ const Auth = () => {
     </div>
   ) : mode === "signin" ? (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-1">Welcome back</h2>
-      <p className="text-sm text-muted-foreground mb-6">Sign in to continue.</p>
+      <h2 className="text-2xl font-bold text-foreground mb-1">
+        {isInvite ? "Welcome back" : "Welcome back"}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        {isInvite
+          ? (inviteProject ? `Sign in to join ${inviteProject}.` : "Sign in to accept your invite.")
+          : "Sign in to continue."}
+      </p>
       {suspendedError && (
         <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           Your account has been suspended. Please contact support.
