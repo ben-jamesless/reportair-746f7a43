@@ -192,9 +192,6 @@ export default function SettingsPage() {
             <Button asChild variant="outline" size="sm">
               <Link to="/billing">Manage subscription</Link>
             </Button>
-
-            <Separator />
-            <BetaToggleRow />
           </CardContent>
         </Card>
 
