@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload, Share2 } from "lucide-react";
+import { Upload, Share2, Camera } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { MapTab } from "./tabs/MapTab";
 import { UploadModalProvider, useUploadModal } from "@/features/upload/UploadModalContext";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { SharePanel } from "./SharePanel";
+import { useAuth } from "@/hooks/useAuth";
+import { isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
 
 
 type TabKey = "overview" | "daily" | "library" | "map";
@@ -28,6 +30,8 @@ export default function ProjectShellV2() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [projectName, setProjectName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<ProjectRole | null>(null);
+  const { user } = useAuth();
 
   const rawTab = searchParams.get("tab");
   const tab: TabKey = (VALID as string[]).includes(rawTab ?? "") ? (rawTab as TabKey) : "overview";
@@ -36,15 +40,26 @@ export default function ProjectShellV2() {
     if (!id) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.from("projects").select("name").eq("id", id).maybeSingle();
+      const [{ data: proj }, { data: pm }] = await Promise.all([
+        supabase.from("projects").select("name").eq("id", id).maybeSingle(),
+        user?.id
+          ? supabase
+              .from("project_members")
+              .select("role")
+              .eq("project_id", id)
+              .eq("user_id", user.id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
       if (cancelled) return;
-      setProjectName(data?.name ?? null);
+      setProjectName(proj?.name ?? null);
+      setRole(((pm as { role?: ProjectRole } | null)?.role) ?? null);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, user?.id]);
 
   const setTab = (next: string) => {
     const params = new URLSearchParams(searchParams);
@@ -67,6 +82,7 @@ export default function ProjectShellV2() {
         setTab={setTab}
         loading={loading}
         projectName={projectName}
+        crewOnly={isCrewOnly(role)}
       />
     </AppShell>
   );
@@ -82,16 +98,26 @@ function ShellBody({
   setTab,
   loading,
   projectName,
+  crewOnly,
 }: {
   projectId: string;
   tab: TabKey;
   setTab: (t: string) => void;
   loading: boolean;
   projectName: string | null;
+  crewOnly: boolean;
 }) {
   const { areas, refetch } = useProjectDetail(projectId);
   const areaOptions = areas.map((a) => ({ id: a.id, name: a.name }));
   const [shareOpen, setShareOpen] = useState(false);
+
+  if (crewOnly) {
+    return (
+      <UploadModalProvider projectId={projectId} areas={areaOptions} onUploaded={refetch}>
+        <CrewLanding projectName={loading ? null : projectName} />
+      </UploadModalProvider>
+    );
+  }
 
   return (
     <UploadModalProvider projectId={projectId} areas={areaOptions} onUploaded={refetch}>
@@ -155,5 +181,40 @@ function UploadButton() {
       <Upload className="mr-2 h-4 w-4" />
       Upload photos
     </Button>
+  );
+}
+
+/**
+ * Crew-only landing: no tabs, no report data, no share/settings. A single
+ * prominent "Upload photos" button that opens the standard upload modal
+ * (which handles area selection + GPS auto-assign).
+ */
+function CrewLanding({ projectName }: { projectName: string | null }) {
+  const { open } = useUploadModal();
+  // Auto-open the upload modal on entry so crew members land in capture flow.
+  useEffect(() => {
+    open();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center gap-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center border border-[#E3DFD4] bg-[#FAF8F2]">
+        <Camera className="h-7 w-7 text-muted-foreground" />
+      </div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {projectName ?? "Project"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          You're signed in as crew. Upload photos to the project — they'll be
+          sorted into the right area automatically when they have GPS data.
+        </p>
+      </div>
+      <Button size="lg" onClick={() => open()} className="rounded-none">
+        <Upload className="mr-2 h-4 w-4" />
+        Upload photos
+      </Button>
+    </div>
   );
 }

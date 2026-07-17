@@ -55,6 +55,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
   editor: "Can upload photos and edit project content.",
   viewer: "Read-only access to the project and reports.",
   commenter: "Can view photos and leave comments.",
+  crew: "Capture-only — can upload photos and add area notes. Cannot view reports, share links, or project settings.",
 };
 
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
@@ -277,6 +278,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 <SelectItem value="editor">Editor</SelectItem>
                 <SelectItem value="viewer">Viewer</SelectItem>
                 <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
+                <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
@@ -342,6 +344,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                       <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="viewer">Viewer</SelectItem>
                       <SelectItem value="commenter">Commenter</SelectItem>
+                      <SelectItem value="crew">Crew</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (

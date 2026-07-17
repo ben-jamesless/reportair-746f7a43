@@ -1558,7 +1558,15 @@ export type Database = {
         Returns: boolean
       }
       is_platform_admin: { Args: never; Returns: boolean }
+      is_project_crew: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_project_member: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_project_reader: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
@@ -1679,7 +1687,7 @@ export type Database = {
         | "guest_comment"
         | "project_invite"
       project_default_view: "report" | "gallery"
-      project_role: "owner" | "editor" | "commenter" | "viewer"
+      project_role: "owner" | "editor" | "commenter" | "viewer" | "crew"
       project_status:
         | "no_status"
         | "on_track"
@@ -1837,7 +1845,7 @@ export const Constants = {
         "project_invite",
       ],
       project_default_view: ["report", "gallery"],
-      project_role: ["owner", "editor", "commenter", "viewer"],
+      project_role: ["owner", "editor", "commenter", "viewer", "crew"],
       project_status: [
         "no_status",
         "on_track",
