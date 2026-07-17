@@ -244,16 +244,11 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  // When the team's plan is at its build-day cap, block starting new uploads.
+  // The user-facing notice is rendered as a thin banner in the project shell,
+  // so we don't render a card here — just suppress the upload trigger.
   if (isUpdateDayLimitReached) {
-    return (
-      <FreePlanUploadGate
-        projectId={projectId}
-        shareToken={shareToken}
-        teamName={teamName}
-        ownerName={billingOwnerName}
-        isBillingOwner={isBillingOwner}
-      />
-    );
+    return null;
   }
 
 
