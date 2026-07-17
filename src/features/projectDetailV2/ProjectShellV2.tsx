@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload, Share2, Camera } from "lucide-react";
+import { Upload, Share2, Camera, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,9 @@ import { MapTab } from "./tabs/MapTab";
 import { UploadModalProvider, useUploadModal } from "@/features/upload/UploadModalContext";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { SharePanel } from "./SharePanel";
+import { MembersPanel } from "./MembersPanel";
 import { useAuth } from "@/hooks/useAuth";
-import { isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
+import { canEditProject, isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
 
 
 type TabKey = "overview" | "daily" | "library" | "map";
@@ -82,6 +83,7 @@ export default function ProjectShellV2() {
         setTab={setTab}
         loading={loading}
         projectName={projectName}
+        role={role}
         crewOnly={isCrewOnly(role)}
       />
     </AppShell>
@@ -98,6 +100,7 @@ function ShellBody({
   setTab,
   loading,
   projectName,
+  role,
   crewOnly,
 }: {
   projectId: string;
@@ -105,11 +108,14 @@ function ShellBody({
   setTab: (t: string) => void;
   loading: boolean;
   projectName: string | null;
+  role: ProjectRole | null;
   crewOnly: boolean;
 }) {
   const { areas, refetch } = useProjectDetail(projectId);
   const areaOptions = areas.map((a) => ({ id: a.id, name: a.name }));
   const [shareOpen, setShareOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
+  const canManageMembers = canEditProject(role);
 
   if (crewOnly) {
     return (
@@ -140,6 +146,12 @@ function ShellBody({
               <Share2 className="mr-2 h-4 w-4" />
               Share
             </Button>
+            {canManageMembers && (
+              <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)}>
+                <Users className="mr-2 h-4 w-4" />
+                Members
+              </Button>
+            )}
             <Button asChild variant="ghost" size="sm">
               <Link to={`/projects/${projectId}?classic=1`}>Switch to classic view</Link>
             </Button>
@@ -147,6 +159,10 @@ function ShellBody({
         </div>
 
         <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />
+        {canManageMembers && (
+          <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
+        )}
+
 
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">

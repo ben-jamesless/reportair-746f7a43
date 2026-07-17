@@ -209,7 +209,7 @@ export default function TeamPage() {
             <div className="rounded-lg border border-dashed bg-card/50 p-8 text-center">
               <p className="text-sm font-medium text-foreground">No collaborators yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Open a project and use the Share menu to invite people. They'll show up here once they join.
+                Open a project and use the Members menu to invite people. They'll show up here once they join.
               </p>
             </div>
           ) : (
