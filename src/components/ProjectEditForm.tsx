@@ -89,7 +89,7 @@ export const ProjectEditForm = ({
 }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { canUseCustomLogo } = usePlan();
+  const { canUseCustomLogo } = useProjectPlan(projectId);
 
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
