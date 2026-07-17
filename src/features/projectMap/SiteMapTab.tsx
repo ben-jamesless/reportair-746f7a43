@@ -301,7 +301,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
               center={defaultView ?? geo}
               zoom={defaultView?.zoom}
               areas={areas}
-              features={features}
+              features={visibleFeatures}
               onFeatureClick={(f) => onAreaOpen?.(f.area_id)}
               fallbackColor={color ?? undefined}
               editable={false}
@@ -506,7 +506,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             center={defaultView ?? geo}
             zoom={defaultView?.zoom}
             areas={areas}
-            features={features}
+            features={visibleFeatures}
             drawingAreaId={drawingAreaId}
             drawingKind={drawingKind}
             onCreate={handleCreate}
