@@ -11,7 +11,7 @@ import { Upload, Loader2, ImageIcon, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant, isExifStrippedIosUpload } from "@/lib/photoUtils";
 import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 import { event as gaEvent } from "@/lib/analytics";
