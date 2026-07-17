@@ -14,7 +14,7 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
 import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
-import { useMapFeatures } from "@/features/projectMap/useMapFeatures";
+
 
 
 const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
