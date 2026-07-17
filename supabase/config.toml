@@ -26,3 +26,7 @@ verify_jwt = false
 
 [functions.process-email-queue]
 verify_jwt = true
+
+[functions.static-map]
+verify_jwt = false
+
