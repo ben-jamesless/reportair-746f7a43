@@ -53,7 +53,7 @@ const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { canUseShareLink, canExportPdf } = usePlan();
+  const { canUseShareLink, canExportPdf } = useProjectPlan(id ?? null);
 
   // All data-layer state (project / albums / areas / photos / notes / status)
   // lives in useProjectDetail. UI-only state (filters, selection, lightbox,
