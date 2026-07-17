@@ -13,7 +13,7 @@ import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant, isE
 import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
-import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
+
 import { event as gaEvent } from "@/lib/analytics";
 import { fetchPrimaryZones, assignZoneForPoint } from "@/lib/zoneAssign";
 
