@@ -64,6 +64,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
+  const [defaultView, setDefaultView] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  const [savingView, setSavingView] = useState(false);
   const [statusByArea, setStatusByArea] = useState<Record<string, string>>({});
   const { features, create, createZone, setPrimary, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null); // null + drawingKind set → new zone
