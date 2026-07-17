@@ -30,6 +30,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
+import { projectStaticMapUrl } from "@/lib/projectStaticMap";
+import { StatusTypographic } from "@/components/StatusTypographic";
 import {
   AlertDialog,
   AlertDialogAction,
