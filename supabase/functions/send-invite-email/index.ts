@@ -9,6 +9,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+const CANONICAL_APP_URL = "https://buildfolder.com";
+
 const ALLOWED_ORIGIN_SUFFIXES = [
   ".lovable.app",
   ".lovable.dev",
@@ -30,7 +32,7 @@ const ALLOWED_ORIGINS = new Set([
 
 function corsHeadersFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
-  let allow = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
+  let allow = CANONICAL_APP_URL;
   try {
     if (origin) {
       const host = new URL(origin).hostname;
@@ -101,7 +103,7 @@ function renderEmail(args: {
               <td style="background:#F4F1EA;padding:22px 28px;border-bottom:1px solid #C9C5BC;">
                 <table cellpadding="0" cellspacing="0" role="presentation"><tr>
                   <td style="padding-right:12px;vertical-align:middle;">
-                    <img src="https://www.buildslides.com/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
+                    <img src="${CANONICAL_APP_URL}/favicon-96.png" width="36" height="36" alt="" style="display:block;border-radius:8px;" />
                   </td>
                   <td style="vertical-align:middle;">
                     <span style="font-family:Geist,Helvetica,Arial,sans-serif;font-size:18px;font-weight:900;color:#0F1417;letter-spacing:-0.01em;">BuildFolder</span>
@@ -140,7 +142,7 @@ function renderEmail(args: {
               <td style="padding:24px 28px 28px;border-top:1px solid #C9C5BC;background:#F4F1EA;">
                 <p style="margin:0 0 8px;font-size:13px;color:#0F1417;line-height:1.5;"><strong>Built for the build. Built in Hong Kong.</strong></p>
                 <p style="margin:0 0 12px;font-size:13px;color:#6B6B66;line-height:1.5;">Ben Lee · Director · <a href="mailto:hello@buildfolder.com" style="color:#D94F2A;text-decoration:underline;">hello@buildfolder.com</a></p>
-                <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="https://www.buildslides.com" style="color:#D94F2A;text-decoration:none;">buildslides.com</a></p>
+                <p style="margin:0;font-size:12px;color:#6B6B66;"><a href="${CANONICAL_APP_URL}" style="color:#D94F2A;text-decoration:none;">buildfolder.com</a></p>
               </td>
             </tr>
           </table>
@@ -212,16 +214,9 @@ Deno.serve(async (req) => {
     const projectName = project?.name ?? "a project";
     const inviterName = inviterProfile?.full_name ?? "A teammate";
 
-    // Always prefer the configured production app URL so links don't point at the
-    // Lovable preview shell. Falls back to request origin, then a hardcoded default.
-    const rawAppUrl =
-      Deno.env.get("APP_URL") ||
-      req.headers.get("origin") ||
-      req.headers.get("referer")?.replace(/\/$/, "") ||
-      "https://www.buildslides.com";
-    const appUrl = rawAppUrl.trim().replace(/^['"]|['"]$/g, "").replace(/\/$/, "");
-    const cleanOrigin = appUrl.split("/").slice(0, 3).join("/");
-    const inviteUrl = `${cleanOrigin}/invite/${invite.token}`;
+    // Invite emails must always use the canonical production domain, never a
+    // preview/request origin or the legacy BuildSlides domain.
+    const inviteUrl = `${CANONICAL_APP_URL}/invite/${invite.token}`;
 
     const apiKey = Deno.env.get("RESEND_API_KEY");
     if (!apiKey) {

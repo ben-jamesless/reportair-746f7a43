@@ -39,6 +39,8 @@ const Auth = () => {
 
   const rawRedirect = params.get("redirect") || "/projects";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
+  const authReturnUrl = new URL("/auth", window.location.origin);
+  authReturnUrl.searchParams.set("redirect", redirect);
   const suspendedError = params.get("error") === "suspended";
   const timedOut = params.get("reason") === "timeout";
   const timeoutKind = params.get("kind");
@@ -73,7 +75,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/projects`,
+            emailRedirectTo: authReturnUrl.toString(),
             data: { full_name: fullName },
           },
         }),
@@ -117,7 +119,7 @@ const Auth = () => {
       const { lovable } = await import("@/integrations/lovable/index");
       const result = await withTimeout(
         lovable.auth.signInWithOAuth("google", {
-          redirect_uri: `${window.location.origin}/projects`,
+          redirect_uri: authReturnUrl.toString(),
         }),
         NETWORK_TIMEOUT_MS,
         "Google sign-in"
@@ -134,7 +136,7 @@ const Auth = () => {
         });
         return;
       }
-      navigate("/projects");
+      navigate(redirect);
     } catch (err) {
       setBusy(false);
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
