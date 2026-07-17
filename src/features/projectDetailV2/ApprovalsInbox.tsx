@@ -39,15 +39,20 @@ export function ApprovalsInbox({
     if (!teamId) { setRows([]); return; }
     const { data, error } = await supabase
       .from("team_external_approvals")
-      .select("id,invitee_email,status,created_at,use_case_note,invited_by_user_id")
+      .select("id,invitee_email,status,created_at,use_case_note,invited_by_user_id,origin_project_id,origin_project_role,projects:origin_project_id(name)")
       .eq("team_id", teamId)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
     if (error) return;
-    setRows((data ?? []) as Approval[]);
+    const mapped = (data ?? []).map((r: Record<string, unknown>) => ({
+      ...(r as Omit<Approval, "project_name">),
+      project_name: (r.projects as { name?: string } | null)?.name ?? null,
+    })) as Approval[];
+    setRows(mapped);
   }, [teamId]);
 
   useEffect(() => { void load(); }, [load]);
+
 
   useEffect(() => {
     if (!teamId) return;
