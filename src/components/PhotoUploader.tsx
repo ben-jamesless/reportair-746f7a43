@@ -245,7 +245,16 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
   };
 
   if (isUpdateDayLimitReached) {
-    return <FreePlanUploadGate projectId={projectId} shareToken={shareToken} />;
+    return (
+      <FreePlanUploadGate
+        projectId={projectId}
+        shareToken={shareToken}
+        teamName={teamName}
+        ownerName={billingOwnerName}
+        isBillingOwner={isBillingOwner}
+      />
+    );
+  }
   }
 
   return (
