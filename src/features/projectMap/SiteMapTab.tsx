@@ -99,6 +99,24 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     setAreas((ar ?? []) as Area[]);
   };
 
+  const saveDefaultView = async () => {
+    const cam = canvasRef.current?.getCameraState();
+    if (!cam) { toast.error("Map isn't ready yet"); return; }
+    setSavingView(true);
+    const { error } = await supabase
+      .from("projects")
+      .update({
+        map_default_center_lat: cam.lat,
+        map_default_center_lng: cam.lng,
+        map_default_zoom: cam.zoom,
+      } as any)
+      .eq("id", projectId);
+    setSavingView(false);
+    if (error) { toast.error(error.message); return; }
+    setDefaultView(cam);
+    toast.success("Default map view saved");
+  };
+
   useEffect(() => {
     (async () => {
       const [{ data: ar }, { data: pr }, { data: st }] = await Promise.all([
