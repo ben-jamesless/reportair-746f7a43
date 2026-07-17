@@ -21,6 +21,8 @@ import { Trash2, Mail, Copy, Send, LogOut, Crown, UserPlus } from "lucide-react"
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
+import { useTeamSeatSummary } from "@/hooks/useTeamSeatSummary";
+
 
 type Invite = {
   id: string;
@@ -61,13 +63,26 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canInviteMember, planIncludesInvites } = useProjectPlan(projectId);
+  const { canInviteMember, planIncludesInvites, teamId: planTeamId } = useProjectPlan(projectId);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const seat = useTeamSeatSummary(teamId ?? planTeamId ?? null);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<ProjectRole>("viewer");
   const [loading, setLoading] = useState(false);
   const [isAppAdmin, setIsAppAdmin] = useState(false);
+
+  // --- Domain classification (see edge fn `classify-invitee`) ---
+  // Preview only — the trigger `enforce_team_member_caps` is the authority on
+  // write. Preview degrades gracefully: on slow/failed edge response we show a
+  // neutral state and still allow submit.
+  type Classification = "core" | "external" | "requires_explicit_choice";
+  const [classification, setClassification] = useState<Classification | null>(null);
+  const [classifyState, setClassifyState] = useState<"idle" | "loading" | "ok" | "failed">("idle");
+  const [useCaseNote, setUseCaseNote] = useState("");
+  const [explicitChoice, setExplicitChoice] = useState<"core" | "external" | "">("");
+
 
   // "Add from your team" picker state
   type TeamCandidate = { user_id: string; full_name: string | null; email: string | null };
@@ -96,6 +111,8 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     const invRows = (inv ?? []) as Invite[];
     const projRow = proj as { name?: string; team_id?: string | null } | null;
     setProjectName(projRow?.name ?? "");
+    setTeamId(projRow?.team_id ?? null);
+
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
 
     // Hide ghost accepted invites whose user profile no longer exists.
@@ -173,9 +190,80 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     return () => { cancelled = true; };
   }, [user?.id]);
 
+  // --- Debounced classification preview ---
+  // The edge function wraps `public.classify_invitee(_team_id, _email)`.
+  // Preview UX only; write authority is the DB trigger. Preview NEVER gates
+  // submission — on failure we degrade to a neutral "confirm on send" state.
+  useEffect(() => {
+    const effectiveTeamId = teamId ?? planTeamId;
+    if (!effectiveTeamId) { setClassification(null); setClassifyState("idle"); return; }
+    const parsed = emailSchema.safeParse(email);
+    if (!parsed.success) { setClassification(null); setClassifyState("idle"); return; }
+    setClassifyState("loading");
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("classify-invitee", {
+          body: { team_id: effectiveTeamId, email: parsed.data.toLowerCase() },
+        });
+        if (controller.signal.aborted) return;
+        if (error || !data?.classification) {
+          setClassifyState("failed"); setClassification(null); return;
+        }
+        setClassification(data.classification as Classification);
+        setClassifyState("ok");
+      } catch {
+        if (!controller.signal.aborted) { setClassifyState("failed"); setClassification(null); }
+      }
+    }, 350);
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [email, teamId, planTeamId]);
+
+  // Reset per-email UX state when the address changes.
+  useEffect(() => { setUseCaseNote(""); setExplicitChoice(""); }, [email]);
+
   const addInvite = async () => {
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) { toast.error("Enter a valid email"); return; }
+
+    // Branch on the last classification we saw. If preview failed or is stale,
+    // fall through to the normal insert path — the trigger will reject with a
+    // clear message if the write is actually invalid, which we surface below.
+    const effTeamId = teamId ?? planTeamId;
+    const isExternalFlow = classifyState === "ok" && classification === "external";
+    const needsChoice = classifyState === "ok" && classification === "requires_explicit_choice";
+
+    if (needsChoice && !explicitChoice) {
+      toast.error("This address needs a Core or External choice before sending");
+      return;
+    }
+
+    // External flow: create a pending approval request instead of a project_invite.
+    // Approver uses ApprovalsInbox (B3.2) to approve + assign in one step.
+    if ((isExternalFlow || explicitChoice === "external") && effTeamId) {
+      setLoading(true);
+      const { data: auth } = await supabase.auth.getUser();
+      const { error: apErr } = await supabase.from("team_external_approvals").insert({
+        team_id: effTeamId,
+        invitee_email: parsed.data.toLowerCase(),
+        invited_by_user_id: auth.user?.id ?? null,
+        use_case_note: useCaseNote.trim() || null,
+        origin_project_id: projectId,
+        origin_project_role: role,
+        status: "pending",
+      } as never);
+      setLoading(false);
+      if (apErr) {
+        // Surface trigger / RLS errors verbatim — they are the authoritative signal.
+        toast.error(apErr.message);
+        return;
+      }
+      setEmail(""); setUseCaseNote(""); setExplicitChoice("");
+      toast.success(`External access requested for ${parsed.data}. Awaiting owner approval.`);
+      return;
+    }
+
+    // Core / neutral flow: normal project invite.
     setLoading(true);
     const { data: auth } = await supabase.auth.getUser();
     const { data: inserted, error } = await supabase
@@ -186,16 +274,28 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
       .select("id")
       .single();
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      // Surface DB-trigger rejection cleanly (seat_cap_core, external_not_approved, etc.).
+      const msg = /seat_cap_core/i.test(error.message)
+        ? "Team is at its core seat cap. Upgrade or add seats to invite more people."
+        : /external_not_approved/i.test(error.message)
+        ? "This address needs owner approval before being added. Request external access instead."
+        : /plan_no_externals/i.test(error.message)
+        ? "Your plan does not include external collaborators."
+        : error.message;
+      toast.error(msg);
+      return;
+    }
     setEmail("");
     toast.success(`Invite created for ${parsed.data}`);
     if (inserted?.id) {
-      // Fire-and-forget: in-app notification (works even if email fails).
       void supabase.rpc("notify_user_of_invite", { _invite_id: inserted.id });
       void sendInviteEmail(inserted.id, { silent: true });
     }
     load();
   };
+
+
 
   const addFromTeam = async () => {
     if (!candidateId) { toast.error("Pick a teammate to add"); return; }
@@ -407,12 +507,93 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                   <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
                 </SelectContent>
               </Select>
-              <Button className="flex-1" onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
-                {(!canInviteMember || !planIncludesInvites) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
-                <Mail className="mr-2 h-4 w-4" />Send invite
+              <Button
+                className="flex-1"
+                onClick={addInvite}
+                disabled={
+                  loading || !planIncludesInvites ||
+                  // Core / neutral flow gated by canInviteMember. External flow
+                  // gated only by "needs choice but no choice yet" — the seat
+                  // ratio itself is enforced by the trigger on write.
+                  (classification === "requires_explicit_choice" && !explicitChoice) ||
+                  (classification !== "external" && explicitChoice !== "external" && !canInviteMember)
+                }
+              >
+                {(!canInviteMember || !planIncludesInvites) && classification !== "external" && explicitChoice !== "external" && (
+                  <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />
+                )}
+                <Mail className="mr-2 h-4 w-4" />
+                {classification === "external" || explicitChoice === "external"
+                  ? "Request external access"
+                  : "Send invite"}
               </Button>
             </div>
+
+            {/* Classification preview — degrades to neutral state on failure. */}
+            {email.trim() && emailSchema.safeParse(email).success && (
+              <div
+                className="border px-3 py-2 text-xs"
+                style={{ borderColor: "#E3DFD4", background: "#FAF8F2" }}
+              >
+                {classifyState === "loading" && (
+                  <span className="text-muted-foreground">Checking domain…</span>
+                )}
+                {classifyState === "failed" && (
+                  <span className="text-muted-foreground">
+                    We&apos;ll confirm on send.
+                  </span>
+                )}
+                {classifyState === "ok" && classification === "core" && (
+                  <span>
+                    <strong>Core teammate</strong> — {Math.max(0, seat.coreCap - seat.coreCount)} core seat
+                    {Math.max(0, seat.coreCap - seat.coreCount) === 1 ? "" : "s"} remaining.
+                  </span>
+                )}
+                {classifyState === "ok" && classification === "external" && (
+                  <div className="space-y-2">
+                    <div>
+                      <strong>External collaborator.</strong> Requires owner approval.
+                      Ratio: {seat.externalCount}/{seat.coreCount * 5} externals for {seat.coreCount} core.
+                    </div>
+                    <Input
+                      placeholder="Why do they need access? (optional)"
+                      value={useCaseNote}
+                      onChange={(e) => setUseCaseNote(e.target.value)}
+                      className="w-full text-xs"
+                    />
+                  </div>
+                )}
+                {classifyState === "ok" && classification === "requires_explicit_choice" && (
+                  <div className="space-y-2">
+                    <div>
+                      Your workspace doesn&apos;t have domain matching. Choose how to add this person:
+                    </div>
+                    <Select
+                      value={explicitChoice}
+                      onValueChange={(v) => setExplicitChoice(v as "core" | "external")}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Core or External?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="core">Core teammate (counts toward core seats)</SelectItem>
+                        <SelectItem value="external">External collaborator (needs approval)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {explicitChoice === "external" && (
+                      <Input
+                        placeholder="Why do they need access? (optional)"
+                        value={useCaseNote}
+                        onChange={(e) => setUseCaseNote(e.target.value)}
+                        className="w-full text-xs"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
           <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
           {!planIncludesInvites && (
             <p className="text-xs text-muted-foreground">
