@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,20 +12,21 @@ const InviteAccept = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !token) return;
     if (!user) {
-      // Look up invited email so the register form can prefill it,
-      // then send the user to /auth and return here after sign-in/up.
+      // Look up invite context so /auth can render the right (sign-in vs sign-up)
+      // variant with project-specific copy and prefilled email.
       (async () => {
-        const { data: inviteEmail } = await supabase.rpc("get_invite_email", { _token: token });
+        const { data } = await supabase.rpc("get_invite_context", { _token: token });
+        const ctx = Array.isArray(data) ? data[0] : data;
         const params = new URLSearchParams({ redirect: `/invite/${token}` });
-        if (inviteEmail) {
-          params.set("email", inviteEmail as string);
-          params.set("tab", "signin");
-        }
+        if (ctx?.email) params.set("email", ctx.email as string);
+        if (ctx?.project_name) params.set("invite_project", ctx.project_name as string);
+        // Default new invitees to signup; returning users to signin.
+        params.set("tab", ctx?.account_exists ? "signin" : "signup");
+        params.set("invite", "1");
         navigate(`/auth?${params.toString()}`, { replace: true });
       })();
-      return;
     }
   }, [user, loading, token, navigate]);
 
@@ -47,22 +46,9 @@ const InviteAccept = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, token]);
 
-  if (loading || !user) {
-    return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-subtle p-4">
-      <Card className="max-w-md">
-        <CardContent className="space-y-4 pt-6 text-center">
-          <h1 className="text-xl font-semibold">You've been invited to a project</h1>
-          <p className="text-sm text-muted-foreground">Accept this invite to join the project as a member.</p>
-          <Button onClick={accept} disabled={working} className="w-full">
-            {working ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Accept invite
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin" />
     </div>
   );
 };

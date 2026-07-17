@@ -27,8 +27,12 @@ const Auth = () => {
   const params = new URLSearchParams(location.search);
   const prefillEmail = params.get("email") ?? "";
   const tabParam = params.get("tab");
+  const inviteProject = params.get("invite_project") ?? "";
+  const isInvite = params.get("invite") === "1" || !!inviteProject;
   const [mode, setMode] = useState<"signin" | "signup">(
-    tabParam === "signup" || (prefillEmail && tabParam !== "signin") ? "signup" : "signin"
+    tabParam === "signup" || (prefillEmail && !isInvite && tabParam !== "signin") ? "signup"
+      : tabParam === "signin" ? "signin"
+      : "signin"
   );
 
   const [email, setEmail] = useState(prefillEmail);
@@ -204,8 +208,14 @@ const Auth = () => {
     </div>
   ) : mode === "signin" ? (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-1">Welcome back</h2>
-      <p className="text-sm text-muted-foreground mb-6">Sign in to continue.</p>
+      <h2 className="text-2xl font-bold text-foreground mb-1">
+        {isInvite ? "Welcome back" : "Welcome back"}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        {isInvite
+          ? (inviteProject ? `Sign in to join ${inviteProject}.` : "Sign in to accept your invite.")
+          : "Sign in to continue."}
+      </p>
       {suspendedError && (
         <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
           Your account has been suspended. Please contact support.
@@ -248,8 +258,16 @@ const Auth = () => {
     </div>
   ) : (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-1">Create your account</h2>
-      <p className="text-sm text-muted-foreground mb-6">Start your free 14-day trial. No credit card required.</p>
+      <h2 className="text-2xl font-bold text-foreground mb-1">
+        {isInvite
+          ? (inviteProject ? `You've been invited to ${inviteProject}` : "You've been invited")
+          : "Create your account"}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        {isInvite
+          ? "Create your account to accept the invite."
+          : "Start your free 14-day trial. No credit card required."}
+      </p>
       <form onSubmit={handleSignUp} className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor="name-up">Name</Label>
@@ -265,7 +283,7 @@ const Auth = () => {
         </div>
         <Button type="submit" className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create account
+          {isInvite ? "Create account & join" : "Create account"}
         </Button>
       </form>
       {orDivider}

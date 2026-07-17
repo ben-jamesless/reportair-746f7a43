@@ -1474,6 +1474,14 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_invite_context: {
+        Args: { _token: string }
+        Returns: {
+          account_exists: boolean
+          email: string
+          project_name: string
+        }[]
+      }
       get_invite_email: { Args: { _token: string }; Returns: string }
       get_invite_token: { Args: { _invite_id: string }; Returns: string }
       get_my_pending_invite_token: {
