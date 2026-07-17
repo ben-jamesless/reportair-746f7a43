@@ -255,7 +255,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
       />
     );
   }
-  }
+
 
   return (
     <>
