@@ -220,22 +220,36 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
           </div>
         )}
       </div>
-      {canEdit && (
-        isEditMode ? (
+      <div className="flex items-center gap-2">
+        {canEdit && (
           <Button
             size="sm"
             variant="outline"
             className="rounded-none"
-            onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
+            disabled={savingView}
+            onClick={saveDefaultView}
+            title="Save current pan & zoom as the default framing for this event's map"
           >
-            <Eye className="mr-1 h-3 w-3" /> Done editing
+            {savingView ? "Saving…" : "Set as default view"}
           </Button>
-        ) : (
-          <Button size="sm" variant="outline" className="rounded-none" onClick={() => setMode("edit")}>
-            <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
-          </Button>
-        )
-      )}
+        )}
+        {canEdit && (
+          isEditMode ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-none"
+              onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
+            >
+              <Eye className="mr-1 h-3 w-3" /> Done editing
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" className="rounded-none" onClick={() => setMode("edit")}>
+              <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
+            </Button>
+          )
+        )}
+      </div>
     </div>
   );
 
