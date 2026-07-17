@@ -41,7 +41,8 @@ const todayYmd = () => {
 
 export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger, shareToken = null }: Props) => {
   const { user } = useAuth();
-  const { limits } = usePlan();
+  const projectPlan = useProjectPlan(projectId);
+  const { limits, isBillingOwner, teamName, billingOwnerName } = projectPlan;
   const { dayCount, loading: daysLoading } = useProjectUpdateDays(
     limits.maxUpdateDays !== -1 ? projectId : null
   );
