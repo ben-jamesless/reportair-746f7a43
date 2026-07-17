@@ -124,6 +124,11 @@ export function ApprovalsInbox({
           >
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{r.invitee_email}</div>
+              {r.project_name && (
+                <div className="truncate text-xs" style={{ color: LABEL_INK }}>
+                  Requested access to: {r.project_name}
+                </div>
+              )}
               {r.use_case_note && (
                 <div className="truncate text-xs" style={{ color: LABEL_INK }}>
                   {r.use_case_note}
@@ -135,16 +140,16 @@ export function ApprovalsInbox({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => void act(r.id, "approved")}
+                  onClick={() => void act(r, "approved")}
                   disabled={busyId === r.id}
-                  title="Approve"
+                  title={r.origin_project_id ? "Approve & add to project" : "Approve"}
                 >
-                  <Check className="h-4 w-4" /> Approve
+                  <Check className="h-4 w-4" /> {r.origin_project_id ? "Approve & add" : "Approve"}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => void act(r.id, "denied")}
+                  onClick={() => void act(r, "denied")}
                   disabled={busyId === r.id}
                   title="Deny"
                 >
@@ -152,6 +157,7 @@ export function ApprovalsInbox({
                 </Button>
               </div>
             )}
+
           </div>
         ))}
       </div>
