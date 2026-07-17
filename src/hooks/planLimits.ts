@@ -87,18 +87,23 @@ export const LIMITS: Record<PlanName, PlanLimits> = {
   },
 };
 
-// Legacy plan values (`pro`, `team`, `enterprise`) are accepted at the boundary
-// and normalised to the current names so we never crash on stale rows or old
-// Stripe metadata during the changeover.
+// TODO(post-migration, 2026-Q3): remove legacy plan-name normalisation.
+// These branches exist ONLY as scaffolding until the DB backfill of legacy
+// values (`pro`, `team`, `enterprise`) → (`crew`, `crew`, `studio`) is complete
+// and Stripe metadata has been re-issued against the new price IDs. Keeping
+// them longer than that risks silently establishing a second source of truth.
+// Delete this function's legacy branches (leave only free/solo/crew/studio)
+// once B6 backfill is verified and Stripe archive of old Prices is confirmed.
 export function normalisePlan(raw: string | null | undefined): PlanName {
   switch (raw) {
     case "free":       return "free";
     case "solo":       return "solo";
     case "crew":       return "crew";
-    case "pro":        return "crew";
-    case "team":       return "crew";
+    case "pro":        return "crew";       // legacy — remove post-migration
+    case "team":       return "crew";       // legacy — remove post-migration
     case "studio":     return "studio";
-    case "enterprise": return "studio";
+    case "enterprise": return "studio";     // legacy — remove post-migration
     default:           return "free";
   }
 }
+
