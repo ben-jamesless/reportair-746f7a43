@@ -197,6 +197,22 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     load();
   };
 
+  const addFromTeam = async () => {
+    if (!candidateId) { toast.error("Pick a teammate to add"); return; }
+    setAddingCandidate(true);
+    const { error } = await supabase
+      .from("project_members")
+      .insert({ project_id: projectId, user_id: candidateId, role: candidateRole });
+    setAddingCandidate(false);
+    if (error) { toast.error(error.message); return; }
+    const picked = teamCandidates.find((c) => c.user_id === candidateId);
+    toast.success(`${picked?.full_name || picked?.email || "Member"} added as ${candidateRole}`);
+    setCandidateId("");
+    setCandidateSearch("");
+    setCandidateRole("viewer");
+    load();
+  };
+
   const sendInviteEmail = async (
     inviteId: string,
     opts: { silent?: boolean } = {},
