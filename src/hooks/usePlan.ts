@@ -90,9 +90,20 @@ export const usePlan = (): PlanState => {
         }
       }
 
+      setState({
+        plan:             planName,
+        limits,
+        teamId:           team?.id ?? null,
+        projectCount,
+        memberCount,
+        exportsThisMonth: team?.exports_this_month ?? 0,
+        subscriptionStatus: team?.subscription_status ?? null,
+        trialEndsAt:      team?.trial_ends_at ?? null,
+        currentPeriodEnd: team?.current_period_end ?? null,
+        paymentFailedAt:  (team as { payment_failed_at?: string | null })?.payment_failed_at ?? null,
         loading:          false,
         canCreateProject: limits.maxProjects === -1 || projectCount < limits.maxProjects,
-        canInviteMember:  limits.maxMembers  === -1 || memberCount  < limits.maxMembers,
+        canInviteMember,
         canExportPdf:     limits.pdfExport,
         canUseShareLink:  limits.shareLinks,
         canUseShareLinkEmail: limits.shareLinkEmail,
@@ -104,6 +115,7 @@ export const usePlan = (): PlanState => {
         showBuildSlidesBranding: limits.showBuildSlidesBranding,
         isFree:           planName === "free",
       });
+
     })();
     return () => { cancelled = true; };
   }, [user?.id, refreshKey]);
