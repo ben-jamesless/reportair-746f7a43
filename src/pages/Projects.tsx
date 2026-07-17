@@ -193,6 +193,24 @@ const Projects = () => {
       }
       setLastUploads(uploads);
 
+      // Map thumbnails: prefer the project's saved default view; fall back
+      // to the Places-autocomplete geocode (geo_lat/lng) if none saved.
+      const meta = new Map<string, { lat: number; lng: number; zoom: number | null }>();
+      if (projectIds.length > 0) {
+        const { data: geo } = await supabase
+          .from("projects")
+          .select("id, geo_lat, geo_lng, map_default_center_lat, map_default_center_lng, map_default_zoom" as any)
+          .in("id", projectIds);
+        for (const row of ((geo ?? []) as any[])) {
+          const lat = row.map_default_center_lat ?? row.geo_lat;
+          const lng = row.map_default_center_lng ?? row.geo_lng;
+          if (lat != null && lng != null) {
+            meta.set(row.id, { lat, lng, zoom: row.map_default_zoom ?? null });
+          }
+        }
+      }
+      setMapMeta(meta);
+
       if (user.email) {
         const { data: inv } = await supabase
           .from("project_invites")
