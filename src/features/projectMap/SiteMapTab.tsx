@@ -104,7 +104,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
       const [{ data: ar }, { data: pr }, { data: st }] = await Promise.all([
         supabase.from("areas").select("id, project_id, name, sort_order, color")
           .eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
-        supabase.from("projects").select("geo_lat, geo_lng").eq("id", projectId).maybeSingle(),
+        supabase.from("projects").select("geo_lat, geo_lng, map_default_center_lat, map_default_center_lng, map_default_zoom" as any).eq("id", projectId).maybeSingle(),
         // Today's status per area — one row per area, latest date
         supabase.from("area_day_status")
           .select("area_id, date, status")
@@ -112,7 +112,11 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
           .order("date", { ascending: false }),
       ]);
       setAreas((ar ?? []) as Area[]);
-      if (pr?.geo_lat != null && pr?.geo_lng != null) setGeo({ lat: pr.geo_lat, lng: pr.geo_lng });
+      const prAny = pr as any;
+      if (prAny?.geo_lat != null && prAny?.geo_lng != null) setGeo({ lat: prAny.geo_lat, lng: prAny.geo_lng });
+      if (prAny?.map_default_center_lat != null && prAny?.map_default_center_lng != null && prAny?.map_default_zoom != null) {
+        setDefaultView({ lat: prAny.map_default_center_lat, lng: prAny.map_default_center_lng, zoom: prAny.map_default_zoom });
+      }
       const latest: Record<string, string> = {};
       for (const row of (st ?? []) as any[]) {
         if (!latest[row.area_id]) latest[row.area_id] = row.status;
