@@ -475,24 +475,26 @@ const Projects = () => {
               >
                 {/* Static map thumbnail */}
                 <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-[#E3DFD4] bg-[#FAF8F2]">
-                  {thumbUrl ? (
+                  {/* Placeholder always present — the thumbnail sits on top and hides itself if it fails to load. */}
+                  <div
+                    className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30"
+                    style={{
+                      background: `linear-gradient(135deg, ${color}22, ${color}0a)`,
+                      fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                    }}
+                  >
+                    {p.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  {thumbUrl && (
                     <img
                       src={thumbUrl}
                       alt=""
                       loading="lazy"
-                      className="h-full w-full object-cover"
+                      className="relative h-full w-full object-cover"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                     />
-                  ) : (
-                    <div
-                      className="flex h-full w-full items-center justify-center text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30"
-                      style={{
-                        background: `linear-gradient(135deg, ${color}22, ${color}0a)`,
-                        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                      }}
-                    >
-                      {p.name.slice(0, 2).toUpperCase()}
-                    </div>
                   )}
+
 
                   {hasAnyAction && (
                     <div className="absolute right-2 top-2">
