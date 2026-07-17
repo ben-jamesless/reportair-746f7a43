@@ -47,7 +47,7 @@ import {
   Crown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 
 const PHOTO_CAP = 300;
 
@@ -151,7 +151,7 @@ export const ExportPdfDialog = ({
   open: controlledOpen,
   onOpenChange,
 }: Props) => {
-  const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = usePlan();
+  const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = useProjectPlan(projectId);
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };

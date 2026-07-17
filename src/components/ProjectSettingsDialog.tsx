@@ -13,7 +13,7 @@ import { BulkSetCaptureDateCard } from "./BulkSetCaptureDateCard";
 import { CoverPhotoManager } from "./CoverPhotoManager";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 
 interface ProjectForEdit {
   id: string;
@@ -47,7 +47,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { onOpenChange ? onOpenChange(v) : setInternalOpen(v); };
   const [canManageAlbums, setCanManageAlbums] = useState(false);
-  const { canUseShareLink, plan } = usePlan();
+  const { canUseShareLink, plan } = useProjectPlan(projectId);
   const isStudio = plan === "studio";
 
   useEffect(() => {

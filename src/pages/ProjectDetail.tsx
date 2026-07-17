@@ -23,7 +23,7 @@ import { MobileProjectToolbar } from "@/components/MobileProjectToolbar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 import {
   ALBUM_PREFIX,
   ALL_DAYS,
@@ -53,7 +53,7 @@ const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { canUseShareLink, canExportPdf } = usePlan();
+  const { canUseShareLink, canExportPdf } = useProjectPlan(id ?? null);
 
   // All data-layer state (project / albums / areas / photos / notes / status)
   // lives in useProjectDetail. UI-only state (filters, selection, lightbox,

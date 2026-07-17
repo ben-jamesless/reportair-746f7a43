@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Copy, Eye, Link2, Trash2, Plus, Loader2, Crown } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { event as gaEvent } from "@/lib/analytics";
 
 type ShareLink = {
@@ -24,7 +24,7 @@ type ShareLink = {
 };
 
 export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
-  const { canUseShareLink } = usePlan();
+  const { canUseShareLink } = useProjectPlan(projectId);
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState("");

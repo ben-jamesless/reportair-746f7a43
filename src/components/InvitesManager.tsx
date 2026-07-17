@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { Trash2, Mail, Copy, Send, LogOut, Crown, UserPlus } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 
 type Invite = {
   id: string;
@@ -61,7 +61,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canInviteMember, planIncludesInvites } = usePlan();
+  const { canInviteMember, planIncludesInvites } = useProjectPlan(projectId);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
