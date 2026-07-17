@@ -9,10 +9,19 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const ALLOWED_ORIGIN_SUFFIXES = [".lovable.app", ".lovable.dev", ".buildslides.com", ".reportair.co"];
+const ALLOWED_ORIGIN_SUFFIXES = [
+  ".lovable.app",
+  ".lovable.dev",
+  ".lovableproject.com",
+  ".buildslides.com",
+  ".buildfolder.com",
+  ".reportair.co",
+];
 const ALLOWED_ORIGINS = new Set([
   "https://www.buildslides.com",
   "https://buildslides.com",
+  "https://www.buildfolder.com",
+  "https://buildfolder.com",
   "https://www.reportair.co",
   "https://reportair.co",
   "http://localhost:3000",
