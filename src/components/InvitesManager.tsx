@@ -388,28 +388,30 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               They&apos;ll get an email with a link. New users are auto-added when they sign up.
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="space-y-2">
             <Input
               type="email"
               placeholder="email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1"
+              className="w-full"
             />
-            <Select value={role} onValueChange={(v) => setRole(v as ProjectRole)}>
-              <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="owner">Owner</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
-                <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
-              {(!canInviteMember || !planIncludesInvites) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
-              <Mail className="mr-2 h-4 w-4" />Send invite
-            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Select value={role} onValueChange={(v) => setRole(v as ProjectRole)}>
+                <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="owner">Owner</SelectItem>
+                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
+                  <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
+                {(!canInviteMember || !planIncludesInvites) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
+                <Mail className="mr-2 h-4 w-4" />Send invite
+              </Button>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
           {!planIncludesInvites && (
