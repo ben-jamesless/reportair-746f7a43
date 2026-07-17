@@ -17,6 +17,9 @@ import { SharePanel } from "./SharePanel";
 import { MembersPanel } from "./MembersPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { canEditProject, isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
+import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
+import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 
 
 type TabKey = "overview" | "daily" | "library" | "map";
