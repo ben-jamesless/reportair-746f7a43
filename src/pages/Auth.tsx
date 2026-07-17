@@ -37,7 +37,8 @@ const Auth = () => {
   const [busy, setBusy] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
 
-  const rawRedirect = params.get("redirect") || "/projects";
+  const storedRedirect = window.sessionStorage.getItem("auth_redirect");
+  const rawRedirect = params.get("redirect") || storedRedirect || "/projects";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
   const authReturnUrl = new URL("/auth", window.location.origin);
   authReturnUrl.searchParams.set("redirect", redirect);
@@ -52,6 +53,14 @@ const Auth = () => {
   useEffect(() => {
     if (user) navigate(redirect, { replace: true });
   }, [user, navigate, redirect]);
+
+  useEffect(() => {
+    if (redirect !== "/projects") {
+      window.sessionStorage.setItem("auth_redirect", redirect);
+    } else {
+      window.sessionStorage.removeItem("auth_redirect");
+    }
+  }, [redirect]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +125,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setBusy(true);
     try {
+      window.sessionStorage.setItem("auth_redirect", redirect);
       const { lovable } = await import("@/integrations/lovable/index");
       const result = await withTimeout(
         lovable.auth.signInWithOAuth("google", {
