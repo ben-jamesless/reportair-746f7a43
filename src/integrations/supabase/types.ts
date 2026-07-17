@@ -967,6 +967,9 @@ export type Database = {
           location: string | null
           logo_path: string | null
           map_center: Json | null
+          map_default_center_lat: number | null
+          map_default_center_lng: number | null
+          map_default_zoom: number | null
           map_type: string | null
           map_zoom: number | null
           name: string
@@ -1001,6 +1004,9 @@ export type Database = {
           location?: string | null
           logo_path?: string | null
           map_center?: Json | null
+          map_default_center_lat?: number | null
+          map_default_center_lng?: number | null
+          map_default_zoom?: number | null
           map_type?: string | null
           map_zoom?: number | null
           name: string
@@ -1035,6 +1041,9 @@ export type Database = {
           location?: string | null
           logo_path?: string | null
           map_center?: Json | null
+          map_default_center_lat?: number | null
+          map_default_center_lng?: number | null
+          map_default_zoom?: number | null
           map_type?: string | null
           map_zoom?: number | null
           name?: string
