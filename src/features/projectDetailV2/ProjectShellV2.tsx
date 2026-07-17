@@ -119,6 +119,13 @@ function ShellBody({
   const [shareOpen, setShareOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
   const canManageMembers = canEditProject(role);
+  const { limits, isBillingOwner, teamName, billingOwnerName } = useProjectPlan(projectId);
+  const { dayCount, loading: daysLoading } = useProjectUpdateDays(
+    limits.maxUpdateDays !== -1 ? projectId : null
+  );
+  const planLimitReached =
+    limits.maxUpdateDays !== -1 && !daysLoading && dayCount >= limits.maxUpdateDays;
+
 
   if (crewOnly) {
     return (
