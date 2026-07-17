@@ -37,8 +37,11 @@ const Auth = () => {
   const [busy, setBusy] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
 
-  const rawRedirect = params.get("redirect") || "/projects";
+  const storedRedirect = window.sessionStorage.getItem("auth_redirect");
+  const rawRedirect = params.get("redirect") || storedRedirect || "/projects";
   const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/projects";
+  const authReturnUrl = new URL("/auth", window.location.origin);
+  authReturnUrl.searchParams.set("redirect", redirect);
   const suspendedError = params.get("error") === "suspended";
   const timedOut = params.get("reason") === "timeout";
   const timeoutKind = params.get("kind");
@@ -48,8 +51,19 @@ const Auth = () => {
   }, [mode]);
 
   useEffect(() => {
-    if (user) navigate(redirect, { replace: true });
+    if (user) {
+      window.sessionStorage.removeItem("auth_redirect");
+      navigate(redirect, { replace: true });
+    }
   }, [user, navigate, redirect]);
+
+  useEffect(() => {
+    if (redirect !== "/projects") {
+      window.sessionStorage.setItem("auth_redirect", redirect);
+    } else {
+      window.sessionStorage.removeItem("auth_redirect");
+    }
+  }, [redirect]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +87,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/projects`,
+            emailRedirectTo: authReturnUrl.toString(),
             data: { full_name: fullName },
           },
         }),
@@ -84,7 +98,7 @@ const Auth = () => {
       if (error) return toast.error(error.message, { description: NETWORK_HELP });
       gaEvent("sign_up", { method: "email" });
       if (data.session) {
-        navigate("/onboarding", { replace: true });
+        navigate(redirect, { replace: true });
       } else {
         setSignupSent(true);
       }
@@ -114,10 +128,11 @@ const Auth = () => {
   const handleGoogle = async () => {
     setBusy(true);
     try {
+      window.sessionStorage.setItem("auth_redirect", redirect);
       const { lovable } = await import("@/integrations/lovable/index");
       const result = await withTimeout(
         lovable.auth.signInWithOAuth("google", {
-          redirect_uri: `${window.location.origin}/projects`,
+          redirect_uri: authReturnUrl.toString(),
         }),
         NETWORK_TIMEOUT_MS,
         "Google sign-in"
@@ -134,7 +149,7 @@ const Auth = () => {
         });
         return;
       }
-      navigate("/projects");
+      navigate(redirect);
     } catch (err) {
       setBusy(false);
       const msg = err instanceof Error ? err.message : "Google sign-in failed";
