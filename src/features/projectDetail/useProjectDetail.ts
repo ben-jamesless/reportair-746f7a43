@@ -411,11 +411,18 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
 
   const restoreProject = useCallback(async () => {
     if (!projectId) return;
-    if (limits.maxProjects !== -1 && projectCount >= limits.maxProjects) {
-      toast.error(
-        `You've reached your ${limits.maxProjects}-project limit. Archive or delete a project before restoring this one.`
-      );
-      return;
+    if (limits.maxProjects !== -1 && teamId) {
+      const { count } = await supabase
+        .from("projects")
+        .select("id", { count: "exact", head: true })
+        .eq("team_id", teamId)
+        .is("archived_at", null);
+      if ((count ?? 0) >= limits.maxProjects) {
+        toast.error(
+          `You've reached your ${limits.maxProjects}-project limit. Archive or delete a project before restoring this one.`
+        );
+        return;
+      }
     }
     const { error } = await supabase
       .from("projects")
@@ -428,7 +435,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     toast.success("Project restored");
     refetchPlan?.();
     refetch();
-  }, [projectId, refetch, limits.maxProjects, projectCount, refetchPlan]);
+  }, [projectId, refetch, limits.maxProjects, teamId, refetchPlan]);
 
   // ---- Area mutations ----
   const addArea = useCallback(
