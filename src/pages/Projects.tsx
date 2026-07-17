@@ -63,6 +63,7 @@ const Projects = () => {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [lastUploads, setLastUploads] = useState<Map<string, string>>(new Map());
+  const [mapMeta, setMapMeta] = useState<Map<string, { lat: number; lng: number; zoom: number | null }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
