@@ -13,7 +13,7 @@ import { BulkSetCaptureDateCard } from "./BulkSetCaptureDateCard";
 import { CoverPhotoManager } from "./CoverPhotoManager";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 
 interface ProjectForEdit {
   id: string;
