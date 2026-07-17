@@ -407,7 +407,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                   <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
+              <Button className="flex-1" onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
                 {(!canInviteMember || !planIncludesInvites) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
                 <Mail className="mr-2 h-4 w-4" />Send invite
               </Button>
