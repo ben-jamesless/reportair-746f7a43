@@ -151,7 +151,7 @@ export const ExportPdfDialog = ({
   open: controlledOpen,
   onOpenChange,
 }: Props) => {
-  const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = usePlan();
+  const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = useProjectPlan(projectId);
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
