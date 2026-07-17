@@ -132,6 +132,27 @@ const Onboarding = () => {
       return;
     }
 
+
+    // Growth telemetry — check whether the team-insert trigger recorded the
+    // `external_user_started_own_team` event for this user. Supabase is the
+    // source of truth (survives ad blockers); GA4 is the convenience view.
+    // The trigger dedupes per user so this only fires on the FIRST own-team.
+    try {
+      const { data: growth } = await supabase
+        .from("growth_events")
+        .select("verb, metadata")
+        .eq("actor_id", user.id)
+        .eq("verb", "external_user_started_own_team")
+        .maybeSingle();
+      if (growth) {
+        const meta = (growth.metadata ?? {}) as Record<string, unknown>;
+        const priorTeams = Array.isArray(meta.prior_team_ids) ? meta.prior_team_ids.length : 0;
+        gaEvent("external_user_started_own_team", {
+          prior_team_count: priorTeams,
+        });
+      }
+    } catch { /* non-blocking */ }
+
     // Welcome email — fire and forget, does not block onboarding completion
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session?.user?.email) return;
@@ -143,6 +164,7 @@ const Onboarding = () => {
         },
       }).catch(() => {});
     });
+
 
     setBusy(false);
     toast.success(`Welcome, ${fullName.split(" ")[0]}!`);
