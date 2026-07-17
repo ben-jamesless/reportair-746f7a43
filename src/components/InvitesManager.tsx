@@ -69,6 +69,14 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const [loading, setLoading] = useState(false);
   const [isAppAdmin, setIsAppAdmin] = useState(false);
 
+  // "Add from your team" picker state
+  type TeamCandidate = { user_id: string; full_name: string | null; email: string | null };
+  const [teamCandidates, setTeamCandidates] = useState<TeamCandidate[]>([]);
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [candidateId, setCandidateId] = useState<string>("");
+  const [candidateRole, setCandidateRole] = useState<ProjectRole>("viewer");
+  const [addingCandidate, setAddingCandidate] = useState(false);
+
   // Confirmation state
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
