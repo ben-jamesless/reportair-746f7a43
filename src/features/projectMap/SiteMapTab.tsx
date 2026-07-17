@@ -486,7 +486,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}
-            center={geo}
+            center={defaultView ?? geo}
+            zoom={defaultView?.zoom}
             areas={areas}
             features={features}
             drawingAreaId={drawingAreaId}
