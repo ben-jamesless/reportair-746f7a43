@@ -13,7 +13,7 @@ import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant, isE
 import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
-import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
+
 import { event as gaEvent } from "@/lib/analytics";
 import { fetchPrimaryZones, assignZoneForPoint } from "@/lib/zoneAssign";
 
@@ -26,8 +26,6 @@ interface Props {
   areas?: AreaOption[];
   onUploaded?: () => void;
   trigger?: React.ReactNode;
-  /** Optional share token for the "View your live report" link in the Free-plan gate. */
-  shareToken?: string | null;
 }
 
 const NO_AREA = "__no_area__";
@@ -39,10 +37,10 @@ const todayYmd = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger, shareToken = null }: Props) => {
+export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger }: Props) => {
   const { user } = useAuth();
   const projectPlan = useProjectPlan(projectId);
-  const { limits, isBillingOwner, teamName, billingOwnerName } = projectPlan;
+  const { limits } = projectPlan;
   const { dayCount, loading: daysLoading } = useProjectUpdateDays(
     limits.maxUpdateDays !== -1 ? projectId : null
   );
@@ -244,16 +242,11 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
     if (inputRef.current) inputRef.current.value = "";
   };
 
+  // When the team's plan is at its build-day cap, block starting new uploads.
+  // The user-facing notice is rendered as a thin banner in the project shell,
+  // so we don't render a card here — just suppress the upload trigger.
   if (isUpdateDayLimitReached) {
-    return (
-      <FreePlanUploadGate
-        projectId={projectId}
-        shareToken={shareToken}
-        teamName={teamName}
-        ownerName={billingOwnerName}
-        isBillingOwner={isBillingOwner}
-      />
-    );
+    return null;
   }
 
 

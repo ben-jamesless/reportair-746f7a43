@@ -17,6 +17,9 @@ import { SharePanel } from "./SharePanel";
 import { MembersPanel } from "./MembersPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { canEditProject, isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
+import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
+import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 
 
 type TabKey = "overview" | "daily" | "library" | "map";
@@ -116,6 +119,13 @@ function ShellBody({
   const [shareOpen, setShareOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
   const canManageMembers = canEditProject(role);
+  const { limits, isBillingOwner, teamName, billingOwnerName } = useProjectPlan(projectId);
+  const { dayCount, loading: daysLoading } = useProjectUpdateDays(
+    limits.maxUpdateDays !== -1 ? projectId : null
+  );
+  const planLimitReached =
+    limits.maxUpdateDays !== -1 && !daysLoading && dayCount >= limits.maxUpdateDays;
+
 
   if (crewOnly) {
     return (
@@ -163,6 +173,13 @@ function ShellBody({
           <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
         )}
 
+        {planLimitReached && (
+          <FreePlanUploadGate
+            teamName={teamName}
+            ownerName={billingOwnerName}
+            isBillingOwner={isBillingOwner}
+          />
+        )}
 
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
