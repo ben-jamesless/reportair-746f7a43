@@ -278,13 +278,13 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
 
       {/* Per-area cards */}
-      {areasWithBoundary.length === 0 ? (
+      {areas.length === 0 ? (
         <p className="border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
           No areas with boundaries yet. Draw a zone for an area on the Map tab to see it here.
         </p>
       ) : (
         <div className="space-y-4">
-          {areasWithBoundary.map((ar) => {
+          {areas.map((ar) => {
             const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "no_status";
             const note = areaDayNotes.get(`${ar.id}|${activeDay}`) ?? null;
             const ps = photosByArea.get(ar.id) ?? [];
