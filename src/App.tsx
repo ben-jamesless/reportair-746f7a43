@@ -79,8 +79,8 @@ const App = () => (
                 <Route path="/invite/:token" element={<ErrorBoundary label="page"><InviteAccept /></ErrorBoundary>} />
                 <Route path="/billing" element={<ErrorBoundary label="page"><ProtectedRoute><Billing /></ProtectedRoute></ErrorBoundary>} />
                 
-                <Route path="/share-links" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["pro", "studio"]}><ShareLinks /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
-                <Route path="/team" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["pro", "studio"]}><Team /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/share-links" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio"]}><ShareLinks /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/team" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio"]}><Team /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
 
                 <Route path="/settings" element={<ErrorBoundary label="page"><ProtectedRoute><Settings /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />

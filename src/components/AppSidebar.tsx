@@ -259,7 +259,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           {/* ── Primary nav ── */}
           <nav className="mt-2 space-y-0.5 px-2 lg:px-3">
             {navItems.filter((item) => {
-              if ((item.href === "/share-links") && plan !== "pro" && plan !== "studio") return false;
+              if ((item.href === "/share-links") && plan !== "crew" && plan !== "studio") return false;
               return true;
             }).map((item) => {
 
@@ -297,7 +297,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           {/* ── Bottom nav (Team / Billing / Settings) ── */}
           <nav className="space-y-0.5 px-2 lg:px-3">
             {bottomNavItems.filter((item) => {
-              if (item.href === "/team" && plan !== "pro" && plan !== "studio") return false;
+              if (item.href === "/team" && plan !== "crew" && plan !== "studio") return false;
               return true;
             }).map((item) => {
 

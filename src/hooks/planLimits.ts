@@ -1,11 +1,11 @@
 // Single source of truth for plan tiers, limits, and normalisation.
 // Both usePlan (account-scoped) and useProjectPlan (project-scoped) import from here.
 
-export type PlanName = "free" | "solo" | "pro" | "studio";
+export type PlanName = "free" | "solo" | "crew" | "studio";
 
 export interface PlanLimits {
   maxProjects:            number;   // -1 = unlimited
-  maxMembers:             number;   // -1 = unlimited
+  maxMembers:             number;   // -1 = unlimited (core seats; externals gated separately)
   maxUpdateDays:          number;   // max distinct photo-upload dates per project; -1 = unlimited
   maxExportsMonth:        number;   // -1 = unlimited
   pdfExport:              boolean;
@@ -17,6 +17,7 @@ export interface PlanLimits {
   whiteLabelFull:         boolean;
   projectFolders:         boolean;
   planIncludesInvites:    boolean;
+  allowsExternals:        boolean;  // Crew/Studio only
 }
 
 export const LIMITS: Record<PlanName, PlanLimits> = {
@@ -34,6 +35,7 @@ export const LIMITS: Record<PlanName, PlanLimits> = {
     whiteLabelFull:          false,
     projectFolders:          false,
     planIncludesInvites:     false,
+    allowsExternals:         false,
   },
   solo: {
     maxProjects:             1,
@@ -49,10 +51,11 @@ export const LIMITS: Record<PlanName, PlanLimits> = {
     whiteLabelFull:          false,
     projectFolders:          false,
     planIncludesInvites:     false,
+    allowsExternals:         false,
   },
-  pro: {
+  crew: {
     maxProjects:             5,
-    maxMembers:              5,
+    maxMembers:              5, // base core seats; add-on seats extend up to 10
     maxUpdateDays:           -1,
     maxExportsMonth:         -1,
     pdfExport:               true,
@@ -64,6 +67,7 @@ export const LIMITS: Record<PlanName, PlanLimits> = {
     whiteLabelFull:          false,
     projectFolders:          true,
     planIncludesInvites:     true,
+    allowsExternals:         true,
   },
   studio: {
     maxProjects:             -1,
@@ -79,16 +83,20 @@ export const LIMITS: Record<PlanName, PlanLimits> = {
     whiteLabelFull:          true,
     projectFolders:          true,
     planIncludesInvites:     true,
+    allowsExternals:         true,
   },
 };
 
-// "free" now stays as "free" — it is a real plan, not a fallback.
+// Legacy plan values (`pro`, `team`, `enterprise`) are accepted at the boundary
+// and normalised to the current names so we never crash on stale rows or old
+// Stripe metadata during the changeover.
 export function normalisePlan(raw: string | null | undefined): PlanName {
   switch (raw) {
     case "free":       return "free";
     case "solo":       return "solo";
-    case "pro":        return "pro";
-    case "team":       return "pro";
+    case "crew":       return "crew";
+    case "pro":        return "crew";
+    case "team":       return "crew";
     case "studio":     return "studio";
     case "enterprise": return "studio";
     default:           return "free";
