@@ -83,6 +83,7 @@ export default function ProjectShellV2() {
         setTab={setTab}
         loading={loading}
         projectName={projectName}
+        role={role}
         crewOnly={isCrewOnly(role)}
       />
     </AppShell>
