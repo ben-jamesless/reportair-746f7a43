@@ -64,6 +64,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [areas, setAreas] = useState<Area[]>([]);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoaded, setGeoLoaded] = useState(false);
+  const [defaultView, setDefaultView] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  const [savingView, setSavingView] = useState(false);
   const [statusByArea, setStatusByArea] = useState<Record<string, string>>({});
   const { features, create, createZone, setPrimary, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null); // null + drawingKind set → new zone
@@ -97,12 +99,30 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     setAreas((ar ?? []) as Area[]);
   };
 
+  const saveDefaultView = async () => {
+    const cam = canvasRef.current?.getCameraState();
+    if (!cam) { toast.error("Map isn't ready yet"); return; }
+    setSavingView(true);
+    const { error } = await supabase
+      .from("projects")
+      .update({
+        map_default_center_lat: cam.lat,
+        map_default_center_lng: cam.lng,
+        map_default_zoom: cam.zoom,
+      } as any)
+      .eq("id", projectId);
+    setSavingView(false);
+    if (error) { toast.error(error.message); return; }
+    setDefaultView(cam);
+    toast.success("Default map view saved");
+  };
+
   useEffect(() => {
     (async () => {
       const [{ data: ar }, { data: pr }, { data: st }] = await Promise.all([
         supabase.from("areas").select("id, project_id, name, sort_order, color")
           .eq("project_id", projectId).is("deleted_at", null).order("sort_order"),
-        supabase.from("projects").select("geo_lat, geo_lng").eq("id", projectId).maybeSingle(),
+        supabase.from("projects").select("geo_lat, geo_lng, map_default_center_lat, map_default_center_lng, map_default_zoom" as any).eq("id", projectId).maybeSingle(),
         // Today's status per area — one row per area, latest date
         supabase.from("area_day_status")
           .select("area_id, date, status")
@@ -110,7 +130,11 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
           .order("date", { ascending: false }),
       ]);
       setAreas((ar ?? []) as Area[]);
-      if (pr?.geo_lat != null && pr?.geo_lng != null) setGeo({ lat: pr.geo_lat, lng: pr.geo_lng });
+      const prAny = pr as any;
+      if (prAny?.geo_lat != null && prAny?.geo_lng != null) setGeo({ lat: prAny.geo_lat, lng: prAny.geo_lng });
+      if (prAny?.map_default_center_lat != null && prAny?.map_default_center_lng != null && prAny?.map_default_zoom != null) {
+        setDefaultView({ lat: prAny.map_default_center_lat, lng: prAny.map_default_center_lng, zoom: prAny.map_default_zoom });
+      }
       const latest: Record<string, string> = {};
       for (const row of (st ?? []) as any[]) {
         if (!latest[row.area_id]) latest[row.area_id] = row.status;
@@ -214,22 +238,36 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
           </div>
         )}
       </div>
-      {canEdit && (
-        isEditMode ? (
+      <div className="flex items-center gap-2">
+        {canEdit && (
           <Button
             size="sm"
             variant="outline"
             className="rounded-none"
-            onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
+            disabled={savingView}
+            onClick={saveDefaultView}
+            title="Save current pan & zoom as the default framing for this event's map"
           >
-            <Eye className="mr-1 h-3 w-3" /> Done editing
+            {savingView ? "Saving…" : "Set as default view"}
           </Button>
-        ) : (
-          <Button size="sm" variant="outline" className="rounded-none" onClick={() => setMode("edit")}>
-            <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
-          </Button>
-        )
-      )}
+        )}
+        {canEdit && (
+          isEditMode ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-none"
+              onClick={() => { cancelDraw(); setSelectedId(null); setMode("view"); }}
+            >
+              <Eye className="mr-1 h-3 w-3" /> Done editing
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" className="rounded-none" onClick={() => setMode("edit")}>
+              <Pencil className="mr-1 h-3 w-3" /> Edit boundaries
+            </Button>
+          )
+        )}
+      </div>
     </div>
   );
 
@@ -242,14 +280,16 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
           {geo ? (
             <SiteMapCanvas
-              center={geo}
+              ref={canvasRef}
+              center={defaultView ?? geo}
+              zoom={defaultView?.zoom}
               areas={areas}
               features={features}
               onFeatureClick={(f) => onAreaOpen?.(f.area_id)}
               fallbackColor={color ?? undefined}
               editable={false}
               statusTintByArea={statusTintByArea}
-              fitToFeatures
+              fitToFeatures={!defaultView}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -446,7 +486,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}
-            center={geo}
+            center={defaultView ?? geo}
+            zoom={defaultView?.zoom}
             areas={areas}
             features={features}
             drawingAreaId={drawingAreaId}
