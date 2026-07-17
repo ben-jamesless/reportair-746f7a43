@@ -13,7 +13,11 @@ type Approval = {
   created_at: string;
   use_case_note: string | null;
   invited_by_user_id: string | null;
+  origin_project_id: string | null;
+  origin_project_role: string | null;
+  project_name?: string | null;
 };
+
 
 /**
  * Approvals inbox — surfaces pending `team_external_approvals` rows so an
