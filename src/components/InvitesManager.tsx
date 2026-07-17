@@ -91,16 +91,18 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
       supabase.from("project_invites").select("id,email,role,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
-      supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
+      supabase.from("projects").select("name,team_id").eq("id", projectId).maybeSingle(),
     ]);
     const invRows = (inv ?? []) as Invite[];
-    setProjectName((proj as { name?: string } | null)?.name ?? "");
+    const projRow = proj as { name?: string; team_id?: string | null } | null;
+    setProjectName(projRow?.name ?? "");
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
 
     // Hide ghost accepted invites whose user profile no longer exists.
     const acceptedUserIds = invRows
       .filter((i) => i.accepted_at && i.accepted_by)
       .map((i) => i.accepted_by as string);
+    const memberIds = new Set(pmRows.map((m) => m.user_id));
     const allIds = Array.from(new Set([...pmRows.map((m) => m.user_id), ...acceptedUserIds]));
 
     let profMap = new Map<string, { full_name: string | null; email: string | null; last_active_at: string | null; created_at: string | null }>();
@@ -121,6 +123,36 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         created_at: profMap.get(m.user_id)?.created_at ?? null,
       })),
     );
+
+    // Team roster candidates: teammates from the project's team who are not
+    // already members of this project. Skipped when the project has no team.
+    if (projRow?.team_id) {
+      const { data: tm } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", projRow.team_id);
+      const tmIds = ((tm ?? []) as { user_id: string }[])
+        .map((r) => r.user_id)
+        .filter((uid) => !memberIds.has(uid));
+      if (tmIds.length) {
+        const { data: tprofs } = await supabase
+          .from("profiles")
+          .select("id,full_name,email")
+          .in("id", tmIds);
+        const rows = (tprofs ?? []) as { id: string; full_name: string | null; email: string | null }[];
+        setTeamCandidates(
+          rows
+            .map((p) => ({ user_id: p.id, full_name: p.full_name, email: p.email }))
+            .sort((a, b) =>
+              (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""),
+            ),
+        );
+      } else {
+        setTeamCandidates([]);
+      }
+    } else {
+      setTeamCandidates([]);
+    }
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
