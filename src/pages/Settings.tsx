@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
-import { useBetaUi } from "@/hooks/useBetaUi";
+
 
 const DEFAULT_BRAND = "#D94F2A";
 
@@ -35,33 +35,6 @@ function contrastRatioAgainstWhite(hex: string): number {
 
 const isValidHex = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v);
 
-function BetaToggleRow() {
-  const { betaUi, loading, setBetaUi } = useBetaUi();
-  const [saving, setSaving] = useState(false);
-  const onChange = async (next: boolean) => {
-    setSaving(true);
-    const { error } = await setBetaUi(next);
-    setSaving(false);
-    if (error) toast.error(error.message);
-    else toast.success(next ? "New workspace enabled" : "Switched back to classic");
-  };
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <Label>Try the new project workspace (beta)</Label>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Preview the redesigned Overview · Daily Report · Library · Map layout. You can switch back at any time.
-        </p>
-      </div>
-      <Switch
-        checked={betaUi}
-        onCheckedChange={onChange}
-        disabled={loading || saving}
-        aria-label="Toggle beta workspace"
-      />
-    </div>
-  );
-}
 
 export default function SettingsPage() {
   const { plan, teamId, loading: planLoading } = usePlan();
@@ -219,9 +192,6 @@ export default function SettingsPage() {
             <Button asChild variant="outline" size="sm">
               <Link to="/billing">Manage subscription</Link>
             </Button>
-
-            <Separator />
-            <BetaToggleRow />
           </CardContent>
         </Card>
 
