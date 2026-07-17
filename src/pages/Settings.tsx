@@ -14,7 +14,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
-import { useBetaUi } from "@/hooks/useBetaUi";
+
 
 const DEFAULT_BRAND = "#D94F2A";
 
