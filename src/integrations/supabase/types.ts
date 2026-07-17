@@ -1679,6 +1679,7 @@ export type Database = {
         Args: { _feature_id: string }
         Returns: undefined
       }
+      team_member_count: { Args: { _team_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user" | "platform_admin"
