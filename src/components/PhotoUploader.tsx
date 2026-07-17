@@ -39,10 +39,10 @@ const todayYmd = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger, shareToken = null }: Props) => {
+export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger }: Props) => {
   const { user } = useAuth();
   const projectPlan = useProjectPlan(projectId);
-  const { limits, isBillingOwner, teamName, billingOwnerName } = projectPlan;
+  const { limits } = projectPlan;
   const { dayCount, loading: daysLoading } = useProjectUpdateDays(
     limits.maxUpdateDays !== -1 ? projectId : null
   );
