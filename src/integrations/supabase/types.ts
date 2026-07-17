@@ -486,6 +486,30 @@ export type Database = {
         }
         Relationships: []
       }
+      growth_events: {
+        Row: {
+          actor_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          verb: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          verb: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          verb?: string
+        }
+        Relationships: []
+      }
       guest_notes: {
         Row: {
           body: string
@@ -1167,6 +1191,8 @@ export type Database = {
           id: string
           invited_by_user_id: string | null
           invitee_email: string
+          origin_project_id: string | null
+          origin_project_role: string | null
           status: string
           team_id: string
           updated_at: string
@@ -1179,6 +1205,8 @@ export type Database = {
           id?: string
           invited_by_user_id?: string | null
           invitee_email: string
+          origin_project_id?: string | null
+          origin_project_role?: string | null
           status?: string
           team_id: string
           updated_at?: string
@@ -1191,12 +1219,21 @@ export type Database = {
           id?: string
           invited_by_user_id?: string | null
           invitee_email?: string
+          origin_project_id?: string | null
+          origin_project_role?: string | null
           status?: string
           team_id?: string
           updated_at?: string
           use_case_note?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "team_external_approvals_origin_project_id_fkey"
+            columns: ["origin_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "team_external_approvals_team_id_fkey"
             columns: ["team_id"]
@@ -1514,6 +1551,10 @@ export type Database = {
       can_write_export_asset: {
         Args: { _name: string; _user: string }
         Returns: boolean
+      }
+      classify_invitee: {
+        Args: { _email: string; _team_id: string }
+        Returns: string
       }
       copy_prior_day_statuses: {
         Args: { _date_key: string; _project_id: string }
