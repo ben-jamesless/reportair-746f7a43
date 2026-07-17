@@ -280,14 +280,16 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
           {geo ? (
             <SiteMapCanvas
-              center={geo}
+              ref={canvasRef}
+              center={defaultView ?? geo}
+              zoom={defaultView?.zoom}
               areas={areas}
               features={features}
               onFeatureClick={(f) => onAreaOpen?.(f.area_id)}
               fallbackColor={color ?? undefined}
               editable={false}
               statusTintByArea={statusTintByArea}
-              fitToFeatures
+              fitToFeatures={!defaultView}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
