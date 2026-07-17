@@ -314,6 +314,75 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
       {canManage && (
         <section className="space-y-3 rounded-lg border bg-card p-4">
           <div>
+            <h4 className="text-sm font-semibold">Add from your team</h4>
+            <p className="text-xs text-muted-foreground">
+              Grant access to someone already on your team — no email invite, no accept step.
+            </p>
+          </div>
+          {teamCandidates.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Everyone on your team already has access to this project. Use the invite-by-email option below for anyone new.
+            </p>
+          ) : (
+            <>
+              <Input
+                type="search"
+                placeholder="Search your team by name or email"
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+              />
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Select value={candidateId} onValueChange={setCandidateId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Pick a teammate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamCandidates
+                      .filter((c) => {
+                        const q = candidateSearch.trim().toLowerCase();
+                        if (!q) return true;
+                        return (
+                          (c.full_name ?? "").toLowerCase().includes(q) ||
+                          (c.email ?? "").toLowerCase().includes(q)
+                        );
+                      })
+                      .map((c) => (
+                        <SelectItem key={c.user_id} value={c.user_id}>
+                          <span className="flex flex-col">
+                            <span className="font-medium">
+                              {c.full_name || c.email || c.user_id.slice(0, 8)}
+                            </span>
+                            {c.full_name && c.email && (
+                              <span className="text-xs text-muted-foreground">{c.email}</span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <Select value={candidateRole} onValueChange={(v) => setCandidateRole(v as ProjectRole)}>
+                  <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Owner</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="commenter">Commenter</SelectItem>
+                    <SelectItem value="crew">Crew</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={addFromTeam} disabled={addingCandidate || !candidateId}>
+                  <UserPlus className="mr-2 h-4 w-4" />Add
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[candidateRole]}</p>
+            </>
+          )}
+        </section>
+      )}
+
+      {canManage && (
+        <section className="space-y-3 rounded-lg border bg-card p-4">
+          <div>
             <h4 className="text-sm font-semibold">Invite someone to this project</h4>
             <p className="text-xs text-muted-foreground">
               They&apos;ll get an email with a link. New users are auto-added when they sign up.
