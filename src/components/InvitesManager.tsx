@@ -344,6 +344,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                       <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="viewer">Viewer</SelectItem>
                       <SelectItem value="commenter">Commenter</SelectItem>
+                      <SelectItem value="crew">Crew</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
