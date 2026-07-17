@@ -81,6 +81,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [deleteArea, setDeleteArea] = useState<Area | null>(null);
 
   const handleDeleteArea = async (area: Area) => {
+    // Hard-delete any map features attached to this area first — otherwise
+    // they linger on the canvas as orphans (area hidden from the sidebar
+    // because of the deleted_at filter, so nothing to click on to remove).
+    const { error: fErr } = await supabase
+      .from("area_map_features")
+      .delete()
+      .eq("area_id", area.id);
+    if (fErr) { toast.error(fErr.message); return; }
     const { error } = await supabase
       .from("areas")
       .update({ deleted_at: new Date().toISOString() })
@@ -91,6 +99,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     onAreasChanged?.();
     toast.success(`Area "${area.name}" deleted`);
   };
+
 
   const reloadAreas = async () => {
     const { data: ar } = await supabase.from("areas")
