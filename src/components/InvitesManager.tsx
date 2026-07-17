@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2, Mail, Copy, Send, LogOut, Crown } from "lucide-react";
+import { Trash2, Mail, Copy, Send, LogOut, Crown, UserPlus } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
 import { usePlan } from "@/hooks/usePlan";
@@ -69,6 +69,14 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const [loading, setLoading] = useState(false);
   const [isAppAdmin, setIsAppAdmin] = useState(false);
 
+  // "Add from your team" picker state
+  type TeamCandidate = { user_id: string; full_name: string | null; email: string | null };
+  const [teamCandidates, setTeamCandidates] = useState<TeamCandidate[]>([]);
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [candidateId, setCandidateId] = useState<string>("");
+  const [candidateRole, setCandidateRole] = useState<ProjectRole>("viewer");
+  const [addingCandidate, setAddingCandidate] = useState(false);
+
   // Confirmation state
   const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -83,16 +91,18 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     const [{ data: inv }, { data: pm }, { data: proj }] = await Promise.all([
       supabase.from("project_invites").select("id,email,role,accepted_at,accepted_by,created_at").eq("project_id", projectId).order("created_at", { ascending: false }),
       supabase.from("project_members").select("user_id,role").eq("project_id", projectId),
-      supabase.from("projects").select("name").eq("id", projectId).maybeSingle(),
+      supabase.from("projects").select("name,team_id").eq("id", projectId).maybeSingle(),
     ]);
     const invRows = (inv ?? []) as Invite[];
-    setProjectName((proj as { name?: string } | null)?.name ?? "");
+    const projRow = proj as { name?: string; team_id?: string | null } | null;
+    setProjectName(projRow?.name ?? "");
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
 
     // Hide ghost accepted invites whose user profile no longer exists.
     const acceptedUserIds = invRows
       .filter((i) => i.accepted_at && i.accepted_by)
       .map((i) => i.accepted_by as string);
+    const memberIds = new Set(pmRows.map((m) => m.user_id));
     const allIds = Array.from(new Set([...pmRows.map((m) => m.user_id), ...acceptedUserIds]));
 
     let profMap = new Map<string, { full_name: string | null; email: string | null; last_active_at: string | null; created_at: string | null }>();
@@ -113,6 +123,36 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         created_at: profMap.get(m.user_id)?.created_at ?? null,
       })),
     );
+
+    // Team roster candidates: teammates from the project's team who are not
+    // already members of this project. Skipped when the project has no team.
+    if (projRow?.team_id) {
+      const { data: tm } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", projRow.team_id);
+      const tmIds = ((tm ?? []) as { user_id: string }[])
+        .map((r) => r.user_id)
+        .filter((uid) => !memberIds.has(uid));
+      if (tmIds.length) {
+        const { data: tprofs } = await supabase
+          .from("profiles")
+          .select("id,full_name,email")
+          .in("id", tmIds);
+        const rows = (tprofs ?? []) as { id: string; full_name: string | null; email: string | null }[];
+        setTeamCandidates(
+          rows
+            .map((p) => ({ user_id: p.id, full_name: p.full_name, email: p.email }))
+            .sort((a, b) =>
+              (a.full_name || a.email || "").localeCompare(b.full_name || b.email || ""),
+            ),
+        );
+      } else {
+        setTeamCandidates([]);
+      }
+    } else {
+      setTeamCandidates([]);
+    }
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
@@ -154,6 +194,22 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
       void supabase.rpc("notify_user_of_invite", { _invite_id: inserted.id });
       void sendInviteEmail(inserted.id, { silent: true });
     }
+    load();
+  };
+
+  const addFromTeam = async () => {
+    if (!candidateId) { toast.error("Pick a teammate to add"); return; }
+    setAddingCandidate(true);
+    const { error } = await supabase
+      .from("project_members")
+      .insert({ project_id: projectId, user_id: candidateId, role: candidateRole });
+    setAddingCandidate(false);
+    if (error) { toast.error(error.message); return; }
+    const picked = teamCandidates.find((c) => c.user_id === candidateId);
+    toast.success(`${picked?.full_name || picked?.email || "Member"} added as ${candidateRole}`);
+    setCandidateId("");
+    setCandidateSearch("");
+    setCandidateRole("viewer");
     load();
   };
 
@@ -255,6 +311,75 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   return (
     <div className="space-y-6">
+      {canManage && (
+        <section className="space-y-3 rounded-lg border bg-card p-4">
+          <div>
+            <h4 className="text-sm font-semibold">Add from your team</h4>
+            <p className="text-xs text-muted-foreground">
+              Grant access to someone already on your team — no email invite, no accept step.
+            </p>
+          </div>
+          {teamCandidates.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Everyone on your team already has access to this project. Use the invite-by-email option below for anyone new.
+            </p>
+          ) : (
+            <>
+              <Input
+                type="search"
+                placeholder="Search your team by name or email"
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+              />
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Select value={candidateId} onValueChange={setCandidateId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Pick a teammate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamCandidates
+                      .filter((c) => {
+                        const q = candidateSearch.trim().toLowerCase();
+                        if (!q) return true;
+                        return (
+                          (c.full_name ?? "").toLowerCase().includes(q) ||
+                          (c.email ?? "").toLowerCase().includes(q)
+                        );
+                      })
+                      .map((c) => (
+                        <SelectItem key={c.user_id} value={c.user_id}>
+                          <span className="flex flex-col">
+                            <span className="font-medium">
+                              {c.full_name || c.email || c.user_id.slice(0, 8)}
+                            </span>
+                            {c.full_name && c.email && (
+                              <span className="text-xs text-muted-foreground">{c.email}</span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <Select value={candidateRole} onValueChange={(v) => setCandidateRole(v as ProjectRole)}>
+                  <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Owner</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="commenter">Commenter</SelectItem>
+                    <SelectItem value="crew">Crew</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button onClick={addFromTeam} disabled={addingCandidate || !candidateId}>
+                  <UserPlus className="mr-2 h-4 w-4" />Add
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[candidateRole]}</p>
+            </>
+          )}
+        </section>
+      )}
+
       {canManage && (
         <section className="space-y-3 rounded-lg border bg-card p-4">
           <div>
