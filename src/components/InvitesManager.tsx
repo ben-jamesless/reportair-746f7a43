@@ -278,6 +278,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 <SelectItem value="editor">Editor</SelectItem>
                 <SelectItem value="viewer">Viewer</SelectItem>
                 <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
+                <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
