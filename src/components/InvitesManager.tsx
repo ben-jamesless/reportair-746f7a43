@@ -63,13 +63,26 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canInviteMember, planIncludesInvites } = useProjectPlan(projectId);
+  const { canInviteMember, planIncludesInvites, teamId: planTeamId } = useProjectPlan(projectId);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const seat = useTeamSeatSummary(teamId ?? planTeamId ?? null);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<ProjectRole>("viewer");
   const [loading, setLoading] = useState(false);
   const [isAppAdmin, setIsAppAdmin] = useState(false);
+
+  // --- Domain classification (see edge fn `classify-invitee`) ---
+  // Preview only — the trigger `enforce_team_member_caps` is the authority on
+  // write. Preview degrades gracefully: on slow/failed edge response we show a
+  // neutral state and still allow submit.
+  type Classification = "core" | "external" | "requires_explicit_choice";
+  const [classification, setClassification] = useState<Classification | null>(null);
+  const [classifyState, setClassifyState] = useState<"idle" | "loading" | "ok" | "failed">("idle");
+  const [useCaseNote, setUseCaseNote] = useState("");
+  const [explicitChoice, setExplicitChoice] = useState<"core" | "external" | "">("");
+
 
   // "Add from your team" picker state
   type TeamCandidate = { user_id: string; full_name: string | null; email: string | null };
