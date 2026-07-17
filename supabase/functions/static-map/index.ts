@@ -58,7 +58,10 @@ Deno.serve(async (req) => {
     params.set("size", `${w}x${h}`);
     params.set("scale", String(scale));
     params.set("format", "jpg");
-    for (const s of STYLE) params.append("style", s);
+    params.set("maptype", "satellite");
+    // Note: custom `style` params are ignored by Google for satellite/hybrid
+    // maptypes, so we omit the muted styling block here.
+
 
     const gwUrl = `${GATEWAY_URL}/maps/api/staticmap?${params.toString()}`;
     const upstream = await fetch(gwUrl, {
