@@ -153,14 +153,22 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     })();
   }, [projectId]);
 
+  // Only features whose parent area still exists (not soft-deleted). Anything
+  // else is an orphan from an old delete flow and shouldn't render on the map.
+  const visibleFeatures = useMemo(() => {
+    const ids = new Set(areas.map((a) => a.id));
+    return features.filter((f) => ids.has(f.area_id));
+  }, [features, areas]);
+
   const byArea = useMemo(() => {
     const m = new Map<string, MapFeature[]>();
-    for (const f of features) {
+    for (const f of visibleFeatures) {
       const arr = m.get(f.area_id) ?? [];
       arr.push(f); m.set(f.area_id, arr);
     }
     return m;
-  }, [features]);
+  }, [visibleFeatures]);
+
 
   const statusTintByArea = useMemo(() => {
     const out: Record<string, StatusTint | undefined> = {};
