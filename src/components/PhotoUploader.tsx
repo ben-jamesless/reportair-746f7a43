@@ -26,8 +26,6 @@ interface Props {
   areas?: AreaOption[];
   onUploaded?: () => void;
   trigger?: React.ReactNode;
-  /** Optional share token for the "View your live report" link in the Free-plan gate. */
-  shareToken?: string | null;
 }
 
 const NO_AREA = "__no_area__";
