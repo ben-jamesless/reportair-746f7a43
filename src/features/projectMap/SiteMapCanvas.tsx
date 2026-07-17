@@ -159,6 +159,14 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     undoLastPoint,
     confirmPolygon: finishPolygon,
     getDraftPointCount: () => draftRef.current.points.length,
+    getCameraState: () => {
+      const map = mapRef.current;
+      if (!map) return null;
+      const c = map.getCenter();
+      const z = map.getZoom();
+      if (!c || z == null) return null;
+      return { lat: c.lat(), lng: c.lng(), zoom: z };
+    },
   }));
 
   // Init map once
