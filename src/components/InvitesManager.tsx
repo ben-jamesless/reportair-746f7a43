@@ -111,6 +111,8 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     const invRows = (inv ?? []) as Invite[];
     const projRow = proj as { name?: string; team_id?: string | null } | null;
     setProjectName(projRow?.name ?? "");
+    setTeamId(projRow?.team_id ?? null);
+
     const pmRows = (pm ?? []) as { user_id: string; role: ProjectRole }[];
 
     // Hide ghost accepted invites whose user profile no longer exists.
