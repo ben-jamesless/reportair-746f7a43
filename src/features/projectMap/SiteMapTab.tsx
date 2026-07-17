@@ -81,6 +81,14 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [deleteArea, setDeleteArea] = useState<Area | null>(null);
 
   const handleDeleteArea = async (area: Area) => {
+    // Hard-delete any map features attached to this area first — otherwise
+    // they linger on the canvas as orphans (area hidden from the sidebar
+    // because of the deleted_at filter, so nothing to click on to remove).
+    const { error: fErr } = await supabase
+      .from("area_map_features")
+      .delete()
+      .eq("area_id", area.id);
+    if (fErr) { toast.error(fErr.message); return; }
     const { error } = await supabase
       .from("areas")
       .update({ deleted_at: new Date().toISOString() })
@@ -91,6 +99,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     onAreasChanged?.();
     toast.success(`Area "${area.name}" deleted`);
   };
+
 
   const reloadAreas = async () => {
     const { data: ar } = await supabase.from("areas")
@@ -144,14 +153,22 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     })();
   }, [projectId]);
 
+  // Only features whose parent area still exists (not soft-deleted). Anything
+  // else is an orphan from an old delete flow and shouldn't render on the map.
+  const visibleFeatures = useMemo(() => {
+    const ids = new Set(areas.map((a) => a.id));
+    return features.filter((f) => ids.has(f.area_id));
+  }, [features, areas]);
+
   const byArea = useMemo(() => {
     const m = new Map<string, MapFeature[]>();
-    for (const f of features) {
+    for (const f of visibleFeatures) {
       const arr = m.get(f.area_id) ?? [];
       arr.push(f); m.set(f.area_id, arr);
     }
     return m;
-  }, [features]);
+  }, [visibleFeatures]);
+
 
   const statusTintByArea = useMemo(() => {
     const out: Record<string, StatusTint | undefined> = {};
@@ -284,7 +301,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
               center={defaultView ?? geo}
               zoom={defaultView?.zoom}
               areas={areas}
-              features={features}
+              features={visibleFeatures}
               onFeatureClick={(f) => onAreaOpen?.(f.area_id)}
               fallbackColor={color ?? undefined}
               editable={false}
@@ -489,7 +506,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             center={defaultView ?? geo}
             zoom={defaultView?.zoom}
             areas={areas}
-            features={features}
+            features={visibleFeatures}
             drawingAreaId={drawingAreaId}
             drawingKind={drawingKind}
             onCreate={handleCreate}
