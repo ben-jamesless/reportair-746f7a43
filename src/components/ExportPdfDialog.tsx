@@ -47,7 +47,7 @@ import {
   Crown,
 } from "lucide-react";
 import { toast } from "sonner";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 
 const PHOTO_CAP = 300;
 
