@@ -30,6 +30,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";
 import { projectStatusMeta, type ProjectStatus } from "@/lib/projectStatus";
+import { projectStaticMapUrl } from "@/lib/projectStaticMap";
+import { StatusTypographic } from "@/components/StatusTypographic";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,6 +65,7 @@ const Projects = () => {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [lastUploads, setLastUploads] = useState<Map<string, string>>(new Map());
+  const [mapMeta, setMapMeta] = useState<Map<string, { lat: number; lng: number; zoom: number | null }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
@@ -191,6 +194,24 @@ const Projects = () => {
         }
       }
       setLastUploads(uploads);
+
+      // Map thumbnails: prefer the project's saved default view; fall back
+      // to the Places-autocomplete geocode (geo_lat/lng) if none saved.
+      const meta = new Map<string, { lat: number; lng: number; zoom: number | null }>();
+      if (projectIds.length > 0) {
+        const { data: geo } = await supabase
+          .from("projects")
+          .select("id, geo_lat, geo_lng, map_default_center_lat, map_default_center_lng, map_default_zoom" as any)
+          .in("id", projectIds);
+        for (const row of ((geo ?? []) as any[])) {
+          const lat = row.map_default_center_lat ?? row.geo_lat;
+          const lng = row.map_default_center_lng ?? row.geo_lng;
+          if (lat != null && lng != null) {
+            meta.set(row.id, { lat, lng, zoom: row.map_default_zoom ?? null });
+          }
+        }
+      }
+      setMapMeta(meta);
 
       if (user.email) {
         const { data: inv } = await supabase
@@ -424,21 +445,10 @@ const Projects = () => {
           )}
         </div>
       ) : (
-        <div className="flex flex-col">
-          {/* Table header — desktop/tablet only */}
-          <div className="hidden md:grid grid-cols-[60px_1fr_140px_140px_48px] items-center gap-4 px-4 sm:px-6 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide border-b border-border bg-muted/40">
-            <div />
-            <div>Event</div>
-            <div>Status</div>
-            <div>Last Updated</div>
-            <div />
-          </div>
-
-          {/* Rows */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 sm:px-6 py-4">
           {filtered.map((p) => {
             const color = p.color || DEFAULT_PROJECT_COLOR;
             const lastUpload = lastUploads.get(p.id);
-            const statusMeta = projectStatusMeta(p.overall_status);
             const isArchived = !!p.archived_at;
             const isOwner = ownedProjectIds.has(p.id);
             const role = projectRoles.get(p.id) ?? null;
@@ -448,11 +458,13 @@ const Projects = () => {
             const canDelete = canDeleteProject(role);
             const canLeave = canLeaveProject(role);
             const hasAnyAction = canEdit || canArchive || canMove || canDelete || canLeave;
+            const geo = mapMeta.get(p.id);
+            const thumbUrl = geo ? projectStaticMapUrl({ lat: geo.lat, lng: geo.lng, zoom: geo.zoom, width: 600, height: 300 }) : null;
 
             return (
               <div
                 key={p.id}
-                className="group grid grid-cols-[48px_1fr_40px] sm:grid-cols-[60px_1fr_140px_140px_48px] items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 border-b border-border hover:bg-muted/40 cursor-pointer transition-colors"
+                className="group relative flex flex-col border border-[#E3DFD4] bg-card cursor-pointer transition-colors hover:border-[#0F1417]/30"
                 onClick={() => navigate(`/projects/${p.id}`)}
                 draggable={isOwner}
                 onDragStart={(e) => {
@@ -461,147 +473,142 @@ const Projects = () => {
                   e.dataTransfer.effectAllowed = "move";
                 }}
               >
-                {/* Thumbnail */}
-                <div
-                  className="h-12 w-12 sm:h-[60px] sm:w-[60px] rounded-lg shrink-0"
-                  style={{
-                    background: `linear-gradient(135deg, ${color}33, ${color}11)`,
-                  }}
-                >
-                  <div className="flex h-full w-full items-center justify-center text-xs font-bold text-foreground/30">
-                    {p.name.slice(0, 2).toUpperCase()}
-                  </div>
+                {/* Static map thumbnail */}
+                <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-[#E3DFD4] bg-[#FAF8F2]">
+                  {thumbUrl ? (
+                    <img
+                      src={thumbUrl}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-full w-full items-center justify-center text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30"
+                      style={{
+                        background: `linear-gradient(135deg, ${color}22, ${color}0a)`,
+                        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                      }}
+                    >
+                      {p.name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+
+                  {hasAnyAction && (
+                    <div className="absolute right-2 top-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="flex h-8 w-8 items-center justify-center border border-[#E3DFD4] bg-card/95 backdrop-blur hover:bg-muted/40"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            aria-label="Event actions"
+                          >
+                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          {canEdit && (
+                            <DropdownMenuItem onSelect={() => setEditingProject(p)}>
+                              <Pencil className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                          )}
+                          {canMove && (
+                            <DropdownMenuItem onSelect={() => setMoveProject(p)}>
+                              <FolderInput className="mr-2 h-4 w-4" /> Move to folder
+                            </DropdownMenuItem>
+                          )}
+                          {canArchive && (
+                            isArchived ? (
+                              <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
+                                <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
+                                <Archive className="mr-2 h-4 w-4" /> Archive
+                              </DropdownMenuItem>
+                            )
+                          )}
+                          {canDelete && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={async () => {
+                                  setDeletingProject(p);
+                                  setDeleteConfirm("");
+                                  setDeleteOwnerCount(1);
+                                  const { count } = await supabase
+                                    .from("project_members")
+                                    .select("user_id", { count: "exact", head: true })
+                                    .eq("project_id", p.id)
+                                    .eq("role", "owner");
+                                  setDeleteOwnerCount(count ?? 1);
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {canLeave && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={() => setLeavingProject(p)}
+                              >
+                                <LogOut className="mr-2 h-4 w-4" /> Leave
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
                 </div>
 
-                {/* Event name + meta */}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate text-sm font-semibold text-foreground">{p.name}</h3>
+                {/* Body */}
+                <div className="flex flex-1 flex-col gap-2 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="min-w-0 truncate text-sm font-semibold text-foreground">
+                      {p.name}
+                    </h3>
                     {!isOwner && (
-                      <span className="shrink-0 inline-flex items-center rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground leading-none">
+                      <span
+                        className="shrink-0 border border-[#E3DFD4] bg-[#FAF8F2] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground leading-none"
+                        style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
+                      >
                         Invited
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-xs text-muted-foreground">
-                    {p.event_location && <span className="truncate">{p.event_location}</span>}
-                    {p.event_date && (
-                      <>
-                        {p.event_location && <span className="text-[#D4D1CA]">·</span>}
-                        <span>{new Date(p.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</span>
-                      </>
-                    )}
-                    {/* Mobile-only: inline status + last-updated since columns are hidden */}
-                    <span className="md:hidden contents">
-                      {(p.overall_status ?? "no_status") !== "no_status" && (
-                        <>
-                          <span className="text-[#D4D1CA]">·</span>
-                          <span className={cn("px-1.5 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
-                            {statusMeta.label}
-                          </span>
-                        </>
-                      )}
-                      {lastUpload && (
-                        <>
-                          <span className="text-[#D4D1CA]">·</span>
-                          <span>{formatDistanceToNow(new Date(lastUpload), { addSuffix: true })}</span>
-                        </>
-                      )}
+
+                  {(p.event_location || p.event_date) && (
+                    <p className="truncate text-xs text-muted-foreground">
+                      {p.event_location}
+                      {p.event_location && p.event_date && <span className="mx-1.5 text-[#D4D1CA]">·</span>}
+                      {p.event_date && new Date(p.event_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
+                  )}
+
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                    <StatusTypographic
+                      statusKey={p.overall_status ?? "no_status"}
+                      showCaption={false}
+                    />
+                    <span
+                      className="shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted-foreground"
+                      style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
+                    >
+                      {lastUpload ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true }) : "No updates"}
                     </span>
                   </div>
-                </div>
-
-                {/* Status — desktop only */}
-                <div className="hidden md:block">
-                  {(p.overall_status ?? "no_status") !== "no_status" ? (
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full border font-medium", statusMeta.pillClass)}>
-                      {statusMeta.label}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
-                </div>
-
-                {/* Last Updated — desktop only */}
-                <div className="hidden md:block text-xs text-muted-foreground">
-                  {lastUpload
-                    ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true })
-                    : "—"}
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-end">
-                  {hasAnyAction && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/40 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        >
-                          <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem onSelect={() => setEditingProject(p)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        {canMove && (
-                          <DropdownMenuItem onSelect={() => setMoveProject(p)}>
-                            <FolderInput className="mr-2 h-4 w-4" /> Move to folder
-                          </DropdownMenuItem>
-                        )}
-                        {canArchive && (
-                          isArchived ? (
-                            <DropdownMenuItem onSelect={() => setProjectArchived(p, false)}>
-                              <ArchiveRestore className="mr-2 h-4 w-4" /> Restore
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onSelect={() => setProjectArchived(p, true)}>
-                              <Archive className="mr-2 h-4 w-4" /> Archive
-                            </DropdownMenuItem>
-                          )
-                        )}
-                        {canDelete && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onSelect={async () => {
-                                setDeletingProject(p);
-                                setDeleteConfirm("");
-                                setDeleteOwnerCount(1);
-                                const { count } = await supabase
-                                  .from("project_members")
-                                  .select("user_id", { count: "exact", head: true })
-                                  .eq("project_id", p.id)
-                                  .eq("role", "owner");
-                                setDeleteOwnerCount(count ?? 1);
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        {canLeave && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onSelect={() => setLeavingProject(p)}
-                            >
-                              <LogOut className="mr-2 h-4 w-4" /> Leave
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
 
       {/* ── Dialogs (preserved) ── */}
       {editingProject && (
