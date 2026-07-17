@@ -258,8 +258,16 @@ const Auth = () => {
     </div>
   ) : (
     <div>
-      <h2 className="text-2xl font-bold text-foreground mb-1">Create your account</h2>
-      <p className="text-sm text-muted-foreground mb-6">Start your free 14-day trial. No credit card required.</p>
+      <h2 className="text-2xl font-bold text-foreground mb-1">
+        {isInvite
+          ? (inviteProject ? `You've been invited to ${inviteProject}` : "You've been invited")
+          : "Create your account"}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-6">
+        {isInvite
+          ? "Create your account to accept the invite."
+          : "Start your free 14-day trial. No credit card required."}
+      </p>
       <form onSubmit={handleSignUp} className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor="name-up">Name</Label>
@@ -275,7 +283,7 @@ const Auth = () => {
         </div>
         <Button type="submit" className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create account
+          {isInvite ? "Create account & join" : "Create account"}
         </Button>
       </form>
       {orDivider}
