@@ -1679,7 +1679,7 @@ export type Database = {
         | "guest_comment"
         | "project_invite"
       project_default_view: "report" | "gallery"
-      project_role: "owner" | "editor" | "commenter" | "viewer"
+      project_role: "owner" | "editor" | "commenter" | "viewer" | "crew"
       project_status:
         | "no_status"
         | "on_track"
@@ -1837,7 +1837,7 @@ export const Constants = {
         "project_invite",
       ],
       project_default_view: ["report", "gallery"],
-      project_role: ["owner", "editor", "commenter", "viewer"],
+      project_role: ["owner", "editor", "commenter", "viewer", "crew"],
       project_status: [
         "no_status",
         "on_track",
