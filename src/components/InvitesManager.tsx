@@ -507,12 +507,93 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                   <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
                 </SelectContent>
               </Select>
-              <Button className="flex-1" onClick={addInvite} disabled={loading || !canInviteMember || !planIncludesInvites}>
-                {(!canInviteMember || !planIncludesInvites) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
-                <Mail className="mr-2 h-4 w-4" />Send invite
+              <Button
+                className="flex-1"
+                onClick={addInvite}
+                disabled={
+                  loading || !planIncludesInvites ||
+                  // Core / neutral flow gated by canInviteMember. External flow
+                  // gated only by "needs choice but no choice yet" — the seat
+                  // ratio itself is enforced by the trigger on write.
+                  (classification === "requires_explicit_choice" && !explicitChoice) ||
+                  (classification !== "external" && explicitChoice !== "external" && !canInviteMember)
+                }
+              >
+                {(!canInviteMember || !planIncludesInvites) && classification !== "external" && explicitChoice !== "external" && (
+                  <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />
+                )}
+                <Mail className="mr-2 h-4 w-4" />
+                {classification === "external" || explicitChoice === "external"
+                  ? "Request external access"
+                  : "Send invite"}
               </Button>
             </div>
+
+            {/* Classification preview — degrades to neutral state on failure. */}
+            {email.trim() && emailSchema.safeParse(email).success && (
+              <div
+                className="border px-3 py-2 text-xs"
+                style={{ borderColor: "#E3DFD4", background: "#FAF8F2" }}
+              >
+                {classifyState === "loading" && (
+                  <span className="text-muted-foreground">Checking domain…</span>
+                )}
+                {classifyState === "failed" && (
+                  <span className="text-muted-foreground">
+                    We&apos;ll confirm on send.
+                  </span>
+                )}
+                {classifyState === "ok" && classification === "core" && (
+                  <span>
+                    <strong>Core teammate</strong> — {Math.max(0, seat.coreCap - seat.coreCount)} core seat
+                    {Math.max(0, seat.coreCap - seat.coreCount) === 1 ? "" : "s"} remaining.
+                  </span>
+                )}
+                {classifyState === "ok" && classification === "external" && (
+                  <div className="space-y-2">
+                    <div>
+                      <strong>External collaborator.</strong> Requires owner approval.
+                      Ratio: {seat.externalCount}/{seat.coreCount * 5} externals for {seat.coreCount} core.
+                    </div>
+                    <Input
+                      placeholder="Why do they need access? (optional)"
+                      value={useCaseNote}
+                      onChange={(e) => setUseCaseNote(e.target.value)}
+                      className="w-full text-xs"
+                    />
+                  </div>
+                )}
+                {classifyState === "ok" && classification === "requires_explicit_choice" && (
+                  <div className="space-y-2">
+                    <div>
+                      Your workspace doesn&apos;t have domain matching. Choose how to add this person:
+                    </div>
+                    <Select
+                      value={explicitChoice}
+                      onValueChange={(v) => setExplicitChoice(v as "core" | "external")}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Core or External?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="core">Core teammate (counts toward core seats)</SelectItem>
+                        <SelectItem value="external">External collaborator (needs approval)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {explicitChoice === "external" && (
+                      <Input
+                        placeholder="Why do they need access? (optional)"
+                        value={useCaseNote}
+                        onChange={(e) => setUseCaseNote(e.target.value)}
+                        className="w-full text-xs"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
           <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
           {!planIncludesInvites && (
             <p className="text-xs text-muted-foreground">
