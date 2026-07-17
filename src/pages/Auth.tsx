@@ -51,7 +51,10 @@ const Auth = () => {
   }, [mode]);
 
   useEffect(() => {
-    if (user) navigate(redirect, { replace: true });
+    if (user) {
+      window.sessionStorage.removeItem("auth_redirect");
+      navigate(redirect, { replace: true });
+    }
   }, [user, navigate, redirect]);
 
   useEffect(() => {
