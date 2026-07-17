@@ -61,11 +61,11 @@ export function ApprovalsInbox({
   const act = async (id: string, next: "approved" | "denied") => {
     setBusyId(id);
     const { data: auth } = await supabase.auth.getUser();
-    const patch: Record<string, unknown> = { status: next, updated_at: new Date().toISOString() };
-    if (next === "approved") {
-      patch.approved_at = new Date().toISOString();
-      patch.approved_by_user_id = auth.user?.id ?? null;
-    }
+    const nowIso = new Date().toISOString();
+    const patch =
+      next === "approved"
+        ? { status: next, updated_at: nowIso, approved_at: nowIso, approved_by_user_id: auth.user?.id ?? null }
+        : { status: next, updated_at: nowIso };
     const { error } = await supabase.from("team_external_approvals").update(patch).eq("id", id);
     setBusyId(null);
     if (error) { toast.error(error.message); return; }
