@@ -24,7 +24,7 @@ type ShareLink = {
 };
 
 export const ShareLinksManager = ({ projectId }: { projectId: string }) => {
-  const { canUseShareLink } = usePlan();
+  const { canUseShareLink } = useProjectPlan(projectId);
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState("");
