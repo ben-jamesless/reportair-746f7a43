@@ -173,6 +173,13 @@ function ShellBody({
           <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
         )}
 
+        {planLimitReached && (
+          <FreePlanUploadGate
+            teamName={teamName}
+            ownerName={billingOwnerName}
+            isBillingOwner={isBillingOwner}
+          />
+        )}
 
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
