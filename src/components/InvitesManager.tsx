@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { Trash2, Mail, Copy, Send, LogOut, Crown, UserPlus } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 
 type Invite = {
   id: string;
