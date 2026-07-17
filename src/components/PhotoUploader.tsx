@@ -11,7 +11,7 @@ import { Upload, Loader2, ImageIcon, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { parseExif, getImageDimensions, sanitizeFileName, makeReportVariant, isExifStrippedIosUpload } from "@/lib/photoUtils";
 import { isHeicFile as isHeic, convertHeicFileToJpegFile as convertHeicToJpeg } from "@/lib/heicToJpeg";
-import { usePlan } from "@/hooks/usePlan";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 import { event as gaEvent } from "@/lib/analytics";
@@ -41,7 +41,8 @@ const todayYmd = () => {
 
 export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger, shareToken = null }: Props) => {
   const { user } = useAuth();
-  const { limits } = usePlan();
+  const projectPlan = useProjectPlan(projectId);
+  const { limits, isBillingOwner, teamName, billingOwnerName } = projectPlan;
   const { dayCount, loading: daysLoading } = useProjectUpdateDays(
     limits.maxUpdateDays !== -1 ? projectId : null
   );
@@ -244,8 +245,17 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
   };
 
   if (isUpdateDayLimitReached) {
-    return <FreePlanUploadGate projectId={projectId} shareToken={shareToken} />;
+    return (
+      <FreePlanUploadGate
+        projectId={projectId}
+        shareToken={shareToken}
+        teamName={teamName}
+        ownerName={billingOwnerName}
+        isBillingOwner={isBillingOwner}
+      />
+    );
   }
+
 
   return (
     <>
