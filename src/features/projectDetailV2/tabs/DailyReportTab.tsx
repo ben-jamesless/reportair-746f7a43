@@ -80,11 +80,6 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   const [previewMode, setPreviewMode] = useState(false);
 
   const hidden = useDayHiddenPhotos(projectId);
-  const { features: mapFeatures } = useMapFeatures(projectId);
-  const areasWithBoundary = useMemo(() => {
-    const ids = new Set(mapFeatures.map((f) => f.area_id));
-    return areas.filter((a) => ids.has(a.id));
-  }, [areas, mapFeatures]);
 
   useSeedObjectives(projectId, todayKey, activeDay === todayKey, canEdit, () => {
     refetch();
