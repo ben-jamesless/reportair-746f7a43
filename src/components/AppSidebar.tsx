@@ -70,7 +70,6 @@ interface Props {
 
 const navItems = [
   { label: "Events", icon: CalendarDays, href: "/projects" },
-  { label: "Templates", icon: FileText, href: "/reports" },
   { label: "Share Links", icon: Share2, href: "/share-links" },
 ];
 
