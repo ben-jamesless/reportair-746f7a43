@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -6,16 +7,15 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { InvitesManager } from "@/components/InvitesManager";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { TeamSeatStrip } from "./TeamSeatStrip";
+import { ApprovalsInbox } from "./ApprovalsInbox";
 
 /**
- * Phase 4 (part 3) — Members entry point in v2.
- *
- * Thin surface wrapper around the existing InvitesManager. No new invite
- * or role logic lives here; this only gives owners/editors a v2-native
- * way to manage project members without falling back to the classic view.
- *
- * Visual system mirrors SharePanel: square, hairline border, no shadow,
- * dashed 1px dividers on a paper-toned sheet.
+ * Members panel (v2). Wraps the existing InvitesManager and adds the
+ * team-scoped seat summary + external-approvals inbox above it so owners
+ * see counters and pending requests at a glance.
  */
 
 const LABEL_INK = "#5C5850";
@@ -29,6 +29,39 @@ export function MembersPanel({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { user } = useAuth();
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [canManage, setCanManage] = useState(false);
+
+  useEffect(() => {
+    if (!open || !projectId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: proj } = await supabase
+        .from("projects")
+        .select("team_id")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (cancelled) return;
+      const tid = (proj as { team_id?: string | null } | null)?.team_id ?? null;
+      setTeamId(tid);
+
+      if (tid && user?.id) {
+        const { data: pm } = await supabase
+          .from("project_members")
+          .select("role")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const role = (pm as { role?: string } | null)?.role ?? null;
+        setCanManage(role === "owner");
+      } else {
+        setCanManage(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open, projectId, user?.id]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -44,6 +77,9 @@ export function MembersPanel({
         </SheetHeader>
 
         <div className="mt-6">
+          <TeamSeatStrip teamId={teamId} />
+          <ApprovalsInbox teamId={teamId} canManage={canManage} />
+
           <div className="mb-4 flex items-center gap-2">
             <span
               aria-hidden
