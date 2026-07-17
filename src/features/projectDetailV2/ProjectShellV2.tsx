@@ -14,8 +14,9 @@ import { MapTab } from "./tabs/MapTab";
 import { UploadModalProvider, useUploadModal } from "@/features/upload/UploadModalContext";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { SharePanel } from "./SharePanel";
+import { MembersPanel } from "./MembersPanel";
 import { useAuth } from "@/hooks/useAuth";
-import { isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
+import { canEditProject, isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
 
 
 type TabKey = "overview" | "daily" | "library" | "map";
