@@ -32,7 +32,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
-const Reports = lazy(() => import("./pages/Reports.tsx"));
+
 const ShareLinks = lazy(() => import("./pages/ShareLinks.tsx"));
 const Team = lazy(() => import("./pages/Team.tsx"));
 const Settings = lazy(() => import("./pages/Settings.tsx"));
