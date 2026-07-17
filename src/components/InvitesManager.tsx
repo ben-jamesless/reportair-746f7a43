@@ -61,7 +61,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canInviteMember, planIncludesInvites } = usePlan();
+  const { canInviteMember, planIncludesInvites } = useProjectPlan(projectId);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState("");
