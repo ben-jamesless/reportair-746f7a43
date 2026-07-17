@@ -1,65 +1,75 @@
-# Phase 1 — Fix invited-member mis-tier + close seat-limit bypass
+# Phase 3 — Membership rev. 3 implementation
 
-## 1. Expand `useProjectPlan(projectId)` to full parity with `usePlan()`
+Plan builds against `buildfolder_membership_spec.md` rev. 3. Rollout follows B5 order (schema+backfill → trigger+RPC → UI → Stripe → telemetry → pricing page; B4 in parallel).
 
-Rewrite `src/hooks/useProjectPlan.ts` so it returns the same shape as `usePlan()`, resolved via `project → team → plan` instead of `billing_owner_user_id = auth.uid()`.
+---
 
-Add to the returned state:
-- Full `PlanLimits` (all keys — reuse the `LIMITS` map, don't duplicate). Move the `LIMITS` + `PlanName` + `PlanLimits` types into a shared `src/hooks/planLimits.ts` and import from both hooks so there is one source of truth.
-- `plan`, `teamId`, `teamName`, `billingOwnerUserId`, `billingOwnerName`, `isBillingOwner` (already present).
-- `showBuildSlidesBranding`, `subscriptionStatus`, `trialEndsAt`, `currentPeriodEnd`, `paymentFailedAt`, `exportsThisMonth` (from the team row).
-- `projectCount` (owner-scoped — only meaningful for the billing owner; fine to return 0 for non-owners since project-scoped surfaces don't gate on it).
-- `memberCount` — resolved via the new `team_member_count` RPC (below), not a client `team_members` select.
-- All `canX` booleans derived the same way as in `usePlan()`:
-  `canCreateProject, canInviteMember, canExportPdf, canUseShareLink, canUseShareLinkEmail, canUsePasswordLinks, canUseCustomLogo, canUseWhiteLabel, canUseFolders, planIncludesInvites, isFree`.
-- `refetch()` + realtime subscription on `teams` row updates (mirror the pattern in `usePlan`).
+## Step 1 — Schema migration + B6 backfill
 
-Keep the hook resilient to `projectId === null` (returns loading:false, free defaults).
+**Migration 1a — schema:**
+- `teams.plan`: `UPDATE teams SET plan='crew' WHERE plan='pro'`. Column is `text` (no enum work needed); add `CHECK (plan IN ('free','solo','crew','studio'))` after the update.
+- `teams.addon_seats int NOT NULL DEFAULT 0 CHECK (addon_seats BETWEEN 0 AND 5)`.
+- `teams.domain_matching_override boolean NOT NULL DEFAULT false`.
+- Drop `teams.grandfathered_until`.
+- `team_members.member_type text NOT NULL DEFAULT 'core' CHECK (member_type IN ('core','external'))` — default exists only so backfill can populate; new inserts must supply it (trigger enforces).
+- New table `public.free_email_domains(domain text PRIMARY KEY, added_at timestamptz default now())`. GRANT SELECT to `authenticated`; RLS on with authenticated-select policy. Seed with the A3 list.
+- New table `public.team_external_approvals(id, team_id, invitee_email citext, invited_by_user_id, use_case_note, status ('pending_approval'|'approved'|'rejected') default 'pending_approval', approved_by_user_id, approved_at, created_at, updated_at)`. GRANTs + RLS: team admins/owners select/insert/update rows for their team; service_role full.
+- Update `plan_monthly_hkd()` to new HKD prices (Solo 188 mo / 148 annual; Crew 748 / 598; add-on 158 / 128) via a `_interval text` parameter.
+- Drop the Phase 1 `enforce_project_invite_seat_limit` trigger on `project_invites` — enforcement moves to team level.
 
-## 2. Migrate project-context call sites from `usePlan()` → `useProjectPlan(projectId)`
+**Migration 1b — B6 backfill + report:**
+- Classify every existing `team_members` row: `member_type='core'` when the member's email domain equals the billing owner's domain and neither sits in `free_email_domains` (or the team has `domain_matching_override=true`); else `member_type='external'`.
+- Convert un-accepted outside-domain `project_invites` into `team_external_approvals` (`pending_approval`); leave same-domain invites intact.
+- For any team over cap (core > cap, or external > core×5), insert an `activity_events` row with verb `backfill.over_cap` for durable ops visibility.
 
-Each file below: swap the import, pass the current `projectId` (already available in each), and read the same destructured fields. No behavior change beyond correct tiering.
+## Step 2 — Trigger + `team_seat_summary` RPC
 
-- `src/components/InvitesManager.tsx` — needs `projectId` prop (check callers) or resolve via context.
-- `src/components/ShareLinksManager.tsx`
-- `src/components/ProjectSettingsDialog.tsx`
-- `src/components/ExportPdfDialog.tsx`
-- `src/components/ProjectEditForm.tsx`
-- `src/pages/ProjectDetail.tsx`
-- `src/features/projectDetail/useProjectDetail.ts` — currently uses `projectCount`/`limits` for the create-project gate; this is a project-scoped hook but the check is account-scoped. Keep this one on `usePlan()` since it gates project creation, not project usage. **Correction:** leave `useProjectDetail.ts` on `usePlan()` if the only usage is create-project math; verify during implementation and only migrate the gates that concern the currently-viewed project's plan.
+- `BEFORE INSERT ON team_members` trigger (SECURITY DEFINER):
+  - Resolve `(core_cap, addons_allowed)` by plan; effective cap = base + `addon_seats`.
+  - Classify `member_type` if not supplied (owner-on-blocklist + no override ⇒ require explicit value or reject).
+  - `core` insert → reject if `core_count + 1 > effective_cap`.
+  - `external` insert → require a matching `approved` row in `team_external_approvals`; reject if `external_count + 1 > core_count × 5`; always reject on Free/Solo.
+  - Error codes (`SQLSTATE P0001` with prefix): `seat_cap_core`, `seat_cap_external`, `external_not_approved`, `plan_no_externals`, `member_type_required`.
+- `BEFORE UPDATE ON teams` guard rejecting `addon_seats` reduction below current core count.
+- `BEFORE UPDATE ON team_members` guard rejecting any change to `member_type` (immutable — remove + re-invite).
+- `AFTER DELETE ON team_members` trigger: when the delete drops the team below external ratio, insert `activity_events` row `team_below_external_ratio`.
+- `public.team_seat_summary(_team_id uuid) RETURNS jsonb` (SECURITY DEFINER, callable by team members) → `{plan, core_count, core_cap, addon_seats, external_count, external_cap, domain_matching_enabled}`. Sole counter surface.
 
-**Leave unchanged (account-scoped):** `AppSidebar`, `TrialBanner`, `PaymentFailedBanner`, `PlanGuard`, `pages/Projects.tsx` (create-project), `pages/Settings.tsx` (white-label toggle), `pages/Billing.tsx`, `pages/Team.tsx`.
+## Step 3 — UI
 
-## 3. Seat counting — correct display + server enforcement
+- `src/hooks/planLimits.ts` — rename `pro` → `crew` throughout; keep `pro` as legacy alias in `normalisePlan()` until Stripe metadata is migrated.
+- `src/hooks/useProjectPlan.ts` + `src/hooks/usePlan.ts` — replace ad-hoc member counts with a shared `useTeamSeatSummary(teamId)` hook backed by the new RPC.
+- `src/components/InvitesManager.tsx` — split by live domain probe: same-domain → existing core invite path; outside-domain → creates `team_external_approvals` row + shows pending state; owner-on-blocklist teams get a Core/External radio.
+- New `src/components/ApprovalsInbox.tsx` inside the Members panel: pending list with approve/reject; approve action opens an inline project picker (approve + assign in one step).
+- `src/features/projectDetailV2/MembersPanel.tsx` — Core / External sections with counts vs caps and the below-ratio warning banner (B3.7).
+- `src/pages/Team.tsx` — Crew-only add-on seat +/− controls calling a new `teams-update-addon-seats` edge function that updates the Stripe subscription quantity; `teams.addon_seats` is written on webhook confirmation.
+- Upsell surfaces: Solo→Crew prompt on external-invite attempt; Crew-at-cap inline "Add a seat (HK$128/mo)" prompt; 10-core / external-cap Studio contact prompt.
 
-### 3a. `team_member_count` RPC (SECURITY DEFINER)
-Returns accurate seat count for a team regardless of caller RLS. Counts distinct users across `team_members` for `_team_id`, plus the billing owner if not already in `team_members` (match whatever `usePlan` intends — verify current semantics during implementation and mirror them). Grant EXECUTE to `authenticated`.
+## Step 4 — Stripe
 
-Use it in:
-- `useProjectPlan` for `memberCount` / `canInviteMember`.
-- `InvitesManager.tsx` (replaces the current `team_members` select which under-counts for non-owners).
+- `supabase/functions/stripe-checkout` — pick currency from the pricing-page toggle; look up Price by `(plan, interval, currency)`; add-on seats as a line item with `quantity=addon_seats`.
+- `supabase/functions/stripe-webhook` — on `customer.subscription.updated`, write `teams.addon_seats` from the add-on line quantity; parse `plan=crew` (legacy `pro` still accepted during changeover).
+- Console-side (documented, not code): create multi-currency Prices for Solo/Crew monthly+annual and the add-on Price per A2.1; archive old Prices; product metadata `plan=crew`.
 
-### 3b. Server-side seat cap enforcement on `project_invites`
-Add a `BEFORE INSERT` trigger on `public.project_invites` (SECURITY DEFINER function) that:
-1. Resolves the project's `team_id`.
-2. Reads `teams.plan`, maps to `maxMembers` via a SQL equivalent of the LIMITS map (inline `CASE` on plan is fine — small, stable set).
-3. If `maxMembers <> -1` AND `team_member_count(team_id) + pending_invite_count(team_id) >= maxMembers`, raise `EXCEPTION 'seat_limit_reached'` with a clear SQLSTATE.
-4. Also block if `planIncludesInvites` is false for the plan (free/solo).
+## Step 5 — Telemetry (B7)
 
-Pending invites: count rows in `project_invites` for projects on that team where `status = 'pending'` (or equivalent — confirm column names when writing the migration).
+Fire GA4 events via `src/lib/analytics.ts` from the correct call sites:
+`external_invite_blocked_ratio`, `external_approval_pending`, `external_approval_granted`, `external_user_started_own_team` (fired from `handle_new_team` trigger when the new owner had a prior `external` `team_members` row), `crew_upsell_shown_from_solo`, `addon_seat_added`, `team_below_external_ratio`.
 
-Client surfaces the resulting error as the existing "upgrade to invite more" upsell.
+## Step 6 — Pricing page (last)
 
-## Acceptance tests (manual)
+`src/components/marketing/PricingSectionV2.tsx` — currency toggle (HKD · USD · GBP · EUR · AUD, locale default, HKD fallback), new copy per B3.4, Crew headline "5 team seats + up to 25 external collaborators included", Solo copy calling out that externals require Crew, Studio unchanged. Ships last so nothing is advertised before enforced.
 
-- Invited editor on a Studio team: can invite members, create password-protected share links, export PDF with custom logo, no build-day banner.
-- Invited editor on a Free team: still hits 3-build-day banner, PDF export blocked, share-link email/password blocked.
-- Team at `maxMembers` cap: direct `supabase.from('project_invites').insert(...)` from browser console fails with `seat_limit_reached`.
-- Billing owner UIs (Team, Billing, Settings > white-label) unchanged.
+## Step 7 — B4 Studio readiness (parallel; blocks Studio sales)
+
+- Scale check: script-seed a Studio team with >5 core and >25 external members; walk Members, invite flow, project list; confirm nothing assumes finite caps.
+- White-label completeness: extend beyond PDF-only — honour team logo/colours in `SharePage.tsx` (hide `ShareBrandingFooter` when white-label is on) and in invite/share transactional email templates.
 
 ## Technical notes
 
-- Single source of truth for `LIMITS` avoids drift — extract to `src/hooks/planLimits.ts` before touching either hook.
-- `useProjectPlan` becomes the canonical hook for anything scoped to a viewed project; `usePlan` remains for global/account UI (sidebar, billing, create-project math).
-- The DB trigger is the real fix for the seat bypass — the RPC is only for accurate display; RLS alone cannot express "count vs. plan limit".
-- No changes to Classic UI, tier definitions, or Stripe wiring in this phase.
+- `teams.plan` is `text` — rename is a data update + CHECK, not an enum migration.
+- Phase 1's `project_invites` seat trigger is dropped in the same migration that installs the new team-level trigger, so double-gating never exists.
+- All UI counters flow through `team_seat_summary` — no residual client-side `team_members` counting.
+- `free_email_domains` is a plain table so support can add/remove domains via SQL editor without a deploy.
+- `member_type` is immutable in DB and UI; reclassification = remove + re-invite.
+- Backfill is idempotent (safe to re-run on empty state).

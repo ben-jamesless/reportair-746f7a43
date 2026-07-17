@@ -226,7 +226,7 @@ const Billing = () => {
         } catch { /* ignore */ }
 
         // Trial without a Stripe customer yet — send to checkout for current plan instead.
-        if (noCustomer && (plan === "solo" || plan === "pro")) {
+        if (noCustomer && (plan === "solo" || plan === "crew")) {
           setPortalLoading(false);
           toast.info("Let's set up your payment method to manage billing.");
           handleChoosePlan(plan);

@@ -8,7 +8,7 @@ interface Props {
 export function ShareBrandingFooter({ teamPlan, teamLogoUrl, teamName, hideBranding }: Props) {
   if (hideBranding) return null;
 
-  const isCrew = teamPlan === "pro" || teamPlan === "team";
+  const isCrew = teamPlan === "crew" || teamPlan === "pro" || teamPlan === "team";
 
   const BuildSlidesLockup = () => (
     <a

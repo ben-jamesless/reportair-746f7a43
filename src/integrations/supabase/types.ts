@@ -471,6 +471,21 @@ export type Database = {
           },
         ]
       }
+      free_email_domains: {
+        Row: {
+          added_at: string
+          domain: string
+        }
+        Insert: {
+          added_at?: string
+          domain: string
+        }
+        Update: {
+          added_at?: string
+          domain?: string
+        }
+        Relationships: []
+      }
       guest_notes: {
         Row: {
           body: string
@@ -1144,10 +1159,58 @@ export type Database = {
         }
         Relationships: []
       }
+      team_external_approvals: {
+        Row: {
+          approved_at: string | null
+          approved_by_user_id: string | null
+          created_at: string
+          id: string
+          invited_by_user_id: string | null
+          invitee_email: string
+          status: string
+          team_id: string
+          updated_at: string
+          use_case_note: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          invited_by_user_id?: string | null
+          invitee_email: string
+          status?: string
+          team_id: string
+          updated_at?: string
+          use_case_note?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          invited_by_user_id?: string | null
+          invitee_email?: string
+          status?: string
+          team_id?: string
+          updated_at?: string
+          use_case_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_external_approvals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string
           id: string
+          member_type: string
           role: Database["public"]["Enums"]["team_role"]
           team_id: string
           user_id: string
@@ -1155,6 +1218,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          member_type?: string
           role?: Database["public"]["Enums"]["team_role"]
           team_id: string
           user_id: string
@@ -1162,6 +1226,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          member_type?: string
           role?: Database["public"]["Enums"]["team_role"]
           team_id?: string
           user_id?: string
@@ -1178,15 +1243,16 @@ export type Database = {
       }
       teams: {
         Row: {
+          addon_seats: number
           billing_interval: string | null
           billing_owner_user_id: string
           brand_colour: string | null
           created_at: string
           created_by: string
           current_period_end: string | null
+          domain_matching_override: boolean
           exports_reset_at: string
           exports_this_month: number
-          grandfathered_until: string | null
           id: string
           industry: string | null
           logo_path: string | null
@@ -1205,15 +1271,16 @@ export type Database = {
           white_label_pdf: boolean
         }
         Insert: {
+          addon_seats?: number
           billing_interval?: string | null
           billing_owner_user_id: string
           brand_colour?: string | null
           created_at?: string
           created_by: string
           current_period_end?: string | null
+          domain_matching_override?: boolean
           exports_reset_at?: string
           exports_this_month?: number
-          grandfathered_until?: string | null
           id?: string
           industry?: string | null
           logo_path?: string | null
@@ -1232,15 +1299,16 @@ export type Database = {
           white_label_pdf?: boolean
         }
         Update: {
+          addon_seats?: number
           billing_interval?: string | null
           billing_owner_user_id?: string
           brand_colour?: string | null
           created_at?: string
           created_by?: string
           current_period_end?: string | null
+          domain_matching_override?: boolean
           exports_reset_at?: string
           exports_this_month?: number
-          grandfathered_until?: string | null
           id?: string
           industry?: string | null
           logo_path?: string | null
@@ -1466,6 +1534,7 @@ export type Database = {
         Returns: boolean
       }
       delete_project: { Args: { _project_id: string }; Returns: undefined }
+      email_domain: { Args: { _email: string }; Returns: string }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
@@ -1653,7 +1722,15 @@ export type Database = {
         Returns: undefined
       }
       owner_leave_project: { Args: { _project_id: string }; Returns: undefined }
-      plan_monthly_hkd: { Args: { _plan: string }; Returns: number }
+      plan_allows_externals: { Args: { _plan: string }; Returns: boolean }
+      plan_core_cap: {
+        Args: { _addon: number; _plan: string }
+        Returns: number
+      }
+      plan_monthly_hkd: {
+        Args: { _interval?: string; _plan: string }
+        Returns: number
+      }
       project_team_id: { Args: { _project_id: string }; Returns: string }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
@@ -1676,7 +1753,12 @@ export type Database = {
         Args: { _feature_id: string }
         Returns: undefined
       }
+      team_domain_matching_enabled: {
+        Args: { _team_id: string }
+        Returns: boolean
+      }
       team_member_count: { Args: { _team_id: string }; Returns: number }
+      team_seat_summary: { Args: { _team_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user" | "platform_admin"
