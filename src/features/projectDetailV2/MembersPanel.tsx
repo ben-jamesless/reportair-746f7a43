@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamSeatStrip } from "./TeamSeatStrip";
 import { ApprovalsInbox } from "./ApprovalsInbox";
+import { UnclassifiedMembersPanel } from "./UnclassifiedMembersPanel";
 
 /**
  * Members panel (v2). Wraps the existing InvitesManager and adds the
