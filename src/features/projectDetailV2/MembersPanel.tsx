@@ -80,6 +80,8 @@ export function MembersPanel({
         <div className="mt-6">
           <TeamSeatStrip teamId={teamId} />
           <ApprovalsInbox teamId={teamId} canManage={canManage} />
+          <UnclassifiedMembersPanel teamId={teamId} canManage={canManage} />
+
 
           <div className="mb-4 flex items-center gap-2">
             <span
