@@ -531,8 +531,11 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
             {/* Classification preview — degrades to neutral state on failure. */}
             {email.trim() && emailSchema.safeParse(email).success && (() => {
-              const coreRemaining = Math.max(0, seat.coreCap - seat.coreCount);
-              const coreTone = coreRemaining === 0 ? "#B4331A" : coreRemaining <= 1 ? "#D4A017" : "#5C5850";
+              const coreUnlimited = seat.coreCap === -1;
+              const coreRemaining = coreUnlimited ? Infinity : Math.max(0, seat.coreCap - seat.coreCount);
+              const coreTone = coreUnlimited
+                ? "#5C5850"
+                : coreRemaining === 0 ? "#B4331A" : coreRemaining <= 1 ? "#D4A017" : "#5C5850";
               const extTone = seat.underRatio ? "#D4A017" : "#5C5850";
               const seatCaption = (text: string, tone: string, dim = false) => (
                 <div
@@ -547,10 +550,13 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                   {text}
                 </div>
               );
-              const coreLine = `Core seats: ${seat.coreCount}/${seat.coreCap === -1 ? "∞" : seat.coreCap} · ${coreRemaining} left`;
+              const capLabel = (n: number) => (n === -1 ? "Unlimited" : String(n));
+              const coreLine = coreUnlimited
+                ? `Core seats: ${seat.coreCount} / Unlimited`
+                : `Core seats: ${seat.coreCount}/${seat.coreCap} · ${coreRemaining} left`;
               const extLine = seat.externalCap === 0
                 ? `External: not on plan`
-                : `External: ${seat.externalCount}/${seat.externalCap === -1 ? "∞" : seat.externalCap} · ratio ${seat.externalCount}:${seat.coreCount * 5}`;
+                : `External: ${seat.externalCount}/${capLabel(seat.externalCap)} · ratio ${seat.externalCount}:${seat.coreCount * 5}`;
 
               return (
                 <div
