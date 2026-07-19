@@ -1556,6 +1556,10 @@ export type Database = {
         Args: { _email: string; _team_id: string }
         Returns: string
       }
+      classify_unclassified_member: {
+        Args: { _member_type: string; _team_id: string; _user_id: string }
+        Returns: undefined
+      }
       copy_prior_day_statuses: {
         Args: { _date_key: string; _project_id: string }
         Returns: number
