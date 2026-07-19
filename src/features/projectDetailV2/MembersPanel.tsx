@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { TeamSeatStrip } from "./TeamSeatStrip";
 import { ApprovalsInbox } from "./ApprovalsInbox";
+import { UnclassifiedMembersPanel } from "./UnclassifiedMembersPanel";
 
 /**
  * Members panel (v2). Wraps the existing InvitesManager and adds the
@@ -79,6 +80,8 @@ export function MembersPanel({
         <div className="mt-6">
           <TeamSeatStrip teamId={teamId} />
           <ApprovalsInbox teamId={teamId} canManage={canManage} />
+          <UnclassifiedMembersPanel teamId={teamId} canManage={canManage} />
+
 
           <div className="mb-4 flex items-center gap-2">
             <span

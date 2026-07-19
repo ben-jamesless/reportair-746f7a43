@@ -9,15 +9,26 @@ import { normalisePlan, type PlanName } from "@/hooks/planLimits";
  * client-side (which under-counts for non-owners and drifts from the
  * server-enforced trigger).
  */
+export interface UnclassifiedMember {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  source: "team_member_null" | "project_only";
+}
+
 export interface TeamSeatSummary {
   plan: PlanName;
   coreCount: number;
-  coreCap: number;                    // effective cap (base + add-on seats)
+  /** Effective core cap. `-1` = unlimited (Studio). */
+  coreCap: number;
   addonSeats: number;
   externalCount: number;
-  externalCap: number;                // 0 on Free/Solo
+  /** External cap. `0` = plan disallows externals, `-1` = unlimited. */
+  externalCap: number;
   domainMatchingEnabled: boolean;
   underRatio: boolean;                // externalCount > coreCount * 5
+  unclassifiedCount: number;
+  unclassifiedMembers: UnclassifiedMember[];
   loading: boolean;
   refetch: () => void;
 }
@@ -31,6 +42,8 @@ const empty: Omit<TeamSeatSummary, "refetch"> = {
   externalCap: 0,
   domainMatchingEnabled: true,
   underRatio: false,
+  unclassifiedCount: 0,
+  unclassifiedMembers: [],
   loading: true,
 };
 
@@ -51,20 +64,27 @@ export function useTeamSeatSummary(teamId: string | null | undefined): TeamSeatS
       const d = data as Record<string, unknown>;
       const coreCount = Number(d.core_count ?? 0);
       const externalCount = Number(d.external_count ?? 0);
+      const externalCap = Number(d.external_cap ?? 0);
       setState({
         plan: normalisePlan(d.plan as string),
         coreCount,
         coreCap: Number(d.core_cap ?? 1),
         addonSeats: Number(d.addon_seats ?? 0),
         externalCount,
-        externalCap: Number(d.external_cap ?? 0),
+        externalCap,
         domainMatchingEnabled: Boolean(d.domain_matching_enabled ?? true),
-        underRatio: externalCount > coreCount * 5,
+        // Ratio warning only applies when the plan enforces a finite external cap.
+        underRatio: externalCap > 0 && externalCount > coreCount * 5,
+        unclassifiedCount: Number(d.unclassified_count ?? 0),
+        unclassifiedMembers: Array.isArray(d.unclassified_members)
+          ? (d.unclassified_members as UnclassifiedMember[])
+          : [],
         loading: false,
       });
     })();
     return () => { cancelled = true; };
   }, [teamId, tick]);
+
 
   // Live refresh when the roster or the team row changes.
   useEffect(() => {

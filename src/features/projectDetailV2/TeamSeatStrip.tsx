@@ -14,7 +14,8 @@ export function TeamSeatStrip({ teamId }: { teamId: string | null }) {
   const s = useTeamSeatSummary(teamId);
   if (!teamId || s.loading) return null;
 
-  const cap = (n: number) => (n === -1 ? "∞" : String(n));
+  const cap = (n: number) => (n === -1 ? "Unlimited" : String(n));
+  const coreUnlimited = s.coreCap === -1;
 
   return (
     <div
@@ -29,7 +30,7 @@ export function TeamSeatStrip({ teamId }: { teamId: string | null }) {
           hint={s.externalCap === 0 ? "not on plan" : undefined}
         />
       </div>
-      {s.underRatio && (
+      {!coreUnlimited && s.underRatio && (
         <div
           className="flex items-start gap-2 border-t px-3 py-2 text-xs"
           style={{ borderColor: "#E3DFD4", color: WARN }}
@@ -38,6 +39,19 @@ export function TeamSeatStrip({ teamId }: { teamId: string | null }) {
           <span>
             External members exceed the 5:1 ratio to core members. New external
             invites will be blocked until you add a core seat or remove an external.
+          </span>
+        </div>
+      )}
+      {s.unclassifiedCount > 0 && (
+        <div
+          className="flex items-start gap-2 border-t px-3 py-2 text-xs"
+          style={{ borderColor: "#E3DFD4", color: WARN }}
+        >
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+          <span>
+            {s.unclassifiedCount} member{s.unclassifiedCount === 1 ? "" : "s"} not
+            classified as Core or External. Assign them in the Members panel so
+            seat counts stay accurate.
           </span>
         </div>
       )}
