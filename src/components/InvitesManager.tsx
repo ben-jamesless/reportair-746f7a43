@@ -530,68 +530,100 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
             </div>
 
             {/* Classification preview — degrades to neutral state on failure. */}
-            {email.trim() && emailSchema.safeParse(email).success && (
-              <div
-                className="border px-3 py-2 text-xs"
-                style={{ borderColor: "#E3DFD4", background: "#FAF8F2" }}
-              >
-                {classifyState === "loading" && (
-                  <span className="text-muted-foreground">Checking domain…</span>
-                )}
-                {classifyState === "failed" && (
-                  <span className="text-muted-foreground">
-                    We&apos;ll confirm on send.
-                  </span>
-                )}
-                {classifyState === "ok" && classification === "core" && (
-                  <span>
-                    <strong>Core teammate</strong> — {Math.max(0, seat.coreCap - seat.coreCount)} core seat
-                    {Math.max(0, seat.coreCap - seat.coreCount) === 1 ? "" : "s"} remaining.
-                  </span>
-                )}
-                {classifyState === "ok" && classification === "external" && (
-                  <div className="space-y-2">
-                    <div>
-                      <strong>External collaborator.</strong> Requires owner approval.
-                      Ratio: {seat.externalCount}/{seat.coreCount * 5} externals for {seat.coreCount} core.
-                    </div>
-                    <Input
-                      placeholder="Why do they need access? (optional)"
-                      value={useCaseNote}
-                      onChange={(e) => setUseCaseNote(e.target.value)}
-                      className="w-full text-xs"
-                    />
-                  </div>
-                )}
-                {classifyState === "ok" && classification === "requires_explicit_choice" && (
-                  <div className="space-y-2">
-                    <div>
-                      Your workspace doesn&apos;t have domain matching. Choose how to add this person:
-                    </div>
-                    <Select
-                      value={explicitChoice}
-                      onValueChange={(v) => setExplicitChoice(v as "core" | "external")}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Core or External?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="core">Core teammate (counts toward core seats)</SelectItem>
-                        <SelectItem value="external">External collaborator (needs approval)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {explicitChoice === "external" && (
+            {email.trim() && emailSchema.safeParse(email).success && (() => {
+              const coreRemaining = Math.max(0, seat.coreCap - seat.coreCount);
+              const coreTone = coreRemaining === 0 ? "#B4331A" : coreRemaining <= 1 ? "#D4A017" : "#5C5850";
+              const extTone = seat.underRatio ? "#D4A017" : "#5C5850";
+              const seatCaption = (text: string, tone: string, dim = false) => (
+                <div
+                  className={`mt-2 border-t border-dashed pt-1.5 font-mono uppercase tabular-nums ${dim ? "opacity-60" : ""}`}
+                  style={{
+                    borderColor: "#E3DFD4",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    color: tone,
+                  }}
+                >
+                  {text}
+                </div>
+              );
+              const coreLine = `Core seats: ${seat.coreCount}/${seat.coreCap === -1 ? "∞" : seat.coreCap} · ${coreRemaining} left`;
+              const extLine = seat.externalCap === 0
+                ? `External: not on plan`
+                : `External: ${seat.externalCount}/${seat.externalCap === -1 ? "∞" : seat.externalCap} · ratio ${seat.externalCount}:${seat.coreCount * 5}`;
+
+              return (
+                <div
+                  className="border px-3 py-2 text-xs"
+                  style={{ borderColor: "#E3DFD4", background: "#FAF8F2" }}
+                >
+                  {classifyState === "loading" && (
+                    <span className="text-muted-foreground">Checking domain…</span>
+                  )}
+                  {classifyState === "failed" && (
+                    <span className="text-muted-foreground">
+                      We&apos;ll confirm on send.
+                    </span>
+                  )}
+                  {classifyState === "ok" && classification === "core" && (
+                    <>
+                      <span>
+                        <strong>Core teammate</strong> — inherits your workspace domain.
+                      </span>
+                      {!seat.loading && seatCaption(coreLine, coreTone)}
+                    </>
+                  )}
+                  {classifyState === "ok" && classification === "external" && (
+                    <div className="space-y-2">
+                      <div>
+                        <strong>External collaborator.</strong> Requires owner approval.
+                      </div>
                       <Input
                         placeholder="Why do they need access? (optional)"
                         value={useCaseNote}
                         onChange={(e) => setUseCaseNote(e.target.value)}
                         className="w-full text-xs"
                       />
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                      {!seat.loading && seatCaption(extLine, extTone)}
+                    </div>
+                  )}
+                  {classifyState === "ok" && classification === "requires_explicit_choice" && (
+                    <div className="space-y-2">
+                      <div>
+                        Your workspace doesn&apos;t have domain matching. Choose how to add this person:
+                      </div>
+                      <Select
+                        value={explicitChoice}
+                        onValueChange={(v) => setExplicitChoice(v as "core" | "external")}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Core or External?" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="core">Core teammate (counts toward core seats)</SelectItem>
+                          <SelectItem value="external">External collaborator (needs approval)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {explicitChoice === "external" && (
+                        <Input
+                          placeholder="Why do they need access? (optional)"
+                          value={useCaseNote}
+                          onChange={(e) => setUseCaseNote(e.target.value)}
+                          className="w-full text-xs"
+                        />
+                      )}
+                      {!seat.loading && (
+                        <>
+                          {seatCaption(coreLine, coreTone, explicitChoice !== "core")}
+                          {seatCaption(extLine, extTone, explicitChoice !== "external")}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
           </div>
 
           <p className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[role]}</p>
