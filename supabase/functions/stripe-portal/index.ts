@@ -45,20 +45,67 @@ serve(async (req) => {
     .eq("billing_owner_user_id", callerId)
     .maybeSingle();
 
-  if (!team?.stripe_customer_id) {
-    return new Response(JSON.stringify({ error: "No Stripe customer found. Please subscribe first." }), {
+  if (!team) {
+    return new Response(JSON.stringify({ error: "No team found for this user." }), {
       status: 400, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
   const { return_url } = await req.json().catch(() => ({}));
+  const returnUrl = return_url ?? `${Deno.env.get("APP_URL")}/billing`;
 
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: team.stripe_customer_id,
-    return_url: return_url ?? `${Deno.env.get("APP_URL")}/billing`,
-  });
+  const openPortal = async (customerId: string) =>
+    stripe.billingPortal.sessions.create({ customer: customerId, return_url: returnUrl });
 
-  return new Response(JSON.stringify({ url: portalSession.url }), {
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
+  const resolveOrRecreateCustomer = async (): Promise<string> => {
+    // Look up user email for (re)creation.
+    const { data: userRow } = await service.auth.admin.getUserById(callerId);
+    const email = userRow?.user?.email ?? undefined;
+
+    // If we have a stored customer, verify it exists in the current Stripe mode.
+    if (team.stripe_customer_id) {
+      try {
+        const existing = await stripe.customers.retrieve(team.stripe_customer_id);
+        // Deleted customers come back as { deleted: true }.
+        if (existing && !(existing as { deleted?: boolean }).deleted) {
+          return team.stripe_customer_id;
+        }
+      } catch (err) {
+        const code = (err as { code?: string; raw?: { code?: string } })?.code
+          ?? (err as { raw?: { code?: string } })?.raw?.code;
+        if (code !== "resource_missing") throw err;
+        // fall through and create a new one
+      }
+    }
+
+    // Try to find by email first (avoid creating dupes).
+    let customerId: string | null = null;
+    if (email) {
+      const found = await stripe.customers.list({ email, limit: 1 });
+      customerId = found.data[0]?.id ?? null;
+    }
+    if (!customerId) {
+      const created = await stripe.customers.create({
+        email,
+        metadata: { team_id: team.id, user_id: callerId },
+      });
+      customerId = created.id;
+    }
+    await service.from("teams").update({ stripe_customer_id: customerId }).eq("id", team.id);
+    return customerId;
+  };
+
+  try {
+    const customerId = await resolveOrRecreateCustomer();
+    const portalSession = await openPortal(customerId);
+    return new Response(JSON.stringify({ url: portalSession.url }), {
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("stripe-portal error", err);
+    const message = (err as { message?: string })?.message ?? "Failed to open billing portal";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500, headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
 });
