@@ -393,15 +393,57 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                       />
                     )}
                     <span className="text-xs text-muted-foreground">{items.length}</span>
+                <div className="flex items-center justify-between gap-2">
+                  {renamingAreaId === a.id ? (
+                    <input
+                      autoFocus
+                      value={renameDraft}
+                      onChange={(e) => setRenameDraft(e.target.value)}
+                      onBlur={() => commitRename(a)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); commitRename(a); }
+                        if (e.key === "Escape") { e.preventDefault(); setRenamingAreaId(null); }
+                      }}
+                      className="flex-1 min-w-0 border border-[#E3DFD4] bg-white px-1.5 py-0.5 text-sm font-medium outline-none focus:border-foreground"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex-1 min-w-0 truncate text-left text-sm font-medium hover:underline"
+                      onClick={() => canEdit && (setRenamingAreaId(a.id), setRenameDraft(a.name))}
+                      title={canEdit ? "Rename area" : a.name}
+                    >
+                      {a.name}
+                    </button>
+                  )}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {statusByArea[a.id] && (
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
+                        style={{ backgroundColor: tintForStatus(statusByArea[a.id])?.stroke }}
+                        title={`Status: ${statusByArea[a.id]}`}
+                      />
+                    )}
+                    <span className="text-xs text-muted-foreground">{items.length}</span>
                     {canEdit && (
-                      <Button
-                        size="icon" variant="ghost" className="h-6 w-6"
-                        onClick={() => setDeleteArea(a)}
-                        aria-label={`Delete area ${a.name}`}
-                        title="Delete area"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                      <>
+                        <Button
+                          size="icon" variant="ghost" className="h-6 w-6"
+                          onClick={() => { setRenamingAreaId(a.id); setRenameDraft(a.name); }}
+                          aria-label={`Rename area ${a.name}`}
+                          title="Rename area"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="icon" variant="ghost" className="h-6 w-6"
+                          onClick={() => setDeleteArea(a)}
+                          aria-label={`Delete area ${a.name}`}
+                          title="Delete area"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
