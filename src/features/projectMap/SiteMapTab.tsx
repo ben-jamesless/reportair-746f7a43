@@ -382,17 +382,6 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             const isActive = drawingAreaId === a.id;
             return (
               <li key={a.id} className="border border-[#E3DFD4] p-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{a.name}</span>
-                  <div className="flex items-center gap-1">
-                    {statusByArea[a.id] && (
-                      <span
-                        className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
-                        style={{ backgroundColor: tintForStatus(statusByArea[a.id])?.stroke }}
-                        title={`Status: ${statusByArea[a.id]}`}
-                      />
-                    )}
-                    <span className="text-xs text-muted-foreground">{items.length}</span>
                 <div className="flex items-center justify-between gap-2">
                   {renamingAreaId === a.id ? (
                     <input
