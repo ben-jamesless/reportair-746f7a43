@@ -79,6 +79,18 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const isEditMode = canEdit && mode === "edit";
   const canvasRef = useRef<SiteMapCanvasHandle>(null);
   const [deleteArea, setDeleteArea] = useState<Area | null>(null);
+  const [renamingAreaId, setRenamingAreaId] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState("");
+
+  const commitRename = async (area: Area) => {
+    const name = renameDraft.trim();
+    setRenamingAreaId(null);
+    if (!name || name === area.name) return;
+    const { error } = await supabase.from("areas").update({ name }).eq("id", area.id);
+    if (error) { toast.error(error.message); return; }
+    setAreas((cur) => cur.map((a) => (a.id === area.id ? { ...a, name } : a)));
+    onAreasChanged?.();
+  };
 
   const handleDeleteArea = async (area: Area) => {
     // Hard-delete any map features attached to this area first — otherwise
