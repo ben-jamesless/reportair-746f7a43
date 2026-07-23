@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Upload, Share2, Camera, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -140,15 +139,9 @@ function ShellBody({
       <div className="w-full space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="truncate text-2xl font-semibold tracking-tight">
-                {loading ? <Skeleton className="h-6 w-48" /> : projectName ?? "Project"}
-              </h1>
-              <Badge variant="secondary" className="uppercase tracking-wide">Beta</Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              You're previewing the new project workspace. Some tabs land in later phases.
-            </p>
+            <h1 className="truncate text-2xl font-semibold tracking-tight">
+              {loading ? <Skeleton className="h-6 w-48" /> : projectName ?? "Project"}
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <UploadButton />
