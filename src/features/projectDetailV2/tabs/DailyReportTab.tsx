@@ -218,12 +218,8 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
           return (
             <div
               key={b.key}
-              className="grid px-5"
+              className="grid grid-cols-1 gap-y-2 px-4 py-4 md:grid-cols-[190px_1fr] md:gap-x-5 md:px-5"
               style={{
-                gridTemplateColumns: "190px 1fr",
-                columnGap: "20px",
-                paddingTop: "16px",
-                paddingBottom: "16px",
                 borderBottom: isLast ? "none" : `1px dashed ${SHEET_BORDER}`,
               }}
             >

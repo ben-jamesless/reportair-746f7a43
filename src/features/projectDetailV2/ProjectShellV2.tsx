@@ -162,9 +162,6 @@ function ShellBody({
                 Members
               </Button>
             )}
-            <Button asChild variant="ghost" size="sm">
-              <Link to={`/projects/${projectId}?classic=1`}>Switch to classic view</Link>
-            </Button>
           </div>
         </div>
 
