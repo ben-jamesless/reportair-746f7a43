@@ -239,9 +239,56 @@ export function LibraryTab({ projectId }: { projectId: string }) {
         deleting photos work best on a laptop or desktop.
       </div>
 
-      {/* Filter chips */}
+      {/* Filters — dropdowns on mobile, chips from sm and up */}
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Mobile: compact dropdowns */}
+        <div className="grid grid-cols-2 gap-2 sm:hidden">
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Area
+            </div>
+            <Select value={areaFilter} onValueChange={setAreaFilter}>
+              <SelectTrigger className="h-9 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All ({photos.length})</SelectItem>
+                <SelectItem value={UNASSIGNED}>
+                  Unassigned{unassigned.length > 0 ? ` (${unassigned.length})` : ""}
+                </SelectItem>
+                {areas.map((a) => {
+                  const n = photos.filter((p) => p.area_id === a.id).length;
+                  return (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name} ({n})
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Day
+            </div>
+            <Select value={dayFilter} onValueChange={setDayFilter}>
+              <SelectTrigger className="h-9 w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All days</SelectItem>
+                {allDays.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {formatDayShort(d)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Tablet/Desktop: chip rows */}
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             Area
           </span>
@@ -268,13 +315,12 @@ export function LibraryTab({ projectId }: { projectId: string }) {
               >
                 {a.name}
                 <span className="ml-1.5 opacity-70">{n}</span>
-
               </FilterChip>
             );
           })}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="hidden flex-wrap items-center gap-2 sm:flex">
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
             Day
           </span>
@@ -296,8 +342,8 @@ export function LibraryTab({ projectId }: { projectId: string }) {
             {filtered.length} of {photos.length}
           </span>
         </div>
-
       </div>
+
 
       {/* Unassigned tray */}
       {unassigned.length > 0 && areaFilter !== UNASSIGNED && (
