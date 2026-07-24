@@ -163,6 +163,7 @@ function ShellBody({
                 <span className="hidden sm:inline">Members</span>
               </Button>
             )}
+            <TabsMenu tab={tab} setTab={setTab} />
           </div>
         </div>
 
@@ -182,7 +183,7 @@ function ShellBody({
 
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 sm:w-auto sm:inline-grid">
+          <TabsList className="hidden sm:inline-grid w-auto grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="daily">Daily Report</TabsTrigger>
             <TabsTrigger value="library">Library</TabsTrigger>
