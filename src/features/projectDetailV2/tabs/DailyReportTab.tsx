@@ -161,10 +161,10 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6">
       {/* Day picker + toggles */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <Select value={activeDay} onValueChange={setActiveDay}>
           <SelectTrigger
-            className="w-[280px]"
+            className="w-full sm:w-[280px]"
             style={{ borderColor: SHEET_BORDER }}
           >
             <SelectValue />
@@ -186,14 +186,29 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
             onChange={(s) => setDayStatus(activeDay, s)}
             readOnly={!canEdit || previewMode}
           />
+          <Button
+            variant={previewMode ? "default" : "outline"}
+            size="sm"
+            className="ml-auto sm:hidden"
+            onClick={() => setPreviewMode((v) => !v)}
+          >
+            {previewMode ? "Back to edit" : "Client preview"}
+          </Button>
         </div>
         {isToday && canEdit && (
-          <Button variant="outline" size="sm" onClick={handleCopyYesterday} disabled={copying}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyYesterday}
+            disabled={copying}
+            className="w-full sm:w-auto"
+          >
             {copying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-            Copy yesterday's statuses
+            <span className="sm:hidden">Copy yesterday</span>
+            <span className="hidden sm:inline">Copy yesterday's statuses</span>
           </Button>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto hidden items-center gap-2 sm:flex">
           <span className="text-xs text-muted-foreground">
             {previewMode ? "Client preview" : "Edit"}
           </span>
@@ -206,6 +221,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
           </Button>
         </div>
       </div>
+
 
       {/* Day header — one "filed sheet" card, four rows */}
       <div
