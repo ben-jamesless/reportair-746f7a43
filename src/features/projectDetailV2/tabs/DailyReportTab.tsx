@@ -24,11 +24,12 @@ const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
   { key: "open_issues", label: "Open Issues / Risks" },
 ];
 
-// Presentational tokens for the "filed sheet" pattern — literal hex per brief.
-const SHEET_BG = "#FAF8F2";
-const SHEET_BORDER = "#E3DFD4";
-const LABEL_INK = "#5C5850";
-const SUBLABEL_INK = "#8A867C";
+// Presentational tokens for the "filed sheet" pattern — themed via CSS vars so dark mode adapts.
+const SHEET_BG = "hsl(var(--sheet-bg-hsl, 0 0% 100%) / 0)"; // unused placeholder; real values below
+const SHEET_BORDER = "var(--sheet-border)";
+const LABEL_INK = "var(--sheet-label)";
+const SUBLABEL_INK = "var(--sheet-sublabel)";
+const SHEET_BG_VAR = "var(--sheet-bg)";
 
 function toTodayKey(): string {
   const d = new Date();
