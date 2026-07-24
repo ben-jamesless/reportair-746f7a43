@@ -11,7 +11,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { supabase } from "@/integrations/supabase/client";
 import { OverviewTab } from "./tabs/OverviewTab";
 import { DailyReportTab } from "./tabs/DailyReportTab";
