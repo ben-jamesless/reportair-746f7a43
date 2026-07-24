@@ -11,7 +11,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { supabase } from "@/integrations/supabase/client";
 import { OverviewTab } from "./tabs/OverviewTab";
 import { DailyReportTab } from "./tabs/DailyReportTab";
@@ -144,27 +144,20 @@ function ShellBody({
   return (
     <UploadModalProvider projectId={projectId} areas={areaOptions} onUploaded={refetch}>
       <div className="w-full space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="truncate text-2xl font-semibold tracking-tight">
-              {loading ? <Skeleton className="h-6 w-48" /> : projectName ?? "Project"}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <UploadButton />
-            <CaptureButton />
-            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
-              <Share2 className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Share</span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <UploadButton />
+          <CaptureButton />
+          <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
+            <Share2 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+          {canManageMembers && (
+            <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)} aria-label="Members">
+              <Users className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Members</span>
             </Button>
-            {canManageMembers && (
-              <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)} aria-label="Members">
-                <Users className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Members</span>
-              </Button>
-            )}
-            <TabsMenu tab={tab} setTab={setTab} />
-          </div>
+          )}
+          <TabsMenu tab={tab} setTab={setTab} />
         </div>
 
 
