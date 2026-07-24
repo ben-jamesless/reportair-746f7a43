@@ -191,6 +191,12 @@
     --sidebar-accent-foreground: 42 24% 94%;
     --sidebar-border: 206 11% 19%;
     --sidebar-ring: 13 70% 51%;
+
+    /* Filed-sheet surface — dark variant: lifted dark card with warm ink */
+    --sheet-bg: #171A1E;
+    --sheet-border: #2A2E34;
+    --sheet-label: #B8B3AA;
+    --sheet-sublabel: #78746C;
   }
 }
 
