@@ -233,12 +233,6 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Soft-block banner below 768px — Library is deep-curation work */}
-      <div className="md:hidden border border-dashed border-border bg-muted/40 p-4 text-xs text-muted-foreground">
-        The Library is built for the big screen. Filtering, bulk-assigning and
-        deleting photos work best on a laptop or desktop.
-      </div>
-
       {/* Filters — dropdowns on mobile, chips from sm and up */}
       <div className="space-y-3">
         {/* Mobile: compact dropdowns */}
