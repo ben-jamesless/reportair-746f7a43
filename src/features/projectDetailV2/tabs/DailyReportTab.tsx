@@ -25,11 +25,10 @@ const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
 ];
 
 // Presentational tokens for the "filed sheet" pattern — themed via CSS vars so dark mode adapts.
-const SHEET_BG = "hsl(var(--sheet-bg-hsl, 0 0% 100%) / 0)"; // unused placeholder; real values below
+const SHEET_BG = "var(--sheet-bg)";
 const SHEET_BORDER = "var(--sheet-border)";
 const LABEL_INK = "var(--sheet-label)";
 const SUBLABEL_INK = "var(--sheet-sublabel)";
-const SHEET_BG_VAR = "var(--sheet-bg)";
 
 function toTodayKey(): string {
   const d = new Date();
