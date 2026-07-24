@@ -138,7 +138,7 @@ function ShellBody({
   return (
     <UploadModalProvider projectId={projectId} areas={areaOptions} onUploaded={refetch}>
       <div className="w-full space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold tracking-tight">
               {loading ? <Skeleton className="h-6 w-48" /> : projectName ?? "Project"}
@@ -146,18 +146,20 @@ function ShellBody({
           </div>
           <div className="flex items-center gap-2">
             <UploadButton />
-            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
+            <CaptureButton />
+            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
+              <Share2 className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
             {canManageMembers && (
-              <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)}>
-                <Users className="mr-2 h-4 w-4" />
-                Members
+              <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)} aria-label="Members">
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Members</span>
               </Button>
             )}
           </div>
         </div>
+
 
         <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />
         {canManageMembers && (
