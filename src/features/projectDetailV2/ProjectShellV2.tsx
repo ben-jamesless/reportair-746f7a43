@@ -253,6 +253,40 @@ function CaptureButton() {
   );
 }
 
+const TAB_ITEMS: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
+  { key: "overview", label: "Overview", icon: LayoutDashboard },
+  { key: "daily", label: "Daily Report", icon: FileText },
+  { key: "library", label: "Library", icon: Images },
+  { key: "map", label: "Map", icon: MapIcon },
+];
+
+function TabsMenu({ tab, setTab }: { tab: TabKey; setTab: (t: string) => void }) {
+  const current = TAB_ITEMS.find((t) => t.key === tab);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="sm:hidden" aria-label="Navigate tabs">
+          <Menu className="h-4 w-4" />
+          <span className="ml-2 text-xs">{current?.label ?? "Menu"}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        {TAB_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const active = item.key === tab;
+          return (
+            <DropdownMenuItem key={item.key} onSelect={() => setTab(item.key)}>
+              <Icon className="mr-2 h-4 w-4" />
+              <span className="flex-1">{item.label}</span>
+              {active && <Check className="h-4 w-4 text-muted-foreground" />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /**
  * Crew-only landing: no tabs, no report data, no share/settings. A dedicated
  * mobile-first capture surface — "Take photo" hits the camera directly,
