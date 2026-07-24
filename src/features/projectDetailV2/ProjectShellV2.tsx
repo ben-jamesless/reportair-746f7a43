@@ -204,24 +204,56 @@ function UploadButton() {
   const { open } = useUploadModal();
   return (
     <Button size="sm" onClick={() => open()}>
-      <Upload className="mr-2 h-4 w-4" />
-      Upload photos
+      <Upload className="h-4 w-4 sm:mr-2" />
+      <span className="hidden sm:inline">Upload photos</span>
     </Button>
   );
 }
 
 /**
- * Crew-only landing: no tabs, no report data, no share/settings. A single
- * prominent "Upload photos" button that opens the standard upload modal
- * (which handles area selection + GPS auto-assign).
+ * Mobile-only camera capture affordance. Opens the OS camera directly via
+ * `capture="environment"` and stages the resulting file(s) in the standard
+ * upload modal, so EXIF / GPS auto-assign runs unchanged.
+ */
+function CaptureButton() {
+  const { open } = useUploadModal();
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="outline"
+        className="sm:hidden"
+        aria-label="Take photo"
+        onClick={() => inputRef.current?.click()}
+      >
+        <Camera className="h-4 w-4" />
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = "";
+          if (files.length) open({ initialFiles: files });
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * Crew-only landing: no tabs, no report data, no share/settings. A dedicated
+ * mobile-first capture surface — "Take photo" hits the camera directly,
+ * "Choose from library" opens the standard picker.
  */
 function CrewLanding({ projectName }: { projectName: string | null }) {
   const { open } = useUploadModal();
-  // Auto-open the upload modal on entry so crew members land in capture flow.
-  useEffect(() => {
-    open();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center gap-6 text-center">
@@ -233,14 +265,43 @@ function CrewLanding({ projectName }: { projectName: string | null }) {
           {projectName ?? "Project"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          You're signed in as crew. Upload photos to the project — they'll be
-          sorted into the right area automatically when they have GPS data.
+          Point, shoot, done. GPS sorts each photo into the right area
+          automatically.
         </p>
       </div>
-      <Button size="lg" onClick={() => open()} className="rounded-none">
-        <Upload className="mr-2 h-4 w-4" />
-        Upload photos
-      </Button>
+      <div className="flex w-full flex-col gap-2">
+        <Button
+          size="lg"
+          onClick={() => inputRef.current?.click()}
+          className="h-14 w-full rounded-none text-base"
+        >
+          <Camera className="mr-2 h-5 w-5" />
+          Take photo
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={() => open()}
+          className="h-12 w-full rounded-none"
+        >
+          <ImageIcon className="mr-2 h-4 w-4" />
+          Choose from library
+        </Button>
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = "";
+          if (files.length) open({ initialFiles: files });
+        }}
+      />
     </div>
   );
 }
+
