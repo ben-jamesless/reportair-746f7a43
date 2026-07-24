@@ -144,44 +144,46 @@ function ShellBody({
   return (
     <UploadModalProvider projectId={projectId} areas={areaOptions} onUploaded={refetch}>
       <div className="w-full space-y-6">
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <UploadButton />
-          <CaptureButton />
-          <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
-            <Share2 className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Share</span>
-          </Button>
-          {canManageMembers && (
-            <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)} aria-label="Members">
-              <Users className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Members</span>
-            </Button>
-          )}
-          <TabsMenu tab={tab} setTab={setTab} />
-        </div>
-
-
-        <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />
-        {canManageMembers && (
-          <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
-        )}
-
-        {planLimitReached && (
-          <FreePlanUploadGate
-            teamName={teamName}
-            ownerName={billingOwnerName}
-            isBillingOwner={isBillingOwner}
-          />
-        )}
-
-
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="hidden sm:inline-grid w-auto grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="daily">Daily Report</TabsTrigger>
-            <TabsTrigger value="library">Library</TabsTrigger>
-            <TabsTrigger value="map">Map</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-between">
+            <TabsList className="hidden sm:inline-grid w-auto grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="daily">Daily Report</TabsTrigger>
+              <TabsTrigger value="library">Library</TabsTrigger>
+              <TabsTrigger value="map">Map</TabsTrigger>
+            </TabsList>
+            <div className="flex flex-wrap items-center gap-2">
+              <UploadButton />
+              <CaptureButton />
+              <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
+                <Share2 className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+              {canManageMembers && (
+                <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)} aria-label="Members">
+                  <Users className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Members</span>
+                </Button>
+              )}
+              <TabsMenu tab={tab} setTab={setTab} />
+            </div>
+          </div>
+
+          <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />
+          {canManageMembers && (
+            <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
+          )}
+
+          {planLimitReached && (
+            <div className="mt-6">
+              <FreePlanUploadGate
+                teamName={teamName}
+                ownerName={billingOwnerName}
+                isBillingOwner={isBillingOwner}
+              />
+            </div>
+          )}
+
           <TabsContent value="overview" className="mt-6">
             <OverviewTab projectId={projectId} />
           </TabsContent>
