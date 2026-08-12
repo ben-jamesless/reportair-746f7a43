@@ -239,7 +239,11 @@ export default function SharePageV2() {
         </div>
 
         <div className="mt-10">
-          <ShareBrandingFooter hide={!!meta.hide_buildslides_branding} />
+          <ShareBrandingFooter
+            teamPlan={meta.team_plan ?? null}
+            teamName={meta.team_name ?? null}
+            hideBranding={!!meta.hide_buildslides_branding}
+          />
         </div>
       </div>
 
