@@ -129,8 +129,8 @@ export function BuildCalendar({
                 style={{
                   aspectRatio: "1 / 1",
                   cursor: meta ? "pointer" : "default",
-                  backgroundColor: active ? V2.ink : within ? V2.paperDim : "transparent",
-                  border: `1px solid ${active ? V2.ink : within ? V2.rule : "transparent"}`,
+                  backgroundColor: active ? V2.band : within ? V2.paperDim : "transparent",
+                  border: `1px solid ${active ? V2.band : within ? V2.rule : "transparent"}`,
                 }}
               >
                 <span
@@ -138,7 +138,7 @@ export function BuildCalendar({
                     fontFamily: V2.mono,
                     fontSize: 11,
                     fontWeight: active ? 700 : meta ? 600 : 400,
-                    color: active ? "#fff" : meta ? V2.ink : V2.muted,
+                    color: active ? V2.bandFg : meta ? V2.ink : V2.muted,
                   }}
                 >
                   {Number(date.slice(-2))}
