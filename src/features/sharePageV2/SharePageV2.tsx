@@ -327,6 +327,7 @@ export default function SharePageV2() {
           referenceCount={referencePhotos.length}
           onOpenReference={() => {
             setRefAreaFilter(null);
+            setRefFilterLabel(null);
             setRefExpanded(true);
 
             window.requestAnimationFrame(() =>
