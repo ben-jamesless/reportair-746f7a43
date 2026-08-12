@@ -1030,7 +1030,16 @@ Deno.serve(async (req) => {
 
     console.log(JSON.stringify({ fn: "generate-pdf", event: "complete", export_id: exportId, output_path: outputPath, ts: new Date().toISOString() }));
 
-    return new Response(JSON.stringify({ ok: true, output_path: outputPath }), {
+    // Public share visitors can't sign storage URLs themselves — hand one back.
+    let signedUrl: string | null = null;
+    if (shareToken) {
+      const fileName = `${((proj.name as string) || "report").replace(/[^\w\-]+/g, "-").toLowerCase()}.pdf`;
+      const { data: signed } = await supabase.storage.from("exports")
+        .createSignedUrl(outputPath, 60 * 60, { download: fileName });
+      signedUrl = signed?.signedUrl ?? null;
+    }
+
+    return new Response(JSON.stringify({ ok: true, output_path: outputPath, export_id: exportId, signed_url: signedUrl }), {
       headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
   } catch (e) {
