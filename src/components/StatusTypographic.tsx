@@ -16,7 +16,6 @@ const META: Record<string, { label: string; caption: string; color: string }> = 
   delayed:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
   behind_schedule:      { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
   at_risk:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
-  delayed:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
   complete:             { label: "Complete",   caption: "Nothing to discuss",     color: "#3A7D44" },
 };
 

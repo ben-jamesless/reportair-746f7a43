@@ -90,7 +90,6 @@ const STATUS_META: Record<string, { label: string; bg: string }> = {
   flagged: { label: "Flagged", bg: "#D4A017" },
   at_risk: { label: "Delayed", bg: "#C7382A" },
   delayed: { label: "Delayed", bg: "#C7382A" },
-  delayed: { label: "Delayed", bg: "#C7382A" },
   behind_schedule: { label: "Delayed", bg: "#C7382A" },
   complete: { label: "Complete", bg: "#3A7D44" },
   not_started: { label: "No status", bg: "#9C9A93" },
@@ -1448,7 +1447,7 @@ const SharePage = () => {
 };
 
 // Pick a single representative status from a list (worst-first ordering)
-const STATUS_PRIORITY = ["delayed", "delayed", "behind_schedule", "flagged", "at_risk", "in_progress", "complete", "not_started"];
+const STATUS_PRIORITY = ["delayed", "behind_schedule", "at_risk", "flagged", "in_progress", "complete", "not_started"];
 const pickDominantStatus = (keys: string[]): string | null => {
   if (keys.length === 0) return null;
   for (const s of STATUS_PRIORITY) if (keys.includes(s)) return s;
