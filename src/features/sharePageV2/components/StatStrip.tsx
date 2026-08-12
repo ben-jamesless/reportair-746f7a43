@@ -5,13 +5,13 @@ type Stat = { label: string; value: string; unit?: string; sub?: string; tone?: 
 export function StatStrip({ stats }: { stats: Stat[] }) {
   return (
     <div
-      className="mb-7 grid grid-cols-2 overflow-hidden"
+      className="mb-7 grid overflow-hidden"
       style={{
         gap: 1,
         backgroundColor: V2.rule,
         border: `1px solid ${V2.rule}`,
         borderRadius: V2.radiusReport,
-        gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, minmax(0, 1fr))`,
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
       }}
     >
       {stats.map((s) => (
