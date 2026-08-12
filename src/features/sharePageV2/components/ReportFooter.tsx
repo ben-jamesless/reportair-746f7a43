@@ -17,10 +17,13 @@ export function ReportFooter({
   teamName,
   teamPlan,
   hideBranding,
+  filedAt,
 }: {
   projectName: string;
   mode: ShareMode;
   generatedAt: string | null;
+  /** Filed mode: stamps the footer with the finalise date. */
+  filedAt?: string | null;
   /** ISO date of the day being viewed, so the two dates explain each other. */
   reportDate?: string | null;
   teamName: string | null;

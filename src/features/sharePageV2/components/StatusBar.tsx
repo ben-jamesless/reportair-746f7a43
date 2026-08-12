@@ -8,6 +8,7 @@ export function StatusBar({
   mode,
   lastUpdated,
   isToday = true,
+  filedAt,
 }: {
   worstStatus: string | null | undefined;
   areaCount: number;
@@ -16,12 +17,20 @@ export function StatusBar({
   lastUpdated: string | null | undefined;
   /** LIVE only makes sense when the viewed day is actually today. */
   isToday?: boolean;
+  /** Filed mode: replaces "updated" with "Filed · date". */
+  filedAt?: string | null;
 }) {
   const meta = statusMeta(worstStatus);
-  const live = mode !== "filed" && isToday;
-  const updated = lastUpdated
-    ? new Date(lastUpdated).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-    : null;
+  const filed = mode === "filed";
+  const live = !filed && isToday;
+  const updated =
+    !filed && lastUpdated
+      ? new Date(lastUpdated).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+      : null;
+  const filedStamp =
+    filed && filedAt
+      ? new Date(filedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+      : null;
 
   return (
     <div
