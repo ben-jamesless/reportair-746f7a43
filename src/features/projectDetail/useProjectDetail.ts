@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import JSZip from "jszip";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,13 @@ export interface ProjectDetailState {
   canEdit: boolean;
   albums: Album[];
   areas: Area[];
+  /** Build photos only (reference photos filtered out). */
   photos: LightboxPhoto[];
+  /** Pre-build / last-year reference photos. */
+  referencePhotos: LightboxPhoto[];
+  /** Everything, including reference photos. */
+  allPhotos: LightboxPhoto[];
+  bulkSetReference: (photoIds: string[], isReference: boolean) => Promise<void>;
   dayNotes: Map<string, string | null>;
   dailyFields: Map<string, DailyFields>;
   areaDayNotes: Map<string, string | null>;
@@ -135,7 +141,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
         supabase
           .from("photos")
           .select(
-            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height, assignment_source"
+            "id, project_id, album_id, area_id, storage_path, file_name, caption, captured_at, created_at, camera_make, camera_model, lens, iso, aperture, shutter_speed, focal_length, gps_lat, gps_lng, width, height, assignment_source, is_reference"
           )
           .eq("project_id", projectId)
           .order("captured_at", { ascending: false, nullsFirst: false })
@@ -633,13 +639,42 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, album_id: albumId } : p)));
   }, []);
 
+  // ---- Reference photos ----
+  // Reference photos (pre-build / last-year shots) are kept out of every
+  // day-based surface: daily report, calendar, heatmap, day counts.
+  const bulkSetReference = useCallback(async (photoIds: string[], isReference: boolean) => {
+    if (photoIds.length === 0) return;
+    const { error } = await supabase
+      .from("photos")
+      .update({ is_reference: isReference })
+      .in("id", photoIds);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const idSet = new Set(photoIds);
+    setPhotos((cur) => cur.map((p) => (idSet.has(p.id) ? { ...p, is_reference: isReference } : p)));
+    toast.success(
+      isReference
+        ? `Moved ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"} to Reference`
+        : `Moved ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"} back to the build`
+    );
+  }, []);
+
+  const buildPhotos = useMemo(() => photos.filter((p) => !p.is_reference), [photos]);
+  const referencePhotos = useMemo(() => photos.filter((p) => !!p.is_reference), [photos]);
+
   return {
     project,
     isOwner,
     canEdit,
     albums,
     areas,
-    photos,
+    /** Build photos only — reference photos are excluded everywhere day-based. */
+    photos: buildPhotos,
+    referencePhotos,
+    allPhotos: photos,
+    bulkSetReference,
     dayNotes,
     dailyFields,
     areaDayNotes,

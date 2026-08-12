@@ -753,6 +753,7 @@ export type Database = {
           gps_lng: number | null
           height: number | null
           id: string
+          is_reference: boolean
           iso: number | null
           lens: string | null
           mime_type: string | null
@@ -782,6 +783,7 @@ export type Database = {
           gps_lng?: number | null
           height?: number | null
           id?: string
+          is_reference?: boolean
           iso?: number | null
           lens?: string | null
           mime_type?: string | null
@@ -811,6 +813,7 @@ export type Database = {
           gps_lng?: number | null
           height?: number | null
           id?: string
+          is_reference?: boolean
           iso?: number | null
           lens?: string | null
           mime_type?: string | null

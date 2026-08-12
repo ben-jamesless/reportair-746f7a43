@@ -27,6 +27,7 @@ export default function SharePageV2() {
   const [password, setPassword] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (meta?.project?.name) document.title = `${meta.project.name} — Build report`;
@@ -106,6 +107,14 @@ export default function SharePageV2() {
     day?.day_status,
     ...dayAreas.map((a) => areaStatus.get(a.area_id)),
   ]);
+
+  // Reference photos (pre-build / last-year) sit outside the build timeline —
+  // they never affect the calendar, day counts or area statuses.
+  const referencePhotos = meta?.reference_photos ?? [];
+  const areaNameById = useMemo(
+    () => new Map((meta?.areas ?? []).map((a) => [a.id, a.name])),
+    [meta?.areas]
+  );
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
@@ -360,6 +369,42 @@ export default function SharePageV2() {
                 )}
               </>
             )}
+
+            {referencePhotos.length > 0 && (
+              <>
+                <SectionLabel className="mt-7">Reference photos</SectionLabel>
+                <p style={{ fontSize: 12, color: V2.muted, marginBottom: 10 }}>
+                  Pre-build and previous-event shots. Not part of the build timeline.
+                </p>
+                <div
+                  className="grid gap-1"
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}
+                >
+                  {referencePhotos.map((p, i) => {
+                    const areaName = areaNameById.get(p.area_id ?? "") ?? null;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setRefLightboxIndex(i)}
+                        className="relative overflow-hidden"
+                        style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
+                      >
+                        <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
+                        {areaName && (
+                          <span
+                            className="absolute bottom-0 left-0 right-0 truncate px-1.5 py-1 text-left"
+                            style={{ fontSize: 10, color: "#fff", backgroundColor: "rgba(0,0,0,0.45)" }}
+                          >
+                            {areaName}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           <aside>
@@ -421,6 +466,16 @@ export default function SharePageV2() {
         />
       </div>
 
+
+      {refLightboxIndex !== null && (
+        <ShareLightboxV2
+          token={token ?? ""}
+          photos={referencePhotos}
+          index={refLightboxIndex}
+          onClose={() => setRefLightboxIndex(null)}
+          onIndexChange={setRefLightboxIndex}
+        />
+      )}
 
       {lightboxIndex !== null && (
         <ShareLightboxV2

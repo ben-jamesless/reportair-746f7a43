@@ -72,6 +72,8 @@ export type ShareV2Meta = {
   grid?: ShareV2GridCell[];
   days?: ShareV2DayMeta[];
   photo_count?: number;
+  /** Pre-build / last-year reference photos — outside the build timeline. */
+  reference_photos?: ShareV2Photo[];
   latest_export?: { id: string; created_at: string; photo_count: number | null } | null;
 };
 

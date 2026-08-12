@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
 const UNASSIGNED = "__unassigned__";
+const REFERENCE = "__reference__";
 
 function captureTimeLabel(p: { captured_at: string | null }): string | null {
   if (!p.captured_at) return null;
@@ -72,6 +73,8 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     areas,
     albums,
     photos,
+    referencePhotos,
+    bulkSetReference,
     canEdit,
     isOwner,
     loading,
@@ -139,13 +142,17 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const unassigned = useMemo(() => photos.filter((p) => !p.area_id), [photos]);
 
   const filtered = useMemo(() => {
+    // Reference bucket is its own view — no day filter (they sit outside the build).
+    if (areaFilter === REFERENCE) return referencePhotos;
     return photos.filter((p) => {
       if (areaFilter === UNASSIGNED && p.area_id) return false;
       if (areaFilter !== ALL && areaFilter !== UNASSIGNED && p.area_id !== areaFilter) return false;
       if (dayFilter !== ALL && dayKey(p) !== dayFilter) return false;
       return true;
     });
-  }, [photos, areaFilter, dayFilter]);
+  }, [photos, referencePhotos, areaFilter, dayFilter]);
+
+  const viewingReference = areaFilter === REFERENCE;
 
 
   const clearSelection = useCallback(() => {
@@ -258,6 +265,9 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                     </SelectItem>
                   );
                 })}
+                <SelectItem value={REFERENCE}>
+                  Reference{referencePhotos.length > 0 ? ` (${referencePhotos.length})` : ""}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -312,6 +322,12 @@ export function LibraryTab({ projectId }: { projectId: string }) {
               </FilterChip>
             );
           })}
+          <FilterChip active={areaFilter === REFERENCE} onClick={() => setAreaFilter(REFERENCE)}>
+            Reference
+            {referencePhotos.length > 0 && (
+              <span className="ml-1.5 opacity-70">{referencePhotos.length}</span>
+            )}
+          </FilterChip>
         </div>
 
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
@@ -400,6 +416,18 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+            )}
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await bulkSetReference(Array.from(selected), !viewingReference);
+                  clearSelection();
+                }}
+              >
+                {viewingReference ? "Move back to build" : "Mark as Reference"}
+              </Button>
             )}
             {canEdit && (
               <Button
