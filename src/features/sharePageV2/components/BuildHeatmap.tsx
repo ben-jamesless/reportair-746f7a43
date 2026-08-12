@@ -184,8 +184,10 @@ export function BuildHeatmap({
           {/* Day axis */}
           <div className="flex items-end" style={{ marginLeft: nameWidth, marginBottom: 4 }}>
             {dates.map((d) => (
-              <div
+              <button
                 key={d}
+                type="button"
+                onClick={() => onSelect(d)}
                 className="text-center"
                 style={{
                   width: colWidth,
@@ -193,6 +195,10 @@ export function BuildHeatmap({
                   fontSize: 8,
                   color: d === today ? V2.ink : V2.muted,
                   fontWeight: d === today || d === activeDate ? 700 : 400,
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
                 }}
               >
                 {DOW[parseISO(d).getDay()]}
@@ -207,7 +213,7 @@ export function BuildHeatmap({
                 >
                   {Number(d.slice(-2))}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
