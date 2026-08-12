@@ -135,6 +135,19 @@ export default function SharePageV2() {
     () => new Map((meta?.areas ?? []).map((a) => [a.id, a.name])),
     [meta?.areas]
   );
+  const visibleRefPhotos = refAreaFilter
+    ? referencePhotos.filter((p) => p.area_id === refAreaFilter)
+    : referencePhotos;
+  /** Labels photo-scoped feedback with its area. */
+  const areaNameByPhoto = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of [...(meta?.reference_photos ?? []), ...(day?.photos ?? [])]) {
+      const n = p.area_id ? areaNameById.get(p.area_id) : null;
+      if (n) m.set(p.id, n);
+    }
+    return m;
+  }, [meta?.reference_photos, day?.photos, areaNameById]);
+
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
