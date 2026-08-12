@@ -31,6 +31,13 @@ export type ShareV2AreaMeta = {
   latest_status: string | null;
 };
 
+export type ShareV2GridCell = {
+  area_id: string;
+  date: string;
+  status: string | null;
+  photo_count: number | null;
+};
+
 export type ShareV2DayMeta = {
   date: string;
   day_status: string | null;
@@ -54,6 +61,7 @@ export type ShareV2Meta = {
   hide_buildslides_branding?: boolean | null;
   phases?: ShareV2Phase[];
   areas?: ShareV2AreaMeta[];
+  grid?: ShareV2GridCell[];
   days?: ShareV2DayMeta[];
   photo_count?: number;
   latest_export?: { id: string; created_at: string; photo_count: number | null } | null;

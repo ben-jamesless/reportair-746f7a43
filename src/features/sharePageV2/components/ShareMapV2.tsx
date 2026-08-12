@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
 import { V2, statusMeta } from "../tokens";
@@ -55,6 +56,27 @@ export function ShareMapV2({
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const seenRef = useRef(false);
+
+  // Fires once when the (static) map scrolls into view, so we can measure
+  // whether clients engage with it before investing in an interactive map.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || seenRef.current || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !seenRef.current) {
+          seenRef.current = true;
+          trackEvent("share_link_map_opened", { area_count: areas.length });
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [features, areas.length]);
 
   useEffect(() => {
     let alive = true;
@@ -121,7 +143,11 @@ export function ShareMapV2({
   };
 
   return (
-    <div className="overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
+    <div
+      ref={rootRef}
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
+    >
       <div className="relative w-full" style={{ backgroundColor: V2.rule }}>
         <img
           src={imgSrc}
