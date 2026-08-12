@@ -304,6 +304,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
     exportId = body.export_id;
     const shareToken: string | null = typeof body?.share_token === "string" ? body.share_token : null;
+
     if (!exportId) return new Response(JSON.stringify({ error: "missing export_id" }), {
       status: 400, headers: { ...corsFor(req), "Content-Type": "application/json" },
     });

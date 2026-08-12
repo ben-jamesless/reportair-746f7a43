@@ -76,6 +76,16 @@ Deno.serve(async (req) => {
       template: "portrait_v1",
       source: "share",
     };
+    // Client-supplied overrides (layout, quality, sections) from the share
+    // page's export dialog. Only whitelisted keys are honoured.
+    const client = (body?.options ?? {}) as Record<string, unknown>;
+    if (typeof client.template === "string") {
+      options.template = client.template;
+      options.orientation = client.template === "grid_landscape_v1" ? "landscape" : "portrait";
+    }
+    if (client.quality === "high_res" || client.quality === "compressed") options.quality = client.quality;
+    if (client.sections && typeof client.sections === "object") options.sections = client.sections;
+
     if (mode === "range" && date_from && date_to) {
       const lo = date_from <= date_to ? date_from : date_to;
       const hi = date_from <= date_to ? date_to : date_from;

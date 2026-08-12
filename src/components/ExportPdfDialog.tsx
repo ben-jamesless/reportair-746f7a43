@@ -110,6 +110,8 @@ type Props = {
   lockMode?: "single" | null;
   /** Render a custom trigger instead of the default "Export PDF" button. */
   trigger?: React.ReactNode;
+  /** Public share-link token — enables the anonymous export path on /s2/:token. */
+  shareToken?: string | null;
   /** Controlled open (optional). */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -148,10 +150,15 @@ export const ExportPdfDialog = ({
   availableDays = [],
   lockMode = null,
   trigger,
+  shareToken = null,
   open: controlledOpen,
   onOpenChange,
 }: Props) => {
   const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = useProjectPlan(projectId);
+  // Public share visitors have no session: plan lookups, albums, cover pickers
+  // and history all require auth, so the share path skips them entirely.
+  const isShare = !!shareToken;
+  const mayExport = isShare || canExportPdf;
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
@@ -162,7 +169,7 @@ export const ExportPdfDialog = ({
   const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");
 
   // Cover photo selector (Studio only)
-  const isStudio = plan === "studio";
+  const isStudio = plan === "studio" && !isShare;
   const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
   const [coverAssetPath, setCoverAssetPath] = useState<string | null>(null);
   const [coverAssetUrl, setCoverAssetUrl] = useState<string | null>(null);
@@ -260,7 +267,7 @@ export const ExportPdfDialog = ({
 
   // Load albums + photo counts + project brand colour when opening
   useEffect(() => {
-    if (!open) return;
+    if (!open || isShare) return;
     let cancelled = false;
     (async () => {
       const [{ data: alb }, { data: ph }, { data: proj }] = await Promise.all([
@@ -283,7 +290,7 @@ export const ExportPdfDialog = ({
       if (projColor && /^#[0-9a-fA-F]{6}$/.test(projColor)) setAccent(projColor);
     })();
     return () => { cancelled = true; };
-  }, [open, projectId]);
+  }, [open, projectId, isShare]);
 
   // Load cover photo selection + recent photo strip (Studio only)
   useEffect(() => {
@@ -393,7 +400,7 @@ export const ExportPdfDialog = ({
   // Poll the active export until it resolves
   const pollStartedAt = useRef<number | null>(null);
   useEffect(() => {
-    if (!open || !currentExport) return;
+    if (!open || !currentExport || isShare) return;
     if (currentExport.status === "ready" || currentExport.status === "failed") return;
     pollStartedAt.current = Date.now();
     const t = setInterval(async () => {
@@ -424,7 +431,7 @@ export const ExportPdfDialog = ({
     setHistoryLoading(false);
   };
   useEffect(() => {
-    if (open && historyOpen) loadHistory();
+    if (open && historyOpen && !isShare) loadHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, historyOpen]);
 
@@ -483,6 +490,69 @@ export const ExportPdfDialog = ({
       options.album_id = selectedAlbumId;
       options.album_label = album?.name ?? null;
     }
+
+    // Public share flow: anonymous visitors can't insert an export row, so the
+    // existing share-create-export / share-export-url pair does the work.
+    if (shareToken) {
+      setCurrentExport({ id: "share", status: "processing", output_path: null, error_message: null, photo_count: null } as ExportRow);
+      const { data: created, error: createErr } = await supabase.functions.invoke("share-create-export", {
+        body: {
+          token: shareToken,
+          mode: mode === "range" ? "range" : "single",
+          day_key: mode === "single" ? dayKey ?? null : null,
+          day_label: mode === "single" ? dayLabel ?? null : null,
+          date_from: lo,
+          date_to: hi,
+          options: { template: layout, quality, sections },
+        },
+      });
+      const createdRes = created as { export_id?: string; error?: string } | null;
+      if (createErr || !createdRes?.export_id) {
+        const msg = createdRes?.error ?? createErr?.message ?? "Could not start export";
+        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: msg, photo_count: null } as ExportRow);
+        toast.error(msg);
+        setSubmitting(false);
+        return;
+      }
+      const exportId = createdRes.export_id;
+      const started = Date.now();
+      let url: string | null = null;
+      let lastError: string | null = null;
+      while (Date.now() - started < 5 * 60 * 1000) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: statusData } = await supabase.functions.invoke("share-export-url", {
+          body: { token: shareToken, export_id: exportId },
+        });
+        const st = statusData as { status?: string; url?: string | null; error_message?: string | null } | null;
+        if (st?.status === "ready" && st.url) { url = st.url; break; }
+        if (st?.status === "failed") { lastError = st.error_message ?? "Export failed"; break; }
+      }
+      if (!url) {
+        const msg = lastError ?? "Export timed out. Please try again.";
+        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: msg, photo_count: null } as ExportRow);
+        toast.error(msg);
+        setSubmitting(false);
+        return;
+      }
+      setCurrentExport({ id: "share", status: "ready", output_path: null, error_message: null, photo_count: null } as ExportRow);
+      try {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = "build-report.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      } catch {
+        window.open(url, "_blank", "noopener");
+      }
+      setSubmitting(false);
+      return;
+    }
+
 
     const { data: row, error } = await supabase.from("project_exports").insert({
       project_id: projectId,
@@ -944,7 +1014,7 @@ export const ExportPdfDialog = ({
             </div>
           </div>
 
-          {!canExportPdf && (
+          {!mayExport && (
             <p className="text-xs text-destructive">
               You've used all {limits.maxExportsMonth} exports this month. Resets on the 1st.{" "}
               <a href="/billing" className="underline">Upgrade for unlimited exports.</a>
@@ -958,13 +1028,13 @@ export const ExportPdfDialog = ({
               submitting ||
               overCap ||
               !!inProgress ||
-              !canExportPdf ||
+              !mayExport ||
               (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0)) ||
               (mode === "album" && (!selectedAlbumId || effectivePhotoCount === 0))
             }
           >
             {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {!canExportPdf && !(submitting || inProgress) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
+            {!mayExport && !(submitting || inProgress) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
             {inProgress ? "Generating…" : "Generate PDF"}
           </Button>
 
@@ -1000,6 +1070,7 @@ export const ExportPdfDialog = ({
             </Card>
           )}
 
+          {!isShare && (
           <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-full justify-between">
@@ -1058,6 +1129,7 @@ export const ExportPdfDialog = ({
               )}
             </CollapsibleContent>
           </Collapsible>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -41,18 +41,6 @@ export default function SharePageV2() {
   // Export uses the app's existing PDF export dialog when the viewer is signed
   // in (ops/team). Public visitors without an account fall back to print-to-PDF.
   const [exportOpen, setExportOpen] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (alive) setSignedIn(!!data.session);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(!!session));
-    return () => {
-      alive = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -116,6 +104,23 @@ export default function SharePageV2() {
 
   const dayAreas = day?.areas ?? [];
   const dayPhotos = day?.photos ?? [];
+  // Days offered in the export dialog's date-range mode.
+  const exportDays = useMemo(
+    () =>
+      (meta?.days ?? [])
+        .filter((d) => d.photo_count > 0 || d.has_notes)
+        .map((d) => {
+          const [y, m, dd] = d.date.split("-").map(Number);
+          const date = new Date(y, m - 1, dd);
+          return {
+            key: d.date,
+            label: date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+            date,
+            photoCount: d.photo_count,
+          };
+        }),
+    [meta?.days],
+  );
 
   const photosByArea = useMemo(() => {
     const m = new Map<string, typeof dayPhotos>();
@@ -362,7 +367,7 @@ export default function SharePageV2() {
                 ?.scrollIntoView({ behavior: "smooth", block: "start" })
             );
           }}
-          onExport={() => (signedIn ? setExportOpen(true) : window.print())}
+          onExport={() => setExportOpen(true)}
           theme={theme}
           onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         />
@@ -678,10 +683,14 @@ export default function SharePageV2() {
         />
       )}
 
-      {signedIn && project?.id && (
+      {project?.id && token && (
         <ExportPdfDialog
           projectId={project.id}
-          photoCount={meta.photo_count ?? dayPhotos.length}
+          shareToken={token}
+          photoCount={dayPhotos.length}
+          dayKey={activeDate ?? null}
+          dayLabel={activeDate ?? null}
+          availableDays={exportDays}
           open={exportOpen}
           onOpenChange={setExportOpen}
           trigger={<span className="hidden" aria-hidden />}
