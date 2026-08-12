@@ -244,6 +244,7 @@ export default function SharePageV2() {
           photoCount={dayPhotos.length}
           mode={mode}
           lastUpdated={day?.last_updated_at}
+          isToday={isToday}
         />
 
         <div className="mt-7 grid gap-11 lg:grid-cols-[1fr_400px]">

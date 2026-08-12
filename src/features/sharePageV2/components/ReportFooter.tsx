@@ -47,7 +47,7 @@ export function ReportFooter({
           End of {MODE_WORD[mode]} — {projectName}
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
-          Generated {DATE_LONG.format(stamp)}
+          {dayLong ? `Report day: ${dayLong} · Generated ${generatedShort}` : `Generated ${DATE_LONG.format(stamp)}`}
         </div>
       </div>
 
