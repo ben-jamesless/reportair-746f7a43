@@ -468,6 +468,27 @@ export default function SharePageV2() {
                   </span>
                 </button>
 
+                {refExpanded && refAreaFilter && (
+                  <div
+                    className="flex items-center gap-2 px-4 py-2"
+                    style={{ border: `1px solid ${V2.rule}`, borderTop: "none", backgroundColor: V2.paperDim }}
+                  >
+                    <span
+                      className="uppercase"
+                      style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.09em", color: V2.soft }}
+                    >
+                      {areaNameById.get(refAreaFilter) ?? "Area"} · {visibleRefPhotos.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setRefAreaFilter(null)}
+                      style={{ fontSize: 11.5, color: V2.ink, textDecoration: "underline" }}
+                    >
+                      Show all
+                    </button>
+                  </div>
+                )}
+
                 {refExpanded && (
                   <div
                     className="grid gap-1 p-1"
@@ -478,7 +499,12 @@ export default function SharePageV2() {
                       gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))",
                     }}
                   >
-                    {referencePhotos.map((p, i) => {
+                    {visibleRefPhotos.length === 0 && (
+                      <p className="px-3 py-4" style={{ fontSize: 12.5, color: V2.muted }}>
+                        No reference photos for this area yet.
+                      </p>
+                    )}
+                    {visibleRefPhotos.map((p, i) => {
                       const areaName = areaNameById.get(p.area_id ?? "") ?? null;
                       return (
                         <button
@@ -502,6 +528,7 @@ export default function SharePageV2() {
                     })}
                   </div>
                 )}
+
               </div>
             )}
           </div>
