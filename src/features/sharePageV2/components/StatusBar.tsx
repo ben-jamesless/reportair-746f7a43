@@ -7,15 +7,18 @@ export function StatusBar({
   photoCount,
   mode,
   lastUpdated,
+  isToday = true,
 }: {
   worstStatus: string | null | undefined;
   areaCount: number;
   photoCount: number;
   mode: ShareMode;
   lastUpdated: string | null | undefined;
+  /** LIVE only makes sense when the viewed day is actually today. */
+  isToday?: boolean;
 }) {
   const meta = statusMeta(worstStatus);
-  const live = mode !== "filed";
+  const live = mode !== "filed" && isToday;
   const updated = lastUpdated
     ? new Date(lastUpdated).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
     : null;

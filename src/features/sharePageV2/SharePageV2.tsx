@@ -244,6 +244,7 @@ export default function SharePageV2() {
           photoCount={dayPhotos.length}
           mode={mode}
           lastUpdated={day?.last_updated_at}
+          isToday={isToday}
         />
 
         <div className="mt-7 grid gap-11 lg:grid-cols-[1fr_400px]">
@@ -326,6 +327,7 @@ export default function SharePageV2() {
           projectName={project.name}
           mode={mode}
           generatedAt={meta.generated_at ?? null}
+          reportDate={activeDate}
           teamName={meta.team_name ?? null}
           teamPlan={meta.team_plan ?? "free"}
           hideBranding={!!meta.hide_buildslides_branding}

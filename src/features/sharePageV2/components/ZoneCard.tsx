@@ -80,7 +80,7 @@ export function ZoneCard({
       ) : (
         <p className="mb-3" style={{ fontSize: 13, color: V2.muted }}>
           {photos.length > 0
-            ? `${photos.length} photo${photos.length === 1 ? "" : "s"} captured — no written update.`
+            ? `${photos.length} photo${photos.length === 1 ? "" : "s"} captured ${dayWord}.`
             : `No update recorded for this area ${dayWord}.`}
         </p>
       )}
