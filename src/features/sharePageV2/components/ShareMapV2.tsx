@@ -230,12 +230,12 @@ export function ShareMapV2({
                     dominantBaseline="middle"
                     style={{
                       fontFamily: V2.mono,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: "0.02em",
+                      fontSize: 8,
+                      fontWeight: 500,
+                      letterSpacing: "0.04em",
                       fill: "#ffffff",
                       pointerEvents: "none",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.55), 0 0 3px rgba(0,0,0,0.4)",
+                      textShadow: "0 1px 1px rgba(0,0,0,0.45)",
                     }}
                   >
                     {label}
