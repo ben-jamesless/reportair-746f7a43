@@ -226,8 +226,6 @@ const SharePage = () => {
   const [hiddenDayPhotos, setHiddenDayPhotos] = useState<Set<string>>(new Set());
 
   const [mapOpen, setMapOpen] = useState(false);
-  const [refOpen, setRefOpen] = useState(false);
-  const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
   const accent = brandColour ?? TEAL;
@@ -961,7 +959,7 @@ const SharePage = () => {
 
             {referencePhotos.length > 0 && (
               <button
-                onClick={() => setRefOpen(true)}
+                onClick={() => document.getElementById("reference-photos")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
                 style={{ color: BODY }}
                 onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = SURFACE; }}
@@ -1377,7 +1375,24 @@ const SharePage = () => {
                 })}
               </div>
             )}
+
+            {referencePhotos.length > 0 && (
+              <section id="reference-photos" className="mt-6">
+                <div className="mb-3 px-4">
+                  <h2 className="text-base font-bold" style={{ color: NEAR_BLACK }}>Reference photos</h2>
+                  <p className="text-xs" style={{ color: MUTED }}>
+                    Pre-build and previous-event shots. Not part of the build timeline.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-3 px-4 sm:grid-cols-2">
+                  {referencePhotos.map((p) => (
+                    <ShareReferencePhoto key={p.id} token={token!} photo={p} />
+                  ))}
+                </div>
+              </section>
+            )}
           </section>
+
 
           {/* RIGHT: Latest Update + Feedback */}
           <aside className="hidden xl:block">
@@ -1445,33 +1460,8 @@ const SharePage = () => {
         </div>
       </div>
 
-      <Dialog open={refOpen} onOpenChange={setRefOpen}>
-        <DialogContent className="max-w-4xl">
-          <div className="mb-3">
-            <h2 className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>Reference photos</h2>
-            <p className="text-xs" style={{ color: MUTED }}>
-              Pre-build and previous-event shots. Not part of the build timeline.
-            </p>
-          </div>
-          <div className="grid max-h-[70vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4">
-            {referencePhotos.map((p, i) => (
-              <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setRefLightboxIndex(i)} />
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
-      {refLightboxIndex !== null && (
-        <ShareLightbox
-          token={token!}
-          photos={referencePhotos}
-          index={refLightboxIndex}
-          guest={guest}
-          onClose={() => setRefLightboxIndex(null)}
-          onIndexChange={setRefLightboxIndex}
-          onNotesChanged={loadFeedback}
-        />
-      )}
+
 
       {lightboxIndex !== null && (
         <ShareLightbox
@@ -1651,6 +1641,22 @@ const SharePhotoThumb = ({ token, photo, onClick }: { token: string; photo: Shar
   );
 };
 
+
+const ShareReferencePhoto = ({ token, photo }: { token: string; photo: SharePhoto }) => {
+  const url = useShareSignedUrl(token, photo.id, "original");
+  return (
+    <figure className="overflow-hidden bg-[#f3f4f6]">
+      {url ? (
+        <img src={url} alt={photo.caption || photo.file_name} className="w-full object-contain" loading="lazy" decoding="async" />
+      ) : (
+        <div className="aspect-[4/3] w-full" />
+      )}
+      {photo.caption && (
+        <figcaption className="px-1 py-2 text-xs" style={{ color: MUTED }}>{photo.caption}</figcaption>
+      )}
+    </figure>
+  );
+};
 
 const SharePhotoMiniThumb = ({ token, photo }: { token: string; photo: SharePhoto }) => {
   const url = useShareSignedUrl(token, photo.id, "thumb");
