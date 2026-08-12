@@ -108,20 +108,24 @@ const COLOR = {
   BUILD_YELLOW_SOFT: HEX("#F6E6BF"),
 };
 
-type StatusKey = "on_track" | "complete" | "requires_discussion" | "delayed" | "no_status";
+type StatusKey = "in_progress" | "complete" | "flagged" | "delayed" | "not_started";
 const STATUS: Record<StatusKey, { label: string; text: ReturnType<typeof rgb>; bg: ReturnType<typeof rgb> }> = {
-  on_track:            { label: "On Track", text: HEX("#FFFFFF"), bg: HEX("#3A6EA5") },
+  in_progress:         { label: "In Progress", text: HEX("#FFFFFF"), bg: HEX("#3A6EA5") },
   complete:            { label: "Complete", text: HEX("#FFFFFF"), bg: HEX("#3A7D44") },
-  requires_discussion: { label: "Flagged",  text: HEX("#FFFFFF"), bg: HEX("#D4A017") },
+  flagged:             { label: "Flagged",  text: HEX("#FFFFFF"), bg: HEX("#D4A017") },
   delayed:             { label: "Delayed",  text: HEX("#FFFFFF"), bg: HEX("#C7382A") },
-  no_status:           { label: "None",     text: HEX("#FFFFFF"), bg: HEX("#9C9A93") },
+  not_started:         { label: "None",     text: HEX("#FFFFFF"), bg: HEX("#9C9A93") },
 };
 const normaliseStatus = (s: string | null | undefined): StatusKey => {
-  if (!s) return "no_status";
+  if (!s) return "not_started";
   if (s === "concern" || s === "behind_schedule" || s === "at_risk") return "delayed";
-  if (s === "on_track" || s === "complete" || s === "requires_discussion" || s === "delayed" || s === "no_status") return s;
-  return "no_status";
+  if (s === "on_track") return "in_progress";
+  if (s === "requires_discussion") return "flagged";
+  if (s === "no_status") return "not_started";
+  if (s === "in_progress" || s === "complete" || s === "flagged" || s === "delayed" || s === "not_started") return s;
+  return "not_started";
 };
+
 const statusMeta = (s: string | null | undefined) => STATUS[normaliseStatus(s)];
 
 // ============ Utilities ============
