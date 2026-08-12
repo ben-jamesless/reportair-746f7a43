@@ -68,11 +68,11 @@ export function BuildCalendar({
     <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
       <div
         className="flex items-center justify-between"
-        style={{ padding: "8px 10px 8px 16px", backgroundColor: V2.ink }}
+        style={{ padding: "8px 10px 8px 16px", backgroundColor: V2.band }}
       >
         <span
           className="uppercase"
-          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,.65)" }}
+          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.bandFgSoft }}
         >
           {MONTH_LABEL.format(cursor)}
         </span>
@@ -129,8 +129,8 @@ export function BuildCalendar({
                 style={{
                   aspectRatio: "1 / 1",
                   cursor: meta ? "pointer" : "default",
-                  backgroundColor: active ? V2.ink : within ? V2.paperDim : "transparent",
-                  border: `1px solid ${active ? V2.ink : within ? V2.rule : "transparent"}`,
+                  backgroundColor: active ? V2.band : within ? V2.paperDim : "transparent",
+                  border: `1px solid ${active ? V2.band : within ? V2.rule : "transparent"}`,
                 }}
               >
                 <span
@@ -138,7 +138,7 @@ export function BuildCalendar({
                     fontFamily: V2.mono,
                     fontSize: 11,
                     fontWeight: active ? 700 : meta ? 600 : 400,
-                    color: active ? "#fff" : meta ? V2.ink : V2.muted,
+                    color: active ? V2.bandFg : meta ? V2.ink : V2.muted,
                   }}
                 >
                   {Number(date.slice(-2))}

@@ -27,15 +27,15 @@ export function TodayBox({ day }: { day: ShareV2Day }) {
     <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
       <div
         className="flex items-center justify-between"
-        style={{ backgroundColor: V2.ink, padding: "12px 16px" }}
+        style={{ backgroundColor: V2.band, padding: "12px 16px" }}
       >
         <span
           className="uppercase"
-          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,.65)" }}
+          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.bandFgSoft }}
         >
           Day summary
         </span>
-        <span style={{ fontFamily: V2.mono, fontSize: 14, fontWeight: 700, color: "#fff" }}>
+        <span style={{ fontFamily: V2.mono, fontSize: 14, fontWeight: 700, color: V2.bandFg }}>
           {day.date ? DATE_SHORT.format(parseISO(day.date)) : ""}
         </span>
       </div>
@@ -70,9 +70,9 @@ export function AreaGlance({
           fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.1em",
-          color: "rgba(255,255,255,.65)",
+          color: V2.bandFgSoft,
           padding: "12px 16px",
-          backgroundColor: V2.ink,
+          backgroundColor: V2.band,
         }}
       >
         Area status at a glance
@@ -119,9 +119,9 @@ export function DayTimeline({
           fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.1em",
-          color: "rgba(255,255,255,.65)",
+          color: V2.bandFgSoft,
           padding: "12px 16px",
-          backgroundColor: V2.ink,
+          backgroundColor: V2.band,
         }}
       >
         <span className="flex items-center justify-between">
