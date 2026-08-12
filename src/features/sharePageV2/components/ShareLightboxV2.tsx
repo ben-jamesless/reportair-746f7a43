@@ -60,7 +60,13 @@ export function ShareLightboxV2({
             <ChevronLeft className="h-7 w-7" />
           </button>
         )}
-        {url && <img src={url} alt={photo.caption || photo.file_name} className="max-h-full max-w-full object-contain" />}
+        {url && (
+          <img
+            src={url}
+            alt={photo.caption || photo.file_name}
+            className="h-full w-full object-contain"
+          />
+        )}
         {photos.length > 1 && (
           <button
             type="button"
