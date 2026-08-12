@@ -72,16 +72,22 @@ export function Masthead({
       </div>
 
       <div className="flex flex-col gap-1 md:items-end md:text-right">
-        {activeDate && (
+        {!filed && activeDate && (
           <div style={{ fontSize: 11, fontWeight: 600, color: V2.muted, letterSpacing: "0.03em" }}>
             {DATE_LONG.format(parseISO(activeDate))}
           </div>
         )}
-        {buildDay !== null && (
-          <div style={{ fontFamily: V2.mono, fontSize: 20, fontWeight: 700, color: V2.ink }}>
-            Day {buildDay}
-            {buildTotal ? ` / ${buildTotal}` : ""}
-          </div>
+        {filed ? (
+          filedRange && (
+            <div style={{ fontFamily: V2.mono, fontSize: 16, fontWeight: 700, color: V2.ink }}>{filedRange}</div>
+          )
+        ) : (
+          buildDay !== null && (
+            <div style={{ fontFamily: V2.mono, fontSize: 20, fontWeight: 700, color: V2.ink }}>
+              Day {buildDay}
+              {buildTotal ? ` / ${buildTotal}` : ""}
+            </div>
+          )
         )}
         {project.event_location && <div style={{ fontSize: 11, color: V2.muted }}>{project.event_location}</div>}
       </div>
