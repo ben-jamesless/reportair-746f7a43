@@ -331,7 +331,11 @@ const SharePage = () => {
   }, [token, data?.ok]);
 
 
-  const photos = useMemo(() => data?.photos ?? [], [data?.photos]);
+  // Reference photos (pre-build / last-year) live in their own gallery — they
+  // never enter the day groups, area counts or the build timeline.
+  const photos = useMemo(() => (data?.photos ?? []).filter((p) => !p.is_reference), [data?.photos]);
+  const referencePhotos = useMemo(() => (data?.photos ?? []).filter((p) => !!p.is_reference), [data?.photos]);
+
   const albums = useMemo(() => data?.albums ?? [], [data?.albums]);
   const areas = useMemo(() => data?.areas ?? [], [data?.areas]);
   const project = data?.project;
