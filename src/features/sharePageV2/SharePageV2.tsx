@@ -17,6 +17,7 @@ import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
+import type { ShareMode } from "./types";
 
 export default function SharePageV2() {
   const { token } = useParams<{ token: string }>();
