@@ -12,6 +12,10 @@ export type ShareV2Project = {
   overall_status: string | null;
   build_start_date: string | null;
   build_end_date: string | null;
+  /** Set when ops finalises the event — flips the share link into Filed mode. */
+  finalised_at?: string | null;
+  event_summary_text?: string | null;
+  hero_photo_id?: string | null;
 };
 
 export type ShareV2Phase = {

@@ -1040,12 +1040,15 @@ export type Database = {
           description: string | null
           event_date: string | null
           event_location: string | null
+          event_summary_text: string | null
           event_type: string | null
+          finalised_at: string | null
           folder_id: string | null
           geo_lat: number | null
           geo_lng: number | null
           geo_location_query: string | null
           geo_place_id: string | null
+          hero_photo_id: string | null
           id: string
           last_activity_at: string | null
           location: string | null
@@ -1078,12 +1081,15 @@ export type Database = {
           description?: string | null
           event_date?: string | null
           event_location?: string | null
+          event_summary_text?: string | null
           event_type?: string | null
+          finalised_at?: string | null
           folder_id?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           geo_location_query?: string | null
           geo_place_id?: string | null
+          hero_photo_id?: string | null
           id?: string
           last_activity_at?: string | null
           location?: string | null
@@ -1116,12 +1122,15 @@ export type Database = {
           description?: string | null
           event_date?: string | null
           event_location?: string | null
+          event_summary_text?: string | null
           event_type?: string | null
+          finalised_at?: string | null
           folder_id?: string | null
           geo_lat?: number | null
           geo_lng?: number | null
           geo_location_query?: string | null
           geo_place_id?: string | null
+          hero_photo_id?: string | null
           id?: string
           last_activity_at?: string | null
           location?: string | null
@@ -1153,6 +1162,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_hero_photo_id_fkey"
+            columns: ["hero_photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
             referencedColumns: ["id"]
           },
           {

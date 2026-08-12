@@ -17,10 +17,13 @@ export function ReportFooter({
   teamName,
   teamPlan,
   hideBranding,
+  filedAt,
 }: {
   projectName: string;
   mode: ShareMode;
   generatedAt: string | null;
+  /** Filed mode: stamps the footer with the finalise date. */
+  filedAt?: string | null;
   /** ISO date of the day being viewed, so the two dates explain each other. */
   reportDate?: string | null;
   teamName: string | null;
@@ -36,6 +39,10 @@ export function ReportFooter({
         dayStamp
       )
     : null;
+  const filedStamp = filedAt
+    ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(filedAt))
+    : null;
+
 
   return (
     <footer className="mt-14" style={{ borderTop: `2px solid ${V2.ink}`, paddingTop: 14 }}>
@@ -44,10 +51,16 @@ export function ReportFooter({
           className="uppercase"
           style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
         >
-          End of {MODE_WORD[mode]} — {projectName}
+          {mode === "filed"
+            ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}`
+            : `End of ${MODE_WORD[mode]} — ${projectName}`}
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
-          {dayLong ? `Report day: ${dayLong} · Generated ${generatedShort}` : `Generated ${DATE_LONG.format(stamp)}`}
+          {mode === "filed"
+            ? `Generated ${DATE_LONG.format(stamp)}`
+            : dayLong
+              ? `Report day: ${dayLong} · Generated ${generatedShort}`
+              : `Generated ${DATE_LONG.format(stamp)}`}
         </div>
       </div>
 

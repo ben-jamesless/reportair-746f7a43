@@ -25,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { dayKey as photoDayKey } from "@/lib/projectDetailTypes";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
+import { FinaliseEventBlock } from "./FinaliseEventBlock";
 
 /**
  * Phase 3.5 — Share/Deliver side panel.
@@ -329,6 +330,9 @@ export function SharePanel({
                     />
                   </div>
                 </section>
+
+                {/* Finalise / Unfile */}
+                <FinaliseEventBlock projectId={projectId} />
 
                 {/* Revoke */}
                 <section style={{ borderTop: DASH, paddingTop: 20 }}>
