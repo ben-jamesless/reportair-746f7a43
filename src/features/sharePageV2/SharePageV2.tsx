@@ -264,8 +264,8 @@ export default function SharePageV2() {
   ];
 
   return (
-    <div style={{ backgroundColor: V2.paper, color: V2.ink, minHeight: "100vh" }}>
-      <div className="mx-auto w-full max-w-[1800px] px-6 pb-16 md:px-10 lg:px-16">
+    <div style={{ backgroundColor: V2.paper, color: V2.ink, minHeight: "100vh" }} className="overflow-x-hidden">
+      <div className="mx-auto w-full max-w-[1800px] px-4 pb-16 sm:px-6 md:px-10 lg:px-16">
         <Masthead
           project={project}
           mode={mode}
@@ -285,8 +285,9 @@ export default function SharePageV2() {
           filedAt={filedAt}
         />
 
-        <div className="mt-7 grid gap-11 lg:grid-cols-[1fr_400px]">
-          <div>
+        <div className="mt-7 grid min-w-0 gap-11 lg:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="min-w-0">
+
             {isFiled ? (
               <>
                 {/* Filed landing: hero → summary → map → areas grid. */}
