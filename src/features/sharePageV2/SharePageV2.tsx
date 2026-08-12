@@ -20,6 +20,7 @@ import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
 import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
 
 
@@ -37,6 +38,21 @@ export default function SharePageV2() {
   // Label of the specific map feature clicked (a feature is narrower than its area group).
   const [refFilterLabel, setRefFilterLabel] = useState<string | null>(null);
   const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null } | null>(null);
+  // Export uses the app's existing PDF export dialog when the viewer is signed
+  // in (ops/team). Public visitors without an account fall back to print-to-PDF.
+  const [exportOpen, setExportOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (alive) setSignedIn(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(!!session));
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -346,7 +362,7 @@ export default function SharePageV2() {
                 ?.scrollIntoView({ behavior: "smooth", block: "start" })
             );
           }}
-          onExport={() => window.print()}
+          onExport={() => (signedIn ? setExportOpen(true) : window.print())}
           theme={theme}
           onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         />
@@ -659,6 +675,16 @@ export default function SharePageV2() {
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onIndexChange={setLightboxIndex}
+        />
+      )}
+
+      {signedIn && project?.id && (
+        <ExportPdfDialog
+          projectId={project.id}
+          photoCount={meta.photo_count ?? dayPhotos.length}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          trigger={<span className="hidden" aria-hidden />}
         />
       )}
     </div>
