@@ -302,37 +302,8 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    exportId = body.export_id ?? null;
+    exportId = body.export_id;
     const shareToken: string | null = typeof body?.share_token === "string" ? body.share_token : null;
-
-    // Public share flow: no pre-created export row (anonymous visitors can't
-    // insert one). Validate the token here and create the row with service role.
-    if (!exportId && shareToken) {
-      const { data: link } = await supabase.from("share_links")
-        .select("project_id, revoked_at, expires_at, created_by")
-        .eq("token", shareToken).maybeSingle();
-      const linkValid = !!link && !link.revoked_at &&
-        (!link.expires_at || new Date(link.expires_at as string) > new Date());
-      if (!linkValid) {
-        return new Response(JSON.stringify({ error: "Invalid share link" }), {
-          status: 403, headers: { ...corsFor(req), "Content-Type": "application/json" },
-        });
-      }
-      const { data: created, error: createErr } = await supabase.from("project_exports").insert({
-        project_id: link!.project_id,
-        created_by: link!.created_by,
-        status: "queued",
-        options: (body.options ?? {}),
-        logo_path: null,
-        accent_color: typeof body?.accent_color === "string" ? body.accent_color : null,
-      }).select("id").single();
-      if (createErr || !created) {
-        return new Response(JSON.stringify({ error: createErr?.message ?? "Could not start export" }), {
-          status: 500, headers: { ...corsFor(req), "Content-Type": "application/json" },
-        });
-      }
-      exportId = created.id as string;
-    }
 
     if (!exportId) return new Response(JSON.stringify({ error: "missing export_id" }), {
       status: 400, headers: { ...corsFor(req), "Content-Type": "application/json" },
@@ -1030,16 +1001,7 @@ Deno.serve(async (req) => {
 
     console.log(JSON.stringify({ fn: "generate-pdf", event: "complete", export_id: exportId, output_path: outputPath, ts: new Date().toISOString() }));
 
-    // Public share visitors can't sign storage URLs themselves — hand one back.
-    let signedUrl: string | null = null;
-    if (shareToken) {
-      const fileName = `${((proj.name as string) || "report").replace(/[^\w\-]+/g, "-").toLowerCase()}.pdf`;
-      const { data: signed } = await supabase.storage.from("exports")
-        .createSignedUrl(outputPath, 60 * 60, { download: fileName });
-      signedUrl = signed?.signedUrl ?? null;
-    }
-
-    return new Response(JSON.stringify({ ok: true, output_path: outputPath, export_id: exportId, signed_url: signedUrl }), {
+    return new Response(JSON.stringify({ ok: true, output_path: outputPath }), {
       headers: { ...corsFor(req), "Content-Type": "application/json" },
     });
   } catch (e) {
