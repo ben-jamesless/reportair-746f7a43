@@ -1,15 +1,49 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SiteMapCanvas } from "@/features/projectMap/SiteMapCanvas";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import type { Area } from "@/components/AreasManager";
 import { V2, statusMeta } from "../tokens";
 import type { ShareV2DayArea } from "../types";
 
 /**
- * Read-only site map for the v2 share page. Areas are tinted with their status
- * for the active day; clicking a shape jumps to that area's card.
+ * Read-only site map for the v2 share page.
+ *
+ * Deliberately does NOT load the Google Maps JS SDK: the share page is a
+ * public, client-facing artifact and a browser-key/referrer failure renders a
+ * visible "didn't load Google Maps correctly" error. Instead we request a
+ * single static satellite tile through the server-side `static-map` proxy and
+ * draw area boundaries as an SVG overlay using Web Mercator projection.
  */
+
+const W = 640;
+const H = 420;
+
+type LatLng = { lat: number; lng: number };
+
+const worldSize = (zoom: number) => 256 * Math.pow(2, zoom);
+
+const projectX = (lng: number, zoom: number) => ((lng + 180) / 360) * worldSize(zoom);
+
+const projectY = (lat: number, zoom: number) => {
+  const clamped = Math.max(Math.min(lat, 85.05112878), -85.05112878);
+  const rad = (clamped * Math.PI) / 180;
+  const merc = Math.log(Math.tan(Math.PI / 4 + rad / 2));
+  return (1 - merc / Math.PI) * (worldSize(zoom) / 2);
+};
+
+function featurePoints(f: MapFeature): LatLng[] {
+  if (f.kind === "pin") return [{ lat: f.geometry.lat, lng: f.geometry.lng }];
+  if (f.kind === "rectangle") {
+    const g = f.geometry;
+    return [
+      { lat: g.north, lng: g.west },
+      { lat: g.north, lng: g.east },
+      { lat: g.south, lng: g.east },
+      { lat: g.south, lng: g.west },
+    ];
+  }
+  return (f.geometry.paths ?? []) as LatLng[];
+}
+
 export function ShareMapV2({
   token,
   areas,
@@ -20,54 +54,63 @@ export function ShareMapV2({
   onAreaClick?: (areaId: string) => void;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
-  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [{ data: feats }, { data: c }] = await Promise.all([
-        supabase.rpc("list_share_map_features" as never, { _token: token } as never),
-        supabase.rpc("get_share_project_center" as never, { _token: token } as never),
-      ]);
+      const { data: feats } = await supabase.rpc("list_share_map_features" as never, { _token: token } as never);
       if (!alive) return;
-      setFeatures(((feats ?? []) as unknown) as MapFeature[]);
-      const cc = c as unknown as { lat?: number; lng?: number } | null;
-      if (cc && typeof cc.lat === "number" && typeof cc.lng === "number")
-        setCenter({ lat: cc.lat, lng: cc.lng });
+      setFeatures((feats ?? []) as unknown as MapFeature[]);
     })();
     return () => {
       alive = false;
     };
   }, [token]);
 
-  const tints = useMemo(() => {
-    const out: Record<string, { fill: string; stroke: string }> = {};
-    for (const a of areas) {
-      const m = statusMeta(a.status);
-      out[a.area_id] = { fill: m.fg, stroke: m.fg };
+  const view = useMemo(() => {
+    if (!features || features.length === 0) return null;
+    const pts = features.flatMap(featurePoints).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+    if (pts.length === 0) return null;
+
+    const north = Math.max(...pts.map((p) => p.lat));
+    const south = Math.min(...pts.map((p) => p.lat));
+    const east = Math.max(...pts.map((p) => p.lng));
+    const west = Math.min(...pts.map((p) => p.lng));
+    const center = { lat: (north + south) / 2, lng: (east + west) / 2 };
+
+    // Largest zoom where the bounding box (plus padding) still fits the frame.
+    let zoom = 20;
+    const padX = W - 80;
+    const padY = H - 80;
+    while (zoom > 1) {
+      const dx = Math.abs(projectX(east, zoom) - projectX(west, zoom));
+      const dy = Math.abs(projectY(south, zoom) - projectY(north, zoom));
+      if (dx <= padX && dy <= padY) break;
+      zoom -= 1;
     }
-    return out;
+
+    const cx = projectX(center.lng, zoom);
+    const cy = projectY(center.lat, zoom);
+    const toPx = (p: LatLng) => ({
+      x: projectX(p.lng, zoom) - cx + W / 2,
+      y: projectY(p.lat, zoom) - cy + H / 2,
+    });
+
+    return { center, zoom, toPx };
+  }, [features]);
+
+  const statusByArea = useMemo(() => {
+    const m = new Map<string, string | null>();
+    for (const a of areas) m.set(a.area_id, a.status);
+    return m;
   }, [areas]);
 
-  const canvasAreas = useMemo(
-    () =>
-      areas.map((a, i) => ({ id: a.area_id, project_id: "", name: a.name, sort_order: i })) as Area[],
-    [areas]
-  );
+  if (!features || features.length === 0 || !view) return null;
 
-  if (!features || features.length === 0) return null;
-
-  const first = features[0];
-  const fallbackCenter =
-    first.kind === "pin"
-      ? { lat: first.geometry.lat, lng: first.geometry.lng }
-      : first.kind === "rectangle"
-      ? {
-          lat: (first.geometry.north + first.geometry.south) / 2,
-          lng: (first.geometry.east + first.geometry.west) / 2,
-        }
-      : first.geometry.paths?.[0] ?? { lat: 0, lng: 0 };
+  const imgSrc = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/static-map?lat=${view.center.lat}&lng=${
+    view.center.lng
+  }&zoom=${view.zoom}&w=${W}&h=${H}&scale=2`;
 
   const mapped = new Set(features.map((f) => f.area_id));
   const legend = areas.filter((a) => mapped.has(a.area_id));
@@ -94,19 +137,60 @@ export function ShareMapV2({
       >
         Site map
       </div>
-      <div style={{ height: 340, width: "100%" }}>
-        <SiteMapCanvas
-          center={center ?? fallbackCenter}
-          zoom={17}
-          areas={canvasAreas}
-          features={features}
-          editable={false}
-          fitToFeatures
-          statusTintByArea={tints}
-          highlightAreaId={highlight}
-          onFeatureClick={(f) => select(f.area_id)}
+
+      <div className="relative w-full" style={{ backgroundColor: V2.rule }}>
+        <img
+          src={imgSrc}
+          alt="Satellite view of the site with area boundaries"
+          className="block w-full"
+          style={{ aspectRatio: `${W} / ${H}`, objectFit: "cover" }}
+          loading="lazy"
         />
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          role="presentation"
+        >
+          {features.map((f) => {
+            const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
+            const active = highlight === f.area_id;
+            const pts = featurePoints(f).map(view.toPx);
+            if (pts.length === 0) return null;
+
+            if (f.kind === "pin") {
+              const p = pts[0];
+              return (
+                <circle
+                  key={f.id}
+                  cx={p.x}
+                  cy={p.y}
+                  r={active ? 8 : 6}
+                  fill={meta.fg}
+                  stroke="#fff"
+                  strokeWidth={2}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => select(f.area_id)}
+                />
+              );
+            }
+
+            return (
+              <polygon
+                key={f.id}
+                points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
+                fill={meta.fg}
+                fillOpacity={active ? 0.5 : 0.28}
+                stroke={active ? "#fff" : meta.fg}
+                strokeWidth={active ? 3 : 2}
+                style={{ cursor: "pointer" }}
+                onClick={() => select(f.area_id)}
+              />
+            );
+          })}
+        </svg>
       </div>
+
       {legend.length > 0 && (
         <div
           className="flex flex-wrap gap-1.5"
