@@ -17,6 +17,7 @@ import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
+import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
 import type { ShareMode } from "./types";
 
 export default function SharePageV2() {
@@ -168,6 +169,15 @@ export default function SharePageV2() {
   const isFiled = mode === "filed";
   const filedAt = project.finalised_at ?? null;
   const isToday = !isFiled && activeDate === isoToday();
+
+  // Filed: the map paints final area statuses rather than the active day's.
+  const filedMapAreas = (meta.areas ?? []).map((a) => ({
+    area_id: a.id,
+    name: a.name,
+    sort_order: a.sort_order,
+    status: a.latest_status,
+    notes: null,
+  }));
   const dayWord = isToday ? "today" : "this day";
 
   // Contiguous run of days from the build start (or first recorded day) to the
