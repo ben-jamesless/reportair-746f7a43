@@ -47,10 +47,16 @@ export function ReportFooter({
           className="uppercase"
           style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
         >
-          End of {MODE_WORD[mode]} — {projectName}
+          {mode === "filed"
+            ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}`
+            : `End of ${MODE_WORD[mode]} — ${projectName}`}
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
-          {dayLong ? `Report day: ${dayLong} · Generated ${generatedShort}` : `Generated ${DATE_LONG.format(stamp)}`}
+          {mode === "filed"
+            ? `Generated ${DATE_LONG.format(stamp)}`
+            : dayLong
+              ? `Report day: ${dayLong} · Generated ${generatedShort}`
+              : `Generated ${DATE_LONG.format(stamp)}`}
         </div>
       </div>
 

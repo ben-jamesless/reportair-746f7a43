@@ -52,6 +52,17 @@ export function StatusBar({
         {photoCount} photo{photoCount === 1 ? "" : "s"}
         {live ? " today" : ""}
       </span>
+      {filedStamp && (
+        <>
+          <span style={{ width: 1, height: 16, backgroundColor: V2.rule }} />
+          <span
+            className="uppercase"
+            style={{ fontFamily: V2.mono, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: V2.ink }}
+          >
+            Filed · {filedStamp}
+          </span>
+        </>
+      )}
       {updated && (
         <>
           <span className="hidden sm:block" style={{ width: 1, height: 16, backgroundColor: V2.rule }} />
