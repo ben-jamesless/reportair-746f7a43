@@ -23,7 +23,13 @@ export interface ProjectDetailState {
   canEdit: boolean;
   albums: Album[];
   areas: Area[];
+  /** Build photos only (reference photos filtered out). */
   photos: LightboxPhoto[];
+  /** Pre-build / last-year reference photos. */
+  referencePhotos: LightboxPhoto[];
+  /** Everything, including reference photos. */
+  allPhotos: LightboxPhoto[];
+  bulkSetReference: (photoIds: string[], isReference: boolean) => Promise<void>;
   dayNotes: Map<string, string | null>;
   dailyFields: Map<string, DailyFields>;
   areaDayNotes: Map<string, string | null>;
