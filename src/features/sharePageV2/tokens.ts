@@ -4,15 +4,19 @@
  * nothing here can regress the live v1 share page.
  */
 
+/**
+ * Colours resolve through CSS variables (see index.css) so the share page can
+ * switch between light / dark without touching every inline style.
+ */
 export const V2 = {
-  ink: "#0F1520",
-  soft: "#3C4250",
-  muted: "#85837B",
-  rule: "#E3DCD3",
-  paper: "#FBF7F5",
-  paperDim: "#F3EEE8",
-  white: "#FFFFFF",
-  signalRed: "#FF3131",
+  ink: "var(--v2-ink)",
+  soft: "var(--v2-soft)",
+  muted: "var(--v2-muted)",
+  rule: "var(--v2-rule)",
+  paper: "var(--v2-paper)",
+  paperDim: "var(--v2-paper-dim)",
+  white: "var(--v2-white)",
+  signalRed: "var(--v2-signal-red)",
   radiusReport: 4,
   mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
 };
@@ -20,11 +24,11 @@ export const V2 = {
 export type StatusKey = "not_started" | "in_progress" | "flagged" | "delayed" | "complete";
 
 export const STATUS_V2: Record<StatusKey, { label: string; fg: string; bg: string }> = {
-  in_progress: { label: "In progress", fg: "#0B43D6", bg: "#E9EEFC" },
-  flagged: { label: "Flagged", fg: "#B4720F", bg: "#FBF0DE" },
-  delayed: { label: "Delayed", fg: "#A11616", bg: "#FBEAEA" },
-  complete: { label: "Complete", fg: "#178A4C", bg: "#E3F3E9" },
-  not_started: { label: "Not started", fg: "#85837B", bg: "#F3EEE8" },
+  in_progress: { label: "In progress", fg: "var(--v2-st-progress-fg)", bg: "var(--v2-st-progress-bg)" },
+  flagged: { label: "Flagged", fg: "var(--v2-st-flagged-fg)", bg: "var(--v2-st-flagged-bg)" },
+  delayed: { label: "Delayed", fg: "var(--v2-st-delayed-fg)", bg: "var(--v2-st-delayed-bg)" },
+  complete: { label: "Complete", fg: "var(--v2-st-complete-fg)", bg: "var(--v2-st-complete-bg)" },
+  not_started: { label: "Not started", fg: "var(--v2-st-none-fg)", bg: "var(--v2-st-none-bg)" },
 };
 
 /** Legacy values still present in older rows are normalised here. */
@@ -136,3 +140,16 @@ export const orderDaysForList = <T extends { date: string }>(days: T[]): T[] =>
 /** Visualisations: oldest day first (left-to-right). */
 export const orderDaysForAxis = <T extends { date: string }>(days: T[]): T[] =>
   orderDays(days, "chronological");
+
+/**
+ * Literal hex fallbacks — required anywhere a CSS variable can't be resolved
+ * (Google Maps polygon options, raw SVG fill/stroke attributes).
+ */
+export const STATUS_HEX: Record<StatusKey, string> = {
+  in_progress: "#0B43D6",
+  flagged: "#B4720F",
+  delayed: "#A11616",
+  complete: "#178A4C",
+  not_started: "#85837B",
+};
+export const statusHex = (s: string | null | undefined) => STATUS_HEX[normaliseStatus(s)];

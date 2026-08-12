@@ -1,3 +1,4 @@
+import { Download, Moon, Sun } from "lucide-react";
 import { V2, statusMeta } from "../tokens";
 import type { ShareMode } from "../types";
 
@@ -11,6 +12,9 @@ export function StatusBar({
   filedAt,
   referenceCount = 0,
   onOpenReference,
+  onExport,
+  theme = "light",
+  onToggleTheme,
 }: {
   worstStatus: string | null | undefined;
   areaCount: number;
@@ -24,6 +28,10 @@ export function StatusBar({
   /** Reference photo count; renders a jump-to-gallery chip when > 0. */
   referenceCount?: number;
   onOpenReference?: () => void;
+  /** Export the report (print → PDF). */
+  onExport?: () => void;
+  theme?: "light" | "dark";
+  onToggleTheme?: () => void;
 }) {
   const meta = statusMeta(worstStatus);
   const filed = mode === "filed";
@@ -95,20 +103,61 @@ export function StatusBar({
           </span>
         </>
       )}
-      {live && (
-        <span className="ml-auto flex items-center gap-1.5">
-          <span
-            className="animate-pulse"
-            style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: V2.signalRed }}
-          />
-          <span
-            className="uppercase"
-            style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: V2.ink }}
-          >
-            Live
+      <span className="ml-auto flex items-center gap-2.5">
+        {live && (
+          <span className="flex items-center gap-1.5">
+            <span
+              className="animate-pulse"
+              style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: V2.signalRed }}
+            />
+            <span
+              className="uppercase"
+              style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: V2.ink }}
+            >
+              Live
+            </span>
           </span>
-        </span>
-      )}
+        )}
+        {onExport && (
+          <button
+            type="button"
+            onClick={onExport}
+            title="Export this report as a PDF"
+            className="v2-no-print flex items-center gap-1.5 uppercase"
+            style={{
+              fontFamily: V2.mono,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.09em",
+              color: V2.ink,
+              border: `1px solid ${V2.rule}`,
+              backgroundColor: V2.white,
+              padding: "4px 8px",
+            }}
+          >
+            <Download style={{ width: 12, height: 12 }} />
+            Export
+          </button>
+        )}
+        {onToggleTheme && (
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+            className="v2-no-print flex items-center justify-center"
+            style={{
+              width: 26,
+              height: 24,
+              color: V2.soft,
+              border: `1px solid ${V2.rule}`,
+              backgroundColor: V2.white,
+            }}
+          >
+            {theme === "dark" ? <Sun style={{ width: 13, height: 13 }} /> : <Moon style={{ width: 13, height: 13 }} />}
+          </button>
+        )}
+      </span>
     </div>
   );
 }

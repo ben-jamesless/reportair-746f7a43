@@ -4,7 +4,7 @@ import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusMeta } from "../tokens";
+import { V2, statusHex } from "../tokens";
 import type { ShareV2DayArea } from "../types";
 
 /**
@@ -168,8 +168,7 @@ export function ShareMapLive({
         const pts = featurePoints(f);
         if (pts.length === 0) continue;
         pts.forEach((p) => bounds.extend(p));
-        const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
-        const col = f.color || meta.fg;
+        const col = f.color || statusHex(statusByArea.get(f.area_id) ?? null);
         const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
 
         if (f.kind === "pin") {
@@ -222,8 +221,7 @@ export function ShareMapLive({
   useEffect(() => {
     for (const { feature, shape } of shapesRef.current) {
       if (!(shape instanceof google.maps.Polygon)) continue;
-      const meta = statusMeta(statusByArea.get(feature.area_id) ?? null);
-      const col = feature.color || meta.fg;
+      const col = feature.color || statusHex(statusByArea.get(feature.area_id) ?? null);
       const active = highlight
         ? highlight.featureId
           ? highlight.featureId === feature.id
@@ -264,8 +262,7 @@ export function ShareMapLive({
           style={{ padding: "10px 12px", borderTop: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
         >
           {legend.map((a) => {
-            const m = statusMeta(a.status);
-            const dot = colorByArea.get(a.area_id) || m.fg;
+            const dot = colorByArea.get(a.area_id) || statusHex(a.status);
             const active = highlight?.areaId === a.area_id && !highlight?.featureId;
             return (
               <button

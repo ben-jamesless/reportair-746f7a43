@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusMeta } from "../tokens";
+import { V2, statusHex } from "../tokens";
 import type { ShareV2DayArea } from "../types";
 
 /**
@@ -249,8 +249,7 @@ export function ShareMapStatic({
             role="presentation"
           >
             {features.map((f) => {
-              const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
-              const col = f.color || meta.fg;
+              const col = f.color || statusHex(statusByArea.get(f.area_id) ?? null);
               const active = highlight
                 ? highlight.featureId
                   ? highlight.featureId === f.id
@@ -390,8 +389,7 @@ export function ShareMapStatic({
           style={{ padding: "10px 12px", borderTop: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
         >
           {legend.map((a) => {
-            const m = statusMeta(a.status);
-            const dot = colorByArea.get(a.area_id) || m.fg;
+            const dot = colorByArea.get(a.area_id) || statusHex(a.status);
             const active = highlight?.areaId === a.area_id && !highlight?.featureId;
             return (
               <button
