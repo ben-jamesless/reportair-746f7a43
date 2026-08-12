@@ -191,9 +191,6 @@ export function OpsContact({ contact }: { contact: { name: string; role?: string
             {contact.role}
           </p>
         )}
-        <p className="mt-2.5" style={{ fontSize: 12.5, color: V2.soft }}>
-          Questions about this report → reply to the link sender
-        </p>
       </div>
     </div>
   );
