@@ -294,6 +294,15 @@ export default function SharePageV2() {
           lastUpdated={day?.last_updated_at}
           isToday={isToday}
           filedAt={filedAt}
+          referenceCount={referencePhotos.length}
+          onOpenReference={() => {
+            setRefExpanded(true);
+            window.requestAnimationFrame(() =>
+              document
+                .getElementById("reference-photos")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+            );
+          }}
         />
 
         <div className="mt-7 grid min-w-0 gap-11 lg:grid-cols-[minmax(0,1fr)_400px]">
@@ -384,10 +393,10 @@ export default function SharePageV2() {
             )}
 
             {referencePhotos.length > 0 && (
-              <div className="mt-7">
+              <div className="mt-7" id="reference-photos" style={{ scrollMarginTop: 16 }}>
                 <button
                   type="button"
-                  onClick={() => setRefGalleryOpen(true)}
+                  onClick={() => setRefExpanded((v) => !v)}
                   className="flex w-full items-center justify-between px-4 py-3 text-left"
                   style={{ border: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
                 >
@@ -402,8 +411,49 @@ export default function SharePageV2() {
                       Pre-build and previous-event shots. Not part of the build timeline.
                     </span>
                   </span>
-                  <span style={{ fontFamily: V2.mono, fontSize: 12, color: V2.ink }}>{referencePhotos.length}</span>
+                  <span className="flex items-center gap-2">
+                    <span style={{ fontFamily: V2.mono, fontSize: 12, color: V2.ink }}>{referencePhotos.length}</span>
+                    <ChevronDown
+                      className="h-4 w-4 transition-transform"
+                      style={{ color: V2.muted, transform: refExpanded ? "rotate(180deg)" : "none" }}
+                    />
+                  </span>
                 </button>
+
+                {refExpanded && (
+                  <div
+                    className="grid gap-1 p-1"
+                    style={{
+                      border: `1px solid ${V2.rule}`,
+                      borderTop: "none",
+                      backgroundColor: V2.white,
+                      gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))",
+                    }}
+                  >
+                    {referencePhotos.map((p, i) => {
+                      const areaName = areaNameById.get(p.area_id ?? "") ?? null;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setRefLightboxIndex(i)}
+                          className="relative overflow-hidden"
+                          style={{ aspectRatio: "4 / 3", backgroundColor: V2.rule }}
+                        >
+                          <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
+                          {areaName && (
+                            <span
+                              className="absolute bottom-0 left-0 right-0 truncate px-1.5 py-1 text-left"
+                              style={{ fontSize: 10, color: "#fff", backgroundColor: "rgba(0,0,0,0.45)" }}
+                            >
+                              {areaName}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -472,43 +522,6 @@ export default function SharePageV2() {
       </div>
 
 
-      <Dialog open={refGalleryOpen} onOpenChange={setRefGalleryOpen}>
-        <DialogContent className="max-w-4xl" style={{ backgroundColor: V2.white, borderRadius: 0 }}>
-          <div className="mb-3">
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: V2.ink }}>Reference photos</h2>
-            <p style={{ fontSize: 12, color: V2.muted }}>
-              Pre-build and previous-event shots. Not part of the build timeline.
-            </p>
-          </div>
-          <div
-            className="grid max-h-[70vh] gap-1 overflow-y-auto"
-            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 160px), 1fr))" }}
-          >
-            {referencePhotos.map((p, i) => {
-              const areaName = areaNameById.get(p.area_id ?? "") ?? null;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setRefLightboxIndex(i)}
-                  className="relative overflow-hidden"
-                  style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
-                >
-                  <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
-                  {areaName && (
-                    <span
-                      className="absolute bottom-0 left-0 right-0 truncate px-1.5 py-1 text-left"
-                      style={{ fontSize: 10, color: "#fff", backgroundColor: "rgba(0,0,0,0.45)" }}
-                    >
-                      {areaName}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {refLightboxIndex !== null && (
         <ShareLightboxV2
