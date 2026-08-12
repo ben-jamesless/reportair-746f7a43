@@ -195,6 +195,13 @@ export function ShareMapV2({
             }
 
             const points = pts.map((p) => `${p.x},${p.y}`).join(" ");
+            // Centroid of the polygon for the label anchor.
+            const centroid = (() => {
+              let x = 0, y = 0;
+              for (const p of pts) { x += p.x; y += p.y; }
+              return { x: x / pts.length, y: y / pts.length };
+            })();
+            const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
             return (
               // White halo underneath keeps small boundaries legible against
               // busy satellite imagery; the status colour sits on top.
@@ -204,7 +211,7 @@ export function ShareMapV2({
                   fill="none"
                   stroke="#ffffff"
                   strokeOpacity={0.9}
-                  strokeWidth={active ? 5 : 3.5}
+                  strokeWidth={active ? 3.5 : 2.5}
                   strokeLinejoin="round"
                 />
                 <polygon
@@ -212,9 +219,28 @@ export function ShareMapV2({
                   fill={col}
                   fillOpacity={active ? 0.55 : 0.38}
                   stroke={col}
-                  strokeWidth={active ? 2.5 : 1.75}
+                  strokeWidth={active ? 2 : 1.25}
                   strokeLinejoin="round"
                 />
+                {label && (
+                  <text
+                    x={centroid.x}
+                    y={centroid.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{
+                      fontFamily: V2.mono,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.02em",
+                      fill: "#ffffff",
+                      pointerEvents: "none",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.55), 0 0 3px rgba(0,0,0,0.4)",
+                    }}
+                  >
+                    {label}
+                  </text>
+                )}
               </g>
             );
           })}
