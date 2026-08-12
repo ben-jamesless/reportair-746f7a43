@@ -99,7 +99,10 @@ export function useShareV2(token: string | undefined) {
   }, [state.meta?.ok, state.activeDate, loadMeta, loadDay]);
 
   const submitPassword = useCallback((pwd: string) => loadMeta(pwd), [loadMeta]);
-  const setActiveDate = useCallback((d: string) => setState((s) => ({ ...s, activeDate: d, day: null })), []);
+  const setActiveDate = useCallback(
+    (d: string) => setState((s) => (s.activeDate === d ? s : { ...s, activeDate: d, day: null })),
+    []
+  );
 
   return { ...state, submitPassword, setActiveDate };
 }

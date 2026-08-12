@@ -329,6 +329,7 @@ export default function SharePageV2() {
                       activeDate={activeDate}
                       activityDates={(meta.days ?? []).map((d) => d.date)}
                       onSelect={setActiveDate}
+                      onSelectArea={scrollToArea}
                     />
                   </>
                 )}

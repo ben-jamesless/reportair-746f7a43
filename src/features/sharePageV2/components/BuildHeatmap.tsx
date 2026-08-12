@@ -43,6 +43,7 @@ export function BuildHeatmap({
   activeDate,
   activityDates,
   onSelect,
+  onSelectArea,
 }: {
   areas: ShareV2AreaMeta[];
   grid: ShareV2GridCell[];
@@ -50,6 +51,7 @@ export function BuildHeatmap({
   activeDate: string | null;
   activityDates: string[];
   onSelect: (d: string) => void;
+  onSelectArea?: (areaId: string) => void;
 }) {
   const today = isoToday();
   const definedPhases = useMemo(
@@ -190,11 +192,21 @@ export function BuildHeatmap({
                   fontFamily: V2.mono,
                   fontSize: 8,
                   color: d === today ? V2.ink : V2.muted,
-                  fontWeight: d === today ? 700 : 400,
+                  fontWeight: d === today || d === activeDate ? 700 : 400,
                 }}
               >
                 {DOW[parseISO(d).getDay()]}
-                <div style={{ fontSize: 8.5 }}>{Number(d.slice(-2))}</div>
+                <div
+                  style={{
+                    fontSize: 8.5,
+                    margin: "1px 1px 0",
+                    padding: "1px 0",
+                    color: d === activeDate ? V2.white : undefined,
+                    backgroundColor: d === activeDate ? V2.ink : "transparent",
+                  }}
+                >
+                  {Number(d.slice(-2))}
+                </div>
               </div>
             ))}
           </div>
@@ -218,17 +230,19 @@ export function BuildHeatmap({
                   <button
                     key={d}
                     type="button"
-                    onClick={() => onSelect(d)}
+                    onClick={() => {
+                      onSelect(d);
+                      onSelectArea?.(area.id);
+                    }}
                     title={`${area.name} · ${d} · ${meta.label}`}
                     style={{
                       width: colWidth - 2,
                       height: 14,
                       marginRight: 2,
-                      backgroundColor: blank ? V2.paperDim : meta.bg,
-                      borderTop: blank ? `1px solid ${V2.rule}` : `1px solid ${meta.fg}33`,
-                      borderBottom: blank ? `1px solid ${V2.rule}` : `2px solid ${meta.fg}`,
-                      borderLeft: isActive ? `1px solid ${V2.ink}` : "none",
-                      borderRight: isActive ? `1px solid ${V2.ink}` : "none",
+                      backgroundColor: blank ? V2.paperDim : meta.fg,
+                      border: blank ? `1px solid ${V2.rule}` : "none",
+                      outline: isActive ? `2px solid ${V2.ink}` : "none",
+                      outlineOffset: -1,
                       cursor: "pointer",
                     }}
                   />
@@ -265,6 +279,8 @@ export function BuildHeatmap({
                     height: 6,
                     marginRight: 2,
                     backgroundColor: blank ? V2.paperDim : meta.fg,
+                    outline: d === activeDate ? `2px solid ${V2.ink}` : "none",
+                    outlineOffset: -1,
                   }}
                 />
               );
