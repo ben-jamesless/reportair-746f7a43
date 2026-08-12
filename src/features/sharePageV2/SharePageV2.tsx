@@ -510,12 +510,11 @@ export default function SharePageV2() {
 
                 {refExpanded && (
                   <div
-                    className="grid gap-1 p-1"
+                    className="grid grid-cols-2 gap-1 p-1 sm:grid-cols-3 lg:grid-cols-5"
                     style={{
                       border: `1px solid ${V2.rule}`,
                       borderTop: "none",
                       backgroundColor: V2.white,
-                      gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))",
                     }}
                   >
                     {visibleRefPhotos.length === 0 && (
