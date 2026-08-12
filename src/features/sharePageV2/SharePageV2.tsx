@@ -183,20 +183,31 @@ export default function SharePageV2() {
         })
       : meta.days ?? [];
 
+  // Keeps the strip at four cells: the build-window slot falls back to
+  // "Days recorded" while event phases / build dates are unset.
+  const daysRecorded = (meta.days ?? []).filter((d) => d.photo_count > 0 || d.has_notes).length;
+  const lastCapture = dayPhotos
+    .map((p) => p.captured_at ?? p.created_at)
+    .filter(Boolean)
+    .sort()
+    .pop();
+
   const stats = [
-    ...(buildWindow.dayNo
-      ? [
-          {
-            label: "Build day",
-            value: String(buildWindow.dayNo),
-            unit: buildWindow.total ? `/ ${buildWindow.total}` : undefined,
-            sub:
-              buildWindow.total !== null
-                ? `${Math.max(buildWindow.total - buildWindow.dayNo, 0)} days remaining`
-                : undefined,
-          },
-        ]
-      : []),
+    buildWindow.dayNo
+      ? {
+          label: "Build day",
+          value: String(buildWindow.dayNo),
+          unit: buildWindow.total ? `/ ${buildWindow.total}` : undefined,
+          sub:
+            buildWindow.total !== null
+              ? `${Math.max(buildWindow.total - buildWindow.dayNo, 0)} days remaining`
+              : undefined,
+        }
+      : {
+          label: "Days recorded",
+          value: String(daysRecorded),
+          sub: lastCapture ? `Last capture ${timeLabel(lastCapture)}` : "No captures yet",
+        },
     {
       label: mode === "filed" || !isToday ? "Photos" : "Photos today",
       value: String(dayPhotos.length),
