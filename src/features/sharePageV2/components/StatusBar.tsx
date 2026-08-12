@@ -1,3 +1,4 @@
+import { Download, Moon, Sun } from "lucide-react";
 import { V2, statusMeta } from "../tokens";
 import type { ShareMode } from "../types";
 
@@ -11,6 +12,9 @@ export function StatusBar({
   filedAt,
   referenceCount = 0,
   onOpenReference,
+  onExport,
+  theme = "light",
+  onToggleTheme,
 }: {
   worstStatus: string | null | undefined;
   areaCount: number;
@@ -24,6 +28,10 @@ export function StatusBar({
   /** Reference photo count; renders a jump-to-gallery chip when > 0. */
   referenceCount?: number;
   onOpenReference?: () => void;
+  /** Export the report (print → PDF). */
+  onExport?: () => void;
+  theme?: "light" | "dark";
+  onToggleTheme?: () => void;
 }) {
   const meta = statusMeta(worstStatus);
   const filed = mode === "filed";
