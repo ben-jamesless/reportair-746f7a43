@@ -143,7 +143,11 @@ export function ShareMapV2({
   };
 
   return (
-    <div className="overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
+    <div
+      ref={rootRef}
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
+    >
       <div className="relative w-full" style={{ backgroundColor: V2.rule }}>
         <img
           src={imgSrc}
