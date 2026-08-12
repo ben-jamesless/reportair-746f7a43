@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
 const UNASSIGNED = "__unassigned__";
+const REFERENCE = "__reference__";
 
 function captureTimeLabel(p: { captured_at: string | null }): string | null {
   if (!p.captured_at) return null;
