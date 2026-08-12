@@ -1636,6 +1636,10 @@ export type Database = {
         Returns: boolean
       }
       delete_project: { Args: { _project_id: string }; Returns: undefined }
+      derive_area_display_status: {
+        Args: { _area_id: string; _day: string }
+        Returns: string
+      }
       email_domain: { Args: { _email: string }; Returns: string }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
