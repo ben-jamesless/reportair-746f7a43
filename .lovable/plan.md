@@ -55,14 +55,27 @@ Three-column masthead, 4-up stat strip, 1fr+400px body and a horizontally scroll
 ### 11. PDF export drifts
 `generate-pdf` renders its own layout. Shipping a new share design without touching it means the emailed/exported PDF no longer looks like the link the client saw.
 
+## Non-negotiable: v1 stays live
+
+v2 is built as a separate surface. Nothing about the current client link changes until we deliberately switch it.
+
+- Existing `/s/:token` keeps rendering today's `SharePage.tsx`, untouched. No refactors "in passing".
+- v2 lives at a parallel route (e.g. `/s2/:token`) using the same tokens, so any existing link can be previewed in v2 without reissuing it.
+- New v2 components go in their own folder (`src/features/sharePageV2/`) rather than editing v1 files. Shared helpers get copied, not extracted, until v2 is settled.
+- Any new share RPCs are additive and versioned (e.g. `resolve_share_link_v2`); `resolve_share_link` keeps its current shape so v1 can't break.
+- Schema additions (build window, phases) are nullable and ignored by v1.
+- Switchover later is a per-link or per-team flag, reversible, with v1 kept as fallback for a period.
+
 ## Suggested sequencing (if we proceed)
 
-1. **Foundations** — build window + phases on the project, status vocabulary locked, share payload restructured.
-2. **Re-layout** — masthead, status bar, stat strip, zone cards, sidebar summary/timeline/feedback using existing data. Highest visual return, lowest risk.
-3. **Calendar** — the Gantt strip plus its editing surface.
-4. **Map** — static satellite by default, polygons on, pins behind a per-link toggle.
-5. **Branding/white-label** — agency lockup, theme colour, ops contact, gated by tier.
-6. **PDF parity** — bring the export in line.
+1. **Scaffold v2 in parallel** — `/s2/:token` route + `sharePageV2` folder rendering the new shell against existing data. v1 untouched.
+2. **Foundations** — build window + phases on the project (nullable), status vocabulary locked, additive v2 payload RPC.
+3. **Re-layout** — masthead, status bar, stat strip, zone cards, sidebar summary/timeline/feedback using existing data. Highest visual return, lowest risk.
+4. **Calendar** — the Gantt strip plus its editing surface.
+5. **Map** — static satellite by default, polygons on, pins behind a per-link toggle.
+6. **Branding/white-label** — agency lockup, theme colour, ops contact, gated by tier.
+7. **Switchover + PDF parity** — flag v2 on per link, then bring the export in line. v1 removed only once v2 has run real events.
+
 
 ## Open questions before planning the build
 
