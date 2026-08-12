@@ -54,12 +54,12 @@ export function Masthead({
       >
         <div
           className="mx-auto mb-1.5 flex items-center justify-center overflow-hidden"
-          style={{ width: 72, height: 72, borderRadius: 4, backgroundColor: logoUrl ? "transparent" : V2.ink }}
+          style={{ width: 72, height: 72, borderRadius: 4, backgroundColor: logoUrl ? "transparent" : V2.band }}
         >
           {logoUrl ? (
             <img src={logoUrl} alt={org ?? project.name} className="h-full w-full object-contain" />
           ) : (
-            <span style={{ color: "#fff", fontWeight: 800, fontSize: 20 }}>
+            <span style={{ color: V2.bandFg, fontWeight: 800, fontSize: 20 }}>
               {(org ?? project.name).slice(0, 1).toUpperCase()}
             </span>
           )}
