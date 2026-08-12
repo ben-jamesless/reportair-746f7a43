@@ -9,6 +9,8 @@ export function StatusBar({
   lastUpdated,
   isToday = true,
   filedAt,
+  referenceCount = 0,
+  onOpenReference,
 }: {
   worstStatus: string | null | undefined;
   areaCount: number;
@@ -19,6 +21,9 @@ export function StatusBar({
   isToday?: boolean;
   /** Filed mode: replaces "updated" with "Filed · date". */
   filedAt?: string | null;
+  /** Reference photo count; renders a jump-to-gallery chip when > 0. */
+  referenceCount?: number;
+  onOpenReference?: () => void;
 }) {
   const meta = statusMeta(worstStatus);
   const filed = mode === "filed";
@@ -37,6 +42,25 @@ export function StatusBar({
       className="flex flex-wrap items-center gap-x-5 gap-y-2 py-2.5"
       style={{ borderBottom: `1px solid ${V2.rule}` }}
     >
+      {referenceCount > 0 && onOpenReference && (
+        <button
+          type="button"
+          onClick={onOpenReference}
+          className="uppercase"
+          style={{
+            fontFamily: V2.mono,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.09em",
+            color: V2.ink,
+            border: `1px solid ${V2.rule}`,
+            backgroundColor: V2.white,
+            padding: "4px 8px",
+          }}
+        >
+          Reference photos · {referenceCount}
+        </button>
+      )}
       <div className="flex items-center gap-2">
         <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: meta.fg }} />
         <span className="uppercase" style={{ fontSize: 12, fontWeight: 700, color: meta.fg, letterSpacing: "0.07em" }}>
