@@ -78,6 +78,9 @@ export type ShareV2DayArea = {
   name: string;
   sort_order: number;
   status: string | null;
+  /** Derived: explicit status, else in_progress when photos exist that day. */
+  display_status?: string | null;
+  photo_count?: number | null;
   notes: string | null;
 };
 
