@@ -126,7 +126,10 @@ export function DayTimeline({
           borderBottom: `1px solid ${V2.rule}`,
         }}
       >
-        Build timeline
+        <span className="flex items-center justify-between">
+          <span>Build timeline</span>
+          <span style={{ letterSpacing: "0.08em" }}>Photos</span>
+        </span>
       </div>
       <div className="max-h-[420px] overflow-y-auto">
         {days.map((d) => {
