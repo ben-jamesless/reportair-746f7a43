@@ -149,14 +149,14 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   return (
     <Dialog open={index !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[100dvh] max-w-6xl overflow-y-auto border-0 bg-background p-0 sm:max-h-[90vh] [&>button]:hidden">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_320px]">
-          <div className="relative flex min-h-[50vh] items-center justify-center bg-black md:min-h-[70vh]">
+      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col overflow-hidden border-0 bg-background p-0 sm:h-[92vh] sm:max-h-[92vh] sm:w-[96vw] sm:max-w-6xl [&>button]:hidden">
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[1fr_320px] md:overflow-hidden">
+          <div className="relative flex min-h-[45vh] items-center justify-center overflow-hidden bg-black md:min-h-0">
             {thumbUrl && !url && (
-              <img src={thumbUrl} alt="" aria-hidden className="max-h-[70vh] w-full object-contain blur-sm" />
+              <img src={thumbUrl} alt="" aria-hidden className="h-full w-full object-contain blur-sm" />
             )}
             {url && (
-              <img src={url} alt={photo.caption || photo.file_name} className="max-h-[70vh] w-full object-contain" />
+              <img src={url} alt={photo.caption || photo.file_name} className="h-full w-full object-contain" />
             )}
             {photos.length > 1 && (
               <>
