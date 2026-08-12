@@ -33,6 +33,8 @@ export type ShareV2AreaMeta = {
   color: string | null;
   photo_count: number;
   latest_status: string | null;
+  /** Most recent photo in the area — thumbnail for the Filed areas grid. */
+  cover_photo_id?: string | null;
 };
 
 export type ShareV2GridCell = {
@@ -58,6 +60,8 @@ export type ShareV2Meta = {
   generated_at?: string;
   mode?: ShareMode;
   project?: ShareV2Project;
+  /** Resolved hero: project.hero_photo_id, else auto-picked server-side. */
+  hero_photo_id?: string | null;
   team_plan?: string | null;
   team_name?: string | null;
   team_logo_path?: string | null;
