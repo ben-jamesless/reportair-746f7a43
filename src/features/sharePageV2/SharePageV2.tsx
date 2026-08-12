@@ -164,7 +164,8 @@ export default function SharePageV2() {
   }
 
   const mode = meta.mode ?? "build";
-  const isToday = activeDate === isoToday();
+  const filedAt = project.finalised_at ?? null;
+  const isToday = mode !== "filed" && activeDate === isoToday();
   const dayWord = isToday && mode !== "filed" ? "today" : "this day";
 
   // Contiguous run of days from the build start (or first recorded day) to the
