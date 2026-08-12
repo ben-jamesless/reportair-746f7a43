@@ -156,6 +156,16 @@ function ShellBody({
             <div className="flex flex-wrap items-center gap-2">
               <UploadButton />
               <CaptureButton />
+              <ExportPdfDialog
+                projectId={projectId}
+                photoCount={photos.length}
+                trigger={
+                  <Button variant="outline" size="sm" aria-label="Export PDF">
+                    <FileDown className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Export</span>
+                  </Button>
+                }
+              />
               <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
                 <Share2 className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Share</span>
@@ -166,7 +176,9 @@ function ShellBody({
                   <span className="hidden sm:inline">Members</span>
                 </Button>
               )}
+              <ThemeToggleButton />
               <TabsMenu tab={tab} setTab={setTab} />
+
             </div>
           </div>
 
