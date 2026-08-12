@@ -163,10 +163,11 @@ export default function SharePageV2() {
     );
   }
 
-  const mode = meta.mode ?? "build";
+  const mode: ShareMode = meta.mode ?? "build";
+  const isFiled = mode === "filed";
   const filedAt = project.finalised_at ?? null;
-  const isToday = mode !== "filed" && activeDate === isoToday();
-  const dayWord = isToday && mode !== "filed" ? "today" : "this day";
+  const isToday = !isFiled && activeDate === isoToday();
+  const dayWord = isToday ? "today" : "this day";
 
   // Contiguous run of days from the build start (or first recorded day) to the
   // last recorded day, so the timeline never reads as sparse.
