@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Loader2, Lock } from "lucide-react";
+import { ChevronDown, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReportFooter } from "./components/ReportFooter";
@@ -29,7 +28,7 @@ export default function SharePageV2() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
-  const [refGalleryOpen, setRefGalleryOpen] = useState(false);
+  const [refExpanded, setRefExpanded] = useState(false);
 
   useEffect(() => {
     if (meta?.project?.name) document.title = `${meta.project.name} — Build report`;
