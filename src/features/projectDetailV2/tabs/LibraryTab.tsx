@@ -142,13 +142,17 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   const unassigned = useMemo(() => photos.filter((p) => !p.area_id), [photos]);
 
   const filtered = useMemo(() => {
+    // Reference bucket is its own view — no day filter (they sit outside the build).
+    if (areaFilter === REFERENCE) return referencePhotos;
     return photos.filter((p) => {
       if (areaFilter === UNASSIGNED && p.area_id) return false;
       if (areaFilter !== ALL && areaFilter !== UNASSIGNED && p.area_id !== areaFilter) return false;
       if (dayFilter !== ALL && dayKey(p) !== dayFilter) return false;
       return true;
     });
-  }, [photos, areaFilter, dayFilter]);
+  }, [photos, referencePhotos, areaFilter, dayFilter]);
+
+  const viewingReference = areaFilter === REFERENCE;
 
 
   const clearSelection = useCallback(() => {
