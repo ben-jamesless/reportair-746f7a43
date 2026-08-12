@@ -201,7 +201,7 @@ export function ShareMapV2({
               for (const p of pts) { x += p.x; y += p.y; }
               return { x: x / pts.length, y: y / pts.length };
             })();
-            const label = f.area_name ?? areas.find((a) => a.area_id === f.area_id)?.name ?? "";
+            const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
             return (
               // White halo underneath keeps small boundaries legible against
               // busy satellite imagery; the status colour sits on top.
