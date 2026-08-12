@@ -18,7 +18,10 @@ import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
+import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
+import { supabase } from "@/integrations/supabase/client";
 import type { ShareMode } from "./types";
+
 
 export default function SharePageV2() {
   const { token } = useParams<{ token: string }>();
