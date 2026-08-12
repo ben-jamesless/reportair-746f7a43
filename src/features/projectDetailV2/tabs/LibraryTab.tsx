@@ -419,6 +419,18 @@ export function LibraryTab({ projectId }: { projectId: string }) {
             )}
             {canEdit && (
               <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await bulkSetReference(Array.from(selected), !viewingReference);
+                  clearSelection();
+                }}
+              >
+                {viewingReference ? "Move back to build" : "Mark as Reference"}
+              </Button>
+            )}
+            {canEdit && (
+              <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => setConfirmDelete(true)}
