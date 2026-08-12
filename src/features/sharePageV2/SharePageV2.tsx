@@ -13,6 +13,8 @@ import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { SectionLabel } from "./components/Primitives";
 import { AreaGlance, DayTimeline, TodayBox } from "./components/Sidebar";
+import { BuildCalendar } from "./components/BuildCalendar";
+import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 
 export default function SharePageV2() {
@@ -82,6 +84,11 @@ export default function SharePageV2() {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
     if (i >= 0) setLightboxIndex(i);
   };
+
+  const scrollToArea = (areaId: string) => {
+    document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
 
   if (loading) {
     return (
@@ -190,17 +197,25 @@ export default function SharePageV2() {
             ) : (
               <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
                 {dayAreas.map((a) => (
-                  <ZoneCard
-                    key={a.area_id}
-                    token={token ?? ""}
-                    name={a.name}
-                    status={a.status}
-                    notes={a.notes}
-                    photos={photosByArea.get(a.area_id) ?? []}
-                    onOpenPhoto={openPhoto}
-                  />
+                  <div key={a.area_id} id={`area-${a.area_id}`} style={{ scrollMarginTop: 24 }}>
+                    <ZoneCard
+                      token={token ?? ""}
+                      name={a.name}
+                      status={a.status}
+                      notes={a.notes}
+                      photos={photosByArea.get(a.area_id) ?? []}
+                      onOpenPhoto={openPhoto}
+                    />
+                  </div>
                 ))}
               </div>
+            )}
+
+            {token && (
+              <>
+                <SectionLabel className="mt-7">Site map</SectionLabel>
+                <ShareMapV2 token={token} areas={dayAreas} onAreaClick={scrollToArea} />
+              </>
             )}
 
             {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
@@ -224,6 +239,14 @@ export default function SharePageV2() {
           </div>
 
           <aside>
+            <BuildCalendar
+              days={meta.days ?? []}
+              phases={meta.phases ?? []}
+              activeDate={activeDate}
+              buildStart={project.build_start_date}
+              buildEnd={project.build_end_date ?? project.event_date}
+              onSelect={setActiveDate}
+            />
             {day && <TodayBox day={day} />}
             <AreaGlance
               rows={dayAreas.map((a) => ({
