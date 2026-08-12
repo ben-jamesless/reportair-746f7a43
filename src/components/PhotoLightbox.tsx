@@ -70,6 +70,8 @@ export type LightboxPhoto = {
   album_id?: string | null;
   created_at?: string | null;
   assignment_source?: string | null;
+  /** Reference photo (pre-build / last-year). Excluded from daily reports. */
+  is_reference?: boolean | null;
 };
 
 
