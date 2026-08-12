@@ -13,6 +13,8 @@ import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { SectionLabel } from "./components/Primitives";
 import { AreaGlance, DayTimeline, TodayBox } from "./components/Sidebar";
+import { BuildCalendar } from "./components/BuildCalendar";
+import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 
 export default function SharePageV2() {
