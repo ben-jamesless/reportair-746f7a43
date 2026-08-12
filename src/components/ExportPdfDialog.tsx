@@ -491,23 +491,52 @@ export const ExportPdfDialog = ({
       options.album_label = album?.name ?? null;
     }
 
-    // Public share flow: the edge function creates the export row (service role),
-    // renders synchronously and hands back a signed download URL.
+    // Public share flow: anonymous visitors can't insert an export row, so the
+    // existing share-create-export / share-export-url pair does the work.
     if (shareToken) {
       setCurrentExport({ id: "share", status: "processing", output_path: null, error_message: null, photo_count: null } as ExportRow);
-      const { data, error: fnErr } = await supabase.functions.invoke("generate-pdf", {
-        body: { share_token: shareToken, options, accent_color: accent },
+      const { data: created, error: createErr } = await supabase.functions.invoke("share-create-export", {
+        body: {
+          token: shareToken,
+          mode: mode === "range" ? "range" : "single",
+          day_key: mode === "single" ? dayKey ?? null : null,
+          day_label: mode === "single" ? dayLabel ?? null : null,
+          date_from: lo,
+          date_to: hi,
+          options: { template: layout, quality, sections },
+        },
       });
-      const res = data as { signed_url?: string | null; error?: string } | null;
-      if (fnErr || !res?.signed_url) {
-        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: res?.error ?? fnErr?.message ?? "Export failed", photo_count: null } as ExportRow);
-        toast.error(res?.error ?? fnErr?.message ?? "Export failed");
+      const createdRes = created as { export_id?: string; error?: string } | null;
+      if (createErr || !createdRes?.export_id) {
+        const msg = createdRes?.error ?? createErr?.message ?? "Could not start export";
+        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: msg, photo_count: null } as ExportRow);
+        toast.error(msg);
+        setSubmitting(false);
+        return;
+      }
+      const exportId = createdRes.export_id;
+      const started = Date.now();
+      let url: string | null = null;
+      let lastError: string | null = null;
+      while (Date.now() - started < 5 * 60 * 1000) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: statusData } = await supabase.functions.invoke("share-export-url", {
+          body: { token: shareToken, export_id: exportId },
+        });
+        const st = statusData as { status?: string; url?: string | null; error_message?: string | null } | null;
+        if (st?.status === "ready" && st.url) { url = st.url; break; }
+        if (st?.status === "failed") { lastError = st.error_message ?? "Export failed"; break; }
+      }
+      if (!url) {
+        const msg = lastError ?? "Export timed out. Please try again.";
+        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: msg, photo_count: null } as ExportRow);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
       setCurrentExport({ id: "share", status: "ready", output_path: null, error_message: null, photo_count: null } as ExportRow);
       try {
-        const resp = await fetch(res.signed_url);
+        const resp = await fetch(url);
         const blob = await resp.blob();
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -518,11 +547,12 @@ export const ExportPdfDialog = ({
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
       } catch {
-        window.open(res.signed_url, "_blank", "noopener");
+        window.open(url, "_blank", "noopener");
       }
       setSubmitting(false);
       return;
     }
+
 
     const { data: row, error } = await supabase.from("project_exports").insert({
       project_id: projectId,
