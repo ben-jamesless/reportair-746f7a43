@@ -251,7 +251,21 @@ export default function SharePageV2() {
           <div>
             <StatStrip stats={stats} />
 
-            <SectionLabel>Area-by-area update</SectionLabel>
+            {(meta.areas?.length ?? 0) > 0 && (
+              <>
+                <SectionLabel>Build calendar</SectionLabel>
+                <BuildHeatmap
+                  areas={meta.areas ?? []}
+                  grid={meta.grid ?? []}
+                  phases={meta.phases ?? []}
+                  activeDate={activeDate}
+                  activityDates={(meta.days ?? []).map((d) => d.date)}
+                  onSelect={setActiveDate}
+                />
+              </>
+            )}
+
+            <SectionLabel className="mt-7">Area-by-area update</SectionLabel>
             {dayAreas.length === 0 ? (
               <p style={{ fontSize: 13, color: V2.muted }}>No areas have been defined for this event yet.</p>
             ) : (
