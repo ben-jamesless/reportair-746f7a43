@@ -60,6 +60,37 @@ export function ShareMapV2({
   const [highlight, setHighlight] = useState<{ featureId: string | null; areaId: string } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const seenRef = useRef(false);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const [tf, setTf] = useState({ s: 1, x: 0, y: 0 });
+
+  // Wheel/pinch zoom anchored at the cursor. Attached natively because React's
+  // onWheel is passive, so preventDefault() there is ignored.
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      const r = el.getBoundingClientRect();
+      const px = e.clientX - r.left;
+      const py = e.clientY - r.top;
+      setTf((p) => {
+        const s = Math.min(6, Math.max(1, p.s * Math.exp(-dy * 0.0015)));
+        const k = s / p.s;
+        const x = px - (px - p.x) * k;
+        const y = py - (py - p.y) * k;
+        return {
+          s,
+          x: Math.min(0, Math.max(r.width - r.width * s, x)),
+          y: Math.min(0, Math.max(r.height - r.height * s, y)),
+        };
+      });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [features]);
+
 
   // Fires once when the (static) map scrolls into view, so we can measure
   // whether clients engage with it before investing in an interactive map.
