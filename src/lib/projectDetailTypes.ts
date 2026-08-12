@@ -66,11 +66,11 @@ export const SHORT_FMT = new Intl.DateTimeFormat(undefined, {
 /** Hex accent for the 3px left bar on area blocks (matches share view). */
 export const areaStatusAccent = (s: AreaStatus | null | undefined): string => {
   switch (s) {
-    case "on_track":
+    case "in_progress":
       return "#3b82f6";
-    case "requires_discussion":
+    case "flagged":
       return "#D4A017";
-    case "concern":
+    case "delayed":
       return "#ef4444";
     case "complete":
       return "#10b981";

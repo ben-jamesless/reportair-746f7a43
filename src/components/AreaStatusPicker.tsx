@@ -3,28 +3,28 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ChevronDown, Check } from "lucide-react";
 import { StatusTypographic } from "@/components/StatusTypographic";
 
-export type AreaStatus = "no_status" | "on_track" | "requires_discussion" | "concern" | "complete";
+export type AreaStatus = "not_started" | "in_progress" | "flagged" | "delayed" | "complete";
 
 export const STATUS_META: Record<
   AreaStatus,
   { label: string; short: string; dot: string; activeBg: string; activeText: string; activeBorder: string }
 > = {
-  no_status: {
+  not_started: {
     label: "None", short: "None",
     dot: "bg-[#9C9A93]",
     activeBg: "bg-muted", activeText: "text-foreground", activeBorder: "border-muted-foreground/30",
   },
-  on_track: {
+  in_progress: {
     label: "On track", short: "On track",
     dot: "bg-[#3A6EA5]",
     activeBg: "bg-[#3A6EA5]/15", activeText: "text-[#3A6EA5] dark:text-blue-300", activeBorder: "border-[#3A6EA5]/40",
   },
-  requires_discussion: {
+  flagged: {
     label: "Flagged", short: "Flagged",
     dot: "bg-[#D4A017]",
     activeBg: "bg-[#D4A017]/15", activeText: "text-[#D4A017] dark:text-yellow-300", activeBorder: "border-[#D4A017]/40",
   },
-  concern: {
+  delayed: {
     label: "Delayed", short: "Delayed",
     dot: "bg-[#C7382A]",
     activeBg: "bg-[#C7382A]/15", activeText: "text-[#C7382A] dark:text-red-300", activeBorder: "border-[#C7382A]/40",
@@ -36,7 +36,7 @@ export const STATUS_META: Record<
   },
 };
 
-const ORDER: AreaStatus[] = ["no_status", "on_track", "requires_discussion", "concern", "complete"];
+const ORDER: AreaStatus[] = ["not_started", "in_progress", "flagged", "delayed", "complete"];
 
 interface Props {
   value: AreaStatus;

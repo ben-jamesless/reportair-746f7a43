@@ -10,10 +10,10 @@ import type { AreaStatus } from "@/components/AreaStatusPicker";
 type StatusKey = AreaStatus | "behind_schedule" | "at_risk" | "delayed" | string;
 
 const META: Record<string, { label: string; caption: string; color: string }> = {
-  no_status:            { label: "No update",  caption: "Rest day / no activity", color: "#9C9A93" },
-  on_track:             { label: "On track",   caption: "Building, no news",      color: "#3A6EA5" },
-  requires_discussion:  { label: "Flagged",    caption: "Needs discussion",       color: "#D4A017" },
-  concern:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
+  not_started:            { label: "No update",  caption: "Rest day / no activity", color: "#9C9A93" },
+  in_progress:             { label: "On track",   caption: "Building, no news",      color: "#3A6EA5" },
+  flagged:  { label: "Flagged",    caption: "Needs discussion",       color: "#D4A017" },
+  delayed:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
   behind_schedule:      { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
   at_risk:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
   delayed:              { label: "Delayed",    caption: "Behind programme",       color: "#C7382A" },
@@ -36,7 +36,7 @@ export function StatusTypographic({
   children?: React.ReactNode;
 }) {
   if (!statusKey) return null;
-  const meta = META[statusKey] ?? META.no_status;
+  const meta = META[statusKey] ?? META.not_started;
   return (
     <span
       className={cn("inline-flex items-center gap-2", className)}

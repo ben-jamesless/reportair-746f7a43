@@ -55,7 +55,7 @@ const Empty = () => <span className="italic text-muted-foreground">—</span>;
 
 export const ProjectDetailsTab = ({ project, lastUploadAt }: Props) => {
   const statusMeta = projectStatusMeta(project.overall_status);
-  const showStatus = (project.overall_status ?? "no_status") !== "no_status";
+  const showStatus = (project.overall_status ?? "not_started") !== "not_started";
   const eventDate = fromIsoDate(project.event_date);
 
   return (

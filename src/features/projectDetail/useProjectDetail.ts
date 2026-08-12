@@ -170,7 +170,7 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
           tomorrow_objectives: row.tomorrow_objectives ?? null,
           open_issues: row.open_issues ?? null,
         });
-        dsMap.set(row.date, (row.day_status ?? "no_status") as AreaStatus);
+        dsMap.set(row.date, (row.day_status ?? "not_started") as AreaStatus);
       }
       setDayNotes(map);
       setDailyFields(fieldMap);

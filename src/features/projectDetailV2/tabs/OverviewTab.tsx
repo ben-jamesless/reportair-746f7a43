@@ -77,7 +77,7 @@ export function OverviewTab({ projectId }: { projectId: string }) {
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
               <AreaStatusPicker
-                value={(dayStatus.get(today) ?? "no_status") as AreaStatus}
+                value={(dayStatus.get(today) ?? "not_started") as AreaStatus}
                 onChange={() => { /* read-only surface — set on Daily Report */ }}
                 readOnly
               />

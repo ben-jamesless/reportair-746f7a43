@@ -100,7 +100,7 @@ export const ProjectEditForm = ({
   const [geoLat, setGeoLat] = useState<number | null>(null);
   const [geoLng, setGeoLng] = useState<number | null>(null);
   const [geoPlaceId, setGeoPlaceId] = useState<string | null>(null);
-  const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "no_status");
+  const [status, setStatus] = useState<ProjectStatus>(initialStatus ?? "not_started");
   const [eventType, setEventType] = useState(initialEventType ?? "");
   const [clientName, setClientName] = useState(initialClient ?? "");
   const [defaultView, setDefaultView] = useState<ProjectDefaultView>(initialDefaultView ?? "report");
@@ -134,7 +134,7 @@ export const ProjectEditForm = ({
     setEventDate(fromIsoDate(initialEventDate));
     setBuildStartDate(fromIsoDate(initialBuildStartDate ?? null));
     setEventLocation(initialEventLocation ?? "");
-    setStatus(initialStatus ?? "no_status");
+    setStatus(initialStatus ?? "not_started");
     setEventType(initialEventType ?? "");
     setClientName(initialClient ?? "");
     setDefaultView(initialDefaultView ?? "report");
