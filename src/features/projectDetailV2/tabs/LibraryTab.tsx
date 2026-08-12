@@ -73,6 +73,8 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     areas,
     albums,
     photos,
+    referencePhotos,
+    bulkSetReference,
     canEdit,
     isOwner,
     loading,
