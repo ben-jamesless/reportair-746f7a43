@@ -220,7 +220,7 @@ export default function SharePageV2() {
           logoUrl={logoUrl}
         />
         <StatusBar
-          worstStatus={day?.worst_status ?? day?.day_status}
+          worstStatus={derivedWorst}
           areaCount={dayAreas.length}
           photoCount={dayPhotos.length}
           mode={mode}
