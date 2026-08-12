@@ -39,6 +39,10 @@ export function ReportFooter({
         dayStamp
       )
     : null;
+  const filedStamp = filedAt
+    ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(filedAt))
+    : null;
+
 
   return (
     <footer className="mt-14" style={{ borderTop: `2px solid ${V2.ink}`, paddingTop: 14 }}>
