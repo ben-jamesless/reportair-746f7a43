@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusHex, statusMeta } from "../tokens";
+import { V2, statusHex } from "../tokens";
 import type { ShareV2DayArea } from "../types";
 
 /**
