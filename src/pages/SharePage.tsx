@@ -21,6 +21,7 @@ type SharePhoto = {
   id: string; storage_path: string; file_name: string; caption: string | null;
   captured_at: string | null; created_at: string;
   album_id: string | null; area_id: string | null;
+  is_reference?: boolean | null;
 };
 type Album = { id: string; name: string; position: number };
 type Area = { id: string; name: string; sort_order: number };
