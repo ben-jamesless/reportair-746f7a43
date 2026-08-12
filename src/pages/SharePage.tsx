@@ -1462,33 +1462,8 @@ const SharePage = () => {
         </div>
       </div>
 
-      <Dialog open={refOpen} onOpenChange={setRefOpen}>
-        <DialogContent className="max-w-4xl">
-          <div className="mb-3">
-            <h2 className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>Reference photos</h2>
-            <p className="text-xs" style={{ color: MUTED }}>
-              Pre-build and previous-event shots. Not part of the build timeline.
-            </p>
-          </div>
-          <div className="grid max-h-[70vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4">
-            {referencePhotos.map((p, i) => (
-              <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setRefLightboxIndex(i)} />
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
 
-      {refLightboxIndex !== null && (
-        <ShareLightbox
-          token={token!}
-          photos={referencePhotos}
-          index={refLightboxIndex}
-          guest={guest}
-          onClose={() => setRefLightboxIndex(null)}
-          onIndexChange={setRefLightboxIndex}
-          onNotesChanged={loadFeedback}
-        />
-      )}
+
 
       {lightboxIndex !== null && (
         <ShareLightbox
