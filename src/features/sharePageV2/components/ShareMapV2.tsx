@@ -55,6 +55,27 @@ export function ShareMapV2({
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const seenRef = useRef(false);
+
+  // Fires once when the (static) map scrolls into view, so we can measure
+  // whether clients engage with it before investing in an interactive map.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || seenRef.current || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !seenRef.current) {
+          seenRef.current = true;
+          trackEvent("share_link_map_opened", { area_count: areas.length });
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [features, areas.length]);
 
   useEffect(() => {
     let alive = true;
