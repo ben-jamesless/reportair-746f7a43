@@ -213,7 +213,7 @@ export default function SharePageV2() {
           sub: lastCapture ? `Last capture ${timeLabel(lastCapture)}` : "No captures yet",
         },
     {
-      label: mode === "filed" || !isToday ? "Photos" : "Photos today",
+      label: !isToday ? "Photos" : "Photos today",
       value: String(dayPhotos.length),
       sub: `Across ${photosByArea.size} area${photosByArea.size === 1 ? "" : "s"}`,
     },
@@ -241,6 +241,7 @@ export default function SharePageV2() {
           buildDay={buildWindow.dayNo}
           buildTotal={buildWindow.total}
           logoUrl={logoUrl}
+          filedRange={filedRange}
         />
         <StatusBar
           worstStatus={derivedWorst}
@@ -249,6 +250,7 @@ export default function SharePageV2() {
           mode={mode}
           lastUpdated={day?.last_updated_at}
           isToday={isToday}
+          filedAt={filedAt}
         />
 
         <div className="mt-7 grid gap-11 lg:grid-cols-[1fr_400px]">
