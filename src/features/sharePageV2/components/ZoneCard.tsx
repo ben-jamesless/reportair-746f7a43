@@ -1,5 +1,5 @@
 import { RichNotes } from "@/components/RichNotes";
-import { V2, timeLabel } from "../tokens";
+import { V2, timeLabel, normaliseStatus } from "../tokens";
 import type { ShareV2Photo } from "../types";
 import { StatusPill } from "./Primitives";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
