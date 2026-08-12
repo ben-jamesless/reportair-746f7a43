@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
 import { V2, statusMeta } from "../tokens";
