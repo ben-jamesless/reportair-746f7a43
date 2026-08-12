@@ -1,5 +1,5 @@
 import { RichNotes } from "@/components/RichNotes";
-import { V2, DATE_SHORT, parseISO, statusMeta } from "../tokens";
+import { V2, DATE_SHORT, orderDaysForList, parseISO, statusMeta } from "../tokens";
 import type { ShareV2Day, ShareV2DayMeta } from "../types";
 import { StatusPill } from "./Primitives";
 
@@ -132,7 +132,8 @@ export function DayTimeline({
         </span>
       </div>
       <div className="max-h-[420px] overflow-y-auto">
-        {days.map((d) => {
+        {/* Reverse-chronological: today first, so clients never scan past empty days. */}
+        {orderDaysForList(days).map((d) => {
           const meta = statusMeta(d.worst_status ?? d.day_status);
           const active = d.date === activeDate;
           return (
