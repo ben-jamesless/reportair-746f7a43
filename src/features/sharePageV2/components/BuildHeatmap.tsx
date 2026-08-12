@@ -225,7 +225,6 @@ export function BuildHeatmap({
                 const s = statusFor(area.id, d);
                 const meta = STATUS_V2[s];
                 const blank = s === "not_started";
-                const isActive = d === activeDate;
                 return (
                   <button
                     key={d}
@@ -241,8 +240,6 @@ export function BuildHeatmap({
                       marginRight: 2,
                       backgroundColor: blank ? V2.paperDim : meta.fg,
                       border: blank ? `1px solid ${V2.rule}` : "none",
-                      outline: isActive ? `2px solid ${V2.ink}` : "none",
-                      outlineOffset: -1,
                       cursor: "pointer",
                     }}
                   />
@@ -279,8 +276,6 @@ export function BuildHeatmap({
                     height: 6,
                     marginRight: 2,
                     backgroundColor: blank ? V2.paperDim : meta.fg,
-                    outline: d === activeDate ? `2px solid ${V2.ink}` : "none",
-                    outlineOffset: -1,
                   }}
                 />
               );
