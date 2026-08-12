@@ -85,6 +85,11 @@ export default function SharePageV2() {
     if (i >= 0) setLightboxIndex(i);
   };
 
+  const scrollToArea = (areaId: string) => {
+    document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: V2.paper }}>
