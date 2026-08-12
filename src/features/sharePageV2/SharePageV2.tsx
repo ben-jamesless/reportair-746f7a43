@@ -155,6 +155,58 @@ export default function SharePageV2() {
   }
 
   const mode = meta.mode ?? "build";
+  const isToday = activeDate === isoToday();
+  const dayWord = isToday && mode !== "filed" ? "today" : "this day";
+
+  // Contiguous run of days from the build start (or first recorded day) to the
+  // last recorded day, so the timeline never reads as sparse.
+  const dayMap = new Map((meta.days ?? []).map((d) => [d.date, d]));
+  const recorded = (meta.days ?? []).map((d) => d.date).sort();
+  const firstDay = project.build_start_date ?? recorded[0] ?? null;
+  const lastDay = recorded[recorded.length - 1] ?? project.build_end_date ?? firstDay;
+  const timelineDays =
+    firstDay && lastDay && daysBetween(firstDay, lastDay) >= 0 && daysBetween(firstDay, lastDay) < 400
+      ? Array.from({ length: daysBetween(firstDay, lastDay) + 1 }, (_, i) => {
+          const d = new Date(new Date(firstDay).getTime() + i * 86400000);
+          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          return (
+            dayMap.get(iso) ?? { date: iso, day_status: null, worst_status: null, photo_count: 0, has_notes: false }
+          );
+        })
+      : meta.days ?? [];
+
+  const stats = [
+    ...(buildWindow.dayNo
+      ? [
+          {
+            label: "Build day",
+            value: String(buildWindow.dayNo),
+            unit: buildWindow.total ? `/ ${buildWindow.total}` : undefined,
+            sub:
+              buildWindow.total !== null
+                ? `${Math.max(buildWindow.total - buildWindow.dayNo, 0)} days remaining`
+                : undefined,
+          },
+        ]
+      : []),
+    {
+      label: mode === "filed" || !isToday ? "Photos" : "Photos today",
+      value: String(dayPhotos.length),
+      sub: `Across ${photosByArea.size} area${photosByArea.size === 1 ? "" : "s"}`,
+    },
+    {
+      label: "Areas active",
+      value: String(activeAreas.length),
+      unit: `/ ${dayAreas.length}`,
+      sub: activeAreas.length === dayAreas.length && dayAreas.length > 0 ? `All updated ${dayWord}` : undefined,
+    },
+    {
+      label: "Open issues",
+      value: String(openIssuesCount + flaggedAreas.length),
+      tone: openIssuesCount + flaggedAreas.length > 0 ? "#B4720F" : undefined,
+      sub: flaggedAreas.length ? flaggedAreas.map((a) => a.name).join(", ") : "None raised",
+    },
+  ];
 
   return (
     <div style={{ backgroundColor: V2.paper, color: V2.ink, minHeight: "100vh" }}>
@@ -177,36 +229,7 @@ export default function SharePageV2() {
 
         <div className="mt-7 grid gap-11 lg:grid-cols-[1fr_400px]">
           <div>
-            <StatStrip
-              stats={[
-                {
-                  label: "Build day",
-                  value: buildWindow.dayNo ? String(buildWindow.dayNo) : "—",
-                  unit: buildWindow.total ? `/ ${buildWindow.total}` : undefined,
-                  sub:
-                    buildWindow.dayNo && buildWindow.total
-                      ? `${Math.max(buildWindow.total - buildWindow.dayNo, 0)} days remaining`
-                      : undefined,
-                },
-                {
-                  label: "Photos today",
-                  value: String(dayPhotos.length),
-                  sub: `Across ${photosByArea.size} area${photosByArea.size === 1 ? "" : "s"}`,
-                },
-                {
-                  label: "Areas active",
-                  value: String(activeAreas.length),
-                  unit: `/ ${dayAreas.length}`,
-                  sub: activeAreas.length === dayAreas.length && dayAreas.length > 0 ? "All updated today" : undefined,
-                },
-                {
-                  label: "Open issues",
-                  value: String(openIssuesCount + flaggedAreas.length),
-                  tone: openIssuesCount + flaggedAreas.length > 0 ? "#B4720F" : undefined,
-                  sub: flaggedAreas.length ? flaggedAreas.map((a) => a.name).join(", ") : "None raised",
-                },
-              ]}
-            />
+            <StatStrip stats={stats} />
 
             <SectionLabel>Area-by-area update</SectionLabel>
             {dayAreas.length === 0 ? (
@@ -218,10 +241,11 @@ export default function SharePageV2() {
                     <ZoneCard
                       token={token ?? ""}
                       name={a.name}
-                      status={a.status}
+                      status={areaStatus.get(a.area_id) ?? null}
                       notes={a.notes}
                       photos={photosByArea.get(a.area_id) ?? []}
                       onOpenPhoto={openPhoto}
+                      isToday={isToday && mode !== "filed"}
                     />
                   </div>
                 ))}
@@ -269,23 +293,26 @@ export default function SharePageV2() {
               rows={dayAreas.map((a) => ({
                 id: a.area_id,
                 name: a.name,
-                status: a.status,
-                noUpdate: !a.status && !a.notes,
+                status: areaStatus.get(a.area_id) ?? null,
+                noUpdate:
+                  normaliseStatus(areaStatus.get(a.area_id)) === "not_started" && !a.notes,
                 photos: photosByArea.get(a.area_id)?.length ?? 0,
               }))}
             />
-            <DayTimeline days={meta.days ?? []} activeDate={activeDate} onSelect={setActiveDate} />
+            <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
           </aside>
         </div>
 
-        <div className="mt-10">
-          <ShareBrandingFooter
-            teamPlan={meta.team_plan ?? "free"}
-            teamName={meta.team_name ?? null}
-            hideBranding={!!meta.hide_buildslides_branding}
-          />
-        </div>
+        <ReportFooter
+          projectName={project.name}
+          mode={mode}
+          generatedAt={meta.generated_at ?? null}
+          teamName={meta.team_name ?? null}
+          teamPlan={meta.team_plan ?? "free"}
+          hideBranding={!!meta.hide_buildslides_branding}
+        />
       </div>
+
 
       {lightboxIndex !== null && (
         <ShareLightboxV2
