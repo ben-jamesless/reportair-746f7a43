@@ -37,7 +37,8 @@ export function StatusBar({
       </span>
       <span style={{ width: 1, height: 16, backgroundColor: V2.rule }} />
       <span style={{ fontSize: 12, color: V2.muted }}>
-        {photoCount} photo{photoCount === 1 ? "" : "s"} today
+        {photoCount} photo{photoCount === 1 ? "" : "s"}
+        {live ? " today" : ""}
       </span>
       {updated && (
         <>
