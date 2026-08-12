@@ -31,6 +31,13 @@ export type ShareV2AreaMeta = {
   latest_status: string | null;
 };
 
+export type ShareV2GridCell = {
+  area_id: string;
+  date: string;
+  status: string | null;
+  photo_count: number | null;
+};
+
 export type ShareV2DayMeta = {
   date: string;
   day_status: string | null;
