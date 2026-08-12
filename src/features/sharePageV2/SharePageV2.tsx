@@ -346,6 +346,9 @@ export default function SharePageV2() {
                 ?.scrollIntoView({ behavior: "smooth", block: "start" })
             );
           }}
+          onExport={() => window.print()}
+          theme={theme}
+          onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         />
 
         <div className="mt-7 grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1fr)_400px]">
