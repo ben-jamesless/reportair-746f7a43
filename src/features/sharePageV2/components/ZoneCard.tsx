@@ -52,22 +52,26 @@ export function ZoneCard({
   notes,
   photos,
   onOpenPhoto,
+  isToday = true,
 }: {
   token: string;
   name: string;
+  /** Derived display status (never null in practice). */
   status: string | null;
   notes: string | null;
   photos: ShareV2Photo[];
   onOpenPhoto: (photoId: string) => void;
+  isToday?: boolean;
 }) {
-  const noUpdate = !status && !notes;
+  const inactive = normaliseStatus(status) === "not_started" && !notes && photos.length === 0;
+  const dayWord = isToday ? "today" : "this day";
   return (
-    <article className="py-[18px]" style={{ borderTop: `1px solid ${V2.rule}` }}>
+    <article className="py-[18px]" style={{ borderTop: `1px solid ${V2.rule}`, opacity: inactive ? 0.55 : 1 }}>
       <div className="mb-2.5 flex items-center gap-2.5">
         <h3 className="flex-1" style={{ fontSize: 15, fontWeight: 700, color: V2.ink }}>
           {name}
         </h3>
-        <StatusPill status={status} noUpdate={noUpdate} />
+        <StatusPill status={status} noUpdate={inactive} />
       </div>
       {notes ? (
         <div className="mb-3" style={{ fontSize: 13.5, color: V2.soft, lineHeight: 1.65 }}>
@@ -75,7 +79,9 @@ export function ZoneCard({
         </div>
       ) : (
         <p className="mb-3" style={{ fontSize: 13, color: V2.muted }}>
-          No written update for this area today.
+          {photos.length > 0
+            ? `${photos.length} photo${photos.length === 1 ? "" : "s"} captured — no written update.`
+            : `No update recorded for this area ${dayWord}.`}
         </p>
       )}
       {photos.length > 0 && (
