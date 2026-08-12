@@ -13,6 +13,7 @@ export function ReportFooter({
   projectName,
   mode,
   generatedAt,
+  reportDate,
   teamName,
   teamPlan,
   hideBranding,
@@ -20,12 +21,21 @@ export function ReportFooter({
   projectName: string;
   mode: ShareMode;
   generatedAt: string | null;
+  /** ISO date of the day being viewed, so the two dates explain each other. */
+  reportDate?: string | null;
   teamName: string | null;
   teamPlan: string;
   hideBranding: boolean;
 }) {
   const stamp = generatedAt ? new Date(generatedAt) : new Date();
   const branded = teamName && ["crew", "pro", "team", "studio"].includes(teamPlan);
+  const dayStamp = reportDate ? new Date(`${reportDate}T00:00:00`) : null;
+  const generatedShort = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(stamp);
+  const dayLong = dayStamp
+    ? new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "short", year: "numeric" }).format(
+        dayStamp
+      )
+    : null;
 
   return (
     <footer className="mt-14" style={{ borderTop: `2px solid ${V2.ink}`, paddingTop: 14 }}>
