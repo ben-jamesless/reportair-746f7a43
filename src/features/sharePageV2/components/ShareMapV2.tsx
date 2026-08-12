@@ -52,10 +52,12 @@ export function ShareMapV2({
 }: {
   token: string;
   areas: ShareV2DayArea[];
-  onAreaClick?: (areaId: string) => void;
+  onAreaClick?: (areaId: string, featureLabel?: string) => void;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
-  const [highlight, setHighlight] = useState<string | null>(null);
+  // Selection is per drawn feature, not per area group: several features can
+  // share one area (category), and clicking one should only highlight that one.
+  const [highlight, setHighlight] = useState<{ featureId: string | null; areaId: string } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const seenRef = useRef(false);
 
@@ -145,9 +147,9 @@ export function ShareMapV2({
   const mapped = new Set(features.map((f) => f.area_id));
   const legend = areas.filter((a) => mapped.has(a.area_id));
 
-  const select = (id: string) => {
-    setHighlight(id);
-    onAreaClick?.(id);
+  const select = (areaId: string, featureId: string | null, label?: string) => {
+    setHighlight({ featureId, areaId });
+    onAreaClick?.(areaId, label);
   };
 
   return (
@@ -173,7 +175,11 @@ export function ShareMapV2({
           {features.map((f) => {
             const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
             const col = f.color || meta.fg;
-            const active = highlight === f.area_id;
+            const active = highlight
+              ? highlight.featureId
+                ? highlight.featureId === f.id
+                : highlight.areaId === f.area_id
+              : false;
             const pts = featurePoints(f).map(view.toPx);
             if (pts.length === 0) return null;
 
@@ -189,7 +195,7 @@ export function ShareMapV2({
                   stroke="#fff"
                   strokeWidth={2}
                   style={{ cursor: "pointer" }}
-                  onClick={() => select(f.area_id)}
+                  onClick={() => select(f.area_id, f.id, f.label ?? undefined)}
                 />
               );
             }
@@ -205,7 +211,7 @@ export function ShareMapV2({
             return (
               // White halo underneath keeps small boundaries legible against
               // busy satellite imagery; the status colour sits on top.
-              <g key={f.id} style={{ cursor: "pointer" }} onClick={() => select(f.area_id)}>
+              <g key={f.id} style={{ cursor: "pointer" }} onClick={() => select(f.area_id, f.id, label || undefined)}>
                 <polygon
                   points={points}
                   fill="none"
@@ -257,12 +263,12 @@ export function ShareMapV2({
           {legend.map((a) => {
             const m = statusMeta(a.status);
             const dot = colorByArea.get(a.area_id) || m.fg;
-            const active = highlight === a.area_id;
+            const active = highlight?.areaId === a.area_id && !highlight?.featureId;
             return (
               <button
                 key={a.area_id}
                 type="button"
-                onClick={() => select(a.area_id)}
+                onClick={() => select(a.area_id, null, a.name)}
                 className="flex items-center gap-1.5 px-2 py-1"
                 style={{
                   border: `1px solid ${active ? V2.ink : V2.rule}`,

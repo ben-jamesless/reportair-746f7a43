@@ -34,6 +34,8 @@ export default function SharePageV2() {
   const [refExpanded, setRefExpanded] = useState(false);
   /** Set when a client clicks a map area before the build starts. */
   const [refAreaFilter, setRefAreaFilter] = useState<string | null>(null);
+  // Label of the specific map feature clicked (a feature is narrower than its area group).
+  const [refFilterLabel, setRefFilterLabel] = useState<string | null>(null);
   const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null } | null>(null);
 
   useEffect(() => {
@@ -325,6 +327,7 @@ export default function SharePageV2() {
           referenceCount={referencePhotos.length}
           onOpenReference={() => {
             setRefAreaFilter(null);
+            setRefFilterLabel(null);
             setRefExpanded(true);
 
             window.requestAnimationFrame(() =>
@@ -414,7 +417,7 @@ export default function SharePageV2() {
                               notes: null,
                             }))
                       }
-                      onAreaClick={(areaId) => {
+                      onAreaClick={(areaId, featureLabel) => {
                         // Before the build starts there are no area cards to jump
                         // to — show that area's reference photos instead.
                         if (hasBuildTimeline) {
@@ -422,6 +425,7 @@ export default function SharePageV2() {
                           return;
                         }
                         setRefAreaFilter(areaId);
+                        setRefFilterLabel(featureLabel ?? null);
                         setRefExpanded(true);
                         window.requestAnimationFrame(() =>
                           document
@@ -492,11 +496,14 @@ export default function SharePageV2() {
                       className="uppercase"
                       style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.09em", color: V2.soft }}
                     >
-                      {areaNameById.get(refAreaFilter) ?? "Area"} · {visibleRefPhotos.length}
+                      {refFilterLabel ?? areaNameById.get(refAreaFilter) ?? "Area"} · {visibleRefPhotos.length}
                     </span>
                     <button
                       type="button"
-                      onClick={() => setRefAreaFilter(null)}
+                      onClick={() => {
+                        setRefAreaFilter(null);
+                        setRefFilterLabel(null);
+                      }}
                       style={{ fontSize: 11.5, color: V2.ink, textDecoration: "underline" }}
                     >
                       Show all
