@@ -68,11 +68,11 @@ export function BuildCalendar({
     <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
       <div
         className="flex items-center justify-between"
-        style={{ padding: "8px 10px 8px 14px", backgroundColor: V2.paperDim, borderBottom: `1px solid ${V2.rule}` }}
+        style={{ padding: "8px 10px 8px 16px", backgroundColor: V2.ink }}
       >
         <span
           className="uppercase"
-          style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.1em", color: V2.muted }}
+          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,.65)" }}
         >
           {MONTH_LABEL.format(cursor)}
         </span>

@@ -31,7 +31,7 @@ export function TodayBox({ day }: { day: ShareV2Day }) {
       >
         <span
           className="uppercase"
-          style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,.6)" }}
+          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,.65)" }}
         >
           Day summary
         </span>
@@ -67,13 +67,12 @@ export function AreaGlance({
         className="uppercase"
         style={{
           fontFamily: V2.mono,
-          fontSize: 9.5,
+          fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.1em",
-          color: V2.muted,
-          padding: "10px 14px",
-          backgroundColor: V2.paperDim,
-          borderBottom: `1px solid ${V2.rule}`,
+          color: "rgba(255,255,255,.65)",
+          padding: "12px 16px",
+          backgroundColor: V2.ink,
         }}
       >
         Area status at a glance
@@ -117,13 +116,12 @@ export function DayTimeline({
         className="uppercase"
         style={{
           fontFamily: V2.mono,
-          fontSize: 9.5,
+          fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.1em",
-          color: V2.muted,
-          padding: "10px 14px",
-          backgroundColor: V2.paperDim,
-          borderBottom: `1px solid ${V2.rule}`,
+          color: "rgba(255,255,255,.65)",
+          padding: "12px 16px",
+          backgroundColor: V2.ink,
         }}
       >
         <span className="flex items-center justify-between">

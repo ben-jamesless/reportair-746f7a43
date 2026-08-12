@@ -173,13 +173,12 @@ export function OpsContact({ contact }: { contact: { name: string; role?: string
         className="uppercase"
         style={{
           fontFamily: V2.mono,
-          fontSize: 9.5,
+          fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.1em",
-          color: V2.muted,
-          padding: "10px 14px",
-          backgroundColor: V2.paperDim,
-          borderBottom: `1px solid ${V2.rule}`,
+          color: "rgba(255,255,255,.65)",
+          padding: "12px 16px",
+          backgroundColor: V2.ink,
         }}
       >
         Ops contact
