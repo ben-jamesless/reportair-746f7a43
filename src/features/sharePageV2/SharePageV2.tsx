@@ -96,6 +96,13 @@ export default function SharePageV2() {
     ["flagged", "delayed"].includes(normaliseStatus(areaStatus.get(a.area_id)))
   );
 
+  // Headline status follows the derived area statuses (worst wins).
+  const RANK: Record<string, number> = { delayed: 4, flagged: 3, in_progress: 2, complete: 1, not_started: 0 };
+  const derivedWorst = dayAreas.reduce<string>((worst, a) => {
+    const s = normaliseStatus(areaStatus.get(a.area_id));
+    return RANK[s] > RANK[worst] ? s : worst;
+  }, normaliseStatus(day?.worst_status ?? day?.day_status));
+
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
     if (i >= 0) setLightboxIndex(i);
