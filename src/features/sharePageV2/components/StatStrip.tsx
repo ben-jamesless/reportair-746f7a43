@@ -5,8 +5,14 @@ type Stat = { label: string; value: string; unit?: string; sub?: string; tone?: 
 export function StatStrip({ stats }: { stats: Stat[] }) {
   return (
     <div
-      className="mb-7 grid grid-cols-2 overflow-hidden md:grid-cols-4"
-      style={{ gap: 1, backgroundColor: V2.rule, border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
+      className="mb-7 grid overflow-hidden"
+      style={{
+        gap: 1,
+        backgroundColor: V2.rule,
+        border: `1px solid ${V2.rule}`,
+        borderRadius: V2.radiusReport,
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+      }}
     >
       {stats.map((s) => (
         <div key={s.label} style={{ backgroundColor: V2.white, padding: "14px 16px" }}>
