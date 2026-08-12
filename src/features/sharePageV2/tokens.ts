@@ -93,3 +93,23 @@ export const deriveAreaStatus = (
   if (s && s !== "not_started") return s;
   return photosToday > 0 ? "in_progress" : "not_started";
 };
+
+/**
+ * Severity ordering for status rollups:
+ * not_started < complete < in_progress < flagged < delayed.
+ * Used by the header rollup and the build calendar's worst-status row.
+ */
+export const STATUS_SEVERITY: Record<StatusKey, number> = {
+  not_started: 0,
+  complete: 1,
+  in_progress: 2,
+  flagged: 3,
+  delayed: 4,
+};
+
+/** MAX(status) by severity across a list of (possibly loose) status values. */
+export const worstStatus = (values: Array<string | null | undefined>): StatusKey =>
+  values.reduce<StatusKey>((worst, v) => {
+    const s = normaliseStatus(v);
+    return STATUS_SEVERITY[s] > STATUS_SEVERITY[worst] ? s : worst;
+  }, "not_started");
