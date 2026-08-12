@@ -104,6 +104,23 @@ export default function SharePageV2() {
 
   const dayAreas = day?.areas ?? [];
   const dayPhotos = day?.photos ?? [];
+  // Days offered in the export dialog's date-range mode.
+  const exportDays = useMemo(
+    () =>
+      (meta?.days ?? [])
+        .filter((d) => d.photo_count > 0 || d.has_notes)
+        .map((d) => {
+          const [y, m, dd] = d.date.split("-").map(Number);
+          const date = new Date(y, m - 1, dd);
+          return {
+            key: d.date,
+            label: date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+            date,
+            photoCount: d.photo_count,
+          };
+        }),
+    [meta?.days],
+  );
 
   const photosByArea = useMemo(() => {
     const m = new Map<string, typeof dayPhotos>();
