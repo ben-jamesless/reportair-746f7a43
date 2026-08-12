@@ -362,7 +362,7 @@ export default function SharePageV2() {
                 ?.scrollIntoView({ behavior: "smooth", block: "start" })
             );
           }}
-          onExport={() => window.print()}
+          onExport={() => (signedIn ? setExportOpen(true) : window.print())}
           theme={theme}
           onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         />
