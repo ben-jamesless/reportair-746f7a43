@@ -1,0 +1,293 @@
+/// <reference types="google.maps" />
+import { useEffect, useMemo, useRef, useState } from "react";
+import { event as trackEvent } from "@/lib/analytics";
+import { supabase } from "@/integrations/supabase/client";
+import { loadGoogleMaps } from "@/lib/googleMaps";
+import type { MapFeature } from "@/features/projectMap/useMapFeatures";
+import { V2, statusMeta } from "../tokens";
+import type { ShareV2DayArea } from "../types";
+
+/**
+ * Interactive (Google JS API) site map for the v2 share page.
+ * Rendered only when the Google Maps script loads successfully; otherwise the
+ * parent falls back to the static satellite + SVG renderer.
+ */
+
+type LatLng = { lat: number; lng: number };
+
+function featurePoints(f: MapFeature): LatLng[] {
+  if (f.kind === "pin") return [{ lat: f.geometry.lat, lng: f.geometry.lng }];
+  if (f.kind === "rectangle") {
+    const g = f.geometry;
+    return [
+      { lat: g.north, lng: g.west },
+      { lat: g.north, lng: g.east },
+      { lat: g.south, lng: g.east },
+      { lat: g.south, lng: g.west },
+    ];
+  }
+  return (f.geometry.paths ?? []) as LatLng[];
+}
+
+// Constant-size dark chip label, anchored at the feature centroid.
+function makeLabelOverlay(g: typeof google) {
+  return class LabelOverlay extends g.maps.OverlayView {
+    private div: HTMLDivElement | null = null;
+    constructor(private position: google.maps.LatLng, private text: string) {
+      super();
+    }
+    onAdd() {
+      const d = document.createElement("div");
+      d.textContent = this.text;
+      Object.assign(d.style, {
+        position: "absolute",
+        transform: "translate(-50%, -50%)",
+        whiteSpace: "nowrap",
+        backgroundColor: "rgba(20,20,20,0.82)",
+        color: "#ffffff",
+        fontFamily: "'Geist', system-ui, sans-serif",
+        fontSize: "13px",
+        fontWeight: "700",
+        lineHeight: "18px",
+        letterSpacing: "-0.01em",
+        padding: "2px 8px",
+        borderRadius: "4px",
+        pointerEvents: "none",
+      } as CSSStyleDeclaration);
+      this.div = d;
+      this.getPanes()?.floatPane.appendChild(d);
+    }
+    draw() {
+      if (!this.div) return;
+      const p = this.getProjection()?.fromLatLngToDivPixel(this.position);
+      if (!p) return;
+      this.div.style.left = `${p.x}px`;
+      this.div.style.top = `${p.y}px`;
+    }
+    onRemove() {
+      this.div?.remove();
+      this.div = null;
+    }
+  };
+}
+
+export function ShareMapLive({
+  token,
+  areas,
+  onAreaClick,
+  onFailure,
+}: {
+  token: string;
+  areas: ShareV2DayArea[];
+  onAreaClick?: (areaId: string, featureLabel?: string) => void;
+  onFailure?: () => void;
+}) {
+  const [features, setFeatures] = useState<MapFeature[] | null>(null);
+  const [highlight, setHighlight] = useState<{ featureId: string | null; areaId: string } | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const mapElRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const shapesRef = useRef<Array<{ feature: MapFeature; shape: google.maps.Polygon | google.maps.Marker }>>([]);
+  const overlaysRef = useRef<google.maps.OverlayView[]>([]);
+  const seenRef = useRef(false);
+  const selectRef = useRef<(areaId: string, featureId: string | null, label?: string) => void>(() => {});
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.rpc("list_share_map_features" as never, { _token: token } as never);
+      if (!alive) return;
+      setFeatures((data ?? []) as unknown as MapFeature[]);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || seenRef.current || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !seenRef.current) {
+          seenRef.current = true;
+          trackEvent("share_link_map_opened", { area_count: areas.length });
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [features, areas.length]);
+
+  const statusByArea = useMemo(() => {
+    const m = new Map<string, string | null>();
+    for (const a of areas) m.set(a.area_id, a.status);
+    return m;
+  }, [areas]);
+
+  const colorByArea = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const f of features ?? []) if (f.color) m.set(f.area_id, f.color);
+    return m;
+  }, [features]);
+
+  selectRef.current = (areaId, featureId, label) => {
+    setHighlight({ featureId, areaId });
+    onAreaClick?.(areaId, label);
+  };
+
+  // Build the map + shapes once features are known.
+  useEffect(() => {
+    if (!features || features.length === 0) return;
+    let alive = true;
+    (async () => {
+      let g: typeof google;
+      try {
+        g = await loadGoogleMaps();
+      } catch {
+        if (alive) onFailure?.();
+        return;
+      }
+      if (!alive || !mapElRef.current) return;
+
+      const map = new g.maps.Map(mapElRef.current, {
+        mapTypeId: "hybrid",
+        disableDefaultUI: true,
+        zoomControl: true,
+        gestureHandling: "greedy",
+        tilt: 0,
+      });
+      mapRef.current = map;
+
+      const bounds = new g.maps.LatLngBounds();
+      const LabelOverlay = makeLabelOverlay(g);
+
+      for (const f of features) {
+        const pts = featurePoints(f);
+        if (pts.length === 0) continue;
+        pts.forEach((p) => bounds.extend(p));
+        const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
+        const col = f.color || meta.fg;
+        const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+
+        if (f.kind === "pin") {
+          const marker = new g.maps.Marker({ position: pts[0], map, title: label || undefined });
+          marker.addListener("click", () => selectRef.current(f.area_id, f.id, label || undefined));
+          shapesRef.current.push({ feature: f, shape: marker });
+        } else {
+          const poly = new g.maps.Polygon({
+            paths: pts,
+            map,
+            strokeColor: col,
+            strokeOpacity: 1,
+            strokeWeight: 2,
+            fillColor: col,
+            fillOpacity: 0.38,
+            clickable: true,
+          });
+          poly.addListener("click", () => selectRef.current(f.area_id, f.id, label || undefined));
+          shapesRef.current.push({ feature: f, shape: poly });
+        }
+
+        if (label) {
+          const c = pts.reduce(
+            (acc, p) => ({ lat: acc.lat + p.lat / pts.length, lng: acc.lng + p.lng / pts.length }),
+            { lat: 0, lng: 0 }
+          );
+          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label);
+          ov.setMap(map);
+          overlaysRef.current.push(ov);
+        }
+      }
+
+      if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+    })();
+
+    return () => {
+      alive = false;
+      shapesRef.current.forEach(({ shape }) => shape.setMap(null));
+      shapesRef.current = [];
+      overlaysRef.current.forEach((o) => o.setMap(null));
+      overlaysRef.current = [];
+      mapRef.current = null;
+    };
+    // Shapes are rebuilt only when the feature set changes; status/colour
+    // updates are applied in the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [features]);
+
+  // Keep polygon styling in sync with status + selection.
+  useEffect(() => {
+    for (const { feature, shape } of shapesRef.current) {
+      if (!(shape instanceof google.maps.Polygon)) continue;
+      const meta = statusMeta(statusByArea.get(feature.area_id) ?? null);
+      const col = feature.color || meta.fg;
+      const active = highlight
+        ? highlight.featureId
+          ? highlight.featureId === feature.id
+          : highlight.areaId === feature.area_id
+        : false;
+      shape.setOptions({
+        strokeColor: col,
+        fillColor: col,
+        fillOpacity: active ? 0.55 : 0.38,
+        strokeWeight: active ? 3 : 2,
+        zIndex: active ? 2 : 1,
+      });
+    }
+  }, [highlight, statusByArea, features]);
+
+  if (!features || features.length === 0) return null;
+
+  const mapped = new Set(features.map((f) => f.area_id));
+  const legend = areas.filter((a) => mapped.has(a.area_id));
+
+  return (
+    <div
+      ref={rootRef}
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
+    >
+      <div
+        ref={mapElRef}
+        className="w-full"
+        style={{ aspectRatio: "640 / 420", backgroundColor: V2.rule }}
+        aria-label="Interactive satellite map of the site with area boundaries"
+        role="application"
+      />
+
+      {legend.length > 0 && (
+        <div
+          className="flex flex-wrap gap-1.5"
+          style={{ padding: "10px 12px", borderTop: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
+        >
+          {legend.map((a) => {
+            const m = statusMeta(a.status);
+            const dot = colorByArea.get(a.area_id) || m.fg;
+            const active = highlight?.areaId === a.area_id && !highlight?.featureId;
+            return (
+              <button
+                key={a.area_id}
+                type="button"
+                onClick={() => selectRef.current(a.area_id, null, a.name)}
+                className="flex items-center gap-1.5 px-2 py-1"
+                style={{
+                  border: `1px solid ${active ? V2.ink : V2.rule}`,
+                  backgroundColor: active ? V2.ink : V2.white,
+                  color: active ? "#fff" : V2.soft,
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: dot }} />
+                {a.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
