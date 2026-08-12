@@ -196,6 +196,19 @@ export default function SharePageV2() {
     .sort()
     .pop();
 
+  // Filed: the masthead shows the event span (first recorded day → filed date).
+  const filedRange = (() => {
+    if (!isFiled) return null;
+    const first = recorded[0] ?? project.build_start_date ?? null;
+    const end = filedAt ? filedAt.slice(0, 10) : recorded[recorded.length - 1] ?? null;
+    const fmt = (iso: string) =>
+      new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(parseISO(iso));
+    const fmtLong = (iso: string) =>
+      new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(parseISO(iso));
+    if (first && end && first !== end) return `${fmt(first)} — ${fmtLong(end)}`;
+    return first ? fmtLong(first) : end ? fmtLong(end) : null;
+  })();
+
   const stats = [
     buildWindow.dayNo
       ? {
@@ -285,7 +298,7 @@ export default function SharePageV2() {
                       notes={a.notes}
                       photos={photosByArea.get(a.area_id) ?? []}
                       onOpenPhoto={openPhoto}
-                      isToday={isToday && mode !== "filed"}
+                      isToday={isToday}
                     />
                   </div>
                 ))}
@@ -354,6 +367,7 @@ export default function SharePageV2() {
           teamName={meta.team_name ?? null}
           teamPlan={meta.team_plan ?? "free"}
           hideBranding={!!meta.hide_buildslides_branding}
+          filedAt={filedAt}
         />
       </div>
 
