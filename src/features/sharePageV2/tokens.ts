@@ -113,3 +113,26 @@ export const worstStatus = (values: Array<string | null | undefined>): StatusKey
     const s = normaliseStatus(v);
     return STATUS_SEVERITY[s] > STATUS_SEVERITY[worst] ? s : worst;
   }, "not_started");
+
+/**
+ * Single source of truth for day ordering across the share page.
+ *
+ * Lists (the build timeline / mobile day picker) read newest-first so today is
+ * the first row; visualisations (the build calendar heatmap) keep a
+ * chronological left-to-right day axis.
+ */
+export const orderDays = <T extends { date: string }>(
+  days: T[],
+  direction: "chronological" | "reverse"
+): T[] => {
+  const sorted = [...days].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  return direction === "reverse" ? sorted.reverse() : sorted;
+};
+
+/** Lists: newest day first. */
+export const orderDaysForList = <T extends { date: string }>(days: T[]): T[] =>
+  orderDays(days, "reverse");
+
+/** Visualisations: oldest day first (left-to-right). */
+export const orderDaysForAxis = <T extends { date: string }>(days: T[]): T[] =>
+  orderDays(days, "chronological");
