@@ -152,107 +152,205 @@ export function ShareMapV2({
     onAreaClick?.(areaId, label);
   };
 
+  const MIN_S = 1;
+  const MAX_S = 6;
+  const clampT = (s: number, x: number, y: number, w: number, h: number) => ({
+    s,
+    x: Math.min(0, Math.max(w - w * s, x)),
+    y: Math.min(0, Math.max(h - h * s, y)),
+  });
+
   return (
     <div
       ref={rootRef}
       className="overflow-hidden"
       style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
     >
-      <div className="relative w-full" style={{ backgroundColor: V2.rule }}>
-        <img
-          src={imgSrc}
-          alt="Satellite view of the site with area boundaries"
-          className="block w-full"
-          style={{ aspectRatio: `${W} / ${H}`, objectFit: "cover" }}
-          loading="lazy"
-        />
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full"
-          role="presentation"
+      <div
+        ref={viewportRef}
+        className="relative w-full overflow-hidden select-none"
+        style={{
+          backgroundColor: V2.rule,
+          aspectRatio: `${W} / ${H}`,
+          touchAction: "none",
+          cursor: tf.s > 1 ? (dragRef.current ? "grabbing" : "grab") : "default",
+        }}
+        onPointerDown={(e) => {
+          if (tf.s <= 1) return;
+          (e.target as Element).setPointerCapture?.(e.pointerId);
+          dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+        }}
+        onPointerMove={(e) => {
+          const d = dragRef.current;
+          if (!d) return;
+          const el = viewportRef.current;
+          if (!el) return;
+          const r = el.getBoundingClientRect();
+          const dx = e.clientX - d.x;
+          const dy = e.clientY - d.y;
+          if (Math.abs(dx) + Math.abs(dy) > 3) d.moved = true;
+          dragRef.current = { x: e.clientX, y: e.clientY, moved: d.moved };
+          setTf((p) => clampT(p.s, p.x + dx, p.y + dy, r.width, r.height));
+        }}
+        onPointerUp={() => {
+          dragRef.current = null;
+        }}
+        onPointerLeave={() => {
+          dragRef.current = null;
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{ transformOrigin: "0 0", transform: `translate(${tf.x}px, ${tf.y}px) scale(${tf.s})` }}
         >
+          <img
+            src={imgSrc}
+            alt="Satellite view of the site with area boundaries"
+            className="block h-full w-full"
+            style={{ objectFit: "cover" }}
+            draggable={false}
+            loading="lazy"
+          />
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full"
+            role="presentation"
+          >
+            {features.map((f) => {
+              const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
+              const col = f.color || meta.fg;
+              const active = highlight
+                ? highlight.featureId
+                  ? highlight.featureId === f.id
+                  : highlight.areaId === f.area_id
+                : false;
+              const pts = featurePoints(f).map(view.toPx);
+              if (pts.length === 0) return null;
+
+              if (f.kind === "pin") {
+                const p = pts[0];
+                return (
+                  <circle
+                    key={f.id}
+                    cx={p.x}
+                    cy={p.y}
+                    r={(active ? 8 : 6) / tf.s}
+                    fill={col}
+                    stroke="#fff"
+                    strokeWidth={2 / tf.s}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => !dragRef.current?.moved && select(f.area_id, f.id, f.label ?? undefined)}
+                  />
+                );
+              }
+
+              const points = pts.map((p) => `${p.x},${p.y}`).join(" ");
+              const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+              return (
+                // White halo underneath keeps small boundaries legible against
+                // busy satellite imagery; the status colour sits on top.
+                <g
+                  key={f.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => !dragRef.current?.moved && select(f.area_id, f.id, label || undefined)}
+                >
+                  <polygon
+                    points={points}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeOpacity={0.9}
+                    strokeWidth={(active ? 3.5 : 2.5) / tf.s}
+                    strokeLinejoin="round"
+                  />
+                  <polygon
+                    points={points}
+                    fill={col}
+                    fillOpacity={active ? 0.55 : 0.38}
+                    stroke={col}
+                    strokeWidth={(active ? 2 : 1.25) / tf.s}
+                    strokeLinejoin="round"
+                  />
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Labels live outside the SVG so they can be counter-scaled: they
+              keep a constant on-screen size at every zoom level, like v1. */}
           {features.map((f) => {
-            const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
-            const col = f.color || meta.fg;
-            const active = highlight
-              ? highlight.featureId
-                ? highlight.featureId === f.id
-                : highlight.areaId === f.area_id
-              : false;
             const pts = featurePoints(f).map(view.toPx);
             if (pts.length === 0) return null;
-
-            if (f.kind === "pin") {
-              const p = pts[0];
-              return (
-                <circle
-                  key={f.id}
-                  cx={p.x}
-                  cy={p.y}
-                  r={active ? 8 : 6}
-                  fill={col}
-                  stroke="#fff"
-                  strokeWidth={2}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => select(f.area_id, f.id, f.label ?? undefined)}
-                />
-              );
-            }
-
-            const points = pts.map((p) => `${p.x},${p.y}`).join(" ");
-            // Centroid of the polygon for the label anchor.
-            const centroid = (() => {
-              let x = 0, y = 0;
-              for (const p of pts) { x += p.x; y += p.y; }
-              return { x: x / pts.length, y: y / pts.length };
-            })();
+            const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+            const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
             const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+            if (!label) return null;
             return (
-              // White halo underneath keeps small boundaries legible against
-              // busy satellite imagery; the status colour sits on top.
-              <g key={f.id} style={{ cursor: "pointer" }} onClick={() => select(f.area_id, f.id, label || undefined)}>
-                <polygon
-                  points={points}
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeOpacity={0.9}
-                  strokeWidth={active ? 3.5 : 2.5}
-                  strokeLinejoin="round"
-                />
-                <polygon
-                  points={points}
-                  fill={col}
-                  fillOpacity={active ? 0.55 : 0.38}
-                  stroke={col}
-                  strokeWidth={active ? 2 : 1.25}
-                  strokeLinejoin="round"
-                />
-                {label && (
-                  <text
-                    x={centroid.x}
-                    y={centroid.y}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    style={{
-                      fontFamily: "'Geist', system-ui, sans-serif",
-                      fontSize: 8,
-                      fontWeight: 600,
-                      letterSpacing: "-0.01em",
-                      fill: "#ffffff",
-                      pointerEvents: "none",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.55)",
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {label}
-                  </text>
-                )}
-              </g>
+              <div
+                key={`lbl-${f.id}`}
+                className="absolute whitespace-nowrap"
+                style={{
+                  left: `${(cx / W) * 100}%`,
+                  top: `${(cy / H) * 100}%`,
+                  transform: `translate(-50%, -50%) scale(${1 / tf.s})`,
+                  transformOrigin: "center",
+                  pointerEvents: "none",
+                  backgroundColor: "rgba(20,20,20,0.82)",
+                  color: "#ffffff",
+                  fontFamily: "'Geist', system-ui, sans-serif",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  lineHeight: "18px",
+                  letterSpacing: "-0.01em",
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                }}
+              >
+                {label}
+              </div>
             );
           })}
-        </svg>
+        </div>
+
+        {/* Zoom controls */}
+        <div className="absolute right-2 top-2 flex flex-col" style={{ border: `1px solid ${V2.rule}` }}>
+          {[
+            { k: "+", d: 1.5 },
+            { k: "−", d: 1 / 1.5 },
+          ].map((b) => (
+            <button
+              key={b.k}
+              type="button"
+              aria-label={b.d > 1 ? "Zoom in" : "Zoom out"}
+              onClick={() => {
+                const el = viewportRef.current;
+                if (!el) return;
+                const r = el.getBoundingClientRect();
+                setTf((p) => {
+                  const s = Math.min(MAX_S, Math.max(MIN_S, p.s * b.d));
+                  const k = s / p.s;
+                  const px = r.width / 2;
+                  const py = r.height / 2;
+                  return clampT(s, px - (px - p.x) * k, py - (py - p.y) * k, r.width, r.height);
+                });
+              }}
+              style={{
+                width: 26,
+                height: 26,
+                backgroundColor: V2.white,
+                color: V2.ink,
+                fontSize: 14,
+                fontWeight: 600,
+                lineHeight: "26px",
+              }}
+            >
+              {b.k}
+            </button>
+          ))}
+        </div>
       </div>
+
+
 
 
       {legend.length > 0 && (
