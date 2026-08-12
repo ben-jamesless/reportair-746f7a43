@@ -121,7 +121,7 @@ const normaliseStatus = (s: string | null | undefined): StatusKey => {
   if (s === "concern" || s === "behind_schedule" || s === "at_risk") return "delayed";
   if (s === "on_track") return "in_progress";
   if (s === "requires_discussion") return "flagged";
-  if (s === "no_status") return "not_started";
+  if (s === "not_started") return "not_started";
   if (s === "in_progress" || s === "complete" || s === "flagged" || s === "delayed" || s === "not_started") return s;
   return "not_started";
 };
@@ -614,7 +614,7 @@ Deno.serve(async (req) => {
       return {
         id: a.id,
         name: a.name,
-        status: statusByArea.get(a.id) ?? "no_status",
+        status: statusByArea.get(a.id) ?? "not_started",
         notes: notesByArea.get(a.id) ?? "",
         photoCount: (photosByArea.get(a.id) ?? []).length,
         photoImages: images,
@@ -623,7 +623,7 @@ Deno.serve(async (req) => {
     }));
     // Exclude empty areas: 0 photos AND no status AND no notes
     const areaData: AreaData[] = areaDataAll.filter(
-      (a) => a.photoCount > 0 || (a.status && a.status !== "no_status") || (a.notes && a.notes.trim() !== "")
+      (a) => a.photoCount > 0 || (a.status && a.status !== "not_started") || (a.notes && a.notes.trim() !== "")
     );
 
     // ============ Template branch ============
