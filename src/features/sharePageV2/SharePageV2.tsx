@@ -268,96 +268,136 @@ export default function SharePageV2() {
 
         <div className="mt-7 grid gap-11 lg:grid-cols-[1fr_400px]">
           <div>
-            <StatStrip stats={stats} />
-
-            {(meta.areas?.length ?? 0) > 0 && (
+            {isFiled ? (
               <>
-                <SectionLabel>Build calendar</SectionLabel>
-                <BuildHeatmap
-                  areas={meta.areas ?? []}
-                  grid={meta.grid ?? []}
-                  phases={meta.phases ?? []}
-                  activeDate={activeDate}
-                  activityDates={(meta.days ?? []).map((d) => d.date)}
-                  onSelect={setActiveDate}
-                />
-              </>
-            )}
+                {/* Filed landing: hero → summary → map → areas grid. */}
+                <FiledHero token={token ?? ""} photoId={meta.hero_photo_id ?? null} projectName={project.name} />
+                <EventSummary text={project.event_summary_text} />
 
-            <SectionLabel className="mt-7">Area-by-area update</SectionLabel>
-            {dayAreas.length === 0 ? (
-              <p style={{ fontSize: 13, color: V2.muted }}>No areas have been defined for this event yet.</p>
+                {token && (
+                  <>
+                    <SectionLabel>Site map</SectionLabel>
+                    <ShareMapV2 token={token} areas={filedMapAreas} />
+                  </>
+                )}
+
+                <SectionLabel className="mt-8">Areas</SectionLabel>
+                <FiledAreasGrid token={token ?? ""} areas={meta.areas ?? []} />
+              </>
             ) : (
-              <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
-                {dayAreas.map((a) => (
-                  <div key={a.area_id} id={`area-${a.area_id}`} style={{ scrollMarginTop: 24 }}>
-                    <ZoneCard
-                      token={token ?? ""}
-                      name={a.name}
-                      status={areaStatus.get(a.area_id) ?? null}
-                      notes={a.notes}
-                      photos={photosByArea.get(a.area_id) ?? []}
-                      onOpenPhoto={openPhoto}
-                      isToday={isToday}
+              <>
+                <StatStrip stats={stats} />
+
+                {(meta.areas?.length ?? 0) > 0 && (
+                  <>
+                    <SectionLabel>Build calendar</SectionLabel>
+                    <BuildHeatmap
+                      areas={meta.areas ?? []}
+                      grid={meta.grid ?? []}
+                      phases={meta.phases ?? []}
+                      activeDate={activeDate}
+                      activityDates={(meta.days ?? []).map((d) => d.date)}
+                      onSelect={setActiveDate}
                     />
+                  </>
+                )}
+
+                <SectionLabel className="mt-7">Area-by-area update</SectionLabel>
+                {dayAreas.length === 0 ? (
+                  <p style={{ fontSize: 13, color: V2.muted }}>No areas have been defined for this event yet.</p>
+                ) : (
+                  <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
+                    {dayAreas.map((a) => (
+                      <div key={a.area_id} id={`area-${a.area_id}`} style={{ scrollMarginTop: 24 }}>
+                        <ZoneCard
+                          token={token ?? ""}
+                          name={a.name}
+                          status={areaStatus.get(a.area_id) ?? null}
+                          notes={a.notes}
+                          photos={photosByArea.get(a.area_id) ?? []}
+                          onOpenPhoto={openPhoto}
+                          isToday={isToday}
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                )}
 
-            {token && (
-              <>
-                <SectionLabel className="mt-7">Site map</SectionLabel>
-                <ShareMapV2 token={token} areas={dayAreas} onAreaClick={scrollToArea} />
-              </>
-            )}
+                {token && (
+                  <>
+                    <SectionLabel className="mt-7">Site map</SectionLabel>
+                    <ShareMapV2 token={token} areas={dayAreas} onAreaClick={scrollToArea} />
+                  </>
+                )}
 
-            {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
-              <>
-                <SectionLabel className="mt-7">Unassigned photos</SectionLabel>
-                <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))" }}>
-                  {(photosByArea.get("__unassigned") ?? []).map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => openPhoto(p.id)}
-                      className="overflow-hidden"
-                      style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
-                    >
-                      <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
-                    </button>
-                  ))}
-                </div>
+                {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
+                  <>
+                    <SectionLabel className="mt-7">Unassigned photos</SectionLabel>
+                    <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))" }}>
+                      {(photosByArea.get("__unassigned") ?? []).map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => openPhoto(p.id)}
+                          className="overflow-hidden"
+                          style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
+                        >
+                          <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
 
           <aside>
-            <BuildCalendar
-              days={meta.days ?? []}
-              phases={meta.phases ?? []}
-              activeDate={activeDate}
-              buildStart={project.build_start_date}
-              buildEnd={project.build_end_date ?? project.event_date}
-              onSelect={setActiveDate}
-            />
-            {day && <TodayBox day={day} />}
-            <AreaGlance
-              rows={dayAreas.map((a) => ({
-                id: a.area_id,
-                name: a.name,
-                status: areaStatus.get(a.area_id) ?? null,
-                noUpdate:
-                  normaliseStatus(areaStatus.get(a.area_id)) === "not_started" && !a.notes,
-                photos: photosByArea.get(a.area_id)?.length ?? 0,
-              }))}
-            />
-            {/* Redundant with the build calendar heatmap on desktop. */}
-            <div className="lg:hidden">
-              <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
-            </div>
+            {isFiled ? (
+              <>
+                {/* Filed rail stays clean: final area status + the build timeline.
+                    Feedback archive and ops contact land in Deploy 3. */}
+                <AreaGlance
+                  rows={(meta.areas ?? []).map((a) => ({
+                    id: a.id,
+                    name: a.name,
+                    status: a.latest_status,
+                    noUpdate: false,
+                    photos: a.photo_count,
+                  }))}
+                />
+                <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+              </>
+            ) : (
+              <>
+                <BuildCalendar
+                  days={meta.days ?? []}
+                  phases={meta.phases ?? []}
+                  activeDate={activeDate}
+                  buildStart={project.build_start_date}
+                  buildEnd={project.build_end_date ?? project.event_date}
+                  onSelect={setActiveDate}
+                />
+                {day && <TodayBox day={day} />}
+                <AreaGlance
+                  rows={dayAreas.map((a) => ({
+                    id: a.area_id,
+                    name: a.name,
+                    status: areaStatus.get(a.area_id) ?? null,
+                    noUpdate:
+                      normaliseStatus(areaStatus.get(a.area_id)) === "not_started" && !a.notes,
+                    photos: photosByArea.get(a.area_id)?.length ?? 0,
+                  }))}
+                />
+                {/* Redundant with the build calendar heatmap on desktop. */}
+                <div className="lg:hidden">
+                  <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+                </div>
+              </>
+            )}
           </aside>
         </div>
+
 
         <ReportFooter
           projectName={project.name}
