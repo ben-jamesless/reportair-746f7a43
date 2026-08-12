@@ -239,6 +239,14 @@ export default function SharePageV2() {
           </div>
 
           <aside>
+            <BuildCalendar
+              days={meta.days ?? []}
+              phases={meta.phases ?? []}
+              activeDate={activeDate}
+              buildStart={project.build_start_date}
+              buildEnd={project.build_end_date ?? project.event_date}
+              onSelect={setActiveDate}
+            />
             {day && <TodayBox day={day} />}
             <AreaGlance
               rows={dayAreas.map((a) => ({
