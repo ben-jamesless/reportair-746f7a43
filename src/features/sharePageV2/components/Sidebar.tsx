@@ -1,5 +1,5 @@
 import { RichNotes } from "@/components/RichNotes";
-import { V2, DATE_SHORT, parseISO, statusMeta } from "../tokens";
+import { V2, DATE_SHORT, orderDaysForList, parseISO, statusMeta } from "../tokens";
 import type { ShareV2Day, ShareV2DayMeta } from "../types";
 import { StatusPill } from "./Primitives";
 
