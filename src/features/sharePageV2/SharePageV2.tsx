@@ -27,6 +27,7 @@ export default function SharePageV2() {
   const [password, setPassword] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (meta?.project?.name) document.title = `${meta.project.name} — Build report`;
@@ -110,6 +111,10 @@ export default function SharePageV2() {
   // Reference photos (pre-build / last-year) sit outside the build timeline —
   // they never affect the calendar, day counts or area statuses.
   const referencePhotos = meta?.reference_photos ?? [];
+  const areaNameById = useMemo(
+    () => new Map((meta?.areas ?? []).map((a) => [a.id, a.name])),
+    [meta?.areas]
+  );
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
