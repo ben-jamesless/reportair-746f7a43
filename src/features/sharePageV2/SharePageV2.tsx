@@ -18,7 +18,10 @@ import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
+import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
+import { supabase } from "@/integrations/supabase/client";
 import type { ShareMode } from "./types";
+
 
 export default function SharePageV2() {
   const { token } = useParams<{ token: string }>();
@@ -29,6 +32,22 @@ export default function SharePageV2() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
   const [refExpanded, setRefExpanded] = useState(false);
+  /** Set when a client clicks a map area before the build starts. */
+  const [refAreaFilter, setRefAreaFilter] = useState<string | null>(null);
+  const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null } | null>(null);
+
+  useEffect(() => {
+    if (!token || !meta?.ok) return;
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.rpc("share_ops_contact" as never, { _token: token } as never);
+      if (alive) setOpsContact((data as { name: string; role?: string | null } | null) ?? null);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [token, meta?.ok]);
+
 
   useEffect(() => {
     if (meta?.project?.name) document.title = `${meta.project.name} — Build report`;
@@ -116,6 +135,19 @@ export default function SharePageV2() {
     () => new Map((meta?.areas ?? []).map((a) => [a.id, a.name])),
     [meta?.areas]
   );
+  const visibleRefPhotos = refAreaFilter
+    ? referencePhotos.filter((p) => p.area_id === refAreaFilter)
+    : referencePhotos;
+  /** Labels photo-scoped feedback with its area. */
+  const areaNameByPhoto = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of [...(meta?.reference_photos ?? []), ...(day?.photos ?? [])]) {
+      const n = p.area_id ? areaNameById.get(p.area_id) : null;
+      if (n) m.set(p.id, n);
+    }
+    return m;
+  }, [meta?.reference_photos, day?.photos, areaNameById]);
+
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
@@ -292,7 +324,9 @@ export default function SharePageV2() {
           filedAt={filedAt}
           referenceCount={referencePhotos.length}
           onOpenReference={() => {
+            setRefAreaFilter(null);
             setRefExpanded(true);
+
             window.requestAnimationFrame(() =>
               document
                 .getElementById("reference-photos")
@@ -367,9 +401,38 @@ export default function SharePageV2() {
                 {token && (
                   <>
                     <SectionLabel className="mt-7">Site map</SectionLabel>
-                    <ShareMapV2 token={token} areas={dayAreas} onAreaClick={scrollToArea} />
+                    <ShareMapV2
+                      token={token}
+                      areas={
+                        dayAreas.length > 0
+                          ? dayAreas
+                          : (meta.areas ?? []).map((a) => ({
+                              area_id: a.id,
+                              name: a.name,
+                              sort_order: a.sort_order,
+                              status: a.latest_status,
+                              notes: null,
+                            }))
+                      }
+                      onAreaClick={(areaId) => {
+                        // Before the build starts there are no area cards to jump
+                        // to — show that area's reference photos instead.
+                        if (hasBuildTimeline) {
+                          scrollToArea(areaId);
+                          return;
+                        }
+                        setRefAreaFilter(areaId);
+                        setRefExpanded(true);
+                        window.requestAnimationFrame(() =>
+                          document
+                            .getElementById("reference-photos")
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        );
+                      }}
+                    />
                   </>
                 )}
+
 
                 {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
                   <>
@@ -420,6 +483,27 @@ export default function SharePageV2() {
                   </span>
                 </button>
 
+                {refExpanded && refAreaFilter && (
+                  <div
+                    className="flex items-center gap-2 px-4 py-2"
+                    style={{ border: `1px solid ${V2.rule}`, borderTop: "none", backgroundColor: V2.paperDim }}
+                  >
+                    <span
+                      className="uppercase"
+                      style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.09em", color: V2.soft }}
+                    >
+                      {areaNameById.get(refAreaFilter) ?? "Area"} · {visibleRefPhotos.length}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setRefAreaFilter(null)}
+                      style={{ fontSize: 11.5, color: V2.ink, textDecoration: "underline" }}
+                    >
+                      Show all
+                    </button>
+                  </div>
+                )}
+
                 {refExpanded && (
                   <div
                     className="grid gap-1 p-1"
@@ -430,7 +514,12 @@ export default function SharePageV2() {
                       gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 200px), 1fr))",
                     }}
                   >
-                    {referencePhotos.map((p, i) => {
+                    {visibleRefPhotos.length === 0 && (
+                      <p className="px-3 py-4" style={{ fontSize: 12.5, color: V2.muted }}>
+                        No reference photos for this area yet.
+                      </p>
+                    )}
+                    {visibleRefPhotos.map((p, i) => {
                       const areaName = areaNameById.get(p.area_id ?? "") ?? null;
                       return (
                         <button
@@ -454,6 +543,7 @@ export default function SharePageV2() {
                     })}
                   </div>
                 )}
+
               </div>
             )}
           </div>
@@ -461,8 +551,8 @@ export default function SharePageV2() {
           <aside className="min-w-0">
             {isFiled ? (
               <>
-                {/* Filed rail stays clean: final area status + the build timeline.
-                    Feedback archive and ops contact land in Deploy 3. */}
+                {/* Filed rail: final area status, timeline, then the archived
+                    feedback thread (read-only) and the ops contact. */}
                 <AreaGlance
                   rows={(meta.areas ?? []).map((a) => ({
                     id: a.id,
@@ -473,6 +563,10 @@ export default function SharePageV2() {
                   }))}
                 />
                 <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+                <div className="mt-7">
+                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} readOnly />
+                  <OpsContact contact={opsContact} />
+                </div>
               </>
             ) : (
               <>
@@ -505,8 +599,15 @@ export default function SharePageV2() {
                     <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                   </div>
                 )}
+                {/* Feedback + ops contact anchor the rail: the only thing in it
+                    pre-build, and the bottom block once the build is running. */}
+                <div className={hasBuildTimeline ? "mt-7" : undefined}>
+                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} />
+                  <OpsContact contact={opsContact} />
+                </div>
               </>
             )}
+
           </aside>
         </div>
 
@@ -528,7 +629,7 @@ export default function SharePageV2() {
       {refLightboxIndex !== null && (
         <ShareLightboxV2
           token={token ?? ""}
-          photos={referencePhotos}
+          photos={visibleRefPhotos}
           index={refLightboxIndex}
           onClose={() => setRefLightboxIndex(null)}
           onIndexChange={setRefLightboxIndex}

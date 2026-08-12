@@ -564,7 +564,7 @@ export type Database = {
           guest_email: string | null
           guest_name: string
           id: string
-          photo_id: string
+          photo_id: string | null
           project_id: string
           share_link_id: string
         }
@@ -574,7 +574,7 @@ export type Database = {
           guest_email?: string | null
           guest_name: string
           id?: string
-          photo_id: string
+          photo_id?: string | null
           project_id: string
           share_link_id: string
         }
@@ -584,7 +584,7 @@ export type Database = {
           guest_email?: string | null
           guest_name?: string
           id?: string
-          photo_id?: string
+          photo_id?: string | null
           project_id?: string
           share_link_id?: string
         }
@@ -1491,6 +1491,10 @@ export type Database = {
     }
     Functions: {
       accept_project_invite: { Args: { _token: string }; Returns: string }
+      add_guest_note_project_public: {
+        Args: { _body: string; _email: string; _name: string; _token: string }
+        Returns: string
+      }
       add_guest_note_public: {
         Args: {
           _body: string
@@ -1918,6 +1922,7 @@ export type Database = {
         Args: { _password?: string; _token: string }
         Returns: Json
       }
+      share_ops_contact: { Args: { _token: string }; Returns: Json }
       team_domain_matching_enabled: {
         Args: { _team_id: string }
         Returns: boolean
