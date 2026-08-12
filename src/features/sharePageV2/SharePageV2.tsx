@@ -677,6 +677,16 @@ export default function SharePageV2() {
           onIndexChange={setLightboxIndex}
         />
       )}
+
+      {signedIn && project?.id && (
+        <ExportPdfDialog
+          projectId={project.id}
+          photoCount={meta.photo_count ?? dayPhotos.length}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          trigger={<span className="hidden" aria-hidden />}
+        />
+      )}
     </div>
   );
 }
