@@ -1,76 +1,72 @@
+# Share link v2 (OnShow client report) — feasibility review
 
-## Goal
+Analysis of the uploaded `OnShow_ClientReport.html` against the live share page (`src/pages/SharePage.tsx`, ~1,700 lines, driven by the `resolve_share_link` RPC).
 
-Make the v2 project workspace usable on a phone (393 px). Three problems today:
+## What we can already do today
 
-1. Header action row (`Upload photos` / `Share` / `Members`) overflows past the right edge.
-2. Daily Report control row wraps awkwardly — "Client preview" drops to its own line, "Copy yesterday's statuses" is a long pill, and the day-picker Select is a fixed 280 px.
-3. There's no obvious, thumb-friendly way to capture photos on mobile. The existing `Upload photos` button opens a file picker but doesn't feel like a capture mode.
+These parts of the mockup map onto data we hold and render already:
 
-Scope: presentation + a small capture affordance. No schema changes, no changes to upload logic beyond wiring `capture="environment"` on an input.
+- Masthead: project name, date, venue/address, event logo (share logo path + brand colour RPCs exist).
+- Status bar: overall status, weather chip (`project-weather` edge function is already wired to the share token), last-updated.
+- Zone-by-zone cards: area name, status pill, day notes, photo grid with capture times — this is essentially today's share page reorganised.
+- Sidebar "Today's summary": today's objectives / achievements / tomorrow already exist as day notes.
+- Zone status at a glance and the day timeline dots: derivable from `area_day_status`.
+- Feedback box: guest notes already exist on the public link.
 
----
+So roughly 60% of the design is a re-layout, not new capability.
 
-## 1. Project header on mobile (`ProjectShellV2.tsx`)
+## The real issues and concerns
 
-Today the action cluster is `Upload photos` + `Share` + `Members`, all `size="sm"` with label text. On mobile that busts the viewport.
+### 1. Build calendar (groundbreak → teardown) — new data model
+The Gantt strip needs things we don't store: a build window (start/end), named phases (Build wk1, Build wk2, Event week, Takedown), and a "worst status" roll-up row. Today a project has days only implicitly, from whatever data exists. This needs new project fields plus a phase table, and an editing surface for them — the largest single piece of work here.
 
-Change on `< sm` only:
-- Title row: keep title on its own row.
-- Action row: full-width row **below** the title, three equal columns.
-  - `Upload photos` → primary, keeps label ("Upload").
-  - `Share` → icon-only (`Share2`), `aria-label="Share"`.
-  - `Members` → icon-only (`Users`), `aria-label="Members"`.
-- Desktop (`sm+`) keeps the current inline layout with labels — no regression.
+### 2. "Day 3 of 18" and the stat strip
+Day counter, days remaining, "zones active", "open issues" all depend on the same build window. "Open issues" also needs a definition — presumably a count of areas at Flagged/Delayed today. Cheap once (1) lands, impossible before it.
 
-Implementation: swap the outer `flex flex-wrap` for a `flex-col sm:flex-row` and add `sm:inline hidden` around the button label spans, matching the pattern already used elsewhere in the app.
+### 3. Map: cost, key exposure, privacy
+The mockup shows an interactive map with a Map/Satellite toggle, zone polygons, photo pins and a legend. On a public, unauthenticated link that means:
+- Google Maps JS loads for anyone with the URL — billable per load and the browser key is exposed to the open internet. Recommend the existing `static-map` proxy (satellite still, no toggle) for the share page, or an aggressive per-token load cap.
+- Photo pins publish exact GPS of every photo. That's a real disclosure decision for client-facing links; suggest pins off by default, per-link opt-in.
 
-## 2. Daily Report toolbar (`DailyReportTab.tsx`, lines 164–208)
+### 4. Live/realtime badge
+The pulsing "LIVE" badge implies realtime updates for anonymous viewers. Our share data comes from a single RPC snapshot. Realtime for anon would need channel exposure on public tables; a 60s poll of the existing RPC is safer and visually identical.
 
-Current row: `Day picker (280px)` · `Day status` · `Copy yesterday's statuses` · `Client preview toggle (ml-auto)`.
+### 5. Public comment box (spam)
+The mockup puts an always-open comment input on a page anyone with the URL can reach. Guest notes exist, but a day-level thread on a public page needs rate limiting, length caps and a moderation/removal view for the owner. Currently there's no throttle.
 
-Mobile redesign:
-- Row 1 (full width): Day picker — drop the fixed `w-[280px]`, use `w-full sm:w-[280px]`.
-- Row 2: `Day status` label + `AreaStatusPicker` on the left; `Client preview` toggle on the right (`ml-auto`). This is the "hide or move to the yesterday's-status line" ask — we move it here so it always shares a row.
-- Row 3 (only when today + can edit): `Copy yesterday's statuses` — full-width button on mobile, inline on desktop. Shorten the label to `Copy yesterday` on `< sm`.
-- The "Edit / Client preview" caption text next to the toggle: hide on `< sm` (it duplicates the button label).
+### 6. Branding and entitlement
+The mockup is fully white-labelled to an agency (On Show lockup, agency colour, ops contact block with a named person and role). We only support a logo and one brand colour. Full white-label is a paid-tier feature per the membership spec, so this design ships gated — and the ops contact block means storing contact details we then publish publicly.
 
-No behavior changes to any of the controls.
+### 7. Design-system conflicts
+- The mockup uses 4–6px rounded corners throughout; the app was deliberately squared off (`rounded-none`) a while back. Needs a decision: share page is an exception, or the mockup gets squared.
+- It introduces General Sans (Fontshare) alongside Inter/JetBrains Mono — a third webfont and a third-party font host on a page where load speed matters.
+- The palette (#0B43D6 On Show blue, red signal dot) is a client theme, not our tokens. Needs to be expressed as themeable variables, not hardcoded.
+- The mockup is light-only. Our share page supports dark mode; every new surface needs dark tokens or dark mode gets disabled here.
 
-## 3. Mobile capture entry point
+### 8. Status vocabulary drift
+The mockup uses Not started / In progress / Flagged / Delayed / Complete. Our enum is `no_status | on_track | requires_discussion | concern | complete`, surfaced as No status / On track / Flagged / Delayed / Complete. Close, but "Not started" vs "No status" vs the card's "No update today" are three different labels for one state — needs pinning down before build.
 
-Two-part answer.
+### 9. Layout and responsive
+Three-column masthead, 4-up stat strip, 1fr+400px body and a horizontally scrolling calendar all need mobile treatment. The recent mobile work on the share page (stacked filters, side-by-side dropdowns) would need redoing against the new structure.
 
-### 3a. Non-crew users (Owner / Editor)
-`GlobalUploadModal` already accepts files from the OS picker, which on iOS/Android includes "Take Photo". That works but is buried behind a modal. Add a **second, mobile-only affordance** that goes straight to the camera:
+### 10. Payload and performance
+`resolve_share_link` already returns the whole project as one JSON blob. Add 18 days × areas × statuses × photos plus calendar data and it grows fast. Likely needs day-scoped fetching or a trimmed summary payload for first paint.
 
-- In `ProjectShellV2` header, on `< sm` only, add a `Camera` icon button next to `Upload`.
-- It renders a hidden `<input type="file" accept="image/*" capture="environment" multiple />` and clicks it. The resulting files are handed to the same `useUploadModal().open(files)` path the modal uses today (need to confirm the modal accepts pre-selected files; if not, we just open the modal with the picked files staged in local state — a small addition to `UploadModalContext`).
-- The button is `size="icon"` so it fits alongside `Upload / Share / Members` without pushing the row over.
+### 11. PDF export drifts
+`generate-pdf` renders its own layout. Shipping a new share design without touching it means the emailed/exported PDF no longer looks like the link the client saw.
 
-### 3b. Crew role
-`CrewLanding` (in the same file) is already the mobile capture surface — it auto-opens the upload modal. We keep the auto-open, but:
-- Replace the current `Upload photos` primary button with **two stacked buttons**:
-  - Primary: **`Take photo`** — the same camera-capture input as 3a. Big, thumb-height (`h-14`), full-width.
-  - Secondary: **`Choose from library`** — opens the existing upload modal.
-- Copy update: "Point, shoot, done. GPS sorts the photo into the right area automatically."
+## Suggested sequencing (if we proceed)
 
-This turns the crew landing into a real capture mode without changing the underlying upload / EXIF / auto-assign pipeline.
+1. **Foundations** — build window + phases on the project, status vocabulary locked, share payload restructured.
+2. **Re-layout** — masthead, status bar, stat strip, zone cards, sidebar summary/timeline/feedback using existing data. Highest visual return, lowest risk.
+3. **Calendar** — the Gantt strip plus its editing surface.
+4. **Map** — static satellite by default, polygons on, pins behind a per-link toggle.
+5. **Branding/white-label** — agency lockup, theme colour, ops contact, gated by tier.
+6. **PDF parity** — bring the export in line.
 
-## 4. `MobileProjectToolbar.tsx`
+## Open questions before planning the build
 
-Noting for completeness: this file is unused by v2 (it was for the classic UI). Leaving it alone in this change — happy to delete in a follow-up if you want.
-
----
-
-## Files touched
-
-- `src/features/projectDetailV2/ProjectShellV2.tsx` — responsive header, mobile camera button, updated `CrewLanding`.
-- `src/features/projectDetailV2/tabs/DailyReportTab.tsx` — toolbar reflow for mobile.
-- `src/features/upload/UploadModalContext.tsx` — small addition to accept pre-selected files from a capture input (only if the current API doesn't already support it; will confirm on read before editing).
-
-## Out of scope (call out if you want them next)
-
-- Bottom-nav / FAB pattern for the whole app on mobile.
-- Rewriting the tab bar (`grid-cols-4`) into a scrollable segmented control.
-- Deleting the unused `MobileProjectToolbar.tsx`.
+- Is the On Show branding a per-client theme we must support generically, or is this one customer's skin?
+- Do we publish photo GPS pins on public links?
+- Keep dark mode on the share page?
+- Rounded corners here, or square to match the rest of the app?
