@@ -132,7 +132,8 @@ export function DayTimeline({
         </span>
       </div>
       <div className="max-h-[420px] overflow-y-auto">
-        {days.map((d) => {
+        {/* Reverse-chronological: today first, so clients never scan past empty days. */}
+        {orderDaysForList(days).map((d) => {
           const meta = statusMeta(d.worst_status ?? d.day_status);
           const active = d.date === activeDate;
           return (
