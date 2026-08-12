@@ -400,7 +400,7 @@ export default function SharePageV2() {
 
                 {token && (
                   <>
-                    <SectionLabel className="mt-7">Site map</SectionLabel>
+                    <SectionLabel className={hasBuildTimeline ? "mt-7" : undefined}>Site map</SectionLabel>
                     <ShareMapV2
                       token={token}
                       areas={
