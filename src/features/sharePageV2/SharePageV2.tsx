@@ -627,7 +627,7 @@ export default function SharePageV2() {
       {refLightboxIndex !== null && (
         <ShareLightboxV2
           token={token ?? ""}
-          photos={referencePhotos}
+          photos={visibleRefPhotos}
           index={refLightboxIndex}
           onClose={() => setRefLightboxIndex(null)}
           onIndexChange={setRefLightboxIndex}
