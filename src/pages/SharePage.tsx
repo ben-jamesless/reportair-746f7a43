@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind, Map as MapIcon } from "lucide-react";
+import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind, Map as MapIcon, Images } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -226,6 +226,8 @@ const SharePage = () => {
   const [hiddenDayPhotos, setHiddenDayPhotos] = useState<Set<string>>(new Set());
 
   const [mapOpen, setMapOpen] = useState(false);
+  const [refOpen, setRefOpen] = useState(false);
+  const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [dark, setDark] = useState(false); // Per-session only — preference NOT persisted
   const accent = brandColour ?? TEAL;
@@ -957,6 +959,22 @@ const SharePage = () => {
               </button>
             )}
 
+            {referencePhotos.length > 0 && (
+              <button
+                onClick={() => setRefOpen(true)}
+                className="mt-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors"
+                style={{ color: BODY }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = SURFACE; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+              >
+                <span className="flex items-center gap-2">
+                  <Images className="h-3.5 w-3.5" />
+                  <span className="font-medium">Reference photos</span>
+                </span>
+                <span className="text-xs opacity-80">{referencePhotos.length}</span>
+              </button>
+            )}
+
             <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
 
             {allDayGroups.length === 0 && (
@@ -1426,6 +1444,34 @@ const SharePage = () => {
           </aside>
         </div>
       </div>
+
+      <Dialog open={refOpen} onOpenChange={setRefOpen}>
+        <DialogContent className="max-w-4xl">
+          <div className="mb-3">
+            <h2 className="text-sm font-semibold" style={{ color: NEAR_BLACK }}>Reference photos</h2>
+            <p className="text-xs" style={{ color: MUTED }}>
+              Pre-build and previous-event shots. Not part of the build timeline.
+            </p>
+          </div>
+          <div className="grid max-h-[70vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4">
+            {referencePhotos.map((p, i) => (
+              <SharePhotoThumb key={p.id} token={token!} photo={p} onClick={() => setRefLightboxIndex(i)} />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {refLightboxIndex !== null && (
+        <ShareLightbox
+          token={token!}
+          photos={referencePhotos}
+          index={refLightboxIndex}
+          guest={guest}
+          onClose={() => setRefLightboxIndex(null)}
+          onIndexChange={setRefLightboxIndex}
+          onNotesChanged={loadFeedback}
+        />
+      )}
 
       {lightboxIndex !== null && (
         <ShareLightbox
