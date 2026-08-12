@@ -182,7 +182,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
           <AreaStatusPicker
-            value={(dayStatus.get(activeDay) ?? "no_status") as AreaStatus}
+            value={(dayStatus.get(activeDay) ?? "not_started") as AreaStatus}
             onChange={(s) => setDayStatus(activeDay, s)}
             readOnly={!canEdit || previewMode}
           />
@@ -297,7 +297,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
       ) : (
         <div className="space-y-4">
           {areas.map((ar) => {
-            const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "no_status";
+            const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "not_started";
             const note = areaDayNotes.get(`${ar.id}|${activeDay}`) ?? null;
             const ps = photosByArea.get(ar.id) ?? [];
             return (

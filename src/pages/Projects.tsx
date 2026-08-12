@@ -267,7 +267,7 @@ const Projects = () => {
       if (!isProjectInFolderView(p, selectedFolder, folderIds, FOLDER_ALL, FOLDER_UNFOLDERED)) return false;
       if (filterClient !== "__all__" && (p.client_name ?? "") !== filterClient) return false;
       if (filterEventType !== "__all__" && (p.event_type ?? "") !== filterEventType) return false;
-      if (filterStatus !== "__all__" && (p.overall_status ?? "no_status") !== filterStatus) return false;
+      if (filterStatus !== "__all__" && (p.overall_status ?? "not_started") !== filterStatus) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
@@ -594,7 +594,7 @@ const Projects = () => {
 
                   <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                     <StatusTypographic
-                      statusKey={p.overall_status ?? "no_status"}
+                      statusKey={p.overall_status ?? "not_started"}
                       showCaption={false}
                     />
                     <span

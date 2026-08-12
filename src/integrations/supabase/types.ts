@@ -436,6 +436,53 @@ export type Database = {
         }
         Relationships: []
       }
+      event_phases: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          kind: string
+          label: string
+          project_id: string
+          sort_order: number
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          kind: string
+          label: string
+          project_id: string
+          sort_order?: number
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          kind?: string
+          label?: string
+          project_id?: string
+          sort_order?: number
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       folders: {
         Row: {
           color: string | null
@@ -981,6 +1028,7 @@ export type Database = {
       projects: {
         Row: {
           archived_at: string | null
+          build_end_date: string | null
           build_start_date: string | null
           client_name: string | null
           color: string
@@ -1018,6 +1066,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          build_end_date?: string | null
           build_start_date?: string | null
           client_name?: string | null
           color?: string
@@ -1055,6 +1104,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          build_end_date?: string | null
           build_start_date?: string | null
           client_name?: string | null
           color?: string
@@ -1126,6 +1176,7 @@ export type Database = {
           password_hash: string | null
           project_id: string
           revoked_at: string | null
+          show_photo_pins: boolean
           token: string
           view_count: number
         }
@@ -1140,6 +1191,7 @@ export type Database = {
           password_hash?: string | null
           project_id: string
           revoked_at?: string | null
+          show_photo_pins?: boolean
           token?: string
           view_count?: number
         }
@@ -1154,6 +1206,7 @@ export type Database = {
           password_hash?: string | null
           project_id?: string
           revoked_at?: string | null
+          show_photo_pins?: boolean
           token?: string
           view_count?: number
         }
@@ -1544,6 +1597,10 @@ export type Database = {
         Returns: undefined
       }
       admin_summary: { Args: never; Returns: Json }
+      area_status_rank: {
+        Args: { _s: Database["public"]["Enums"]["area_status"] }
+        Returns: number
+      }
       can_read_export_asset: {
         Args: { _name: string; _user: string }
         Returns: boolean
@@ -1584,6 +1641,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      event_lifecycle_mode: {
+        Args: { _as_of?: string; _project_id: string }
+        Returns: string
       }
       get_invite_context: {
         Args: { _token: string }
@@ -1798,20 +1859,60 @@ export type Database = {
         Args: { _feature_id: string }
         Returns: undefined
       }
+      share_area: {
+        Args: { _area_id?: string; _password?: string; _token: string }
+        Returns: Json
+      }
+      share_day: {
+        Args: { _date?: string; _password?: string; _token: string }
+        Returns: Json
+      }
+      share_link_check: {
+        Args: { _password: string; _token: string }
+        Returns: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          has_password: boolean | null
+          id: string
+          label: string | null
+          last_accessed_at: string | null
+          password_hash: string | null
+          project_id: string
+          revoked_at: string | null
+          show_photo_pins: boolean
+          token: string
+          view_count: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "share_links"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      share_meta: {
+        Args: { _password?: string; _token: string }
+        Returns: Json
+      }
       team_domain_matching_enabled: {
         Args: { _team_id: string }
         Returns: boolean
       }
       team_member_count: { Args: { _team_id: string }; Returns: number }
       team_seat_summary: { Args: { _team_id: string }; Returns: Json }
+      worst_status_for_event_day: {
+        Args: { _date: string; _project_id: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "platform_admin"
       area_status:
-        | "no_status"
-        | "on_track"
-        | "requires_discussion"
-        | "concern"
+        | "not_started"
+        | "in_progress"
+        | "flagged"
+        | "delayed"
         | "complete"
       export_status: "queued" | "processing" | "ready" | "failed"
       notification_type:
@@ -1822,10 +1923,10 @@ export type Database = {
       project_default_view: "report" | "gallery"
       project_role: "owner" | "editor" | "commenter" | "viewer" | "crew"
       project_status:
-        | "no_status"
-        | "on_track"
-        | "requires_discussion"
-        | "concern"
+        | "not_started"
+        | "in_progress"
+        | "flagged"
+        | "delayed"
         | "behind_schedule"
         | "complete"
       project_template:
@@ -1964,10 +2065,10 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user", "platform_admin"],
       area_status: [
-        "no_status",
-        "on_track",
-        "requires_discussion",
-        "concern",
+        "not_started",
+        "in_progress",
+        "flagged",
+        "delayed",
         "complete",
       ],
       export_status: ["queued", "processing", "ready", "failed"],
@@ -1980,10 +2081,10 @@ export const Constants = {
       project_default_view: ["report", "gallery"],
       project_role: ["owner", "editor", "commenter", "viewer", "crew"],
       project_status: [
-        "no_status",
-        "on_track",
-        "requires_discussion",
-        "concern",
+        "not_started",
+        "in_progress",
+        "flagged",
+        "delayed",
         "behind_schedule",
         "complete",
       ],

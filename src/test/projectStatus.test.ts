@@ -15,11 +15,11 @@ describe("projectStatusMeta", () => {
     expect(meta.dotClass).toContain("C7382A");
   });
 
-  it("falls back to no_status for null / undefined / unknown values", () => {
-    expect(projectStatusMeta(null).value).toBe("no_status");
-    expect(projectStatusMeta(undefined).value).toBe("no_status");
+  it("falls back to not_started for null / undefined / unknown values", () => {
+    expect(projectStatusMeta(null).value).toBe("not_started");
+    expect(projectStatusMeta(undefined).value).toBe("not_started");
     // Unknown string: still safe
     // @ts-expect-error -- testing fallback for stray DB values
-    expect(projectStatusMeta("nonsense").value).toBe("no_status");
+    expect(projectStatusMeta("nonsense").value).toBe("not_started");
   });
 });

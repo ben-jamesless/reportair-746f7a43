@@ -27,16 +27,16 @@ interface Props {
 
 // Status → hex, aligned with PROJECT_STATUSES in src/lib/projectStatus.ts
 const STATUS_HEX: Record<string, string> = {
-  no_status: "#9C9A93",
-  on_track: "#3A6EA5",
-  requires_discussion: "#D4A017",
-  concern: "#C7382A",
+  not_started: "#9C9A93",
+  in_progress: "#3A6EA5",
+  flagged: "#D4A017",
+  delayed: "#C7382A",
   behind_schedule: "#C7382A",
   complete: "#3A7D44",
 };
 
 function tintForStatus(status: string | undefined): StatusTint | undefined {
-  if (!status || status === "no_status") return undefined;
+  if (!status || status === "not_started") return undefined;
   const stroke = STATUS_HEX[status] ?? "#64748B";
   return { fill: stroke, stroke };
 }

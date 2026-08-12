@@ -86,14 +86,13 @@ const SURFACE = "var(--surface-2)";
 //   COMPLETE  #3A7D44 (green)
 //   NONE      #9C9A93 (grey)
 const STATUS_META: Record<string, { label: string; bg: string }> = {
-  on_track: { label: "On track", bg: "#3A6EA5" },
-  requires_discussion: { label: "Flagged", bg: "#D4A017" },
+  in_progress: { label: "On track", bg: "#3A6EA5" },
+  flagged: { label: "Flagged", bg: "#D4A017" },
   at_risk: { label: "Delayed", bg: "#C7382A" },
   delayed: { label: "Delayed", bg: "#C7382A" },
-  concern: { label: "Delayed", bg: "#C7382A" },
   behind_schedule: { label: "Delayed", bg: "#C7382A" },
   complete: { label: "Complete", bg: "#3A7D44" },
-  no_status: { label: "No status", bg: "#9C9A93" },
+  not_started: { label: "No status", bg: "#9C9A93" },
 };
 
 // Fixed 6-colour palette for area dots
@@ -1025,7 +1024,7 @@ const SharePage = () => {
                       onMouseLeave={(e) => { if (!active) e.currentTarget.style.backgroundColor = "transparent"; }}
                     >
                       <span className="flex items-center gap-2 min-w-0">
-                        <StatusDot statusKey={latestAreaStatus.get(ar.id) ?? "no_status"} />
+                        <StatusDot statusKey={latestAreaStatus.get(ar.id) ?? "not_started"} />
                         <span className="truncate">{ar.name}</span>
                       </span>
                       <span className="text-xs opacity-80">{count}</span>
@@ -1208,7 +1207,7 @@ const SharePage = () => {
                     .filter(Boolean) as string[];
                   const explicitDayStatus = dayNoteByDate.get(dateKey)?.day_status ?? null;
                   const dominantDayStatus =
-                    explicitDayStatus && explicitDayStatus !== "no_status"
+                    explicitDayStatus && explicitDayStatus !== "not_started"
                       ? explicitDayStatus
                       : pickDominantStatus(dayStatusKeys);
 
@@ -1448,7 +1447,7 @@ const SharePage = () => {
 };
 
 // Pick a single representative status from a list (worst-first ordering)
-const STATUS_PRIORITY = ["delayed", "concern", "behind_schedule", "requires_discussion", "at_risk", "on_track", "complete", "no_status"];
+const STATUS_PRIORITY = ["delayed", "behind_schedule", "at_risk", "flagged", "in_progress", "complete", "not_started"];
 const pickDominantStatus = (keys: string[]): string | null => {
   if (keys.length === 0) return null;
   for (const s of STATUS_PRIORITY) if (keys.includes(s)) return s;
