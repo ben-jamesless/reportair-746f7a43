@@ -334,7 +334,10 @@ export default function SharePageV2() {
                 photos: photosByArea.get(a.area_id)?.length ?? 0,
               }))}
             />
-            <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+            {/* Redundant with the build calendar heatmap on desktop. */}
+            <div className="lg:hidden">
+              <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+            </div>
           </aside>
         </div>
 
