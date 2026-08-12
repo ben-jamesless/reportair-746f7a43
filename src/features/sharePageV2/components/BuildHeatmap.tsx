@@ -225,7 +225,6 @@ export function BuildHeatmap({
                 const s = statusFor(area.id, d);
                 const meta = STATUS_V2[s];
                 const blank = s === "not_started";
-                const isActive = d === activeDate;
                 return (
                   <button
                     key={d}
