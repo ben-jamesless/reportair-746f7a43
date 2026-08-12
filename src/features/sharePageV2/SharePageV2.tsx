@@ -192,17 +192,25 @@ export default function SharePageV2() {
             ) : (
               <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
                 {dayAreas.map((a) => (
-                  <ZoneCard
-                    key={a.area_id}
-                    token={token ?? ""}
-                    name={a.name}
-                    status={a.status}
-                    notes={a.notes}
-                    photos={photosByArea.get(a.area_id) ?? []}
-                    onOpenPhoto={openPhoto}
-                  />
+                  <div key={a.area_id} id={`area-${a.area_id}`} style={{ scrollMarginTop: 24 }}>
+                    <ZoneCard
+                      token={token ?? ""}
+                      name={a.name}
+                      status={a.status}
+                      notes={a.notes}
+                      photos={photosByArea.get(a.area_id) ?? []}
+                      onOpenPhoto={openPhoto}
+                    />
+                  </div>
                 ))}
               </div>
+            )}
+
+            {token && (
+              <>
+                <SectionLabel className="mt-7">Site map</SectionLabel>
+                <ShareMapV2 token={token} areas={dayAreas} onAreaClick={scrollToArea} />
+              </>
             )}
 
             {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
