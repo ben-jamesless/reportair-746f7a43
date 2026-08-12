@@ -491,6 +491,39 @@ export const ExportPdfDialog = ({
       options.album_label = album?.name ?? null;
     }
 
+    // Public share flow: the edge function creates the export row (service role),
+    // renders synchronously and hands back a signed download URL.
+    if (shareToken) {
+      setCurrentExport({ id: "share", status: "processing", output_path: null, error_message: null, photo_count: null } as ExportRow);
+      const { data, error: fnErr } = await supabase.functions.invoke("generate-pdf", {
+        body: { share_token: shareToken, options, accent_color: accent },
+      });
+      const res = data as { signed_url?: string | null; error?: string } | null;
+      if (fnErr || !res?.signed_url) {
+        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: res?.error ?? fnErr?.message ?? "Export failed", photo_count: null } as ExportRow);
+        toast.error(res?.error ?? fnErr?.message ?? "Export failed");
+        setSubmitting(false);
+        return;
+      }
+      setCurrentExport({ id: "share", status: "ready", output_path: null, error_message: null, photo_count: null } as ExportRow);
+      try {
+        const resp = await fetch(res.signed_url);
+        const blob = await resp.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = "build-report.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      } catch {
+        window.open(res.signed_url, "_blank", "noopener");
+      }
+      setSubmitting(false);
+      return;
+    }
+
     const { data: row, error } = await supabase.from("project_exports").insert({
       project_id: projectId,
       created_by: auth.user!.id,
