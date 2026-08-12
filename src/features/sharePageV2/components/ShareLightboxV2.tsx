@@ -49,7 +49,7 @@ export function ShareLightboxV2({
           <X className="h-5 w-5" />
         </button>
       </div>
-      <div className="relative flex flex-1 items-center justify-center px-4 pb-6">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-4 pb-6">
         {photos.length > 1 && (
           <button
             type="button"
@@ -60,7 +60,13 @@ export function ShareLightboxV2({
             <ChevronLeft className="h-7 w-7" />
           </button>
         )}
-        {url && <img src={url} alt={photo.caption || photo.file_name} className="max-h-full max-w-full object-contain" />}
+        {url && (
+          <img
+            src={url}
+            alt={photo.caption || photo.file_name}
+            className="h-full w-full object-contain"
+          />
+        )}
         {photos.length > 1 && (
           <button
             type="button"
