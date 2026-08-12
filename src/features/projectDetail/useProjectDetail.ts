@@ -664,7 +664,11 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     canEdit,
     albums,
     areas,
-    photos,
+    /** Build photos only — reference photos are excluded everywhere day-based. */
+    photos: buildPhotos,
+    referencePhotos,
+    allPhotos: photos,
+    bulkSetReference,
     dayNotes,
     dailyFields,
     areaDayNotes,
