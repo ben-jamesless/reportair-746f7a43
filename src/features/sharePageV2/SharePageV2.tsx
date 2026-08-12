@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReportFooter } from "./components/ReportFooter";
@@ -28,6 +29,7 @@ export default function SharePageV2() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
+  const [refGalleryOpen, setRefGalleryOpen] = useState(false);
 
   useEffect(() => {
     if (meta?.project?.name) document.title = `${meta.project.name} — Build report`;
@@ -189,6 +191,15 @@ export default function SharePageV2() {
   }));
   const dayWord = isToday ? "today" : "this day";
 
+  // No build dates set and nothing captured yet (reference photos excluded
+  // server-side) → the timeline is meaningless, so hide calendar/heatmap/rail.
+  const hasBuildTimeline =
+    !!project.build_start_date ||
+    !!project.build_end_date ||
+    !!project.event_date ||
+    (meta.days ?? []).some((d) => d.photo_count > 0 || d.has_notes) ||
+    (meta.photo_count ?? 0) > 0;
+
   // Contiguous run of days from the build start (or first recorded day) to the
   // last recorded day, so the timeline never reads as sparse.
   const dayMap = new Map((meta.days ?? []).map((d) => [d.date, d]));
@@ -308,7 +319,7 @@ export default function SharePageV2() {
               <>
                 <StatStrip stats={stats} />
 
-                {(meta.areas?.length ?? 0) > 0 && (
+                {hasBuildTimeline && (meta.areas?.length ?? 0) > 0 && (
                   <>
                     <SectionLabel>Build calendar</SectionLabel>
                     <BuildHeatmap
@@ -372,39 +383,27 @@ export default function SharePageV2() {
             )}
 
             {referencePhotos.length > 0 && (
-              <>
-                <SectionLabel className="mt-7">Reference photos</SectionLabel>
-                <p style={{ fontSize: 12, color: V2.muted, marginBottom: 10 }}>
-                  Pre-build and previous-event shots. Not part of the build timeline.
-                </p>
-                <div
-                  className="grid gap-1"
-                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}
+              <div className="mt-7">
+                <button
+                  type="button"
+                  onClick={() => setRefGalleryOpen(true)}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left"
+                  style={{ border: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
                 >
-                  {referencePhotos.map((p, i) => {
-                    const areaName = areaNameById.get(p.area_id ?? "") ?? null;
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setRefLightboxIndex(i)}
-                        className="relative overflow-hidden"
-                        style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
-                      >
-                        <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
-                        {areaName && (
-                          <span
-                            className="absolute bottom-0 left-0 right-0 truncate px-1.5 py-1 text-left"
-                            style={{ fontSize: 10, color: "#fff", backgroundColor: "rgba(0,0,0,0.45)" }}
-                          >
-                            {areaName}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
+                  <span>
+                    <span
+                      className="block uppercase"
+                      style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.soft }}
+                    >
+                      Reference photos
+                    </span>
+                    <span style={{ fontSize: 12, color: V2.muted }}>
+                      Pre-build and previous-event shots. Not part of the build timeline.
+                    </span>
+                  </span>
+                  <span style={{ fontFamily: V2.mono, fontSize: 12, color: V2.ink }}>{referencePhotos.length}</span>
+                </button>
+              </div>
             )}
           </div>
 
@@ -426,14 +425,16 @@ export default function SharePageV2() {
               </>
             ) : (
               <>
-                <BuildCalendar
-                  days={meta.days ?? []}
-                  phases={meta.phases ?? []}
-                  activeDate={activeDate}
-                  buildStart={project.build_start_date}
-                  buildEnd={project.build_end_date ?? project.event_date}
-                  onSelect={setActiveDate}
-                />
+                {hasBuildTimeline && (
+                  <BuildCalendar
+                    days={meta.days ?? []}
+                    phases={meta.phases ?? []}
+                    activeDate={activeDate}
+                    buildStart={project.build_start_date}
+                    buildEnd={project.build_end_date ?? project.event_date}
+                    onSelect={setActiveDate}
+                  />
+                )}
                 {day && <TodayBox day={day} />}
                 <AreaGlance
                   rows={dayAreas.map((a) => ({
@@ -446,9 +447,11 @@ export default function SharePageV2() {
                   }))}
                 />
                 {/* Redundant with the build calendar heatmap on desktop. */}
-                <div className="lg:hidden">
-                  <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
-                </div>
+                {hasBuildTimeline && (
+                  <div className="lg:hidden">
+                    <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+                  </div>
+                )}
               </>
             )}
           </aside>
@@ -467,6 +470,44 @@ export default function SharePageV2() {
         />
       </div>
 
+
+      <Dialog open={refGalleryOpen} onOpenChange={setRefGalleryOpen}>
+        <DialogContent className="max-w-4xl" style={{ backgroundColor: V2.white, borderRadius: 0 }}>
+          <div className="mb-3">
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: V2.ink }}>Reference photos</h2>
+            <p style={{ fontSize: 12, color: V2.muted }}>
+              Pre-build and previous-event shots. Not part of the build timeline.
+            </p>
+          </div>
+          <div
+            className="grid max-h-[70vh] gap-1 overflow-y-auto"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 160px), 1fr))" }}
+          >
+            {referencePhotos.map((p, i) => {
+              const areaName = areaNameById.get(p.area_id ?? "") ?? null;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setRefLightboxIndex(i)}
+                  className="relative overflow-hidden"
+                  style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
+                >
+                  <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
+                  {areaName && (
+                    <span
+                      className="absolute bottom-0 left-0 right-0 truncate px-1.5 py-1 text-left"
+                      style={{ fontSize: 10, color: "#fff", backgroundColor: "rgba(0,0,0,0.45)" }}
+                    >
+                      {areaName}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {refLightboxIndex !== null && (
         <ShareLightboxV2
