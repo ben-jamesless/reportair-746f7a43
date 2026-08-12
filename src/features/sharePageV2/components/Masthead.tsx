@@ -5,7 +5,7 @@ const MODE_KICKER: Record<ShareMode, string> = {
   build: "Build report",
   on_show: "Event report",
   takedown: "Takedown report",
-  filed: "Final report",
+  filed: "Event record",
 };
 
 export function Masthead({
