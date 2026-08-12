@@ -76,9 +76,25 @@ export default function SharePageV2() {
     return m;
   }, [dayPhotos]);
 
+  /** Derived display status per area — photos captured count as an update. */
+  const areaStatus = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of dayAreas) {
+      m.set(
+        a.area_id,
+        a.display_status ?? deriveAreaStatus(a.status, photosByArea.get(a.area_id)?.length ?? 0)
+      );
+    }
+    return m;
+  }, [dayAreas, photosByArea]);
+
   const openIssuesCount = day?.open_issues ? 1 : 0;
-  const activeAreas = dayAreas.filter((a) => a.status || a.notes || (photosByArea.get(a.area_id)?.length ?? 0) > 0);
-  const flaggedAreas = dayAreas.filter((a) => ["flagged", "delayed"].includes(normaliseStatus(a.status)));
+  const activeAreas = dayAreas.filter(
+    (a) => normaliseStatus(areaStatus.get(a.area_id)) !== "not_started" || !!a.notes
+  );
+  const flaggedAreas = dayAreas.filter((a) =>
+    ["flagged", "delayed"].includes(normaliseStatus(areaStatus.get(a.area_id)))
+  );
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
@@ -88,6 +104,7 @@ export default function SharePageV2() {
   const scrollToArea = (areaId: string) => {
     document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
 
 
   if (loading) {
