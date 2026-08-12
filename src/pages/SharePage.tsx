@@ -1686,7 +1686,9 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
     (async () => {
       const res = await fetch(`https://asasikikrapixgznhmzl.supabase.co/functions/v1/share-photo-url`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, photo_id: photo.id, variant: "lightbox" }),
+        // Use the untouched file in the viewer. Some phone panoramas / HEIC-derived
+        // uploads render as horizontal strips when passed through image transforms.
+        body: JSON.stringify({ token, photo_id: photo.id, variant: "original" }),
       });
       const json = await res.json();
       if (alive && json.url) setUrl(json.url);
