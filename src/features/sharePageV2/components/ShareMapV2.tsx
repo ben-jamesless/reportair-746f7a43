@@ -229,13 +229,14 @@ export function ShareMapV2({
                     textAnchor="middle"
                     dominantBaseline="middle"
                     style={{
-                      fontFamily: V2.mono,
-                      fontSize: 8,
-                      fontWeight: 500,
-                      letterSpacing: "0.04em",
+                      fontFamily: "'Geist', system-ui, sans-serif",
+                      fontSize: 24,
+                      fontWeight: 700,
+                      letterSpacing: "-0.01em",
                       fill: "#ffffff",
                       pointerEvents: "none",
-                      textShadow: "0 1px 1px rgba(0,0,0,0.45)",
+                      textShadow: "0 1px 2px rgba(0,0,0,0.55)",
+                      textTransform: "capitalize",
                     }}
                   >
                     {label}
