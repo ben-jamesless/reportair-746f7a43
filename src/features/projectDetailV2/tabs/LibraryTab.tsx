@@ -265,6 +265,9 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                     </SelectItem>
                   );
                 })}
+                <SelectItem value={REFERENCE}>
+                  Reference{referencePhotos.length > 0 ? ` (${referencePhotos.length})` : ""}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
