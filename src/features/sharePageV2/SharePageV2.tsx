@@ -37,6 +37,16 @@ export default function SharePageV2() {
   // Label of the specific map feature clicked (a feature is narrower than its area group).
   const [refFilterLabel, setRefFilterLabel] = useState<string | null>(null);
   const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null } | null>(null);
+  // Reader theme for the public report — remembered per browser.
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return window.localStorage.getItem("bf.share.theme") === "dark" ? "dark" : "light";
+  });
+  useEffect(() => {
+    document.documentElement.setAttribute("data-v2-theme", theme);
+    window.localStorage.setItem("bf.share.theme", theme);
+    return () => document.documentElement.removeAttribute("data-v2-theme");
+  }, [theme]);
 
   useEffect(() => {
     if (!token || !meta?.ok) return;
