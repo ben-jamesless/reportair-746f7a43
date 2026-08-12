@@ -30,6 +30,7 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetailRouter.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
+const SharePageV2 = lazy(() => import("./features/sharePageV2/SharePageV2.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
 
@@ -84,6 +85,7 @@ const App = () => (
 
                 <Route path="/settings" element={<ErrorBoundary label="page"><ProtectedRoute><Settings /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />
+                <Route path="/s2/:token" element={<ErrorBoundary label="page"><SharePageV2 /></ErrorBoundary>} />
                 <Route path="/admin" element={<ErrorBoundary label="page"><ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute></ErrorBoundary>}>
                   <Route index element={<AdminSummary />} />
                   <Route path="summary" element={<AdminSummary />} />
