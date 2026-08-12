@@ -633,6 +633,31 @@ export function useProjectDetail(projectId: string | undefined): ProjectDetailSt
     setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, album_id: albumId } : p)));
   }, []);
 
+  // ---- Reference photos ----
+  // Reference photos (pre-build / last-year shots) are kept out of every
+  // day-based surface: daily report, calendar, heatmap, day counts.
+  const bulkSetReference = useCallback(async (photoIds: string[], isReference: boolean) => {
+    if (photoIds.length === 0) return;
+    const { error } = await supabase
+      .from("photos")
+      .update({ is_reference: isReference })
+      .in("id", photoIds);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    const idSet = new Set(photoIds);
+    setPhotos((cur) => cur.map((p) => (idSet.has(p.id) ? { ...p, is_reference: isReference } : p)));
+    toast.success(
+      isReference
+        ? `Moved ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"} to Reference`
+        : `Moved ${photoIds.length} photo${photoIds.length === 1 ? "" : "s"} back to the build`
+    );
+  }, []);
+
+  const buildPhotos = useMemo(() => photos.filter((p) => !p.is_reference), [photos]);
+  const referencePhotos = useMemo(() => photos.filter((p) => !!p.is_reference), [photos]);
+
   return {
     project,
     isOwner,
