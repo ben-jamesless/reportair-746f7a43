@@ -65,34 +65,35 @@ const C = {
 };
 
 /** Normalise raw DB enum to canonical v5 keys. */
-function normaliseStatus(s: string | null | undefined): "none" | "on_track" | "requires_discussion" | "concern" | "complete" {
+function normaliseStatus(s: string | null | undefined): "none" | "in_progress" | "flagged" | "delayed" | "complete" {
   if (!s) return "none";
   const l = s.toLowerCase();
-  if (l === "no_status" || l === "none") return "none";
+  if (l === "not_started" || l === "no_status" || l === "none") return "none";
   if (l === "complete" || l === "done") return "complete";
-  if (l === "on_track" || l.includes("track")) return "on_track";
-  if (l === "requires_discussion" || l.includes("discuss")) return "requires_discussion";
-  if (l === "concern" || l === "delayed" || l.includes("delay") || l.includes("block") || l.includes("snag") || l.includes("risk") || l.includes("behind")) return "concern";
+  if (l === "in_progress" || l === "on_track" || l.includes("track") || l.includes("progress")) return "in_progress";
+  if (l === "flagged" || l === "requires_discussion" || l.includes("discuss") || l.includes("flag")) return "flagged";
+  if (l === "delayed" || l === "concern" || l.includes("delay") || l.includes("block") || l.includes("snag") || l.includes("risk") || l.includes("behind")) return "delayed";
   return "none";
 }
 
 function statusColour(s: string | null): ReturnType<typeof rgb> {
   const k = normaliseStatus(s);
   if (k === "complete") return C.GREEN;
-  if (k === "on_track") return C.BLUE;
-  if (k === "requires_discussion") return C.AMBER;
-  if (k === "concern") return C.RED;
+  if (k === "in_progress") return C.BLUE;
+  if (k === "flagged") return C.AMBER;
+  if (k === "delayed") return C.RED;
   return C.GREY;
 }
 
 function statusLabel(s: string | null): string {
   const k = normaliseStatus(s);
   return k === "none" ? "NONE"
-       : k === "on_track" ? "ON TRACK"
-       : k === "requires_discussion" ? "FLAGGED"
-       : k === "concern" ? "DELAYED"
+       : k === "in_progress" ? "IN PROGRESS"
+       : k === "flagged" ? "FLAGGED"
+       : k === "delayed" ? "DELAYED"
        : "COMPLETE";
 }
+
 
 
 /** Clip content to a rectangle, execute draw calls, then restore. */
