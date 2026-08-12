@@ -343,7 +343,7 @@ export default function SharePageV2() {
                 {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
                   <>
                     <SectionLabel className="mt-7">Unassigned photos</SectionLabel>
-                    <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))" }}>
+                    <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
                       {(photosByArea.get("__unassigned") ?? []).map((p) => (
                         <button
                           key={p.id}
