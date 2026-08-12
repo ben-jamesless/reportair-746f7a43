@@ -80,3 +80,16 @@ export const timeLabel = (iso: string | null) => {
   if (Number.isNaN(d.getTime())) return null;
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
+
+/**
+ * Client mirror of the DB function `derive_area_display_status`:
+ * explicit status wins, otherwise photos captured that day mean "in progress".
+ */
+export const deriveAreaStatus = (
+  explicit: string | null | undefined,
+  photosToday: number
+): StatusKey => {
+  const s = explicit ? normaliseStatus(explicit) : null;
+  if (s && s !== "not_started") return s;
+  return photosToday > 0 ? "in_progress" : "not_started";
+};
