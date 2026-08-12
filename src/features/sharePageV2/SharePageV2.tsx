@@ -386,9 +386,38 @@ export default function SharePageV2() {
                 {token && (
                   <>
                     <SectionLabel className="mt-7">Site map</SectionLabel>
-                    <ShareMapV2 token={token} areas={dayAreas} onAreaClick={scrollToArea} />
+                    <ShareMapV2
+                      token={token}
+                      areas={
+                        dayAreas.length > 0
+                          ? dayAreas
+                          : (meta.areas ?? []).map((a) => ({
+                              area_id: a.id,
+                              name: a.name,
+                              sort_order: a.sort_order,
+                              status: a.latest_status,
+                              notes: null,
+                            }))
+                      }
+                      onAreaClick={(areaId) => {
+                        // Before the build starts there are no area cards to jump
+                        // to — show that area's reference photos instead.
+                        if (hasBuildTimeline) {
+                          scrollToArea(areaId);
+                          return;
+                        }
+                        setRefAreaFilter(areaId);
+                        setRefExpanded(true);
+                        window.requestAnimationFrame(() =>
+                          document
+                            .getElementById("reference-photos")
+                            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        );
+                      }}
+                    />
                   </>
                 )}
+
 
                 {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
                   <>
