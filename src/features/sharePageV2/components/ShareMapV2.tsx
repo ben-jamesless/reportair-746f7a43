@@ -122,22 +122,6 @@ export function ShareMapV2({
 
   return (
     <div className="overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
-      <div
-        className="uppercase"
-        style={{
-          fontFamily: V2.mono,
-          fontSize: 9.5,
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          color: V2.muted,
-          padding: "10px 14px",
-          backgroundColor: V2.paperDim,
-          borderBottom: `1px solid ${V2.rule}`,
-        }}
-      >
-        Site map
-      </div>
-
       <div className="relative w-full" style={{ backgroundColor: V2.rule }}>
         <img
           src={imgSrc}
@@ -175,21 +159,33 @@ export function ShareMapV2({
               );
             }
 
+            const points = pts.map((p) => `${p.x},${p.y}`).join(" ");
             return (
-              <polygon
-                key={f.id}
-                points={pts.map((p) => `${p.x},${p.y}`).join(" ")}
-                fill={meta.fg}
-                fillOpacity={active ? 0.5 : 0.28}
-                stroke={active ? "#fff" : meta.fg}
-                strokeWidth={active ? 3 : 2}
-                style={{ cursor: "pointer" }}
-                onClick={() => select(f.area_id)}
-              />
+              // White halo underneath keeps small boundaries legible against
+              // busy satellite imagery; the status colour sits on top.
+              <g key={f.id} style={{ cursor: "pointer" }} onClick={() => select(f.area_id)}>
+                <polygon
+                  points={points}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeOpacity={0.9}
+                  strokeWidth={active ? 5 : 3.5}
+                  strokeLinejoin="round"
+                />
+                <polygon
+                  points={points}
+                  fill={meta.fg}
+                  fillOpacity={active ? 0.55 : 0.38}
+                  stroke={meta.fg}
+                  strokeWidth={active ? 2.5 : 1.75}
+                  strokeLinejoin="round"
+                />
+              </g>
             );
           })}
         </svg>
       </div>
+
 
       {legend.length > 0 && (
         <div
