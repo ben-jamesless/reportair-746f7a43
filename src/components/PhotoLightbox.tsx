@@ -179,7 +179,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
             </Button>
           </div>
 
-          <aside className="flex flex-col gap-4 border-l bg-card p-5 md:max-h-[80vh] md:overflow-y-auto">
+          <aside className="flex min-h-0 flex-col gap-4 border-l bg-card p-5 md:overflow-y-auto">
             <MobileSection title="Photo" defaultOpen>
               <h3 className="break-all text-sm font-semibold">{photo.file_name}</h3>
               {photo.caption && <p className="mt-2 text-sm text-foreground">{photo.caption}</p>}
