@@ -474,9 +474,6 @@ export default function SharePageV2() {
                     >
                       Reference photos
                     </span>
-                    <span style={{ fontSize: 12, color: V2.muted }}>
-                      Pre-build and previous-event shots. Not part of the build timeline.
-                    </span>
                   </span>
                   <span className="flex items-center gap-2">
                     <span style={{ fontFamily: V2.mono, fontSize: 12, color: V2.ink }}>{referencePhotos.length}</span>

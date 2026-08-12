@@ -54,7 +54,7 @@ export function Masthead({
       >
         <div
           className="mx-auto mb-1.5 flex items-center justify-center overflow-hidden"
-          style={{ width: 54, height: 54, borderRadius: 4, backgroundColor: logoUrl ? "transparent" : V2.ink }}
+          style={{ width: 72, height: 72, borderRadius: 4, backgroundColor: logoUrl ? "transparent" : V2.ink }}
         >
           {logoUrl ? (
             <img src={logoUrl} alt={org ?? project.name} className="h-full w-full object-contain" />

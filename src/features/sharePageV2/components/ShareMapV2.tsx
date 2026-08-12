@@ -236,8 +236,8 @@ export function ShareMapV2({
                     dominantBaseline="middle"
                     style={{
                       fontFamily: "'Geist', system-ui, sans-serif",
-                      fontSize: 24,
-                      fontWeight: 700,
+                      fontSize: 11,
+                      fontWeight: 600,
                       letterSpacing: "-0.01em",
                       fill: "#ffffff",
                       pointerEvents: "none",
