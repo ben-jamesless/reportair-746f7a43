@@ -15,6 +15,7 @@ export function Masthead({
   buildDay,
   buildTotal,
   logoUrl,
+  filedRange,
 }: {
   project: ShareV2Project;
   mode: ShareMode;
@@ -22,7 +23,10 @@ export function Masthead({
   buildDay: number | null;
   buildTotal: number | null;
   logoUrl: string | null;
+  /** Filed mode: "12 Jun — 4 Jul 2026" replaces "Day X / Y". */
+  filedRange?: string | null;
 }) {
+  const filed = mode === "filed";
   const org = project.client_name || project.event_type || null;
   return (
     <header
