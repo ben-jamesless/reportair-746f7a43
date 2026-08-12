@@ -20,6 +20,7 @@ import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
 import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
 
 
