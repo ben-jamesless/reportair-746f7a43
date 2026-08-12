@@ -408,7 +408,7 @@ export default function SharePageV2() {
             )}
           </div>
 
-          <aside>
+          <aside className="min-w-0">
             {isFiled ? (
               <>
                 {/* Filed rail stays clean: final area status + the build timeline.
