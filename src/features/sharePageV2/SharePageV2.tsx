@@ -335,7 +335,7 @@ export default function SharePageV2() {
           }}
         />
 
-        <div className="mt-7 grid min-w-0 gap-11 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="mt-7 grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="min-w-0">
 
             {isFiled ? (
