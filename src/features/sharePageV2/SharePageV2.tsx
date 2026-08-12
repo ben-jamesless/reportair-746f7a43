@@ -29,6 +29,22 @@ export default function SharePageV2() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
   const [refExpanded, setRefExpanded] = useState(false);
+  /** Set when a client clicks a map area before the build starts. */
+  const [refAreaFilter, setRefAreaFilter] = useState<string | null>(null);
+  const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null } | null>(null);
+
+  useEffect(() => {
+    if (!token || !meta?.ok) return;
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.rpc("share_ops_contact" as never, { _token: token } as never);
+      if (alive) setOpsContact((data as { name: string; role?: string | null } | null) ?? null);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [token, meta?.ok]);
+
 
   useEffect(() => {
     if (meta?.project?.name) document.title = `${meta.project.name} — Build report`;
