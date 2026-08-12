@@ -68,15 +68,15 @@ export function ReportFeedback({
     <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
       <div
         className="flex items-center justify-between"
-        style={{ backgroundColor: V2.ink, padding: "12px 16px" }}
+        style={{ backgroundColor: V2.band, padding: "12px 16px" }}
       >
         <span
           className="uppercase"
-          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,255,255,.65)" }}
+          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.bandFgSoft }}
         >
           Feedback
         </span>
-        <span style={{ fontFamily: V2.mono, fontSize: 12, fontWeight: 700, color: "#fff" }}>{notes.length}</span>
+        <span style={{ fontFamily: V2.mono, fontSize: 12, fontWeight: 700, color: V2.bandFg }}>{notes.length}</span>
       </div>
 
       <div style={{ backgroundColor: V2.white }}>
@@ -150,8 +150,8 @@ export function ReportFeedback({
                   fontSize: 10.5,
                   fontWeight: 700,
                   letterSpacing: "0.09em",
-                  color: "#fff",
-                  backgroundColor: !body.trim() || !name.trim() ? V2.muted : V2.ink,
+                  color: V2.bandFg,
+                  backgroundColor: !body.trim() || !name.trim() ? V2.muted : V2.band,
                   padding: "0 14px",
                 }}
               >
@@ -176,9 +176,9 @@ export function OpsContact({ contact }: { contact: { name: string; role?: string
           fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.1em",
-          color: "rgba(255,255,255,.65)",
+          color: V2.bandFgSoft,
           padding: "12px 16px",
-          backgroundColor: V2.ink,
+          backgroundColor: V2.band,
         }}
       >
         Ops contact

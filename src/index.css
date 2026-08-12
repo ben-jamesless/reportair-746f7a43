@@ -323,6 +323,9 @@
   --v2-paper: #FBF7F5;
   --v2-paper-dim: #F3EEE8;
   --v2-white: #FFFFFF;
+  --v2-band: #0F1520;
+  --v2-band-fg: #FFFFFF;
+  --v2-band-fg-soft: rgba(255,255,255,.65);
   --v2-signal-red: #FF3131;
 
   --v2-st-progress-fg: #0B43D6; --v2-st-progress-bg: #E9EEFC;
@@ -340,6 +343,9 @@
   --v2-paper: #0D1013;
   --v2-paper-dim: #171A1E;
   --v2-white: #14171C;
+  --v2-band: #232830;
+  --v2-band-fg: #F2EFE9;
+  --v2-band-fg-soft: rgba(242,239,233,.62);
   --v2-signal-red: #FF5A5A;
 
   --v2-st-progress-fg: #6D9BFF; --v2-st-progress-bg: #131C2E;
@@ -355,6 +361,7 @@
     --v2-ink: #0F1520; --v2-soft: #3C4250; --v2-muted: #85837B;
     --v2-rule: #E3DCD3; --v2-paper: #FFFFFF; --v2-paper-dim: #F3EEE8;
     --v2-white: #FFFFFF; --v2-signal-red: #FF3131;
+    --v2-band: #0F1520; --v2-band-fg: #FFFFFF; --v2-band-fg-soft: rgba(255,255,255,.65);
     --v2-st-progress-fg: #0B43D6; --v2-st-progress-bg: #E9EEFC;
     --v2-st-flagged-fg:  #B4720F; --v2-st-flagged-bg:  #FBF0DE;
     --v2-st-delayed-fg:  #A11616; --v2-st-delayed-bg:  #FBEAEA;
