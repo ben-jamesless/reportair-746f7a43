@@ -122,6 +122,14 @@ export function ShareMapV2({
     return { center, zoom, toPx };
   }, [features]);
 
+  // Area colour as configured in the ops app (per-feature colour set when the
+  // zone was drawn). Falls back to the status colour when unset.
+  const colorByArea = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const f of features ?? []) if (f.color) m.set(f.area_id, f.color);
+    return m;
+  }, [features]);
+
   const statusByArea = useMemo(() => {
     const m = new Map<string, string | null>();
     for (const a of areas) m.set(a.area_id, a.status);
@@ -164,6 +172,7 @@ export function ShareMapV2({
         >
           {features.map((f) => {
             const meta = statusMeta(statusByArea.get(f.area_id) ?? null);
+            const col = f.color || meta.fg;
             const active = highlight === f.area_id;
             const pts = featurePoints(f).map(view.toPx);
             if (pts.length === 0) return null;
@@ -176,7 +185,7 @@ export function ShareMapV2({
                   cx={p.x}
                   cy={p.y}
                   r={active ? 8 : 6}
-                  fill={meta.fg}
+                  fill={col}
                   stroke="#fff"
                   strokeWidth={2}
                   style={{ cursor: "pointer" }}
@@ -200,9 +209,9 @@ export function ShareMapV2({
                 />
                 <polygon
                   points={points}
-                  fill={meta.fg}
+                  fill={col}
                   fillOpacity={active ? 0.55 : 0.38}
-                  stroke={meta.fg}
+                  stroke={col}
                   strokeWidth={active ? 2.5 : 1.75}
                   strokeLinejoin="round"
                 />
@@ -220,6 +229,7 @@ export function ShareMapV2({
         >
           {legend.map((a) => {
             const m = statusMeta(a.status);
+            const dot = colorByArea.get(a.area_id) || m.fg;
             const active = highlight === a.area_id;
             return (
               <button
@@ -235,7 +245,7 @@ export function ShareMapV2({
                   fontWeight: 600,
                 }}
               >
-                <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: m.fg }} />
+                <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: dot }} />
                 {a.name}
               </button>
             );
