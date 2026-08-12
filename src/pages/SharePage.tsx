@@ -1377,7 +1377,24 @@ const SharePage = () => {
                 })}
               </div>
             )}
+
+            {referencePhotos.length > 0 && (
+              <section id="reference-photos" className="mt-6">
+                <div className="mb-3 px-4">
+                  <h2 className="text-base font-bold" style={{ color: NEAR_BLACK }}>Reference photos</h2>
+                  <p className="text-xs" style={{ color: MUTED }}>
+                    Pre-build and previous-event shots. Not part of the build timeline.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-3 px-4 sm:grid-cols-2">
+                  {referencePhotos.map((p) => (
+                    <ShareReferencePhoto key={p.id} token={token!} photo={p} />
+                  ))}
+                </div>
+              </section>
+            )}
           </section>
+
 
           {/* RIGHT: Latest Update + Feedback */}
           <aside className="hidden xl:block">
