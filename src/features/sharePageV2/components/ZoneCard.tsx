@@ -85,7 +85,7 @@ export function ZoneCard({
         </p>
       )}
       {photos.length > 0 && (
-        <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))" }}>
+        <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
           {photos.map((p) => (
             <PhotoCell key={p.id} token={token} photo={p} onOpen={() => onOpenPhoto(p.id)} />
           ))}
