@@ -193,9 +193,6 @@ export default function SharePageV2() {
   // No build dates set and nothing captured yet (reference photos excluded
   // server-side) → the timeline is meaningless, so hide calendar/heatmap/rail.
   const hasBuildTimeline =
-    !!project.build_start_date ||
-    !!project.build_end_date ||
-    !!project.event_date ||
     (meta.days ?? []).some((d) => d.photo_count > 0 || d.has_notes) ||
     (meta.photo_count ?? 0) > 0;
 
@@ -325,7 +322,7 @@ export default function SharePageV2() {
               </>
             ) : (
               <>
-                <StatStrip stats={stats} />
+                {hasBuildTimeline && <StatStrip stats={stats} />}
 
                 {hasBuildTimeline && (meta.areas?.length ?? 0) > 0 && (
                   <>
@@ -342,6 +339,8 @@ export default function SharePageV2() {
                   </>
                 )}
 
+                {hasBuildTimeline && (
+                  <>
                 <SectionLabel className="mt-7">Area-by-area update</SectionLabel>
                 {dayAreas.length === 0 ? (
                   <p style={{ fontSize: 13, color: V2.muted }}>No areas have been defined for this event yet.</p>
@@ -361,6 +360,8 @@ export default function SharePageV2() {
                       </div>
                     ))}
                   </div>
+                )}
+                  </>
                 )}
 
                 {token && (
@@ -485,7 +486,8 @@ export default function SharePageV2() {
                     onSelect={setActiveDate}
                   />
                 )}
-                {day && <TodayBox day={day} />}
+                {hasBuildTimeline && day && <TodayBox day={day} />}
+                {hasBuildTimeline && (
                 <AreaGlance
                   rows={dayAreas.map((a) => ({
                     id: a.area_id,
@@ -496,6 +498,7 @@ export default function SharePageV2() {
                     photos: photosByArea.get(a.area_id)?.length ?? 0,
                   }))}
                 />
+                )}
                 {/* Redundant with the build calendar heatmap on desktop. */}
                 {hasBuildTimeline && (
                   <div className="lg:hidden">
