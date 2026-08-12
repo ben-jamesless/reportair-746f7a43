@@ -549,8 +549,8 @@ export default function SharePageV2() {
           <aside className="min-w-0">
             {isFiled ? (
               <>
-                {/* Filed rail stays clean: final area status + the build timeline.
-                    Feedback archive and ops contact land in Deploy 3. */}
+                {/* Filed rail: final area status, timeline, then the archived
+                    feedback thread (read-only) and the ops contact. */}
                 <AreaGlance
                   rows={(meta.areas ?? []).map((a) => ({
                     id: a.id,
@@ -561,6 +561,10 @@ export default function SharePageV2() {
                   }))}
                 />
                 <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+                <div className="mt-7">
+                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} readOnly />
+                  <OpsContact contact={opsContact} />
+                </div>
               </>
             ) : (
               <>
@@ -593,8 +597,15 @@ export default function SharePageV2() {
                     <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                   </div>
                 )}
+                {/* Feedback + ops contact anchor the rail: the only thing in it
+                    pre-build, and the bottom block once the build is running. */}
+                <div className={hasBuildTimeline ? "mt-7" : undefined}>
+                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} />
+                  <OpsContact contact={opsContact} />
+                </div>
               </>
             )}
+
           </aside>
         </div>
 
