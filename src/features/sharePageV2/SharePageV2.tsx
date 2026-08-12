@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReportFooter } from "./components/ReportFooter";
 import { useShareV2 } from "./useShareV2";
-import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, worstStatus } from "./tokens";
+import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, timeLabel, worstStatus } from "./tokens";
 import { Masthead } from "./components/Masthead";
 import { StatusBar } from "./components/StatusBar";
 import { StatStrip } from "./components/StatStrip";
