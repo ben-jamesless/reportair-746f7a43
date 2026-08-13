@@ -49,10 +49,14 @@ export function ShareMapStatic({
   token,
   areas,
   onAreaClick,
+  focusPoint,
+  onFocusClick,
 }: {
   token: string;
   areas: ShareV2DayArea[];
   onAreaClick?: (areaId: string, featureLabel?: string) => void;
+  focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
+  onFocusClick?: (photoId: string) => void;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   // Selection is per drawn feature, not per area group: several features can
