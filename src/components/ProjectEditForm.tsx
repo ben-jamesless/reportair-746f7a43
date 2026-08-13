@@ -535,31 +535,6 @@ export const ProjectEditForm = ({
           </Select>
         </div>
 
-        {canChangeDefaultView && (
-          <div className="space-y-2 sm:col-span-2">
-            <Label>Default project view</Label>
-            <p className="text-xs text-muted-foreground">
-              Which layout opens first when this project is loaded. Owners and admins can change this.
-            </p>
-            <div className="inline-flex rounded-md border bg-background p-1" role="radiogroup" aria-label="Default project view">
-              {(["report", "gallery"] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="radio"
-                  aria-checked={defaultView === v}
-                  onClick={() => setDefaultView(v)}
-                  className={cn(
-                    "rounded px-3 py-1.5 text-xs font-medium transition-colors",
-                    defaultView === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary",
-                  )}
-                >
-                  {v === "report" ? "Report view" : "Gallery view"}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="space-y-2 sm:col-span-2">
           <Label>Accent colour</Label>
@@ -653,6 +628,30 @@ export const ProjectEditForm = ({
         )}
       </div>
 
+
+      <AlertDialog open={confirmingArchive} onOpenChange={(o) => !archiving && setConfirmingArchive(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Archive this project?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It will be hidden from your Projects page but nothing will be deleted. You can restore it at any time from the archived view.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={archiving}
+              onClick={(e) => { e.preventDefault(); confirmArchive(); }}
+            >
+              {archiving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Archive project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {extraSections && <div className="space-y-3">{extraSections}</div>}
+
       {!hideDangerZone && isOwner && (
         <div className="rounded-md border bg-card p-3">
           <div className="flex items-start gap-2">
@@ -687,28 +686,6 @@ export const ProjectEditForm = ({
         </div>
       )}
 
-      <AlertDialog open={confirmingArchive} onOpenChange={(o) => !archiving && setConfirmingArchive(o)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Archive this project?</AlertDialogTitle>
-            <AlertDialogDescription>
-              It will be hidden from your Projects page but nothing will be deleted. You can restore it at any time from the archived view.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={archiving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={archiving}
-              onClick={(e) => { e.preventDefault(); confirmArchive(); }}
-            >
-              {archiving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Archive project
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {extraSections && <div className="space-y-3">{extraSections}</div>}
 
       <div className="flex justify-end gap-2">
         {onClose && (
