@@ -308,6 +308,35 @@ export function ShareMapLive({
     }
   }, [highlight, statusByArea, features]);
 
+  // Pulsing marker for a photo located from the lightbox.
+  useEffect(() => {
+    const map = mapRef.current;
+    focusRef.current?.setMap(null);
+    focusRef.current = null;
+    if (!map || !focusPoint) return;
+    let alive = true;
+    (async () => {
+      let g: typeof google;
+      try {
+        g = await loadGoogleMaps();
+      } catch {
+        return;
+      }
+      if (!alive || mapRef.current !== map) return;
+      const FocusOverlay = makeFocusOverlay(g);
+      const pos = new g.maps.LatLng(focusPoint.lat, focusPoint.lng);
+      const ov = new FocusOverlay(pos, focusPoint.label, () => onFocusClick?.(focusPoint.photoId));
+      ov.setMap(map);
+      focusRef.current = ov;
+      map.panTo(pos);
+      if ((map.getZoom() ?? 0) < 19) map.setZoom(19);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusPoint?.photoId, focusPoint?.lat, focusPoint?.lng, mapReady]);
+
   if (!features || features.length === 0) return null;
 
   const mapped = new Set(features.map((f) => f.area_id));
