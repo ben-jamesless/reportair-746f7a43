@@ -20,6 +20,7 @@ import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
 import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { event as trackEvent } from "@/lib/analytics";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
 
@@ -44,6 +45,10 @@ export default function SharePageV2() {
   // Long events can have many areas — let readers fold whole sections away.
   const [areasOpen, setAreasOpen] = useState(true);
   const [mapOpen, setMapOpen] = useState(true);
+  // Pulsing "photo taken here" marker, set from the lightbox.
+  const [focusPoint, setFocusPoint] = useState<
+    { lat: number; lng: number; photoId: string; label?: string } | null
+  >(null);
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -188,6 +193,38 @@ export default function SharePageV2() {
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
     if (i >= 0) setLightboxIndex(i);
+  };
+
+  /** Lightbox → map: drop a pulsing marker where the photo was taken. */
+  const showOnMap = (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null }) => {
+    if (photo.gps_lat == null || photo.gps_lng == null) return;
+    setLightboxIndex(null);
+    setRefLightboxIndex(null);
+    setMapOpen(true);
+    trackEvent("share_link_photo_located", { photo_id: photo.id });
+    setFocusPoint({
+      lat: photo.gps_lat,
+      lng: photo.gps_lng,
+      photoId: photo.id,
+      label: photo.caption || timeLabel(photo.captured_at) || undefined,
+    });
+    window.requestAnimationFrame(() =>
+      document.getElementById("site-map")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
+  };
+
+  /** Map marker → lightbox: re-open the photo it came from. */
+  const openPhotoById = (photoId: string) => {
+    const i = dayPhotos.findIndex((p) => p.id === photoId);
+    if (i >= 0) {
+      setLightboxIndex(i);
+      return;
+    }
+    const r = visibleRefPhotos.findIndex((p) => p.id === photoId);
+    if (r >= 0) {
+      setRefExpanded(true);
+      setRefLightboxIndex(r);
+    }
   };
 
   const scrollToArea = (areaId: string) => {
@@ -391,7 +428,15 @@ export default function SharePageV2() {
                 {token && (
                   <>
                     <SectionLabel>Site map</SectionLabel>
-                    <ShareMapV2 token={token} areas={filedMapAreas} />
+                    <div id="site-map" style={{ scrollMarginTop: 16 }}>
+                      <ShareMapV2
+                        token={token}
+                        areas={filedMapAreas}
+                        focusPoint={focusPoint}
+                        onFocusClick={openPhotoById}
+                        onFocusClear={() => setFocusPoint(null)}
+                      />
+                    </div>
                   </>
                 )}
 
@@ -459,8 +504,12 @@ export default function SharePageV2() {
                       Site map
                     </CollapsibleSectionLabel>
                     {mapOpen && (
+                    <div id="site-map" style={{ scrollMarginTop: 16 }}>
                     <ShareMapV2
                       token={token}
+                      focusPoint={focusPoint}
+                      onFocusClick={openPhotoById}
+                      onFocusClear={() => setFocusPoint(null)}
                       areas={
                         dayAreas.length > 0
                           ? dayAreas
@@ -489,6 +538,7 @@ export default function SharePageV2() {
                         );
                       }}
                     />
+                    </div>
                     )}
                   </>
                 )}
@@ -692,6 +742,7 @@ export default function SharePageV2() {
           index={refLightboxIndex}
           onClose={() => setRefLightboxIndex(null)}
           onIndexChange={setRefLightboxIndex}
+          onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
         />
       )}
 
@@ -702,6 +753,7 @@ export default function SharePageV2() {
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onIndexChange={setLightboxIndex}
+          onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
         />
       )}
 

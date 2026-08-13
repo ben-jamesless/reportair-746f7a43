@@ -71,16 +71,80 @@ function makeLabelOverlay(g: typeof google) {
   };
 }
 
+// Pulsing dot + optional caption chip marking where a photo was taken.
+function makeFocusOverlay(g: typeof google) {
+  return class FocusOverlay extends g.maps.OverlayView {
+    private div: HTMLDivElement | null = null;
+    constructor(
+      private position: google.maps.LatLng,
+      private text: string | undefined,
+      private onClick?: () => void
+    ) {
+      super();
+    }
+    onAdd() {
+      const wrap = document.createElement("div");
+      Object.assign(wrap.style, { position: "absolute", cursor: this.onClick ? "pointer" : "default" });
+
+      const dot = document.createElement("div");
+      dot.className = "bf-photo-pin";
+      wrap.appendChild(dot);
+
+      if (this.text) {
+        const chip = document.createElement("div");
+        chip.textContent = this.text;
+        Object.assign(chip.style, {
+          position: "absolute",
+          left: "0px",
+          top: "-14px",
+          transform: "translate(-50%, -100%)",
+          whiteSpace: "nowrap",
+          backgroundColor: "rgba(20,20,20,0.9)",
+          color: "#ffffff",
+          fontFamily: "'Geist', system-ui, sans-serif",
+          fontSize: "12px",
+          fontWeight: "600",
+          lineHeight: "17px",
+          padding: "2px 8px",
+          borderRadius: "4px",
+        } as CSSStyleDeclaration);
+        wrap.appendChild(chip);
+      }
+
+      if (this.onClick) wrap.addEventListener("click", this.onClick);
+      this.div = wrap;
+      this.getPanes()?.floatPane.appendChild(wrap);
+    }
+    draw() {
+      if (!this.div) return;
+      const p = this.getProjection()?.fromLatLngToDivPixel(this.position);
+      if (!p) return;
+      this.div.style.left = `${p.x}px`;
+      this.div.style.top = `${p.y}px`;
+    }
+    onRemove() {
+      this.div?.remove();
+      this.div = null;
+    }
+  };
+}
+
 export function ShareMapLive({
   token,
   areas,
   onAreaClick,
   onFailure,
+  focusPoint,
+  onFocusClick,
+  onFocusClear,
 }: {
   token: string;
   areas: ShareV2DayArea[];
   onAreaClick?: (areaId: string, featureLabel?: string) => void;
   onFailure?: () => void;
+  focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
+  onFocusClick?: (photoId: string) => void;
+  onFocusClear?: () => void;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [highlight, setHighlight] = useState<{ featureId: string | null; areaId: string } | null>(null);
@@ -90,6 +154,10 @@ export function ShareMapLive({
   const shapesRef = useRef<Array<{ feature: MapFeature; shape: google.maps.Polygon | google.maps.Marker }>>([]);
   const overlaysRef = useRef<google.maps.OverlayView[]>([]);
   const seenRef = useRef(false);
+  const [mapReady, setMapReady] = useState(0);
+  const focusRef = useRef<google.maps.OverlayView | null>(null);
+  const onFocusClearRef = useRef<(() => void) | undefined>(undefined);
+  onFocusClearRef.current = onFocusClear;
   const selectRef = useRef<(areaId: string, featureId: string | null, label?: string) => void>(() => {});
 
   useEffect(() => {
@@ -160,6 +228,9 @@ export function ShareMapLive({
         tilt: 0,
       });
       mapRef.current = map;
+      map.addListener("click", () => onFocusClearRef.current?.());
+      setMapReady((n) => n + 1);
+
 
       const bounds = new g.maps.LatLngBounds();
       const LabelOverlay = makeLabelOverlay(g);
@@ -236,6 +307,35 @@ export function ShareMapLive({
       });
     }
   }, [highlight, statusByArea, features]);
+
+  // Pulsing marker for a photo located from the lightbox.
+  useEffect(() => {
+    const map = mapRef.current;
+    focusRef.current?.setMap(null);
+    focusRef.current = null;
+    if (!map || !focusPoint) return;
+    let alive = true;
+    (async () => {
+      let g: typeof google;
+      try {
+        g = await loadGoogleMaps();
+      } catch {
+        return;
+      }
+      if (!alive || mapRef.current !== map) return;
+      const FocusOverlay = makeFocusOverlay(g);
+      const pos = new g.maps.LatLng(focusPoint.lat, focusPoint.lng);
+      const ov = new FocusOverlay(pos, focusPoint.label, () => onFocusClick?.(focusPoint.photoId));
+      ov.setMap(map);
+      focusRef.current = ov;
+      map.panTo(pos);
+      if ((map.getZoom() ?? 0) < 19) map.setZoom(19);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusPoint?.photoId, focusPoint?.lat, focusPoint?.lng, mapReady]);
 
   if (!features || features.length === 0) return null;
 

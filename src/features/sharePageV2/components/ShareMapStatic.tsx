@@ -49,10 +49,14 @@ export function ShareMapStatic({
   token,
   areas,
   onAreaClick,
+  focusPoint,
+  onFocusClick,
 }: {
   token: string;
   areas: ShareV2DayArea[];
   onAreaClick?: (areaId: string, featureLabel?: string) => void;
+  focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
+  onFocusClick?: (photoId: string) => void;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   // Selection is per drawn feature, not per area group: several features can
@@ -340,6 +344,50 @@ export function ShareMapStatic({
               </div>
             );
           })}
+
+          {/* Pulsing marker for a photo located from the lightbox. */}
+          {focusPoint &&
+            (() => {
+              const p = view.toPx({ lat: focusPoint.lat, lng: focusPoint.lng });
+              return (
+                <div
+                  className="absolute"
+                  style={{
+                    left: `${(p.x / W) * 100}%`,
+                    top: `${(p.y / H) * 100}%`,
+                    transform: `scale(${1 / tf.s})`,
+                    transformOrigin: "center",
+                  }}
+                >
+                  <span
+                    className="bf-photo-pin"
+                    style={{ cursor: onFocusClick ? "pointer" : "default" }}
+                    onClick={() => !dragRef.current?.moved && onFocusClick?.(focusPoint.photoId)}
+                  />
+                  {focusPoint.label && (
+                    <div
+                      className="absolute whitespace-nowrap"
+                      style={{
+                        left: 0,
+                        top: -14,
+                        transform: "translate(-50%, -100%)",
+                        pointerEvents: "none",
+                        backgroundColor: "rgba(20,20,20,0.9)",
+                        color: "#fff",
+                        fontFamily: "'Geist', system-ui, sans-serif",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        lineHeight: "17px",
+                        padding: "2px 8px",
+                        borderRadius: 4,
+                      }}
+                    >
+                      {focusPoint.label}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
         </div>
 
         {/* Zoom controls */}

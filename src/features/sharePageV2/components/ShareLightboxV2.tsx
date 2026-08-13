@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
 import type { ShareV2Photo } from "../types";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
 import { V2, timeLabel } from "../tokens";
@@ -10,12 +10,15 @@ export function ShareLightboxV2({
   index,
   onClose,
   onIndexChange,
+  onShowOnMap,
 }: {
   token: string;
   photos: ShareV2Photo[];
   index: number;
   onClose: () => void;
   onIndexChange: (i: number) => void;
+  /** Present only when the share link exposes photo GPS. */
+  onShowOnMap?: (photo: ShareV2Photo) => void;
 }) {
   const photo = photos[index];
   const url = useSharePhotoUrl(token, photo?.id ?? "", "lightbox");
@@ -45,9 +48,28 @@ export function ShareLightboxV2({
           {index + 1} / {photos.length}
           {timeLabel(photo.captured_at) ? ` · ${timeLabel(photo.captured_at)}` : ""}
         </span>
-        <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-white/70 hover:text-white">
-          <X className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onShowOnMap && photo.gps_lat != null && photo.gps_lng != null && (
+            <button
+              type="button"
+              onClick={() => onShowOnMap(photo)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-white/80 hover:text-white"
+              style={{
+                border: "1px solid rgba(255,255,255,.28)",
+                fontFamily: V2.mono,
+                fontSize: 11,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+              }}
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              Show on map
+            </button>
+          )}
+          <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-white/70 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
       </div>
       <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-4 pb-6">
         {photos.length > 1 && (

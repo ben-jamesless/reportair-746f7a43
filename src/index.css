@@ -372,3 +372,32 @@
   html, body { background: #fff !important; }
   @page { margin: 12mm; }
 }
+
+/* Pulsing "photo located" marker used by the share page site map. */
+@keyframes bf-photo-pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0.85; }
+  70%  { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+.bf-photo-pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--v2-signal-red, #FF3131);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 6px rgba(0,0,0,.45);
+  transform: translate(-50%, -50%);
+}
+.bf-photo-pin::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--v2-signal-red, #FF3131);
+  opacity: 0.6;
+  animation: bf-photo-pulse 1.8s ease-out infinite;
+}
