@@ -274,11 +274,11 @@ export function SharePanel({
                     </Button>
                   </div>
                   <div className="mt-3">
-                    <Button size="sm" variant="ghost" onClick={copyPreviewUrl}>
-                      <Copy className="mr-1.5 h-4 w-4" /> Copy link for WhatsApp / email
+                    <Button size="sm" variant="ghost" onClick={copyShareMessage}>
+                      <Copy className="mr-1.5 h-4 w-4" /> Copy message for WhatsApp / email
                     </Button>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Same report, but the preview card shows the event name and its satellite map.
+                      Copies the event name plus the same link, ready to paste.
                     </p>
                   </div>
                 </section>
