@@ -65,15 +65,28 @@ export function ZoneCard({
 }) {
   const inactive = normaliseStatus(status) === "not_started" && !notes && photos.length === 0;
   const dayWord = isToday ? "today" : "this day";
+  const [open, setOpen] = useState(true);
   return (
     <article className="py-[18px]" style={{ borderTop: `1px solid ${V2.rule}`, opacity: inactive ? 0.55 : 1 }}>
-      <div className="mb-2.5 flex items-center gap-2.5">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="mb-2.5 flex w-full items-center gap-2.5 text-left"
+      >
+        <ChevronDown
+          className="h-4 w-4 shrink-0 transition-transform"
+          style={{ color: V2.muted, transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
+        />
         <h3 className="flex-1" style={{ fontSize: 15, fontWeight: 700, color: V2.ink }}>
           {name}
         </h3>
+        {photos.length > 0 && (
+          <span style={{ fontFamily: V2.mono, fontSize: 11, color: V2.muted }}>{photos.length}</span>
+        )}
         <StatusPill status={status} noUpdate={inactive} />
-      </div>
-      {notes ? (
+      </button>
+      {!open ? null : notes ? (
         <div className="mb-3" style={{ fontSize: 13.5, color: V2.soft, lineHeight: 1.65 }}>
           <RichNotes value={notes} />
         </div>
