@@ -115,7 +115,10 @@ export function DayTimeline({
 }) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
+    <div
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, marginBottom: open ? 28 : 8 }}
+    >
       <PanelHeader
         title="Build timeline"
         open={open}
