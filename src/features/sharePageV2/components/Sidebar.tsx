@@ -26,7 +26,10 @@ export function TodayBox({ day }: { day: ShareV2Day }) {
   const empty =
     !day.today_objectives && !day.today_achievements && !day.open_issues && !day.tomorrow_objectives && !day.notes;
   return (
-    <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
+    <div
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, marginBottom: open ? 28 : 8 }}
+    >
       <PanelHeader
         title="Day summary"
         open={open}
@@ -63,7 +66,10 @@ export function AreaGlance({
 }) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
+    <div
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, marginBottom: open ? 28 : 8 }}
+    >
       <PanelHeader
         title="Area status at a glance"
         open={open}
