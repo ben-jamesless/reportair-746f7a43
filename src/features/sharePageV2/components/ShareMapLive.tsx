@@ -154,6 +154,8 @@ export function ShareMapLive({
   const shapesRef = useRef<Array<{ feature: MapFeature; shape: google.maps.Polygon | google.maps.Marker }>>([]);
   const overlaysRef = useRef<google.maps.OverlayView[]>([]);
   const seenRef = useRef(false);
+  const [mapReady, setMapReady] = useState(0);
+  const focusRef = useRef<google.maps.OverlayView | null>(null);
   const selectRef = useRef<(areaId: string, featureId: string | null, label?: string) => void>(() => {});
 
   useEffect(() => {
