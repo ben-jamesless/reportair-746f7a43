@@ -139,10 +139,11 @@ export function SharePanel({
   // custom-domain and lovable.app all copy/QR to the same public URL clients use.
   const SHARE_BASE = "https://buildfolder.com";
   const shareUrl = link ? `${SHARE_BASE}/s/${link.token}` : null;
-  // Rich-unfurl variant: an edge function that serves the event name + satellite
-  // map thumbnail as Open Graph tags, then redirects visitors to the share page.
-  const previewUrl = link
-    ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-og?t=${link.token}`
+  // Message variant for chat apps: the event name in the message text, then the
+  // plain share URL (chat apps only unfurl the real page, so we never send a
+  // redirect wrapper — those render as a bare, untrusted-looking URL).
+  const shareMessage = link
+    ? `${project?.name ?? "Live build report"} — live build report\n${SHARE_BASE}/s/${link.token}`
     : null;
 
 
