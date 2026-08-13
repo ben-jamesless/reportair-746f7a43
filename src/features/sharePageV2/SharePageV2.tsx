@@ -678,19 +678,9 @@ export default function SharePageV2() {
                 </div>
               </>
             ) : (
-              <>
-                {hasBuildTimeline && (
-                  <BuildCalendar
-                    days={meta.days ?? []}
-                    phases={meta.phases ?? []}
-                    activeDate={activeDate}
-                    buildStart={project.build_start_date}
-                    buildEnd={project.build_end_date ?? project.event_date}
-                    onSelect={setActiveDate}
-                  />
-                )}
-                {hasBuildTimeline && day && <TodayBox day={day} />}
-                {hasBuildTimeline && (
+            <>
+              {hasBuildTimeline && day && <TodayBox day={day} />}
+              {hasBuildTimeline && (
                 <AreaGlance
                   rows={dayAreas.map((a) => ({
                     id: a.area_id,
@@ -701,20 +691,30 @@ export default function SharePageV2() {
                     photos: photosByArea.get(a.area_id)?.length ?? 0,
                   }))}
                 />
-                )}
-                {/* Redundant with the build calendar heatmap on desktop. */}
-                {hasBuildTimeline && (
-                  <div className="lg:hidden">
-                    <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
-                  </div>
-                )}
-                {/* Feedback + ops contact anchor the rail: the only thing in it
-                    pre-build, and the bottom block once the build is running. */}
-                <div className={hasBuildTimeline ? "mt-7" : undefined}>
-                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} />
-                  <OpsContact contact={opsContact} />
+              )}
+              {/* Redundant with the build calendar heatmap on desktop. */}
+              {hasBuildTimeline && (
+                <div className="lg:hidden">
+                  <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                 </div>
-              </>
+              )}
+              {hasBuildTimeline && (
+                <BuildCalendar
+                  days={meta.days ?? []}
+                  phases={meta.phases ?? []}
+                  activeDate={activeDate}
+                  buildStart={project.build_start_date}
+                  buildEnd={project.build_end_date ?? project.event_date}
+                  onSelect={setActiveDate}
+                />
+              )}
+              {/* Feedback + ops contact anchor the rail: the only thing in it
+                  pre-build, and the bottom block once the build is running. */}
+              <div className={hasBuildTimeline ? "mt-7" : undefined}>
+                <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} />
+                <OpsContact contact={opsContact} />
+              </div>
+            </>
             )}
 
           </aside>
