@@ -472,6 +472,11 @@ export const ProjectEditForm = ({
           <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
         </div>
 
+        {timelineSection && (
+          <div className="space-y-3 sm:col-span-2">{timelineSection}</div>
+        )}
+
+
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="edit-location">Event location</Label>
           <PlacesAutocompleteInput
