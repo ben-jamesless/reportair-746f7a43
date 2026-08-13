@@ -32,22 +32,25 @@ type PhaseRow = {
  */
 export const EventPhasesEditor = ({ projectId }: { projectId: string }) => {
   const [rows, setRows] = useState<PhaseRow[]>([]);
-  const [buildEnd, setBuildEnd] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
+  /** Keeps projects.build_end_date in sync with the last phase end date. */
+  const syncBuildEnd = async (list: PhaseRow[]) => {
+    const last = list.map((r) => r.end_date).filter(Boolean).sort().pop() ?? null;
+    await supabase.from("projects").update({ build_end_date: last }).eq("id", projectId);
+  };
+
   const load = async () => {
-    const [{ data: phases }, { data: proj }] = await Promise.all([
-      supabase
-        .from("event_phases")
-        .select("id, kind, label, start_date, end_date, sort_order")
-        .eq("project_id", projectId)
-        .order("start_date", { ascending: true }),
-      supabase.from("projects").select("build_end_date").eq("id", projectId).maybeSingle(),
-    ]);
-    setRows(((phases ?? []) as PhaseRow[]).map((p) => ({ ...p, kind: p.kind as PhaseKind })));
-    setBuildEnd((proj as { build_end_date?: string | null } | null)?.build_end_date ?? "");
+    const { data: phases } = await supabase
+      .from("event_phases")
+      .select("id, kind, label, start_date, end_date, sort_order")
+      .eq("project_id", projectId)
+      .order("start_date", { ascending: true });
+    const list = ((phases ?? []) as PhaseRow[]).map((p) => ({ ...p, kind: p.kind as PhaseKind }));
+    setRows(list);
     setLoading(false);
+    void syncBuildEnd(list);
   };
 
   useEffect(() => {
@@ -72,46 +75,31 @@ export const EventPhasesEditor = ({ projectId }: { projectId: string }) => {
   };
 
   const patch = async (id: string, changes: Partial<PhaseRow>) => {
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...changes } : r)));
+    const next = rows.map((r) => (r.id === id ? { ...r, ...changes } : r));
+    setRows(next);
     const { error } = await supabase.from("event_phases").update(changes).eq("id", id);
-    if (error) { toast.error(error.message); void load(); }
+    if (error) { toast.error(error.message); void load(); return; }
+    if (changes.end_date) void syncBuildEnd(next);
   };
 
   const remove = async (id: string) => {
-    setRows((prev) => prev.filter((r) => r.id !== id));
+    const next = rows.filter((r) => r.id !== id);
+    setRows(next);
     const { error } = await supabase.from("event_phases").delete().eq("id", id);
-    if (error) { toast.error(error.message); void load(); }
-  };
-
-  const saveBuildEnd = async (value: string) => {
-    setBuildEnd(value);
-    const { error } = await supabase
-      .from("projects")
-      .update({ build_end_date: value || null })
-      .eq("id", projectId);
-    if (error) toast.error(error.message);
+    if (error) { toast.error(error.message); void load(); return; }
+    void syncBuildEnd(next);
   };
 
   return (
-    <div className="space-y-3 border border-border p-4">
+    <div className="space-y-3">
       <div>
-        <h3 className="text-sm font-semibold">Event timeline</h3>
+        <Label className="text-sm font-semibold">Event timeline</Label>
         <p className="text-xs text-muted-foreground">
-          Phases decide what the client report shows: build progress, show day, takedown, then a filed
-          record once everything has finished.
+          Add the phases that make up this event. The build window and the client report's
+          lifecycle (live → filed) follow these dates automatically.
         </p>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="build-end" className="text-xs">Build ends</Label>
-        <Input
-          id="build-end"
-          type="date"
-          className="max-w-[200px]"
-          value={buildEnd}
-          onChange={(e) => void saveBuildEnd(e.target.value)}
-        />
-      </div>
 
       {loading ? (
         <p className="text-xs text-muted-foreground">Loading phases…</p>
