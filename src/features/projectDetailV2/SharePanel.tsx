@@ -289,6 +289,26 @@ export function SharePanel({
                   </div>
                 </section>
 
+                {/* Photo locations */}
+                <section style={{ borderTop: DASH, paddingTop: 20 }}>
+                  <BlockLabel dot="#3A6EA5">Photo locations</BlockLabel>
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Show a “Show on map” button on photos with GPS, and drop pins on the site map.
+                    </p>
+                    <Button
+                      size="sm"
+                      variant={link.show_photo_pins ? "default" : "outline"}
+                      onClick={() => togglePhotoPins(!link.show_photo_pins)}
+                      disabled={savingPins}
+                    >
+                      {savingPins ? <Loader2 className="h-4 w-4 animate-spin" /> : link.show_photo_pins ? "On" : "Off"}
+                    </Button>
+                  </div>
+                </section>
+
+
+
                 {/* Client views */}
                 {(link.view_count > 0 || link.last_accessed_at) && (
                   <section style={{ borderTop: DASH, paddingTop: 20 }}>
