@@ -218,7 +218,7 @@ export default function SharePageV2() {
       setLightboxIndex(i);
       return;
     }
-    const r = referencePhotos.findIndex((p) => p.id === photoId);
+    const r = visibleRefPhotos.findIndex((p) => p.id === photoId);
     if (r >= 0) {
       setRefExpanded(true);
       setRefLightboxIndex(r);
@@ -426,7 +426,15 @@ export default function SharePageV2() {
                 {token && (
                   <>
                     <SectionLabel>Site map</SectionLabel>
-                    <ShareMapV2 token={token} areas={filedMapAreas} />
+                    <div id="site-map" style={{ scrollMarginTop: 16 }}>
+                      <ShareMapV2
+                        token={token}
+                        areas={filedMapAreas}
+                        focusPoint={focusPoint}
+                        onFocusClick={openPhotoById}
+                        onFocusClear={() => setFocusPoint(null)}
+                      />
+                    </div>
                   </>
                 )}
 
@@ -494,8 +502,12 @@ export default function SharePageV2() {
                       Site map
                     </CollapsibleSectionLabel>
                     {mapOpen && (
+                    <div id="site-map" style={{ scrollMarginTop: 16 }}>
                     <ShareMapV2
                       token={token}
+                      focusPoint={focusPoint}
+                      onFocusClick={openPhotoById}
+                      onFocusClear={() => setFocusPoint(null)}
                       areas={
                         dayAreas.length > 0
                           ? dayAreas
@@ -524,6 +536,7 @@ export default function SharePageV2() {
                         );
                       }}
                     />
+                    </div>
                     )}
                   </>
                 )}
@@ -727,6 +740,7 @@ export default function SharePageV2() {
           index={refLightboxIndex}
           onClose={() => setRefLightboxIndex(null)}
           onIndexChange={setRefLightboxIndex}
+          onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
         />
       )}
 
@@ -737,6 +751,7 @@ export default function SharePageV2() {
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onIndexChange={setLightboxIndex}
+          onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
         />
       )}
 
