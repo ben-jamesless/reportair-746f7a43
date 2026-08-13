@@ -190,6 +190,37 @@ export default function SharePageV2() {
     if (i >= 0) setLightboxIndex(i);
   };
 
+  /** Lightbox → map: drop a pulsing marker where the photo was taken. */
+  const showOnMap = (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null }) => {
+    if (photo.gps_lat == null || photo.gps_lng == null) return;
+    setLightboxIndex(null);
+    setRefLightboxIndex(null);
+    setMapOpen(true);
+    setFocusPoint({
+      lat: photo.gps_lat,
+      lng: photo.gps_lng,
+      photoId: photo.id,
+      label: photo.caption || timeLabel(photo.captured_at) || undefined,
+    });
+    window.requestAnimationFrame(() =>
+      document.getElementById("site-map")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
+  };
+
+  /** Map marker → lightbox: re-open the photo it came from. */
+  const openPhotoById = (photoId: string) => {
+    const i = dayPhotos.findIndex((p) => p.id === photoId);
+    if (i >= 0) {
+      setLightboxIndex(i);
+      return;
+    }
+    const r = referencePhotos.findIndex((p) => p.id === photoId);
+    if (r >= 0) {
+      setRefExpanded(true);
+      setRefLightboxIndex(r);
+    }
+  };
+
   const scrollToArea = (areaId: string) => {
     // Expand the section first so the target card exists in the DOM.
     setAreasOpen(true);
