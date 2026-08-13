@@ -628,39 +628,6 @@ export const ProjectEditForm = ({
         )}
       </div>
 
-      {!hideDangerZone && isOwner && (
-        <div className="rounded-md border bg-card p-3">
-          <div className="flex items-start gap-2">
-            <Archive className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-            <div className="flex-1">
-              <p className="text-sm font-medium">Archive project</p>
-              <p className="text-xs text-muted-foreground">
-                Hide this project from your Projects page. Nothing is deleted and you can restore it at any time.
-              </p>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => setConfirmingArchive(true)}>
-              <Archive className="mr-2 h-4 w-4" /> Archive
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {!hideDangerZone && isOwner && (
-        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-destructive">Danger zone</p>
-              <p className="text-xs text-muted-foreground">
-                Permanently delete this project and all of its photos, areas, comments, and history. This cannot be undone.
-              </p>
-            </div>
-            <Button variant="destructive" size="sm" onClick={() => setConfirmingDelete(true)}>
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </Button>
-          </div>
-        </div>
-      )}
 
       <AlertDialog open={confirmingArchive} onOpenChange={(o) => !archiving && setConfirmingArchive(o)}>
         <AlertDialogContent>
