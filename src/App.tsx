@@ -84,8 +84,9 @@ const App = () => (
                 <Route path="/team" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio"]}><Team /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
 
                 <Route path="/settings" element={<ErrorBoundary label="page"><ProtectedRoute><Settings /></ProtectedRoute></ErrorBoundary>} />
-                <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />
+                <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePageV2 /></ErrorBoundary>} />
                 <Route path="/s2/:token" element={<ErrorBoundary label="page"><SharePageV2 /></ErrorBoundary>} />
+                <Route path="/s1/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />
                 <Route path="/admin" element={<ErrorBoundary label="page"><ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute></ErrorBoundary>}>
                   <Route index element={<AdminSummary />} />
                   <Route path="summary" element={<AdminSummary />} />
