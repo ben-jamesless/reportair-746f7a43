@@ -71,16 +71,80 @@ function makeLabelOverlay(g: typeof google) {
   };
 }
 
+// Pulsing dot + optional caption chip marking where a photo was taken.
+function makeFocusOverlay(g: typeof google) {
+  return class FocusOverlay extends g.maps.OverlayView {
+    private div: HTMLDivElement | null = null;
+    constructor(
+      private position: google.maps.LatLng,
+      private text: string | undefined,
+      private onClick?: () => void
+    ) {
+      super();
+    }
+    onAdd() {
+      const wrap = document.createElement("div");
+      Object.assign(wrap.style, { position: "absolute", cursor: this.onClick ? "pointer" : "default" });
+
+      const dot = document.createElement("div");
+      dot.className = "bf-photo-pin";
+      wrap.appendChild(dot);
+
+      if (this.text) {
+        const chip = document.createElement("div");
+        chip.textContent = this.text;
+        Object.assign(chip.style, {
+          position: "absolute",
+          left: "0px",
+          top: "-14px",
+          transform: "translate(-50%, -100%)",
+          whiteSpace: "nowrap",
+          backgroundColor: "rgba(20,20,20,0.9)",
+          color: "#ffffff",
+          fontFamily: "'Geist', system-ui, sans-serif",
+          fontSize: "12px",
+          fontWeight: "600",
+          lineHeight: "17px",
+          padding: "2px 8px",
+          borderRadius: "4px",
+        } as CSSStyleDeclaration);
+        wrap.appendChild(chip);
+      }
+
+      if (this.onClick) wrap.addEventListener("click", this.onClick);
+      this.div = wrap;
+      this.getPanes()?.floatPane.appendChild(wrap);
+    }
+    draw() {
+      if (!this.div) return;
+      const p = this.getProjection()?.fromLatLngToDivPixel(this.position);
+      if (!p) return;
+      this.div.style.left = `${p.x}px`;
+      this.div.style.top = `${p.y}px`;
+    }
+    onRemove() {
+      this.div?.remove();
+      this.div = null;
+    }
+  };
+}
+
 export function ShareMapLive({
   token,
   areas,
   onAreaClick,
   onFailure,
+  focusPoint,
+  onFocusClick,
+  onFocusClear,
 }: {
   token: string;
   areas: ShareV2DayArea[];
   onAreaClick?: (areaId: string, featureLabel?: string) => void;
   onFailure?: () => void;
+  focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
+  onFocusClick?: (photoId: string) => void;
+  onFocusClear?: () => void;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [highlight, setHighlight] = useState<{ featureId: string | null; areaId: string } | null>(null);
