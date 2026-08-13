@@ -23,10 +23,10 @@ export function Masthead({
   const org = project.client_name || project.event_type || null;
   return (
     <header
-      className="grid items-end gap-4 py-6 md:grid-cols-[1fr_auto_1fr]"
+      className="grid items-center gap-4 py-6 md:grid-cols-[1fr_auto_1fr]"
       style={{ borderBottom: `2px solid ${V2.ink}` }}
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col justify-center gap-1">
         <h1
           className="uppercase"
           style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.15, color: V2.ink }}
@@ -34,6 +34,7 @@ export function Masthead({
           {project.name}
         </h1>
       </div>
+
 
       <div
         className="hidden text-center md:block"

@@ -36,36 +36,37 @@ export function ReportFooter({
 
 
   return (
-    <footer className="mt-14" style={{ borderTop: `2px solid ${V2.ink}`, paddingTop: 14 }}>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <div
-          className="uppercase"
-          style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
-        >
-          {mode === "filed" ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}` : ""}
+    <footer className="mt-14" style={{ borderTop: `2px solid ${V2.ink}`, paddingTop: 10 }}>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1.5">
+        <div className="flex items-center gap-3">
+          {!hideBranding && (
+            <div className="flex items-center gap-1.5" style={{ fontSize: 11.5, color: V2.muted }}>
+              <span>Delivered by</span>
+              <a
+                href="https://buildfolder.com"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5"
+                style={{ color: V2.ink, fontWeight: 700 }}
+              >
+                <img src="/brand-mark.svg" alt="" style={{ width: 14, height: 14, display: "block" }} />
+                BuildFolder
+              </a>
+            </div>
+          )}
+          {mode === "filed" && (
+            <div
+              className="uppercase"
+              style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
+            >
+              {`Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}`}
+            </div>
+          )}
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
-          {mode === "filed"
-            ? `Generated ${DATE_LONG.format(stamp)}`
-            : `Report day: ${todayLong}`}
+          {mode === "filed" ? `Generated ${DATE_LONG.format(stamp)}` : `Report day: ${todayLong}`}
         </div>
       </div>
-
-      {!hideBranding && (
-        <div className="mt-3 flex items-center gap-1.5" style={{ fontSize: 11.5, color: V2.muted }}>
-          <span>Delivered by</span>
-          <a
-            href="https://buildfolder.com"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5"
-            style={{ color: V2.ink, fontWeight: 700 }}
-          >
-            <img src="/brand-mark.svg" alt="" style={{ width: 14, height: 14, display: "block" }} />
-            BuildFolder
-          </a>
-        </div>
-      )}
     </footer>
   );
 }
