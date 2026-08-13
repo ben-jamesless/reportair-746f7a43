@@ -1,12 +1,5 @@
-import { V2, DATE_LONG, parseISO } from "../tokens";
+import { V2, DATE_LONG } from "../tokens";
 import type { ShareMode, ShareV2Project } from "../types";
-
-const MODE_KICKER: Record<ShareMode, string> = {
-  build: "Build report",
-  on_show: "Event report",
-  takedown: "Takedown report",
-  filed: "Event record",
-};
 
 export function Masthead({
   project,
@@ -34,12 +27,6 @@ export function Masthead({
       style={{ borderBottom: `2px solid ${V2.ink}` }}
     >
       <div className="flex flex-col gap-1">
-        <div
-          className="uppercase"
-          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
-        >
-          {MODE_KICKER[mode]}
-        </div>
         <h1
           className="uppercase"
           style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.15, color: V2.ink }}
@@ -72,9 +59,9 @@ export function Masthead({
       </div>
 
       <div className="flex flex-col gap-1 md:items-end md:text-right">
-        {!filed && activeDate && (
+        {!filed && (
           <div style={{ fontSize: 11, fontWeight: 600, color: V2.muted, letterSpacing: "0.03em" }}>
-            {DATE_LONG.format(parseISO(activeDate))}
+            {DATE_LONG.format(new Date())}
           </div>
         )}
         {filed ? (

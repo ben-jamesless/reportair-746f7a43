@@ -1,13 +1,6 @@
 import { V2, DATE_LONG } from "../tokens";
 import type { ShareMode } from "../types";
 
-const MODE_WORD: Record<ShareMode, string> = {
-  build: "build report",
-  on_show: "event report",
-  takedown: "takedown report",
-  filed: "event record",
-};
-
 /** Terminates the artifact: closing rule, provenance line, delivery lockup. */
 export function ReportFooter({
   projectName,
@@ -31,14 +24,12 @@ export function ReportFooter({
   hideBranding: boolean;
 }) {
   const stamp = generatedAt ? new Date(generatedAt) : new Date();
-  const branded = teamName && ["crew", "pro", "team", "studio"].includes(teamPlan);
-  const dayStamp = reportDate ? new Date(`${reportDate}T00:00:00`) : null;
-  const generatedShort = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(stamp);
-  const dayLong = dayStamp
-    ? new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "short", year: "numeric" }).format(
-        dayStamp
-      )
-    : null;
+  const todayLong = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date());
   const filedStamp = filedAt
     ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(filedAt))
     : null;
@@ -51,28 +42,17 @@ export function ReportFooter({
           className="uppercase"
           style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
         >
-          {mode === "filed"
-            ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}`
-            : `End of ${MODE_WORD[mode]} — ${projectName}`}
+          {mode === "filed" ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}` : ""}
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
           {mode === "filed"
             ? `Generated ${DATE_LONG.format(stamp)}`
-            : dayLong
-              ? `Report day: ${dayLong} · Generated ${generatedShort}`
-              : `Generated ${DATE_LONG.format(stamp)}`}
+            : `Report day: ${todayLong}`}
         </div>
       </div>
 
       {!hideBranding && (
         <div className="mt-3 flex items-center gap-1.5" style={{ fontSize: 11.5, color: V2.muted }}>
-          {branded && (
-            <>
-              <span>Prepared by</span>
-              <span style={{ color: V2.ink, fontWeight: 700 }}>{teamName}</span>
-              <span style={{ opacity: 0.4 }}>·</span>
-            </>
-          )}
           <span>Delivered by</span>
           <a
             href="https://buildfolder.com"
