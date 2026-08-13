@@ -120,12 +120,16 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               default_view={project.default_view ?? "report"}
               onSaved={onChanged}
               onClose={() => setOpen(false)}
-              extraSections={
-                <>
+              timelineSection={
+                <div className="space-y-4 border border-border p-4">
                   <EventPhasesEditor projectId={projectId} />
-                  <div className="border border-border p-4">
+                  <div className="border-t border-dashed border-border pt-4">
                     <FinaliseEventBlock projectId={projectId} />
                   </div>
+                </div>
+              }
+              extraSections={
+                <>
                   <HeicBackfillButton projectId={projectId} />
                   <BulkSetCaptureDateCard projectId={projectId} />
                 </>
