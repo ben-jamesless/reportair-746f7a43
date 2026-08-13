@@ -139,6 +139,11 @@ export function SharePanel({
   // custom-domain and lovable.app all copy/QR to the same public URL clients use.
   const SHARE_BASE = "https://buildfolder.com";
   const shareUrl = link ? `${SHARE_BASE}/s/${link.token}` : null;
+  // Rich-unfurl variant: an edge function that serves the event name + satellite
+  // map thumbnail as Open Graph tags, then redirects visitors to the share page.
+  const previewUrl = link
+    ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-og?t=${link.token}`
+    : null;
 
 
   const createLink = async () => {
@@ -162,6 +167,16 @@ export function SharePanel({
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast.success("Link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
+  const copyPreviewUrl = async () => {
+    if (!previewUrl) return;
+    try {
+      await navigator.clipboard.writeText(previewUrl);
+      toast.success("Preview link copied — unfurls with the event name and map");
     } catch {
       toast.error("Copy failed");
     }
@@ -256,6 +271,14 @@ export function SharePanel({
                         <ExternalLink className="mr-1.5 h-4 w-4" /> Open
                       </a>
                     </Button>
+                  </div>
+                  <div className="mt-3">
+                    <Button size="sm" variant="ghost" onClick={copyPreviewUrl}>
+                      <Copy className="mr-1.5 h-4 w-4" /> Copy link for WhatsApp / email
+                    </Button>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Same report, but the preview card shows the event name and its satellite map.
+                    </p>
                   </div>
                 </section>
 
