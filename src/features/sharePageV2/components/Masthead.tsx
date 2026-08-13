@@ -59,7 +59,7 @@ export function Masthead({
         )}
       </div>
 
-      <div className="flex flex-col gap-1 md:items-end md:text-right">
+      <div className="flex flex-col justify-center gap-1 md:items-end md:text-right">
         {!filed && (
           <div style={{ fontSize: 11, fontWeight: 600, color: V2.muted, letterSpacing: "0.03em" }}>
             {DATE_LONG.format(new Date())}
