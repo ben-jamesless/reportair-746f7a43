@@ -11,7 +11,7 @@ import { Masthead } from "./components/Masthead";
 import { StatusBar } from "./components/StatusBar";
 import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
-import { SectionLabel } from "./components/Primitives";
+import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
 import { AreaGlance, DayTimeline, TodayBox } from "./components/Sidebar";
 import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
