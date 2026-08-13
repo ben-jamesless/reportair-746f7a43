@@ -329,8 +329,9 @@ export function ShareMapLive({
       ov.setMap(map);
       focusRef.current = ov;
       map.panTo(pos);
-      if ((map.getZoom() ?? 0) < 19) map.setZoom(19);
+      if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
     })();
+
     return () => {
       alive = false;
     };
