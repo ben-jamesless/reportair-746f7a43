@@ -141,27 +141,33 @@ export function BuildHeatmap({
     >
       <div className="overflow-x-auto">
         <div style={{ minWidth: nameWidth + dates.length * colWidth + 8, padding: 10 }}>
-          {/* Phase band */}
+          {/* Phase band — solid, labelled sections across the day axis */}
           {definedPhases.length > 0 ? (
             <div className="flex" style={{ marginLeft: nameWidth, marginBottom: 4 }}>
-              {segments.map((s, i) => (
-                <div key={i} style={{ width: s.span * colWidth, paddingRight: 2 }}>
+              {segments.map((s, i) => {
+                const tone = s.kind ? PHASE_TONE[s.kind] ?? V2.muted : null;
+                return (
                   <div
-                    className="truncate uppercase"
+                    key={i}
+                    className="truncate text-center uppercase"
                     style={{
+                      width: s.span * colWidth,
                       fontFamily: V2.mono,
                       fontSize: 8.5,
                       letterSpacing: "0.08em",
                       fontWeight: 700,
-                      color: s.kind ? PHASE_TONE[s.kind] ?? V2.muted : V2.muted,
-                      borderBottom: s.kind ? `2px solid ${PHASE_TONE[s.kind] ?? V2.muted}` : `1px dashed ${V2.rule}`,
-                      paddingBottom: 2,
+                      padding: "3px 2px",
+                      color: tone ?? V2.muted,
+                      backgroundColor: tone ? `${tone}1F` : "transparent",
+                      borderTop: tone ? `2px solid ${tone}` : `1px dashed ${V2.rule}`,
+                      borderRight: i < segments.length - 1 ? `1px solid ${V2.white}` : undefined,
                     }}
+                    title={s.label || undefined}
                   >
                     {s.label}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div
