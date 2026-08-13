@@ -99,7 +99,7 @@ export function ZoneCard({
             : `No update recorded for this area ${dayWord}.`}
         </p>
       )}
-      {photos.length > 0 && (
+      {open && photos.length > 0 && (
         <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
           {photos.map((p) => (
             <PhotoCell key={p.id} token={token} photo={p} onOpen={() => onOpenPhoto(p.id)} />
