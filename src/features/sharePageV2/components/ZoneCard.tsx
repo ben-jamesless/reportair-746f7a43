@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { RichNotes } from "@/components/RichNotes";
 import { V2, timeLabel, normaliseStatus } from "../tokens";
 import type { ShareV2Photo } from "../types";
