@@ -11,7 +11,7 @@ import { Masthead } from "./components/Masthead";
 import { StatusBar } from "./components/StatusBar";
 import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
-import { SectionLabel } from "./components/Primitives";
+import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
 import { AreaGlance, DayTimeline, TodayBox } from "./components/Sidebar";
 import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
@@ -41,6 +41,9 @@ export default function SharePageV2() {
   // Export uses the app's existing PDF export dialog when the viewer is signed
   // in (ops/team). Public visitors without an account fall back to print-to-PDF.
   const [exportOpen, setExportOpen] = useState(false);
+  // Long events can have many areas — let readers fold whole sections away.
+  const [areasOpen, setAreasOpen] = useState(true);
+  const [mapOpen, setMapOpen] = useState(true);
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -188,7 +191,11 @@ export default function SharePageV2() {
   };
 
   const scrollToArea = (areaId: string) => {
-    document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Expand the section first so the target card exists in the DOM.
+    setAreasOpen(true);
+    window.requestAnimationFrame(() =>
+      document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
   };
 
 
@@ -412,8 +419,15 @@ export default function SharePageV2() {
 
                 {hasBuildTimeline && (
                   <>
-                <SectionLabel className="mt-7">Area-by-area update</SectionLabel>
-                {dayAreas.length === 0 ? (
+                <CollapsibleSectionLabel
+                  className="mt-7"
+                  open={areasOpen}
+                  onToggle={() => setAreasOpen((v) => !v)}
+                  count={dayAreas.length}
+                >
+                  Area-by-area update
+                </CollapsibleSectionLabel>
+                {!areasOpen ? null : dayAreas.length === 0 ? (
                   <p style={{ fontSize: 13, color: V2.muted }}>No areas have been defined for this event yet.</p>
                 ) : (
                   <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
@@ -437,7 +451,14 @@ export default function SharePageV2() {
 
                 {token && (
                   <>
-                    <SectionLabel className={hasBuildTimeline ? "mt-7" : undefined}>Site map</SectionLabel>
+                    <CollapsibleSectionLabel
+                      className={hasBuildTimeline ? "mt-7" : undefined}
+                      open={mapOpen}
+                      onToggle={() => setMapOpen((v) => !v)}
+                    >
+                      Site map
+                    </CollapsibleSectionLabel>
+                    {mapOpen && (
                     <ShareMapV2
                       token={token}
                       areas={
@@ -468,6 +489,7 @@ export default function SharePageV2() {
                         );
                       }}
                     />
+                    )}
                   </>
                 )}
 
