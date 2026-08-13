@@ -1,13 +1,6 @@
 import { V2, DATE_LONG } from "../tokens";
 import type { ShareMode } from "../types";
 
-const MODE_WORD: Record<ShareMode, string> = {
-  build: "build report",
-  on_show: "event report",
-  takedown: "takedown report",
-  filed: "event record",
-};
-
 /** Terminates the artifact: closing rule, provenance line, delivery lockup. */
 export function ReportFooter({
   projectName,
@@ -31,14 +24,6 @@ export function ReportFooter({
   hideBranding: boolean;
 }) {
   const stamp = generatedAt ? new Date(generatedAt) : new Date();
-  const branded = teamName && ["crew", "pro", "team", "studio"].includes(teamPlan);
-  const dayStamp = reportDate ? new Date(`${reportDate}T00:00:00`) : null;
-  const generatedShort = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(stamp);
-  const dayLong = dayStamp
-    ? new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "short", year: "numeric" }).format(
-        dayStamp
-      )
-    : null;
   const todayLong = new Intl.DateTimeFormat("en-GB", {
     weekday: "long",
     day: "numeric",

@@ -1,12 +1,5 @@
-import { V2, DATE_LONG, parseISO } from "../tokens";
+import { V2, DATE_LONG } from "../tokens";
 import type { ShareMode, ShareV2Project } from "../types";
-
-const MODE_KICKER: Record<ShareMode, string> = {
-  build: "Build report",
-  on_show: "Event report",
-  takedown: "Takedown report",
-  filed: "Event record",
-};
 
 export function Masthead({
   project,
