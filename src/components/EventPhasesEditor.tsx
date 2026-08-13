@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
-export type PhaseKind = "build" | "on_show" | "takedown";
+export type PhaseKind = "pre_build" | "build" | "on_show" | "takedown";
 
 const KIND_LABEL: Record<PhaseKind, string> = {
+  pre_build: "Pre-build",
   build: "Build",
   on_show: "On show",
   takedown: "Takedown",
