@@ -12,6 +12,7 @@ import { HeicBackfillButton } from "./HeicBackfillButton";
 import { BulkSetCaptureDateCard } from "./BulkSetCaptureDateCard";
 import { CoverPhotoManager } from "./CoverPhotoManager";
 import { EventPhasesEditor } from "./EventPhasesEditor";
+import { FinaliseEventBlock } from "@/features/projectDetailV2/FinaliseEventBlock";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProjectStatus } from "@/lib/projectStatus";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
@@ -122,6 +123,9 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
               extraSections={
                 <>
                   <EventPhasesEditor projectId={projectId} />
+                  <div className="border border-border p-4">
+                    <FinaliseEventBlock projectId={projectId} />
+                  </div>
                   <HeicBackfillButton projectId={projectId} />
                   <BulkSetCaptureDateCard projectId={projectId} />
                 </>
