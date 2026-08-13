@@ -90,7 +90,7 @@ export function SharePanel({
     setLoading(true);
     const { data } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,show_photo_pins")
       .eq("project_id", projectId)
       .is("revoked_at", null)
       .order("created_at", { ascending: false })
