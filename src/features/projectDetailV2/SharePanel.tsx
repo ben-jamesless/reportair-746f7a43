@@ -77,7 +77,7 @@ export function SharePanel({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const { photos } = useProjectDetail(projectId);
+  const { photos, project } = useProjectDetail(projectId);
   const [link, setLink] = useState<ShareLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
