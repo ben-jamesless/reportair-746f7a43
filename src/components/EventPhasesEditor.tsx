@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export type PhaseKind = "pre_build" | "build" | "on_show" | "takedown";
@@ -115,7 +115,9 @@ export const EventPhasesEditor = ({ projectId }: { projectId: string }) => {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {(Object.keys(KIND_LABEL) as PhaseKind[]).map((k) => (
-                      <SelectItem key={k} value={k}>{KIND_LABEL[k]}</SelectItem>
+                      <SelectItem key={k} value={k} disabled={k !== r.kind && rows.some((x) => x.kind === k)}>
+                        {KIND_LABEL[k]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
