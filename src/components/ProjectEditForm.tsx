@@ -53,6 +53,8 @@ interface Props extends ProjectEditValues {
   hideDangerZone?: boolean;
   /** Optional extra content rendered just above the Save/Cancel button row. */
   extraSections?: React.ReactNode;
+  /** Rendered inline with the event date fields (timeline / lifecycle controls). */
+  timelineSection?: React.ReactNode;
 }
 
 const toIsoDate = (d: Date | undefined): string | null => {
@@ -86,6 +88,7 @@ export const ProjectEditForm = ({
   onClose,
   hideDangerZone,
   extraSections,
+  timelineSection,
 }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -471,6 +474,11 @@ export const ProjectEditForm = ({
           </div>
           <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
         </div>
+
+        {timelineSection && (
+          <div className="space-y-3 sm:col-span-2">{timelineSection}</div>
+        )}
+
 
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="edit-location">Event location</Label>
