@@ -13,6 +13,7 @@ import {
 import type { ShareV2AreaMeta, ShareV2GridCell, ShareV2Phase } from "../types";
 
 const PHASE_TONE: Record<string, string> = {
+  pre_build: "#6B4FA8",
   build: "#0B43D6",
   on_show: "#178A4C",
   takedown: "#B4720F",
