@@ -125,25 +125,10 @@ export function FinaliseEventBlock({ projectId }: { projectId: string }) {
           <p className="mb-3 text-xs text-muted-foreground">
             Filing closes the live report and switches the client link to a retrospective event record. Reversible.
           </p>
-          <Textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            rows={4}
-            placeholder="Event summary — a short paragraph for the client record (required)"
-            className="mb-2 text-sm"
-          />
-          <Button
-            size="sm"
-            className="w-full"
-            disabled={saving || summary.trim().length < 10}
-            onClick={() => setConfirmOpen(true)}
-          >
+          <Button size="sm" className="w-full" disabled={saving} onClick={() => setConfirmOpen(true)}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Archive className="mr-2 h-4 w-4" />}
             Finalise event
           </Button>
-          {summary.trim().length < 10 && (
-            <p className="mt-2 text-xs text-muted-foreground">Add an event summary to enable filing.</p>
-          )}
         </>
       )}
 

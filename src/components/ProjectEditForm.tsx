@@ -404,6 +404,7 @@ export const ProjectEditForm = ({
           <Input id="edit-event-type" value={eventType} onChange={(e) => setEventType(e.target.value)} placeholder="e.g. Conference, Wedding" />
         </div>
 
+        {!timelineSection && (
         <div className="space-y-2">
           <Label>Event date</Label>
           <div className="flex gap-2">
@@ -438,7 +439,9 @@ export const ProjectEditForm = ({
             )}
           </div>
         </div>
+        )}
 
+        {!timelineSection && (
         <div className="space-y-2">
           <Label>Build start date</Label>
           <div className="flex gap-2">
@@ -474,6 +477,8 @@ export const ProjectEditForm = ({
           </div>
           <p className="text-xs text-muted-foreground">Day 1 of build for "Build Day N" labels in reports.</p>
         </div>
+        )}
+
 
         {timelineSection && (
           <div className="space-y-3 sm:col-span-2">{timelineSection}</div>
