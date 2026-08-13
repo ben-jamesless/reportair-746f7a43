@@ -191,7 +191,11 @@ export default function SharePageV2() {
   };
 
   const scrollToArea = (areaId: string) => {
-    document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Expand the section first so the target card exists in the DOM.
+    setAreasOpen(true);
+    window.requestAnimationFrame(() =>
+      document.getElementById(`area-${areaId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
   };
 
 
