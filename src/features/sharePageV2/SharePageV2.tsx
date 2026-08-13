@@ -447,7 +447,14 @@ export default function SharePageV2() {
 
                 {token && (
                   <>
-                    <SectionLabel className={hasBuildTimeline ? "mt-7" : undefined}>Site map</SectionLabel>
+                    <CollapsibleSectionLabel
+                      className={hasBuildTimeline ? "mt-7" : undefined}
+                      open={mapOpen}
+                      onToggle={() => setMapOpen((v) => !v)}
+                    >
+                      Site map
+                    </CollapsibleSectionLabel>
+                    {mapOpen && (
                     <ShareMapV2
                       token={token}
                       areas={
