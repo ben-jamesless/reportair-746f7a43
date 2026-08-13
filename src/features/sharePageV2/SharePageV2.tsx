@@ -41,6 +41,9 @@ export default function SharePageV2() {
   // Export uses the app's existing PDF export dialog when the viewer is signed
   // in (ops/team). Public visitors without an account fall back to print-to-PDF.
   const [exportOpen, setExportOpen] = useState(false);
+  // Long events can have many areas — let readers fold whole sections away.
+  const [areasOpen, setAreasOpen] = useState(true);
+  const [mapOpen, setMapOpen] = useState(true);
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
