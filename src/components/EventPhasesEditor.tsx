@@ -141,11 +141,24 @@ export const EventPhasesEditor = ({ projectId }: { projectId: string }) => {
       )}
 
       <div className="flex flex-wrap gap-2">
-        {(Object.keys(KIND_LABEL) as PhaseKind[]).map((k) => (
-          <Button key={k} type="button" variant="outline" size="sm" disabled={busy} onClick={() => void addPhase(k)}>
-            <Plus className="mr-1 h-3.5 w-3.5" /> {KIND_LABEL[k]}
-          </Button>
-        ))}
+        {(Object.keys(KIND_LABEL) as PhaseKind[]).map((k) => {
+          const used = rows.some((r) => r.kind === k);
+          return (
+            <Button
+              key={k}
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={busy || used}
+              onClick={() => void addPhase(k)}
+              title={used ? `${KIND_LABEL[k]} already added` : undefined}
+            >
+              {used ? <Check className="mr-1 h-3.5 w-3.5" /> : <Plus className="mr-1 h-3.5 w-3.5" />}
+              {KIND_LABEL[k]}
+              {used && <span className="ml-1 text-[11px] text-muted-foreground">added</span>}
+            </Button>
+          );
+        })}
       </div>
     </div>
   );
