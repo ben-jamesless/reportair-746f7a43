@@ -172,6 +172,16 @@ export function SharePanel({
     }
   };
 
+  const copyPreviewUrl = async () => {
+    if (!previewUrl) return;
+    try {
+      await navigator.clipboard.writeText(previewUrl);
+      toast.success("Preview link copied — unfurls with the event name and map");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
   const revokeLink = async () => {
     if (!link) return;
     setConfirmRevoke(false);
