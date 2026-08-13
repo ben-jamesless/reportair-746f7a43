@@ -139,6 +139,11 @@ export function SharePanel({
   // custom-domain and lovable.app all copy/QR to the same public URL clients use.
   const SHARE_BASE = "https://buildfolder.com";
   const shareUrl = link ? `${SHARE_BASE}/s/${link.token}` : null;
+  // Rich-unfurl variant: an edge function that serves the event name + satellite
+  // map thumbnail as Open Graph tags, then redirects visitors to the share page.
+  const previewUrl = link
+    ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-og?t=${link.token}`
+    : null;
 
 
   const createLink = async () => {
