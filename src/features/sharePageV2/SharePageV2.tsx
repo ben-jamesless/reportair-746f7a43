@@ -20,6 +20,7 @@ import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
 import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
+import { event as trackEvent } from "@/lib/analytics";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
 
@@ -200,6 +201,7 @@ export default function SharePageV2() {
     setLightboxIndex(null);
     setRefLightboxIndex(null);
     setMapOpen(true);
+    trackEvent("share_link_photo_located", { photo_id: photo.id });
     setFocusPoint({
       lat: photo.gps_lat,
       lng: photo.gps_lng,
