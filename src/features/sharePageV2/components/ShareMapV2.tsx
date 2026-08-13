@@ -16,6 +16,10 @@ export function ShareMapV2(props: {
   token: string;
   areas: ShareV2DayArea[];
   onAreaClick?: (areaId: string, featureLabel?: string) => void;
+  /** Pulsing marker for a photo located from the lightbox. */
+  focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
+  onFocusClick?: (photoId: string) => void;
+  onFocusClear?: () => void;
 }) {
   const [mode, setMode] = useState<"pending" | "live" | "static">("pending");
 
