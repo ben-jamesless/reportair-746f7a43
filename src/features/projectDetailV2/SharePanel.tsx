@@ -47,6 +47,7 @@ type ShareLink = {
   view_count: number;
   last_accessed_at: string | null;
   created_at: string;
+  show_photo_pins: boolean;
 };
 
 function BlockLabel({ dot, children }: { dot: string; children: React.ReactNode }) {
