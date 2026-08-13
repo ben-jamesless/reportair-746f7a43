@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { V2, parseISO, statusMeta } from "../tokens";
+import { PanelHeader } from "./Primitives";
 import type { ShareV2DayMeta, ShareV2Phase } from "../types";
 
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
