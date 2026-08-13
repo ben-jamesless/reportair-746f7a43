@@ -194,6 +194,12 @@ function ShellBody({
                   <span className="hidden sm:inline">Members</span>
                 </Button>
               )}
+              {canManageMembers && (
+                <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} aria-label="Project settings">
+                  <SettingsIcon className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Button>
+              )}
               <ThemeToggleButton />
               <TabsMenu tab={tab} setTab={setTab} />
 
@@ -204,6 +210,17 @@ function ShellBody({
           {canManageMembers && (
             <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
           )}
+          {canManageMembers && project && (
+            <ProjectSettingsDialog
+              projectId={projectId}
+              project={project as any}
+              trigger={null}
+              open={settingsOpen}
+              onOpenChange={setSettingsOpen}
+              onChanged={refetch}
+            />
+          )}
+
 
           {planLimitReached && (
             <div className="mt-6">
