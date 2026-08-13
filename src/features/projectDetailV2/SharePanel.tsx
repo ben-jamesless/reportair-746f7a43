@@ -47,6 +47,7 @@ type ShareLink = {
   view_count: number;
   last_accessed_at: string | null;
   created_at: string;
+  show_photo_pins: boolean;
 };
 
 function BlockLabel({ dot, children }: { dot: string; children: React.ReactNode }) {
@@ -84,12 +85,29 @@ export function SharePanel({
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingPins, setSavingPins] = useState(false);
+
+  const togglePhotoPins = async (next: boolean) => {
+    if (!link) return;
+    setSavingPins(true);
+    const { error } = await supabase
+      .from("share_links")
+      .update({ show_photo_pins: next })
+      .eq("id", link.id);
+    setSavingPins(false);
+    if (error) {
+      toast.error("Couldn't update photo pins");
+      return;
+    }
+    setLink({ ...link, show_photo_pins: next });
+    toast.success(next ? "Photo pins on" : "Photo pins off");
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,show_photo_pins")
       .eq("project_id", projectId)
       .is("revoked_at", null)
       .order("created_at", { ascending: false })
@@ -270,6 +288,26 @@ export function SharePanel({
                     </Button>
                   </div>
                 </section>
+
+                {/* Photo locations */}
+                <section style={{ borderTop: DASH, paddingTop: 20 }}>
+                  <BlockLabel dot="#3A6EA5">Photo locations</BlockLabel>
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Show a “Show on map” button on photos with GPS, and drop pins on the site map.
+                    </p>
+                    <Button
+                      size="sm"
+                      variant={link.show_photo_pins ? "default" : "outline"}
+                      onClick={() => togglePhotoPins(!link.show_photo_pins)}
+                      disabled={savingPins}
+                    >
+                      {savingPins ? <Loader2 className="h-4 w-4 animate-spin" /> : link.show_photo_pins ? "On" : "Off"}
+                    </Button>
+                  </div>
+                </section>
+
+
 
                 {/* Client views */}
                 {(link.view_count > 0 || link.last_accessed_at) && (
