@@ -226,6 +226,9 @@ export function ShareMapLive({
         tilt: 0,
       });
       mapRef.current = map;
+      map.addListener("click", () => onFocusClearRef.current?.());
+      setMapReady((n) => n + 1);
+
 
       const bounds = new g.maps.LatLngBounds();
       const LabelOverlay = makeLabelOverlay(g);
