@@ -44,6 +44,10 @@ export default function SharePageV2() {
   // Long events can have many areas — let readers fold whole sections away.
   const [areasOpen, setAreasOpen] = useState(true);
   const [mapOpen, setMapOpen] = useState(true);
+  // Pulsing "photo taken here" marker, set from the lightbox.
+  const [focusPoint, setFocusPoint] = useState<
+    { lat: number; lng: number; photoId: string; label?: string } | null
+  >(null);
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
