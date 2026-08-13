@@ -53,6 +53,8 @@ interface Props extends ProjectEditValues {
   hideDangerZone?: boolean;
   /** Optional extra content rendered just above the Save/Cancel button row. */
   extraSections?: React.ReactNode;
+  /** Rendered inline with the event date fields (timeline / lifecycle controls). */
+  timelineSection?: React.ReactNode;
 }
 
 const toIsoDate = (d: Date | undefined): string | null => {
@@ -86,6 +88,7 @@ export const ProjectEditForm = ({
   onClose,
   hideDangerZone,
   extraSections,
+  timelineSection,
 }: Props) => {
   const navigate = useNavigate();
   const { user } = useAuth();
