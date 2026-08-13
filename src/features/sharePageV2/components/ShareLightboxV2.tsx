@@ -53,9 +53,8 @@ export function ShareLightboxV2({
             <button
               type="button"
               onClick={() => onShowOnMap(photo)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-white/80 hover:text-white"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black hover:bg-white/90"
               style={{
-                border: "1px solid rgba(255,255,255,.28)",
                 fontFamily: V2.mono,
                 fontSize: 11,
                 letterSpacing: "0.04em",
