@@ -137,10 +137,11 @@ function ShellBody({
   role: ProjectRole | null;
   crewOnly: boolean;
 }) {
-  const { areas, photos, refetch } = useProjectDetail(projectId);
+  const { areas, photos, refetch, project } = useProjectDetail(projectId);
   const areaOptions = areas.map((a) => ({ id: a.id, name: a.name }));
   const [shareOpen, setShareOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const canManageMembers = canEditProject(role);
 
   const { limits, isBillingOwner, teamName, billingOwnerName } = useProjectPlan(projectId);
