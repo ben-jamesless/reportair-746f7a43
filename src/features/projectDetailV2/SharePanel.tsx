@@ -85,6 +85,23 @@ export function SharePanel({
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [passwordDraft, setPasswordDraft] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [savingPins, setSavingPins] = useState(false);
+
+  const togglePhotoPins = async (next: boolean) => {
+    if (!link) return;
+    setSavingPins(true);
+    const { error } = await supabase
+      .from("share_links")
+      .update({ show_photo_pins: next })
+      .eq("id", link.id);
+    setSavingPins(false);
+    if (error) {
+      toast.error("Couldn't update photo pins");
+      return;
+    }
+    setLink({ ...link, show_photo_pins: next });
+    toast.success(next ? "Photo pins on" : "Photo pins off");
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
