@@ -485,6 +485,7 @@ export default function SharePageV2() {
                         );
                       }}
                     />
+                    )}
                   </>
                 )}
 
