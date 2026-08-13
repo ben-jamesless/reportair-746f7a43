@@ -69,7 +69,10 @@ export function BuildCalendar({
   const [open, setOpen] = useState(true);
 
   return (
-    <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}>
+    <div
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, marginBottom: open ? 28 : 8 }}
+    >
       <PanelHeader
         title={MONTH_LABEL.format(cursor)}
         open={open}
