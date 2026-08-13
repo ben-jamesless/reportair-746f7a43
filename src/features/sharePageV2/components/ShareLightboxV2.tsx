@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
 import type { ShareV2Photo } from "../types";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
 import { V2, timeLabel } from "../tokens";
@@ -10,12 +10,15 @@ export function ShareLightboxV2({
   index,
   onClose,
   onIndexChange,
+  onShowOnMap,
 }: {
   token: string;
   photos: ShareV2Photo[];
   index: number;
   onClose: () => void;
   onIndexChange: (i: number) => void;
+  /** Present only when the share link exposes photo GPS. */
+  onShowOnMap?: (photo: ShareV2Photo) => void;
 }) {
   const photo = photos[index];
   const url = useSharePhotoUrl(token, photo?.id ?? "", "lightbox");
