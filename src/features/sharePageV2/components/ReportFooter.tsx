@@ -39,6 +39,12 @@ export function ReportFooter({
         dayStamp
       )
     : null;
+  const todayLong = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date());
   const filedStamp = filedAt
     ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(filedAt))
     : null;
@@ -51,28 +57,17 @@ export function ReportFooter({
           className="uppercase"
           style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
         >
-          {mode === "filed"
-            ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}`
-            : `End of ${MODE_WORD[mode]} — ${projectName}`}
+          {mode === "filed" ? `Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}` : ""}
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
           {mode === "filed"
             ? `Generated ${DATE_LONG.format(stamp)}`
-            : dayLong
-              ? `Report day: ${dayLong} · Generated ${generatedShort}`
-              : `Generated ${DATE_LONG.format(stamp)}`}
+            : `Report day: ${todayLong}`}
         </div>
       </div>
 
       {!hideBranding && (
         <div className="mt-3 flex items-center gap-1.5" style={{ fontSize: 11.5, color: V2.muted }}>
-          {branded && (
-            <>
-              <span>Prepared by</span>
-              <span style={{ color: V2.ink, fontWeight: 700 }}>{teamName}</span>
-              <span style={{ opacity: 0.4 }}>·</span>
-            </>
-          )}
           <span>Delivered by</span>
           <a
             href="https://buildfolder.com"
