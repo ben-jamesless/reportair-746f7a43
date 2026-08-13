@@ -28,6 +28,7 @@ import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { useTheme } from "@/hooks/useTheme";
+import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 
 function ThemeToggleButton() {
   const { theme, toggleTheme } = useTheme();
