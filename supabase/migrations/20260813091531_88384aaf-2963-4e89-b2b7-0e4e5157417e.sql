@@ -1,0 +1,2 @@
+ALTER TABLE public.event_phases DROP CONSTRAINT IF EXISTS event_phases_kind_check;
+ALTER TABLE public.event_phases ADD CONSTRAINT event_phases_kind_check CHECK (kind = ANY (ARRAY['pre_build'::text, 'build'::text, 'on_show'::text, 'takedown'::text]));
