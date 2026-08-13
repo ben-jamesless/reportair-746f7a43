@@ -173,11 +173,11 @@ export function SharePanel({
     }
   };
 
-  const copyPreviewUrl = async () => {
-    if (!previewUrl) return;
+  const copyShareMessage = async () => {
+    if (!shareMessage) return;
     try {
-      await navigator.clipboard.writeText(previewUrl);
-      toast.success("Preview link copied — unfurls with the event name and map");
+      await navigator.clipboard.writeText(shareMessage);
+      toast.success("Message copied — paste into WhatsApp or email");
     } catch {
       toast.error("Copy failed");
     }
