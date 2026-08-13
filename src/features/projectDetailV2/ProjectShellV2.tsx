@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Sun, Moon } from "lucide-react";
+import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Sun, Moon, Settings as SettingsIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,7 @@ import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { useTheme } from "@/hooks/useTheme";
+import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 
 function ThemeToggleButton() {
   const { theme, toggleTheme } = useTheme();
@@ -137,10 +138,11 @@ function ShellBody({
   role: ProjectRole | null;
   crewOnly: boolean;
 }) {
-  const { areas, photos, refetch } = useProjectDetail(projectId);
+  const { areas, photos, refetch, project } = useProjectDetail(projectId);
   const areaOptions = areas.map((a) => ({ id: a.id, name: a.name }));
   const [shareOpen, setShareOpen] = useState(false);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const canManageMembers = canEditProject(role);
 
   const { limits, isBillingOwner, teamName, billingOwnerName } = useProjectPlan(projectId);
@@ -193,6 +195,12 @@ function ShellBody({
                   <span className="hidden sm:inline">Members</span>
                 </Button>
               )}
+              {canManageMembers && (
+                <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} aria-label="Project settings">
+                  <SettingsIcon className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Settings</span>
+                </Button>
+              )}
               <ThemeToggleButton />
               <TabsMenu tab={tab} setTab={setTab} />
 
@@ -203,6 +211,17 @@ function ShellBody({
           {canManageMembers && (
             <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
           )}
+          {canManageMembers && project && (
+            <ProjectSettingsDialog
+              projectId={projectId}
+              project={project as any}
+              trigger={null}
+              open={settingsOpen}
+              onOpenChange={setSettingsOpen}
+              onChanged={refetch}
+            />
+          )}
+
 
           {planLimitReached && (
             <div className="mt-6">
