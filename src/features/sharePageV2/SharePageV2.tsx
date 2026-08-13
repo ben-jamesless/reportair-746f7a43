@@ -415,8 +415,15 @@ export default function SharePageV2() {
 
                 {hasBuildTimeline && (
                   <>
-                <SectionLabel className="mt-7">Area-by-area update</SectionLabel>
-                {dayAreas.length === 0 ? (
+                <CollapsibleSectionLabel
+                  className="mt-7"
+                  open={areasOpen}
+                  onToggle={() => setAreasOpen((v) => !v)}
+                  count={dayAreas.length}
+                >
+                  Area-by-area update
+                </CollapsibleSectionLabel>
+                {!areasOpen ? null : dayAreas.length === 0 ? (
                   <p style={{ fontSize: 13, color: V2.muted }}>No areas have been defined for this event yet.</p>
                 ) : (
                   <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
