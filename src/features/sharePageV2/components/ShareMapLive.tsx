@@ -6,6 +6,7 @@ import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
 import { V2, statusHex, STATUS_SEVERITY, normaliseStatus } from "../tokens";
 import type { ShareV2DayArea } from "../types";
+import { StatusMapKey } from "./StatusMapKey";
 
 /**
  * Interactive (Google JS API) site map for the v2 share page.
@@ -269,11 +270,6 @@ export function ShareMapLive({
     return m;
   }, [areas]);
 
-  const colorByArea = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const f of features ?? []) if (f.color) m.set(f.area_id, f.color);
-    return m;
-  }, [features]);
 
   selectRef.current = (areaId, featureId, label) => {
     setHighlight({ featureId, areaId });
@@ -315,7 +311,7 @@ export function ShareMapLive({
         const pts = featurePoints(f);
         if (pts.length === 0) continue;
         pts.forEach((p) => bounds.extend(p));
-        const col = f.color || statusHex(statusByArea.get(f.area_id) ?? null);
+        const col = statusHex(statusByArea.get(f.area_id) ?? null);
         const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
 
         if (f.kind === "pin") {
@@ -421,7 +417,7 @@ export function ShareMapLive({
   useEffect(() => {
     for (const { feature, shape } of shapesRef.current) {
       if (!(shape instanceof google.maps.Polygon)) continue;
-      const col = feature.color || statusHex(statusByArea.get(feature.area_id) ?? null);
+      const col = statusHex(statusByArea.get(feature.area_id) ?? null);
       const active = highlight
         ? highlight.featureId
           ? highlight.featureId === feature.id
@@ -472,8 +468,6 @@ export function ShareMapLive({
 
   if (!features || features.length === 0) return null;
 
-  const mapped = new Set(features.map((f) => f.area_id));
-  const legend = areas.filter((a) => mapped.has(a.area_id));
 
   return (
     <div
@@ -514,35 +508,7 @@ export function ShareMapLive({
       </button>
 
 
-      {legend.length > 0 && (
-        <div
-          className="flex flex-wrap gap-1.5"
-          style={{ padding: "10px 12px", borderTop: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
-        >
-          {legend.map((a) => {
-            const dot = colorByArea.get(a.area_id) || statusHex(a.status);
-            const active = highlight?.areaId === a.area_id && !highlight?.featureId;
-            return (
-              <button
-                key={a.area_id}
-                type="button"
-                onClick={() => selectRef.current(a.area_id, null, a.name)}
-                className="flex items-center gap-1.5 px-2 py-1"
-                style={{
-                  border: `1px solid ${active ? V2.ink : V2.rule}`,
-                  backgroundColor: active ? V2.ink : V2.white,
-                  color: active ? "#fff" : V2.soft,
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-              >
-                <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: dot }} />
-                {a.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <StatusMapKey />
     </div>
   );
 }

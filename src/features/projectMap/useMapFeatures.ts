@@ -11,11 +11,12 @@ export interface MapFeature {
   kind: MapFeatureKind;
   geometry: any;
   label: string | null;
-  color: string | null;
+  /** Manual planning colour — ops map editor only, never sent to the share page. */
+  plan_color: string | null;
   is_primary: boolean;
 }
 
-const SELECT = "id, project_id, area_id, kind, geometry, label, color, is_primary";
+const SELECT = "id, project_id, area_id, kind, geometry, label, plan_color, is_primary";
 
 export function useMapFeatures(projectId: string) {
   const [features, setFeatures] = useState<MapFeature[]>([]);
@@ -49,7 +50,7 @@ export function useMapFeatures(projectId: string) {
       .from("area_map_features")
       .insert({
         project_id: projectId, area_id: areaId, kind, geometry,
-        color: color ?? null, created_by: user?.id,
+        plan_color: color ?? null, created_by: user?.id,
         is_primary: willBePrimary,
       })
       .select(SELECT)
@@ -106,8 +107,8 @@ export function useMapFeatures(projectId: string) {
   }, []);
 
   const updateColor = useCallback(async (id: string, color: string) => {
-    setFeatures((cur) => cur.map((f) => f.id === id ? { ...f, color } : f));
-    const { error } = await supabase.from("area_map_features").update({ color }).eq("id", id);
+    setFeatures((cur) => cur.map((f) => f.id === id ? { ...f, plan_color: color } : f));
+    const { error } = await supabase.from("area_map_features").update({ plan_color: color }).eq("id", id);
     if (error) toast.error(error.message);
   }, []);
 

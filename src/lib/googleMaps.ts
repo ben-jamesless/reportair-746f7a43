@@ -7,6 +7,8 @@
 // The share page must NOT request the Places library — it never uses it, and
 // pulling it would force its key to allow Places.
 
+import { event as trackEvent } from "@/lib/analytics";
+
 let loadPromise: Promise<typeof google> | null = null;
 let loadedSignature: string | null = null;
 
@@ -25,11 +27,20 @@ const SHARE_LIBRARIES = ["marker", "geometry"];
 function keyFor(surface: MapsSurface): string | undefined {
   const appKey = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY;
   if (surface === "share") {
-    // Falls back to the app key until the share-only key is provisioned.
-    return import.meta.env.VITE_GOOGLE_MAPS_SHARE_KEY || appKey;
+    const shareKey = import.meta.env.VITE_GOOGLE_MAPS_SHARE_KEY;
+    if (!shareKey) {
+      // Never silent: falling back means a Places-authorised key is being used
+      // on a public page, which is exactly what the key split exists to stop.
+      console.error(
+        "[maps] VITE_GOOGLE_MAPS_SHARE_KEY is not set — the public share page is falling back to the app browser key (Places-authorised)."
+      );
+      trackEvent("maps_share_key_fallback", { surface, has_app_key: Boolean(appKey) });
+    }
+    return shareKey || appKey;
   }
   return appKey;
 }
+
 
 export function loadGoogleMaps(surface: MapsSurface = "app"): Promise<typeof google> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
