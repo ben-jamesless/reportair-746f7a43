@@ -279,6 +279,8 @@ export function ShareMapLive({
         zoomControl: true,
         gestureHandling: "greedy",
         tilt: 0,
+        clickableIcons: false,
+        styles: NO_POI_STYLES,
       });
       mapRef.current = map;
       map.addListener("click", () => onFocusClearRef.current?.());
@@ -319,17 +321,40 @@ export function ShareMapLive({
             (acc, p) => ({ lat: acc.lat + p.lat / pts.length, lng: acc.lng + p.lng / pts.length }),
             { lat: 0, lng: 0 }
           );
-          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label);
+          // Bigger footprints win when labels collide — small pins hide first.
+          const lats = pts.map((p) => p.lat);
+          const lngs = pts.map((p) => p.lng);
+          const span =
+            (Math.max(...lats) - Math.min(...lats)) * (Math.max(...lngs) - Math.min(...lngs));
+          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label, f.kind === "pin" ? 0 : span);
           ov.setMap(map);
           overlaysRef.current.push(ov);
         }
       }
 
-      if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+      // Re-run de-clutter whenever the view settles (pan, zoom, resize).
+      const declutter = () => resolveLabelCollisions(overlaysRef.current as unknown as CollidableLabel[]);
+      map.addListener("idle", declutter);
+
+      // The map often mounts before its container has final width (collapsed
+      // section, sidebar reflow), which leaves the site squashed in a corner.
+      // Re-fit whenever the element resizes until the size stops changing.
+      const fit = () => {
+        if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+      };
+      fit();
+      const ro = new ResizeObserver(() => {
+        g.maps.event.trigger(map, "resize");
+        fit();
+      });
+      ro.observe(mapElRef.current);
+      resizeObsRef.current = ro;
     })();
 
     return () => {
       alive = false;
+      resizeObsRef.current?.disconnect();
+      resizeObsRef.current = null;
       shapesRef.current.forEach(({ shape }) => shape.setMap(null));
       shapesRef.current = [];
       overlaysRef.current.forEach((o) => o.setMap(null));
@@ -340,6 +365,7 @@ export function ShareMapLive({
     // updates are applied in the effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [features]);
+
 
   // Keep polygon styling in sync with status + selection.
   useEffect(() => {
