@@ -6,7 +6,7 @@
 //   - honeypot field must be empty
 //   - name + email required, email shape validated
 //   - 1,000 character cap on the body
-//   - 3 posts per hour per IP (hashed, never stored raw)
+//   - 3 posts/hour per IP+email pair, 15/hour per IP (both hashed, never raw)
 // It also sends the Resend notifications: event owner on a new root comment,
 // thread participants on a reply.
 
@@ -19,7 +19,8 @@ const corsHeaders = {
 };
 
 const MAX_BODY = 1000;
-const RATE_LIMIT = 3;
+const RATE_LIMIT_PAIR = 3;   // per IP + email pair, per hour
+const RATE_LIMIT_IP = 15;    // per IP per hour (shared office egress)
 const RATE_WINDOW_MS = 60 * 60 * 1000;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -272,7 +273,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: insertError?.message ?? "Could not save your comment." }, 400);
   }
 
-  await supabase.from("share_comment_throttle").insert({ ip_hash: ipHash, share_link_id: link.id });
+  await supabase.from("share_comment_throttle").insert({ ip_hash: ipHash, email_hash: emailHash, share_link_id: link.id });
 
   // ── Notifications ──────────────────────────────────────────────────────────
   try {
@@ -336,7 +337,14 @@ Deno.serve(async (req: Request) => {
     await Promise.all(
       Array.from(recipients)
         .filter((to) => EMAIL_RE.test(to) && !to.endsWith(".invalid"))
-        .map((to) => sendEmail(to, subject, html)),
+        .map((to) =>
+          sendEmail(supabase, to, subject, html, {
+            project_id: link.project_id,
+            comment_id: inserted.id,
+            root_id: rootId,
+            kind: parent ? "reply" : "root",
+          })
+        ),
     );
   } catch (e) {
     // Never fail the post because a notification could not be delivered.
