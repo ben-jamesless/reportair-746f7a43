@@ -568,7 +568,12 @@ export default function SharePageV2() {
                       onFocusClear={() => setFocusPoint(null)}
                       areas={
                         dayAreas.length > 0
-                          ? dayAreas
+                          ? // Same derived display status the area pills read,
+                            // so a polygon can never disagree with its pill.
+                            dayAreas.map((a) => ({
+                              ...a,
+                              status: areaStatus.get(a.area_id) ?? a.status,
+                            }))
                           : (meta.areas ?? []).map((a) => ({
                               area_id: a.id,
                               name: a.name,
@@ -577,6 +582,7 @@ export default function SharePageV2() {
                               notes: null,
                             }))
                       }
+
                       onAreaClick={(areaId, featureLabel) => {
                         // Before the build starts there are no area cards to jump
                         // to — show that area's reference photos instead.
