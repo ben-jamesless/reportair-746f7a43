@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusHex } from "../tokens";
+import { V2, statusHex, STATUS_SEVERITY, normaliseStatus } from "../tokens";
+import { resolveLabelCollisions } from "./ShareMapLive";
+
 import type { ShareV2DayArea } from "../types";
 
 /**
@@ -179,7 +181,43 @@ export function ShareMapStatic({
     view.center.lng
   }&zoom=${view.zoom}&w=${W}&h=${H}&scale=2`;
 
+  // Label de-collision, shared with the live Google map so the interactive
+  // view and this fallback (also used for print/PDF) hide the same labels.
+  // Boxes are measured in screen space: labels are counter-scaled, so their
+  // on-screen size is constant while their position follows the pan/zoom.
+  const labelCandidates = features
+    .map((f) => {
+      const pts = featurePoints(f).map(view.toPx);
+      if (pts.length === 0) return null;
+      const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+      const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+      const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+      if (!label) return null;
+      const w = label.length * 7.5 + 16;
+      const h = 22;
+      const sx = cx * tf.s + tf.x;
+      const sy = cy * tf.s + tf.y;
+      const severity = STATUS_SEVERITY[normaliseStatus(statusByArea.get(f.area_id) ?? null)];
+      return {
+        id: f.id,
+        label,
+        cx,
+        cy,
+        hidden: false,
+        severity: f.kind === "pin" ? severity - 0.5 : severity,
+        sortName: label.toLowerCase(),
+        rect: { left: sx - w / 2, top: sy - h / 2, right: sx + w / 2, bottom: sy + h / 2 },
+        setHidden(v: boolean) {
+          this.hidden = v;
+        },
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+  resolveLabelCollisions(labelCandidates);
+  const labelPlacements = labelCandidates;
+
   const mapped = new Set(features.map((f) => f.area_id));
+
   const legend = areas.filter((a) => mapped.has(a.area_id));
 
   const select = (areaId: string, featureId: string | null, label?: string) => {
