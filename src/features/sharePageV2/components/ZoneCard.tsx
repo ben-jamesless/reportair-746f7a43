@@ -101,9 +101,8 @@ export function ZoneCard({
             <span className="hidden sm:inline uppercase">Comment</span>
           </button>
         )}
-        {photos.length > 0 && (
-          <span style={{ fontFamily: V2.mono, fontSize: 11, color: V2.muted }}>{photos.length}</span>
-        )}
+        {/* Bare photo count removed — the body line already states it in words. */}
+
         <StatusPill status={status} noUpdate={inactive} />
       </div>
 
