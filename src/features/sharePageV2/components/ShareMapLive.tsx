@@ -478,7 +478,7 @@ export function ShareMapLive({
   return (
     <div
       ref={rootRef}
-      className="overflow-hidden"
+      className="relative overflow-hidden"
       style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
     >
       <div
@@ -488,6 +488,31 @@ export function ShareMapLive({
         aria-label="Interactive satellite map of the site with area boundaries"
         role="application"
       />
+
+      {/* The only path back to the whole-site framing now that resize no
+          longer re-fits the map under the reader. */}
+      <button
+        type="button"
+        onClick={() => {
+          viewportLockedRef.current = false;
+          fitRef.current?.();
+        }}
+        className="absolute left-2.5 top-2.5"
+        style={{
+          fontFamily: V2.mono,
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: V2.ink,
+          backgroundColor: "rgba(255,255,255,0.92)",
+          padding: "5px 9px",
+          borderRadius: 4,
+        }}
+      >
+        Reset view
+      </button>
+
 
       {legend.length > 0 && (
         <div
