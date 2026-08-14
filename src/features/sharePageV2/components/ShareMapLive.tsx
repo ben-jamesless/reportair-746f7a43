@@ -29,11 +29,25 @@ function featurePoints(f: MapFeature): LatLng[] {
   return (f.geometry.paths ?? []) as LatLng[];
 }
 
+// Google's own place pins fight with our area labels on a busy site, so the
+// base map is stripped back to imagery + roads only.
+const NO_POI_STYLES: google.maps.MapTypeStyle[] = [
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.business", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.attraction", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "labels", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+];
+
 // Constant-size dark chip label, anchored at the feature centroid.
 function makeLabelOverlay(g: typeof google) {
   return class LabelOverlay extends g.maps.OverlayView {
     private div: HTMLDivElement | null = null;
-    constructor(private position: google.maps.LatLng, private text: string) {
+    /** Screen-space box of the last draw, used for collision resolution. */
+    public rect: { left: number; top: number; right: number; bottom: number } | null = null;
+    public hidden = false;
+    constructor(private position: google.maps.LatLng, private text: string, public priority = 0) {
       super();
     }
     onAdd() {
@@ -53,6 +67,7 @@ function makeLabelOverlay(g: typeof google) {
         padding: "2px 8px",
         borderRadius: "4px",
         pointerEvents: "none",
+        transition: "opacity 120ms ease",
       } as CSSStyleDeclaration);
       this.div = d;
       this.getPanes()?.floatPane.appendChild(d);
@@ -63,6 +78,13 @@ function makeLabelOverlay(g: typeof google) {
       if (!p) return;
       this.div.style.left = `${p.x}px`;
       this.div.style.top = `${p.y}px`;
+      const w = this.div.offsetWidth || this.text.length * 7.5;
+      const h = this.div.offsetHeight || 22;
+      this.rect = { left: p.x - w / 2, top: p.y - h / 2, right: p.x + w / 2, bottom: p.y + h / 2 };
+    }
+    setHidden(hidden: boolean) {
+      this.hidden = hidden;
+      if (this.div) this.div.style.opacity = hidden ? "0" : "1";
     }
     onRemove() {
       this.div?.remove();
@@ -70,6 +92,37 @@ function makeLabelOverlay(g: typeof google) {
     }
   };
 }
+
+type CollidableLabel = {
+  rect: { left: number; top: number; right: number; bottom: number } | null;
+  priority: number;
+  setHidden: (hidden: boolean) => void;
+};
+
+/**
+ * Greedy label de-clutter: keep the highest-priority label in any overlapping
+ * cluster and fade the rest. Runs after every idle so it re-evaluates on zoom.
+ */
+function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
+  const kept: Array<NonNullable<CollidableLabel["rect"]>> = [];
+  const ordered = labels
+    .filter((l) => l.rect)
+    .slice()
+    .sort((a, b) => b.priority - a.priority);
+  for (const l of ordered) {
+    const r = l.rect!;
+    const clash = kept.some(
+      (k) =>
+        r.left < k.right + padding &&
+        r.right > k.left - padding &&
+        r.top < k.bottom + padding &&
+        r.bottom > k.top - padding,
+    );
+    l.setHidden(clash);
+    if (!clash) kept.push(r);
+  }
+}
+
 
 // Pulsing dot + optional caption chip marking where a photo was taken.
 function makeFocusOverlay(g: typeof google) {
