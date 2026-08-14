@@ -29,11 +29,25 @@ function featurePoints(f: MapFeature): LatLng[] {
   return (f.geometry.paths ?? []) as LatLng[];
 }
 
+// Google's own place pins fight with our area labels on a busy site, so the
+// base map is stripped back to imagery + roads only.
+const NO_POI_STYLES: google.maps.MapTypeStyle[] = [
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.business", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.attraction", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "labels", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+];
+
 // Constant-size dark chip label, anchored at the feature centroid.
 function makeLabelOverlay(g: typeof google) {
   return class LabelOverlay extends g.maps.OverlayView {
     private div: HTMLDivElement | null = null;
-    constructor(private position: google.maps.LatLng, private text: string) {
+    /** Screen-space box of the last draw, used for collision resolution. */
+    public rect: { left: number; top: number; right: number; bottom: number } | null = null;
+    public hidden = false;
+    constructor(private position: google.maps.LatLng, private text: string, public priority = 0) {
       super();
     }
     onAdd() {
@@ -53,6 +67,7 @@ function makeLabelOverlay(g: typeof google) {
         padding: "2px 8px",
         borderRadius: "4px",
         pointerEvents: "none",
+        transition: "opacity 120ms ease",
       } as CSSStyleDeclaration);
       this.div = d;
       this.getPanes()?.floatPane.appendChild(d);
@@ -63,6 +78,13 @@ function makeLabelOverlay(g: typeof google) {
       if (!p) return;
       this.div.style.left = `${p.x}px`;
       this.div.style.top = `${p.y}px`;
+      const w = this.div.offsetWidth || this.text.length * 7.5;
+      const h = this.div.offsetHeight || 22;
+      this.rect = { left: p.x - w / 2, top: p.y - h / 2, right: p.x + w / 2, bottom: p.y + h / 2 };
+    }
+    setHidden(hidden: boolean) {
+      this.hidden = hidden;
+      if (this.div) this.div.style.opacity = hidden ? "0" : "1";
     }
     onRemove() {
       this.div?.remove();
@@ -70,6 +92,37 @@ function makeLabelOverlay(g: typeof google) {
     }
   };
 }
+
+type CollidableLabel = {
+  rect: { left: number; top: number; right: number; bottom: number } | null;
+  priority: number;
+  setHidden: (hidden: boolean) => void;
+};
+
+/**
+ * Greedy label de-clutter: keep the highest-priority label in any overlapping
+ * cluster and fade the rest. Runs after every idle so it re-evaluates on zoom.
+ */
+function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
+  const kept: Array<NonNullable<CollidableLabel["rect"]>> = [];
+  const ordered = labels
+    .filter((l) => l.rect)
+    .slice()
+    .sort((a, b) => b.priority - a.priority);
+  for (const l of ordered) {
+    const r = l.rect!;
+    const clash = kept.some(
+      (k) =>
+        r.left < k.right + padding &&
+        r.right > k.left - padding &&
+        r.top < k.bottom + padding &&
+        r.bottom > k.top - padding,
+    );
+    l.setHidden(clash);
+    if (!clash) kept.push(r);
+  }
+}
+
 
 // Pulsing dot + optional caption chip marking where a photo was taken.
 function makeFocusOverlay(g: typeof google) {
@@ -153,6 +206,8 @@ export function ShareMapLive({
   const mapRef = useRef<google.maps.Map | null>(null);
   const shapesRef = useRef<Array<{ feature: MapFeature; shape: google.maps.Polygon | google.maps.Marker }>>([]);
   const overlaysRef = useRef<google.maps.OverlayView[]>([]);
+  const resizeObsRef = useRef<ResizeObserver | null>(null);
+
   const seenRef = useRef(false);
   const [mapReady, setMapReady] = useState(0);
   const focusRef = useRef<google.maps.OverlayView | null>(null);
@@ -226,6 +281,8 @@ export function ShareMapLive({
         zoomControl: true,
         gestureHandling: "greedy",
         tilt: 0,
+        clickableIcons: false,
+        styles: NO_POI_STYLES,
       });
       mapRef.current = map;
       map.addListener("click", () => onFocusClearRef.current?.());
@@ -266,17 +323,40 @@ export function ShareMapLive({
             (acc, p) => ({ lat: acc.lat + p.lat / pts.length, lng: acc.lng + p.lng / pts.length }),
             { lat: 0, lng: 0 }
           );
-          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label);
+          // Bigger footprints win when labels collide — small pins hide first.
+          const lats = pts.map((p) => p.lat);
+          const lngs = pts.map((p) => p.lng);
+          const span =
+            (Math.max(...lats) - Math.min(...lats)) * (Math.max(...lngs) - Math.min(...lngs));
+          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label, f.kind === "pin" ? 0 : span);
           ov.setMap(map);
           overlaysRef.current.push(ov);
         }
       }
 
-      if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+      // Re-run de-clutter whenever the view settles (pan, zoom, resize).
+      const declutter = () => resolveLabelCollisions(overlaysRef.current as unknown as CollidableLabel[]);
+      map.addListener("idle", declutter);
+
+      // The map often mounts before its container has final width (collapsed
+      // section, sidebar reflow), which leaves the site squashed in a corner.
+      // Re-fit whenever the element resizes until the size stops changing.
+      const fit = () => {
+        if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+      };
+      fit();
+      const ro = new ResizeObserver(() => {
+        g.maps.event.trigger(map, "resize");
+        fit();
+      });
+      ro.observe(mapElRef.current);
+      resizeObsRef.current = ro;
     })();
 
     return () => {
       alive = false;
+      resizeObsRef.current?.disconnect();
+      resizeObsRef.current = null;
       shapesRef.current.forEach(({ shape }) => shape.setMap(null));
       shapesRef.current = [];
       overlaysRef.current.forEach((o) => o.setMap(null));
@@ -287,6 +367,7 @@ export function ShareMapLive({
     // updates are applied in the effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [features]);
+
 
   // Keep polygon styling in sync with status + selection.
   useEffect(() => {

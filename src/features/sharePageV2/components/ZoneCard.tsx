@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MessageSquarePlus } from "lucide-react";
 import { RichNotes } from "@/components/RichNotes";
 import { V2, timeLabel, normaliseStatus } from "../tokens";
 import type { ShareV2Photo } from "../types";
@@ -55,6 +55,7 @@ export function ZoneCard({
   photos,
   onOpenPhoto,
   isToday = true,
+  onLeaveComment,
 }: {
   token: string;
   name: string;
@@ -64,30 +65,48 @@ export function ZoneCard({
   photos: ShareV2Photo[];
   onOpenPhoto: (photoId: string) => void;
   isToday?: boolean;
+  /** Omitted on filed reports, where feedback is read-only. */
+  onLeaveComment?: () => void;
 }) {
   const inactive = normaliseStatus(status) === "not_started" && !notes && photos.length === 0;
   const dayWord = isToday ? "today" : "this day";
   const [open, setOpen] = useState(true);
   return (
     <article className="py-[18px]" style={{ borderTop: `1px solid ${V2.rule}`, opacity: inactive ? 0.55 : 1 }}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="mb-2.5 flex w-full items-center gap-2.5 text-left"
-      >
-        <ChevronDown
-          className="h-4 w-4 shrink-0 transition-transform"
-          style={{ color: V2.muted, transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
-        />
-        <h3 className="flex-1" style={{ fontSize: 15, fontWeight: 700, color: V2.ink }}>
-          {name}
-        </h3>
+      {/* Not a single <button>: the comment action is a sibling control. */}
+      <div className="mb-2.5 flex w-full items-center gap-2.5">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+        >
+          <ChevronDown
+            className="h-4 w-4 shrink-0 transition-transform"
+            style={{ color: V2.muted, transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
+          />
+          <h3 className="min-w-0 flex-1 truncate" style={{ fontSize: 15, fontWeight: 700, color: V2.ink }}>
+            {name}
+          </h3>
+        </button>
+        {onLeaveComment && (
+          <button
+            type="button"
+            onClick={onLeaveComment}
+            className="flex shrink-0 items-center gap-1"
+            title={`Leave a comment on ${name}`}
+            style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", color: V2.muted }}
+          >
+            <MessageSquarePlus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline uppercase">Comment</span>
+          </button>
+        )}
         {photos.length > 0 && (
           <span style={{ fontFamily: V2.mono, fontSize: 11, color: V2.muted }}>{photos.length}</span>
         )}
         <StatusPill status={status} noUpdate={inactive} />
-      </button>
+      </div>
+
       {!open ? null : notes ? (
         <div className="mb-3" style={{ fontSize: 13.5, color: V2.soft, lineHeight: 1.65 }}>
           <RichNotes value={notes} />

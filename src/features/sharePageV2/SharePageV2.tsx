@@ -18,11 +18,20 @@ import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
-import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
+import { ReportFeedback, OpsContact, type CommentAnchor } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { event as trackEvent } from "@/lib/analytics";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
+
+/** "13 Aug" — used to label a comment anchor with the day it refers to. */
+function timeLabelDate(iso: string): string | null {
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+
 
 
 export default function SharePageV2() {
@@ -49,6 +58,9 @@ export default function SharePageV2() {
   const [focusPoint, setFocusPoint] = useState<
     { lat: number; lng: number; photoId: string; label?: string } | null
   >(null);
+  // Anchor handed to the feedback panel by the area-card / lightbox entry points.
+  const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
+
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -160,6 +172,8 @@ export default function SharePageV2() {
   const flaggedAreas = dayAreas.filter((a) =>
     ["flagged", "delayed"].includes(normaliseStatus(areaStatus.get(a.area_id)))
   );
+  const totalOpenIssues = openIssuesCount + flaggedAreas.length;
+
 
   // Headline status = MAX(area display status) by severity, with the stored
   // day status as a floor. Shared helper so the calendar rolls up identically.
@@ -192,15 +206,25 @@ export default function SharePageV2() {
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
-    if (i >= 0) setLightboxIndex(i);
+    if (i < 0) return;
+    trackEvent("share_link_photo_opened", {
+      photo_id: photoId,
+      area_id: dayPhotos[i].area_id ?? undefined,
+      source: "area_card",
+    });
+    setLightboxIndex(i);
   };
 
   /** Lightbox → map: drop a pulsing marker where the photo was taken. */
-  const showOnMap = (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null }) => {
+  const showOnMap = (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null; area_id?: string | null }) => {
     if (photo.gps_lat == null || photo.gps_lng == null) return;
     setLightboxIndex(null);
     setRefLightboxIndex(null);
     setMapOpen(true);
+    trackEvent("share_link_show_on_map_clicked", {
+      photo_id: photo.id,
+      area_id: photo.area_id ?? undefined,
+    });
     trackEvent("share_link_photo_located", { photo_id: photo.id });
     setFocusPoint({
       lat: photo.gps_lat,
@@ -212,6 +236,28 @@ export default function SharePageV2() {
       document.getElementById("site-map")?.scrollIntoView({ behavior: "smooth", block: "start" })
     );
   };
+
+  /** Area card / lightbox → feedback panel, with the anchor pre-filled. */
+  const leaveCommentOnArea = (areaId: string, areaName: string) => {
+    setCommentAnchor({
+      area_id: areaId,
+      day: activeDate ?? null,
+      label: [areaName, activeDate ? timeLabelDate(activeDate) : null].filter(Boolean).join(" · "),
+    });
+  };
+
+  const leaveCommentOnPhoto = (photo: { id: string; area_id: string | null; caption: string | null }) => {
+    setLightboxIndex(null);
+    setRefLightboxIndex(null);
+    const areaName = photo.area_id ? areaNameById.get(photo.area_id) ?? null : null;
+    setCommentAnchor({
+      photo_id: photo.id,
+      area_id: photo.area_id,
+      day: activeDate ?? null,
+      label: [areaName, activeDate ? timeLabelDate(activeDate) : null, "photo"].filter(Boolean).join(" · "),
+    });
+  };
+
 
   /** Map marker → lightbox: re-open the photo it came from. */
   const openPhotoById = (photoId: string) => {
@@ -373,10 +419,18 @@ export default function SharePageV2() {
     },
     {
       label: "Open issues",
-      value: String(openIssuesCount + flaggedAreas.length),
-      tone: openIssuesCount + flaggedAreas.length > 0 ? "#B4720F" : undefined,
-      sub: flaggedAreas.length ? flaggedAreas.map((a) => a.name).join(", ") : "None raised",
+      value: String(totalOpenIssues),
+      tone: totalOpenIssues > 0 ? "#B4720F" : undefined,
+      // Subtitle must describe the same number shown above it: name the flagged
+      // areas when there are any, otherwise say where the count came from.
+      sub:
+        totalOpenIssues === 0
+          ? "None raised"
+          : flaggedAreas.length > 0
+            ? flaggedAreas.map((a) => a.name).join(", ")
+            : `${totalOpenIssues} raised in the ${dayWord} report`,
     },
+
   ];
 
   return (
@@ -486,6 +540,8 @@ export default function SharePageV2() {
                           photos={photosByArea.get(a.area_id) ?? []}
                           onOpenPhoto={openPhoto}
                           isToday={isToday}
+                          onLeaveComment={() => leaveCommentOnArea(a.area_id, a.name)}
+
                         />
                       </div>
                     ))}
@@ -634,7 +690,11 @@ export default function SharePageV2() {
                         <button
                           key={p.id}
                           type="button"
-                          onClick={() => setRefLightboxIndex(i)}
+                          onClick={() => {
+                            trackEvent("share_link_photo_opened", { photo_id: p.id, source: "reference" });
+                            setRefLightboxIndex(i);
+                          }}
+
                           className="relative overflow-hidden"
                           style={{ aspectRatio: "4 / 3", backgroundColor: V2.rule }}
                         >
@@ -673,7 +733,7 @@ export default function SharePageV2() {
                 />
                 <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                 <div className="mt-7">
-                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} readOnly />
+                  <ReportFeedback token={token ?? ""} readOnly />
                   <OpsContact contact={opsContact} />
                 </div>
               </>
@@ -711,7 +771,12 @@ export default function SharePageV2() {
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}
               <div className={hasBuildTimeline ? "mt-7" : undefined}>
-                <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} />
+                <ReportFeedback
+                  token={token ?? ""}
+                  pendingAnchor={commentAnchor}
+                  onPendingAnchorHandled={() => setCommentAnchor(null)}
+                />
+
                 <OpsContact contact={opsContact} />
               </div>
             </>
@@ -743,6 +808,8 @@ export default function SharePageV2() {
           onClose={() => setRefLightboxIndex(null)}
           onIndexChange={setRefLightboxIndex}
           onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
+          onLeaveComment={isFiled ? undefined : leaveCommentOnPhoto}
+
         />
       )}
 
@@ -754,6 +821,8 @@ export default function SharePageV2() {
           onClose={() => setLightboxIndex(null)}
           onIndexChange={setLightboxIndex}
           onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
+          onLeaveComment={isFiled ? undefined : leaveCommentOnPhoto}
+
         />
       )}
 

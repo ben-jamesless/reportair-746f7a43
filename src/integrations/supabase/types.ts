@@ -559,36 +559,71 @@ export type Database = {
       }
       guest_notes: {
         Row: {
+          area_id: string | null
+          author_email: string
           body: string
           created_at: string
+          day: string | null
           guest_email: string | null
           guest_name: string
+          hidden_by_owner_at: string | null
           id: string
+          is_ops: boolean
+          parent_id: string | null
           photo_id: string | null
           project_id: string
+          resolved_at: string | null
           share_link_id: string
         }
         Insert: {
+          area_id?: string | null
+          author_email: string
           body: string
           created_at?: string
+          day?: string | null
           guest_email?: string | null
           guest_name: string
+          hidden_by_owner_at?: string | null
           id?: string
+          is_ops?: boolean
+          parent_id?: string | null
           photo_id?: string | null
           project_id: string
+          resolved_at?: string | null
           share_link_id: string
         }
         Update: {
+          area_id?: string | null
+          author_email?: string
           body?: string
           created_at?: string
+          day?: string | null
           guest_email?: string | null
           guest_name?: string
+          hidden_by_owner_at?: string | null
           id?: string
+          is_ops?: boolean
+          parent_id?: string | null
           photo_id?: string | null
           project_id?: string
+          resolved_at?: string | null
           share_link_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "guest_notes_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_notes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "guest_notes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "guest_notes_share_link_id_fkey"
             columns: ["share_link_id"]
@@ -1183,6 +1218,27 @@ export type Database = {
           },
         ]
       }
+      share_comment_throttle: {
+        Row: {
+          created_at: string
+          id: number
+          ip_hash: string
+          share_link_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          ip_hash: string
+          share_link_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          ip_hash?: string
+          share_link_id?: string | null
+        }
+        Relationships: []
+      }
       share_links: {
         Row: {
           created_at: string
@@ -1505,6 +1561,10 @@ export type Database = {
         }
         Returns: string
       }
+      add_report_comment_ops: {
+        Args: { _body: string; _parent_id: string; _token: string }
+        Returns: string
+      }
       admin_billing_summary: { Args: never; Returns: Json }
       admin_delete_team: { Args: { _team_id: string }; Returns: undefined }
       admin_list_projects: {
@@ -1801,6 +1861,22 @@ export type Database = {
           id: string
         }[]
       }
+      list_report_comments_public: {
+        Args: { _token: string }
+        Returns: {
+          area_id: string
+          area_name: string
+          body: string
+          created_at: string
+          day: string
+          guest_name: string
+          id: string
+          is_ops: boolean
+          parent_id: string
+          photo_id: string
+          resolved_at: string
+        }[]
+      }
       list_share_hidden_photos: {
         Args: { _token: string }
         Returns: {
@@ -1886,6 +1962,14 @@ export type Database = {
         Args: { _feature_id: string }
         Returns: undefined
       }
+      set_report_comment_hidden: {
+        Args: { _hidden: boolean; _id: string }
+        Returns: undefined
+      }
+      set_report_comment_resolved: {
+        Args: { _id: string; _resolved: boolean }
+        Returns: undefined
+      }
       share_area: {
         Args: { _area_id?: string; _password?: string; _token: string }
         Returns: Json
@@ -1923,6 +2007,8 @@ export type Database = {
         Returns: Json
       }
       share_ops_contact: { Args: { _token: string }; Returns: Json }
+      share_viewer_is_ops: { Args: { _token: string }; Returns: boolean }
+      share_viewer_role: { Args: { _token: string }; Returns: string }
       team_domain_matching_enabled: {
         Args: { _team_id: string }
         Returns: boolean
