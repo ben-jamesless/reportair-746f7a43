@@ -817,6 +817,8 @@ export default function SharePageV2() {
           onClose={() => setLightboxIndex(null)}
           onIndexChange={setLightboxIndex}
           onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
+          onLeaveComment={isFiled ? undefined : leaveCommentOnPhoto}
+
         />
       )}
 
