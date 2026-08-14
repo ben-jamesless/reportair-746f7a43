@@ -336,12 +336,15 @@ export function ShareMapLive({
             (acc, p) => ({ lat: acc.lat + p.lat / pts.length, lng: acc.lng + p.lng / pts.length }),
             { lat: 0, lng: 0 }
           );
-          // Bigger footprints win when labels collide — small pins hide first.
-          const lats = pts.map((p) => p.lat);
-          const lngs = pts.map((p) => p.lng);
-          const span =
-            (Math.max(...lats) - Math.min(...lats)) * (Math.max(...lngs) - Math.min(...lngs));
-          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label, f.kind === "pin" ? 0 : span);
+          // Placement order is data-driven, not geometry-driven: the worst
+          // status is the label a reader must not lose, then alphabetical.
+          const severity = STATUS_SEVERITY[normaliseStatus(statusByArea.get(f.area_id) ?? null)];
+          const ov = new LabelOverlay(
+            new g.maps.LatLng(c.lat, c.lng),
+            label,
+            f.kind === "pin" ? severity - 0.5 : severity,
+            label.toLowerCase(),
+          );
           ov.setMap(map);
           overlaysRef.current.push(ov);
         }
@@ -351,20 +354,45 @@ export function ShareMapLive({
       const declutter = () => resolveLabelCollisions(overlaysRef.current as unknown as CollidableLabel[]);
       map.addListener("idle", declutter);
 
-      // The map often mounts before its container has final width (collapsed
-      // section, sidebar reflow), which leaves the site squashed in a corner.
-      // Re-fit whenever the element resizes until the size stops changing.
+      // Fit-bounds is an *initial framing* step, not a resize handler. Once the
+      // reader has moved the map — or "Show on map" has framed a photo — the
+      // viewport is theirs: a mobile soft keyboard opening under the comment
+      // composer resizes the container, and must not yank the map back out.
       const fit = () => {
-        if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+        if (bounds.isEmpty()) return;
+        fittingRef.current = true;
+        map.fitBounds(bounds, 48);
+        g.maps.event.addListenerOnce(map, "idle", () => {
+          fittingRef.current = false;
+        });
       };
+      fitRef.current = fit;
+      boundsRef.current = bounds;
       fit();
+
+      // Any interaction that isn't our own fitBounds locks the viewport.
+      const lock = () => {
+        if (!fittingRef.current) viewportLockedRef.current = true;
+      };
+      map.addListener("dragstart", lock);
+      map.addListener("zoom_changed", lock);
+
       const ro = new ResizeObserver(() => {
+        const centre = map.getCenter();
+        const zoom = map.getZoom();
         g.maps.event.trigger(map, "resize");
-        fit();
+        if (viewportLockedRef.current) {
+          // Preserve exactly what the reader was looking at.
+          if (centre) map.setCenter(centre);
+          if (typeof zoom === "number") map.setZoom(zoom);
+        } else {
+          fit();
+        }
       });
       ro.observe(mapElRef.current);
       resizeObsRef.current = ro;
     })();
+
 
     return () => {
       alive = false;
