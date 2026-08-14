@@ -690,7 +690,11 @@ export default function SharePageV2() {
                         <button
                           key={p.id}
                           type="button"
-                          onClick={() => setRefLightboxIndex(i)}
+                          onClick={() => {
+                            trackEvent("share_link_photo_opened", { photo_id: p.id, source: "reference" });
+                            setRefLightboxIndex(i);
+                          }}
+
                           className="relative overflow-hidden"
                           style={{ aspectRatio: "4 / 3", backgroundColor: V2.rule }}
                         >
