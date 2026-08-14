@@ -68,6 +68,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   const [savingView, setSavingView] = useState(false);
   const [statusByArea, setStatusByArea] = useState<Record<string, string>>({});
   const { features, create, createZone, setPrimary, updateGeometry, remove, updateColor, updateLabel } = useMapFeatures(projectId);
+  /** Ops-only view switch. Clients always see status colours. */
+  const [colorMode, setColorMode] = useState<"status" | "plan">("status");
   const [drawingAreaId, setDrawingAreaId] = useState<string | null>(null); // null + drawingKind set → new zone
   const [drawingKind, setDrawingKind] = useState<"pin" | "polygon" | "rectangle" | null>(null);
   const [drawingMode, setDrawingMode] = useState<"attach" | "new" | null>(null);
@@ -268,6 +270,19 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
         )}
       </div>
       <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span className="hidden sm:inline">Colour by:</span>
+          {(["status", "plan"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setColorMode(m)}
+              className={`border px-2 py-1 text-xs ${colorMode === m ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground"}`}
+            >
+              {m === "status" ? "Status" : "Plan"}
+            </button>
+          ))}
+        </div>
         {canEdit && (
           <Button
             size="sm"
@@ -318,6 +333,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
               fallbackColor={color ?? undefined}
               editable={false}
               statusTintByArea={statusTintByArea}
+              colorMode={colorMode}
               fitToFeatures={!defaultView}
             />
           ) : (
@@ -460,7 +476,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                           <div className="flex flex-1 items-center gap-2 min-w-0">
                             <span
                               className="inline-block h-3 w-3 rounded-full border border-white/60 shrink-0"
-                              style={{ backgroundColor: f.color ?? "#64748B" }}
+                              style={{ backgroundColor: (colorMode === "plan" ? f.plan_color : tintForStatus(statusByArea[f.area_id])?.stroke) ?? "#64748B" }}
                             />
                             <span className="truncate">
                               {f.label?.trim() || kindLabel(f.kind)}
@@ -499,7 +515,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                                     className="w-full rounded-none border border-input bg-background px-2 py-1 text-xs"
                                   />
                                   <p className="text-[11px] text-muted-foreground">Color</p>
-                                  <ColorSwatches current={f.color} onPick={(c) => updateColor(f.id, c)} />
+                                  <ColorSwatches current={f.plan_color} onPick={(c) => updateColor(f.id, c)} />
                                   {!f.is_primary && (
                                     <Button
                                       size="sm" variant="outline" className="h-7 w-full text-xs rounded-none"
@@ -560,6 +576,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             fallbackColor={color ?? undefined}
             editable={canEdit}
             statusTintByArea={statusTintByArea}
+            colorMode={colorMode}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">

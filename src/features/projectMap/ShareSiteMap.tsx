@@ -44,12 +44,11 @@ export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Pro
     })();
   }, [token]);
 
-  // Area id -> representative color from placed features (fallback swatch if none)
+  // Which areas have geometry. Manual colours are ops-only now (plan_color)
+  // and are never sent to a share link, so the key is a neutral swatch.
   const areaColor = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const f of features ?? []) {
-      if (!m.has(f.area_id) && f.color) m.set(f.area_id, f.color);
-    }
+    const m = new Set<string>();
+    for (const f of features ?? []) m.add(f.area_id);
     return m;
   }, [features]);
 
@@ -104,7 +103,7 @@ export function ShareSiteMap({ token, areas, onAreaClick, highlightAreaId }: Pro
                 >
                   <span
                     className="inline-block h-2.5 w-2.5 rounded-full border border-white/60"
-                    style={{ backgroundColor: areaColor.get(a.id) ?? "#64748B" }}
+                    style={{ backgroundColor: "#64748B" }}
                   />
                   <span>{a.name}</span>
                 </button>

@@ -6,6 +6,7 @@ import { V2, statusHex, STATUS_SEVERITY, normaliseStatus } from "../tokens";
 import { resolveLabelCollisions } from "./ShareMapLive";
 
 import type { ShareV2DayArea } from "../types";
+import { StatusMapKey } from "./StatusMapKey";
 
 /**
  * Read-only site map for the v2 share page.
@@ -161,13 +162,6 @@ export function ShareMapStatic({
     return { center, zoom, toPx };
   }, [features]);
 
-  // Area colour as configured in the ops app (per-feature colour set when the
-  // zone was drawn). Falls back to the status colour when unset.
-  const colorByArea = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const f of features ?? []) if (f.color) m.set(f.area_id, f.color);
-    return m;
-  }, [features]);
 
   const statusByArea = useMemo(() => {
     const m = new Map<string, string | null>();
@@ -291,7 +285,7 @@ export function ShareMapStatic({
             role="presentation"
           >
             {features.map((f) => {
-              const col = f.color || statusHex(statusByArea.get(f.area_id) ?? null);
+              const col = statusHex(statusByArea.get(f.area_id) ?? null);
               const active = highlight
                 ? highlight.featureId
                   ? highlight.featureId === f.id
@@ -465,35 +459,7 @@ export function ShareMapStatic({
 
 
 
-      {legend.length > 0 && (
-        <div
-          className="flex flex-wrap gap-1.5"
-          style={{ padding: "10px 12px", borderTop: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
-        >
-          {legend.map((a) => {
-            const dot = colorByArea.get(a.area_id) || statusHex(a.status);
-            const active = highlight?.areaId === a.area_id && !highlight?.featureId;
-            return (
-              <button
-                key={a.area_id}
-                type="button"
-                onClick={() => select(a.area_id, null, a.name)}
-                className="flex items-center gap-1.5 px-2 py-1"
-                style={{
-                  border: `1px solid ${active ? V2.ink : V2.rule}`,
-                  backgroundColor: active ? V2.ink : V2.white,
-                  color: active ? "#fff" : V2.soft,
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
-              >
-                <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: dot }} />
-                {a.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <StatusMapKey />
     </div>
   );
 }

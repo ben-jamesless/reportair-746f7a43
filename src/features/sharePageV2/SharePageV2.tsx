@@ -60,6 +60,7 @@ export default function SharePageV2() {
   >(null);
   // Anchor handed to the feedback panel by the area-card / lightbox entry points.
   const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
+  const [areaCommentCounts, setAreaCommentCounts] = useState<Record<string, number>>({});
 
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -541,6 +542,7 @@ export default function SharePageV2() {
                           onOpenPhoto={openPhoto}
                           isToday={isToday}
                           onLeaveComment={() => leaveCommentOnArea(a.area_id, a.name)}
+                          commentCount={areaCommentCounts[a.area_id] ?? 0}
 
                         />
                       </div>
@@ -739,7 +741,7 @@ export default function SharePageV2() {
                 />
                 <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                 <div className="mt-7">
-                  <ReportFeedback token={token ?? ""} readOnly />
+                  <ReportFeedback token={token ?? ""} readOnly onAreaCounts={setAreaCommentCounts} />
                   <OpsContact contact={opsContact} />
                 </div>
               </>
@@ -778,6 +780,7 @@ export default function SharePageV2() {
                   pre-build, and the bottom block once the build is running. */}
               <div className={hasBuildTimeline ? "mt-7" : undefined}>
                 <ReportFeedback
+                  onAreaCounts={setAreaCommentCounts}
                   token={token ?? ""}
                   pendingAnchor={commentAnchor}
                   onPendingAnchorHandled={() => setCommentAnchor(null)}

@@ -56,6 +56,7 @@ export function ZoneCard({
   onOpenPhoto,
   isToday = true,
   onLeaveComment,
+  commentCount = 0,
 }: {
   token: string;
   name: string;
@@ -67,6 +68,8 @@ export function ZoneCard({
   isToday?: boolean;
   /** Omitted on filed reports, where feedback is read-only. */
   onLeaveComment?: () => void;
+  /** Visible comments on this area. Never rendered without its label. */
+  commentCount?: number;
 }) {
   const inactive = normaliseStatus(status) === "not_started" && !notes && photos.length === 0;
   const dayWord = isToday ? "today" : "this day";
@@ -89,22 +92,31 @@ export function ZoneCard({
             {name}
           </h3>
         </button>
+
+        <StatusPill status={status} noUpdate={inactive} />
+
+        {/* Furthest right, sentence case, lighter ink — a secondary action, and
+            the count only ever appears inside its label. */}
         {onLeaveComment && (
           <button
             type="button"
             onClick={onLeaveComment}
-            className="flex shrink-0 items-center gap-1"
-            title={`Leave a comment on ${name}`}
-            style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", color: V2.muted }}
+            className="flex shrink-0 items-center gap-1.5"
+            title={
+              commentCount > 0
+                ? `${commentCount} comment${commentCount === 1 ? "" : "s"} on ${name}`
+                : `Leave a comment on ${name}`
+            }
+            style={{ fontSize: 12, fontWeight: 500, color: V2.muted }}
           >
             <MessageSquarePlus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline uppercase">Comment</span>
+            <span className="hidden sm:inline">
+              Comment{commentCount > 0 ? ` · ${commentCount}` : ""}
+            </span>
           </button>
         )}
-        {/* Bare photo count removed — the body line already states it in words. */}
-
-        <StatusPill status={status} noUpdate={inactive} />
       </div>
+
 
       {!open ? null : notes ? (
         <div className="mb-3" style={{ fontSize: 13.5, color: V2.soft, lineHeight: 1.65 }}>

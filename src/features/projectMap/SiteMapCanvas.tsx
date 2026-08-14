@@ -34,6 +34,12 @@ interface Props {
   statusTintByArea?: Record<string, StatusTint | undefined>;
   /** When set, this area's primary feature is emphasised and others are dimmed */
   highlightAreaId?: string | null;
+  /**
+   * "status" (default) paints every shape from the derived day status — the
+   * same field the area pills read. "plan" restores the manual planning
+   * colours, which live in `plan_color` and never leave the ops editor.
+   */
+  colorMode?: "status" | "plan";
 }
 
 function colorForArea(area: Area | undefined, fallback: string): string {
@@ -49,7 +55,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
   drawingAreaId, drawingKind, onCreate, onUpdate, onFeatureClick,
   fallbackColor = DEFAULT_PROJECT_COLOR, editable = false,
   selectedId, onDraftChange, fitToFeatures = false,
-  statusTintByArea, highlightAreaId,
+  statusTintByArea, highlightAreaId, colorMode = "status",
 }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -289,10 +295,11 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const f of features) {
       seen.add(f.id);
       const area = areas.find((a) => a.id === f.area_id);
-      const baseColor = f.color || colorForArea(area, fallbackColor);
       const tint = statusTintByArea?.[f.area_id];
       const isPrimary = f.is_primary;
-      const applyTint = isPrimary && tint && (f.kind === "polygon" || f.kind === "rectangle");
+      const planColor = f.plan_color || colorForArea(area, fallbackColor);
+      const baseColor = colorMode === "plan" ? planColor : (tint?.stroke ?? planColor);
+      const applyTint = colorMode === "status" && isPrimary && tint && (f.kind === "polygon" || f.kind === "rectangle");
       const fillColor = applyTint ? tint!.fill : baseColor;
       const strokeColor = applyTint ? tint!.stroke : baseColor;
       const isSelected = selectedId === f.id;
@@ -438,7 +445,7 @@ export const SiteMapCanvas = forwardRef<SiteMapCanvasHandle, Props>(function Sit
     for (const [id, lm] of labelsRef.current) {
       if (!seen.has(id)) { lm.setMap(null); labelsRef.current.delete(id); }
     }
-  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady, statusTintByArea, highlightAreaId]);
+  }, [features, areas, editable, fallbackColor, onFeatureClick, onUpdate, selectedId, mapReady, statusTintByArea, highlightAreaId, colorMode]);
 
   // Fit map to all features (read-only share view)
   const didFitRef = useRef(false);

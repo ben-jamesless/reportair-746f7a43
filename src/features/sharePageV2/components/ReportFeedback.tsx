@@ -219,6 +219,7 @@ export function ReportFeedback({
   readOnly = false,
   pendingAnchor = null,
   onPendingAnchorHandled,
+  onAreaCounts,
 }: {
   token: string;
   /** Filed events: structure preserved, no inputs, no resolve toggles. */
@@ -226,6 +227,8 @@ export function ReportFeedback({
   /** Set by the area card / lightbox "Leave a comment" entry points. */
   pendingAnchor?: CommentAnchor | null;
   onPendingAnchorHandled?: () => void;
+  /** Visible comment count per area, so area cards can label their control. */
+  onAreaCounts?: (counts: Record<string, number>) => void;
 }) {
   const [rows, setRows] = useState<CommentRow[]>([]);
   const [role, setRole] = useState<string | null>(null);
@@ -293,6 +296,16 @@ export function ReportFeedback({
 
   const openCount = threads.filter((t) => !t.root.resolved_at && !t.root.hidden).length;
 
+  useEffect(() => {
+    if (!onAreaCounts) return;
+    const counts: Record<string, number> = {};
+    for (const r of rows) {
+      if (!r.area_id || r.hidden) continue;
+      counts[r.area_id] = (counts[r.area_id] ?? 0) + 1;
+    }
+    onAreaCounts(counts);
+  }, [rows, onAreaCounts]);
+
   const postGuest = async (v: { name: string; email: string; body: string; honeypot: string }, parentId: string | null) => {
     setSubmitting(true);
     try {
@@ -357,7 +370,7 @@ export function ReportFeedback({
     load();
   };
 
-  const setHidden = async (id: string, hidden: boolean) => {
+  const setHidden = async (id: string, hidden: boolean): Promise<void> => {
     const { error } = await supabase.rpc("set_report_comment_hidden" as never, {
       _id: id,
       _hidden: hidden,
@@ -366,7 +379,13 @@ export function ReportFeedback({
       toast.error(error.message);
       return;
     }
-    toast.success(hidden ? "Comment hidden" : "Comment restored");
+    toast.success(hidden ? "Comment hidden from the client report" : "Comment restored", {
+      action: {
+        label: "Undo",
+        onClick: () => setHidden(id, !hidden),
+      },
+      duration: 10000,
+    });
     load();
   };
 

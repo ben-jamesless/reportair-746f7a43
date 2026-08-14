@@ -175,7 +175,6 @@ export type Database = {
       area_map_features: {
         Row: {
           area_id: string
-          color: string | null
           created_at: string
           created_by: string | null
           geometry: Json
@@ -183,12 +182,12 @@ export type Database = {
           is_primary: boolean
           kind: string
           label: string | null
+          plan_color: string | null
           project_id: string
           updated_at: string
         }
         Insert: {
           area_id: string
-          color?: string | null
           created_at?: string
           created_by?: string | null
           geometry: Json
@@ -196,12 +195,12 @@ export type Database = {
           is_primary?: boolean
           kind: string
           label?: string | null
+          plan_color?: string | null
           project_id: string
           updated_at?: string
         }
         Update: {
           area_id?: string
-          color?: string | null
           created_at?: string
           created_by?: string | null
           geometry?: Json
@@ -209,6 +208,7 @@ export type Database = {
           is_primary?: boolean
           kind?: string
           label?: string | null
+          plan_color?: string | null
           project_id?: string
           updated_at?: string
         }
@@ -482,6 +482,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feedback_moderation_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          guest_note_id: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          guest_note_id: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          guest_note_id?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: []
       }
       folders: {
         Row: {
@@ -1896,7 +1923,6 @@ export type Database = {
         Args: { _token: string }
         Returns: {
           area_id: string
-          color: string
           geometry: Json
           id: string
           kind: string
