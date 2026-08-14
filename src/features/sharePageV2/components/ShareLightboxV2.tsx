@@ -11,6 +11,7 @@ export function ShareLightboxV2({
   onClose,
   onIndexChange,
   onShowOnMap,
+  onLeaveComment,
 }: {
   token: string;
   photos: ShareV2Photo[];
@@ -19,9 +20,12 @@ export function ShareLightboxV2({
   onIndexChange: (i: number) => void;
   /** Present only when the share link exposes photo GPS. */
   onShowOnMap?: (photo: ShareV2Photo) => void;
+  /** Omitted on filed reports, where feedback is read-only. */
+  onLeaveComment?: (photo: ShareV2Photo) => void;
 }) {
   const photo = photos[index];
   const url = useSharePhotoUrl(token, photo?.id ?? "", "lightbox");
+
 
   const prev = useCallback(
     () => onIndexChange((index - 1 + photos.length) % photos.length),
