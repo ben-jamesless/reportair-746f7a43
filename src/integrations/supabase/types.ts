@@ -1680,6 +1680,10 @@ export type Database = {
         Returns: undefined
       }
       admin_summary: { Args: never; Returns: Json }
+      area_in_project: {
+        Args: { _area_id: string; _project_id: string }
+        Returns: boolean
+      }
       area_status_rank: {
         Args: { _s: Database["public"]["Enums"]["area_status"] }
         Returns: number
