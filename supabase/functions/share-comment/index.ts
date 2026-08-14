@@ -207,18 +207,33 @@ Deno.serve(async (req: Request) => {
     return json({ error: "This event has been filed — feedback is now read-only." }, 403);
   }
 
-  // Rate limit: 3 posts per hour per IP.
+  // Rate limit: 3 posts/hour for the same IP+email pair, with a looser per-IP
+  // ceiling so a shared office egress IP can't lock out a whole review team.
   const ipHash = await hashIp(clientIp(req));
+  const emailHash = await hashIp(`email:${email.toLowerCase()}`);
   const since = new Date(Date.now() - RATE_WINDOW_MS).toISOString();
-  const { count } = await supabase
+
+  const { count: pairCount } = await supabase
+    .from("share_comment_throttle")
+    .select("id", { count: "exact", head: true })
+    .eq("ip_hash", ipHash)
+    .eq("email_hash", emailHash)
+    .gte("created_at", since);
+
+  if ((pairCount ?? 0) >= RATE_LIMIT_PAIR) {
+    return json({ error: "You've reached the comment limit for this hour. Please try again later." }, 429);
+  }
+
+  const { count: ipCount } = await supabase
     .from("share_comment_throttle")
     .select("id", { count: "exact", head: true })
     .eq("ip_hash", ipHash)
     .gte("created_at", since);
 
-  if ((count ?? 0) >= RATE_LIMIT) {
-    return json({ error: "You've reached the comment limit for this hour. Please try again later." }, 429);
+  if ((ipCount ?? 0) >= RATE_LIMIT_IP) {
+    return json({ error: "Too many comments from this network in the last hour. Please try again later." }, 429);
   }
+
 
   // Resolve the parent, and inherit its anchor so replies stay in context.
   let parent: { id: string; parent_id: string | null; area_id: string | null; photo_id: string | null; day: string | null } | null = null;
