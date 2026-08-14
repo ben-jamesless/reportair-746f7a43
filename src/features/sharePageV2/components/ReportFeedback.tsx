@@ -25,7 +25,10 @@ type CommentRow = {
   body: string;
   is_ops: boolean;
   resolved_at: string | null;
+  /** Only ever true for ops viewers — guests never receive hidden rows. */
+  hidden?: boolean;
   created_at: string;
+
 };
 
 type Thread = { root: CommentRow; replies: CommentRow[] };
