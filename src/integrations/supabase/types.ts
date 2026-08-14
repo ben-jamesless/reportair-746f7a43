@@ -1221,18 +1221,21 @@ export type Database = {
       share_comment_throttle: {
         Row: {
           created_at: string
+          email_hash: string | null
           id: number
           ip_hash: string
           share_link_id: string | null
         }
         Insert: {
           created_at?: string
+          email_hash?: string | null
           id?: never
           ip_hash: string
           share_link_id?: string | null
         }
         Update: {
           created_at?: string
+          email_hash?: string | null
           id?: never
           ip_hash?: string
           share_link_id?: string | null
@@ -1874,6 +1877,7 @@ export type Database = {
           created_at: string
           day: string
           guest_name: string
+          hidden: boolean
           id: string
           is_ops: boolean
           parent_id: string
@@ -2019,6 +2023,22 @@ export type Database = {
       }
       team_member_count: { Args: { _team_id: string }; Returns: number }
       team_seat_summary: { Args: { _team_id: string }; Returns: Json }
+      visible_guest_notes: {
+        Args: { _project_id: string }
+        Returns: {
+          area_id: string
+          body: string
+          created_at: string
+          day: string
+          guest_name: string
+          id: string
+          is_ops: boolean
+          parent_id: string
+          photo_id: string
+          project_id: string
+          resolved_at: string
+        }[]
+      }
       worst_status_for_event_day: {
         Args: { _date: string; _project_id: string }
         Returns: string

@@ -287,7 +287,7 @@ export function ShareMapLive({
     (async () => {
       let g: typeof google;
       try {
-        g = await loadGoogleMaps();
+        g = await loadGoogleMaps("share");
       } catch {
         if (alive) onFailure?.();
         return;
@@ -447,7 +447,7 @@ export function ShareMapLive({
     (async () => {
       let g: typeof google;
       try {
-        g = await loadGoogleMaps();
+        g = await loadGoogleMaps("share");
       } catch {
         return;
       }

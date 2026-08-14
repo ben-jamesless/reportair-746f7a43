@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadGoogleMaps } from "@/lib/googleMaps";
+import { event as trackEvent } from "@/lib/analytics";
 import { ShareMapLive } from "./ShareMapLive";
 import { ShareMapStatic } from "./ShareMapStatic";
 import type { ShareV2DayArea } from "../types";
@@ -7,11 +8,17 @@ import type { ShareV2DayArea } from "../types";
 /**
  * Site map for the v2 share page.
  *
- * Prefers a live, interactive Google map. The share page is a public artifact
- * and the managed browser key is referrer-restricted to *.lovable.app, so if
- * the script (or the key) fails on a custom domain we silently fall back to the
- * static satellite tile + SVG overlay renderer.
+ * Prefers a live, interactive Google map. The share page is a public artifact,
+ * so if the script (or the referrer-restricted share key) fails we fall back to
+ * the static satellite tile + SVG overlay renderer — but never silently: every
+ * degrade emits `share_map_static_fallback` and a console error, so a broken
+ * production key surfaces instead of serving static maps forever.
  */
+function reportFallback(reason: string, detail?: string) {
+  console.error(`[share-map] falling back to static map — ${reason}`, detail ?? "");
+  trackEvent("share_map_static_fallback", { reason, detail: detail?.slice(0, 200) });
+}
+
 export function ShareMapV2(props: {
   token: string;
   areas: ShareV2DayArea[];
@@ -25,14 +32,18 @@ export function ShareMapV2(props: {
 
   useEffect(() => {
     let alive = true;
-    loadGoogleMaps().then(
+    loadGoogleMaps("share").then(
       () => alive && setMode("live"),
-      () => alive && setMode("static")
+      (err) => {
+        reportFallback("sdk_load_failed", err instanceof Error ? err.message : String(err));
+        if (alive) setMode("static");
+      }
     );
     // Google surfaces auth/referrer failures only via this global hook.
     const prev = (window as unknown as { gm_authFailure?: () => void }).gm_authFailure;
     (window as unknown as { gm_authFailure?: () => void }).gm_authFailure = () => {
       prev?.();
+      reportFallback("gm_auth_failure", "key rejected for this referrer");
       if (alive) setMode("static");
     };
     return () => {
@@ -41,6 +52,16 @@ export function ShareMapV2(props: {
   }, []);
 
   if (mode === "pending") return null;
-  if (mode === "live") return <ShareMapLive {...props} onFailure={() => setMode("static")} />;
+  if (mode === "live")
+    return (
+      <ShareMapLive
+        {...props}
+        onFailure={() => {
+          reportFallback("live_render_failed");
+          setMode("static");
+        }}
+      />
+    );
   return <ShareMapStatic {...props} />;
 }
+

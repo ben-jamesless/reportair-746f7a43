@@ -6,7 +6,7 @@
 //   - honeypot field must be empty
 //   - name + email required, email shape validated
 //   - 1,000 character cap on the body
-//   - 3 posts per hour per IP (hashed, never stored raw)
+//   - 3 posts/hour per IP+email pair, 15/hour per IP (both hashed, never raw)
 // It also sends the Resend notifications: event owner on a new root comment,
 // thread participants on a reply.
 
@@ -19,7 +19,8 @@ const corsHeaders = {
 };
 
 const MAX_BODY = 1000;
-const RATE_LIMIT = 3;
+const RATE_LIMIT_PAIR = 3;   // per IP + email pair, per hour
+const RATE_LIMIT_IP = 15;    // per IP per hour (shared office egress)
 const RATE_WINDOW_MS = 60 * 60 * 1000;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -64,20 +65,61 @@ function anchorLabel(areaName: string | null, day: string | null, hasPhoto: bool
   return parts.join(" · ");
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+// Notification delivery. A missing key or a Resend failure is NEVER silent:
+// it logs an error and persists a failed-delivery row in email_send_log so the
+// gap is visible after the fact.
+async function sendEmail(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  to: string,
+  subject: string,
+  html: string,
+  metadata: Record<string, unknown> = {},
+) {
+  const logFailure = async (error: string) => {
+    console.error(`[share-comment] notification to ${to} failed: ${error}`);
+    await supabase.from("email_send_log").insert({
+      template_name: "share_comment_notification",
+      recipient_email: to,
+      status: "failed",
+      error_message: error.slice(0, 1000),
+      metadata: { ...metadata, subject },
+    });
+  };
+
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
-    console.warn("RESEND_API_KEY not set — skipping notification");
+    await logFailure("RESEND_API_KEY is not set — notification not sent");
     return;
   }
   const from = Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>";
-  const resp = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ from, to: [to], subject, html }),
-  });
-  if (!resp.ok) console.error(`Resend ${resp.status}: ${await resp.text()}`);
+  try {
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ from, to: [to], subject, html }),
+    });
+    const text = await resp.text();
+    if (!resp.ok) {
+      await logFailure(`Resend ${resp.status}: ${text}`);
+      return;
+    }
+    let messageId: string | null = null;
+    try {
+      messageId = (JSON.parse(text) as { id?: string }).id ?? null;
+    } catch { /* non-JSON success body */ }
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "share_comment_notification",
+      recipient_email: to,
+      status: "sent",
+      metadata: { ...metadata, subject },
+    });
+  } catch (err) {
+    await logFailure(err instanceof Error ? err.message : String(err));
+  }
 }
+
 
 function notificationHtml(opts: {
   heading: string;
@@ -166,18 +208,33 @@ Deno.serve(async (req: Request) => {
     return json({ error: "This event has been filed — feedback is now read-only." }, 403);
   }
 
-  // Rate limit: 3 posts per hour per IP.
+  // Rate limit: 3 posts/hour for the same IP+email pair, with a looser per-IP
+  // ceiling so a shared office egress IP can't lock out a whole review team.
   const ipHash = await hashIp(clientIp(req));
+  const emailHash = await hashIp(`email:${email.toLowerCase()}`);
   const since = new Date(Date.now() - RATE_WINDOW_MS).toISOString();
-  const { count } = await supabase
+
+  const { count: pairCount } = await supabase
+    .from("share_comment_throttle")
+    .select("id", { count: "exact", head: true })
+    .eq("ip_hash", ipHash)
+    .eq("email_hash", emailHash)
+    .gte("created_at", since);
+
+  if ((pairCount ?? 0) >= RATE_LIMIT_PAIR) {
+    return json({ error: "You've reached the comment limit for this hour. Please try again later." }, 429);
+  }
+
+  const { count: ipCount } = await supabase
     .from("share_comment_throttle")
     .select("id", { count: "exact", head: true })
     .eq("ip_hash", ipHash)
     .gte("created_at", since);
 
-  if ((count ?? 0) >= RATE_LIMIT) {
-    return json({ error: "You've reached the comment limit for this hour. Please try again later." }, 429);
+  if ((ipCount ?? 0) >= RATE_LIMIT_IP) {
+    return json({ error: "Too many comments from this network in the last hour. Please try again later." }, 429);
   }
+
 
   // Resolve the parent, and inherit its anchor so replies stay in context.
   let parent: { id: string; parent_id: string | null; area_id: string | null; photo_id: string | null; day: string | null } | null = null;
@@ -216,7 +273,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: insertError?.message ?? "Could not save your comment." }, 400);
   }
 
-  await supabase.from("share_comment_throttle").insert({ ip_hash: ipHash, share_link_id: link.id });
+  await supabase.from("share_comment_throttle").insert({ ip_hash: ipHash, email_hash: emailHash, share_link_id: link.id });
 
   // ── Notifications ──────────────────────────────────────────────────────────
   try {
@@ -280,7 +337,14 @@ Deno.serve(async (req: Request) => {
     await Promise.all(
       Array.from(recipients)
         .filter((to) => EMAIL_RE.test(to) && !to.endsWith(".invalid"))
-        .map((to) => sendEmail(to, subject, html)),
+        .map((to) =>
+          sendEmail(supabase, to, subject, html, {
+            project_id: link.project_id,
+            comment_id: inserted.id,
+            root_id: rootId,
+            kind: parent ? "reply" : "root",
+          })
+        ),
     );
   } catch (e) {
     // Never fail the post because a notification could not be delivered.

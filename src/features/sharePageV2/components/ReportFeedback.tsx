@@ -25,7 +25,10 @@ type CommentRow = {
   body: string;
   is_ops: boolean;
   resolved_at: string | null;
+  /** Only ever true for ops viewers — guests never receive hidden rows. */
+  hidden?: boolean;
   created_at: string;
+
 };
 
 type Thread = { root: CommentRow; replies: CommentRow[] };
@@ -288,7 +291,7 @@ export function ReportFeedback({
       }));
   }, [rows]);
 
-  const openCount = threads.filter((t) => !t.root.resolved_at).length;
+  const openCount = threads.filter((t) => !t.root.resolved_at && !t.root.hidden).length;
 
   const postGuest = async (v: { name: string; email: string; body: string; honeypot: string }, parentId: string | null) => {
     setSubmitting(true);
@@ -354,16 +357,16 @@ export function ReportFeedback({
     load();
   };
 
-  const hide = async (id: string) => {
+  const setHidden = async (id: string, hidden: boolean) => {
     const { error } = await supabase.rpc("set_report_comment_hidden" as never, {
       _id: id,
-      _hidden: true,
+      _hidden: hidden,
     } as never);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Comment hidden");
+    toast.success(hidden ? "Comment hidden" : "Comment restored");
     load();
   };
 
@@ -407,7 +410,7 @@ export function ReportFeedback({
                 key={root.id}
                 id={`comment-${root.id}`}
                 className="px-4 py-3"
-                style={{ borderTop: `1px solid ${V2.rule}`, opacity: root.resolved_at ? 0.72 : 1 }}
+                style={{ borderTop: `1px solid ${V2.rule}`, opacity: root.hidden ? 0.5 : root.resolved_at ? 0.72 : 1 }}
               >
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="flex items-center gap-2" style={{ fontSize: 13, fontWeight: 700, color: V2.ink }}>
@@ -417,6 +420,11 @@ export function ReportFeedback({
                     )}
                     {root.resolved_at && (
                       <span style={{ ...chipStyle, color: V2.soft, backgroundColor: V2.paperDim }}>Resolved</span>
+                    )}
+                    {root.hidden && (
+                      <span style={{ ...chipStyle, color: V2.soft, backgroundColor: V2.paperDim }}>
+                        Hidden from client
+                      </span>
                     )}
                   </span>
                   <span style={{ fontFamily: V2.mono, fontSize: 10.5, color: V2.muted }}>{stamp(root.created_at)}</span>
@@ -480,11 +488,15 @@ export function ReportFeedback({
                     {isOwner && (
                       <button
                         type="button"
-                        onClick={() => hide(root.id)}
+                        onClick={() => setHidden(root.id, !root.hidden)}
                         style={{ fontSize: 11.5, color: V2.muted, textDecoration: "underline" }}
-                        title="Hides this comment and its replies from the client report"
+                        title={
+                          root.hidden
+                            ? "Makes this comment and its replies visible to the client again"
+                            : "Hides this comment and its replies from the client report"
+                        }
                       >
-                        Hide
+                        {root.hidden ? "Restore" : "Hide"}
                       </button>
                     )}
                   </div>
