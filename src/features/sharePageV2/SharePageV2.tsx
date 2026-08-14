@@ -373,10 +373,18 @@ export default function SharePageV2() {
     },
     {
       label: "Open issues",
-      value: String(openIssuesCount + flaggedAreas.length),
-      tone: openIssuesCount + flaggedAreas.length > 0 ? "#B4720F" : undefined,
-      sub: flaggedAreas.length ? flaggedAreas.map((a) => a.name).join(", ") : "None raised",
+      value: String(totalOpenIssues),
+      tone: totalOpenIssues > 0 ? "#B4720F" : undefined,
+      // Subtitle must describe the same number shown above it: name the flagged
+      // areas when there are any, otherwise say where the count came from.
+      sub:
+        totalOpenIssues === 0
+          ? "None raised"
+          : flaggedAreas.length > 0
+            ? flaggedAreas.map((a) => a.name).join(", ")
+            : `${totalOpenIssues} raised in the ${dayWord} report`,
     },
+
   ];
 
   return (
@@ -673,7 +681,7 @@ export default function SharePageV2() {
                 />
                 <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                 <div className="mt-7">
-                  <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} readOnly />
+                  <ReportFeedback token={token ?? ""} readOnly />
                   <OpsContact contact={opsContact} />
                 </div>
               </>
@@ -711,7 +719,12 @@ export default function SharePageV2() {
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}
               <div className={hasBuildTimeline ? "mt-7" : undefined}>
-                <ReportFeedback token={token ?? ""} areaNameByPhoto={areaNameByPhoto} />
+                <ReportFeedback
+                  token={token ?? ""}
+                  pendingAnchor={commentAnchor}
+                  onPendingAnchorHandled={() => setCommentAnchor(null)}
+                />
+
                 <OpsContact contact={opsContact} />
               </div>
             </>
