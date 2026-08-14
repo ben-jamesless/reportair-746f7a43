@@ -457,8 +457,11 @@ export function ShareMapLive({
       const ov = new FocusOverlay(pos, focusPoint.label, () => onFocusClick?.(focusPoint.photoId));
       ov.setMap(map);
       focusRef.current = ov;
+      // Framing a photo hands the viewport to the reader: keep it on resize.
+      viewportLockedRef.current = true;
       map.panTo(pos);
       if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
+
     })();
 
     return () => {
