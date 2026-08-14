@@ -18,7 +18,7 @@ import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
 import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
-import { ReportFeedback, OpsContact } from "./components/ReportFeedback";
+import { ReportFeedback, OpsContact, type CommentAnchor } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { event as trackEvent } from "@/lib/analytics";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
@@ -49,6 +49,9 @@ export default function SharePageV2() {
   const [focusPoint, setFocusPoint] = useState<
     { lat: number; lng: number; photoId: string; label?: string } | null
   >(null);
+  // Anchor handed to the feedback panel by the area-card / lightbox entry points.
+  const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
+
   // Reader theme for the public report — remembered per browser.
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
@@ -160,6 +163,8 @@ export default function SharePageV2() {
   const flaggedAreas = dayAreas.filter((a) =>
     ["flagged", "delayed"].includes(normaliseStatus(areaStatus.get(a.area_id)))
   );
+  const totalOpenIssues = openIssuesCount + flaggedAreas.length;
+
 
   // Headline status = MAX(area display status) by severity, with the stored
   // day status as a floor. Shared helper so the calendar rolls up identically.
