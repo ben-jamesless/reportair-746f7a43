@@ -33,3 +33,6 @@ verify_jwt = false
 
 [functions.share-og]
 verify_jwt = false
+
+[functions.share-comment]
+verify_jwt = false
