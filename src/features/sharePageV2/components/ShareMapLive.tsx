@@ -225,7 +225,6 @@ export function ShareMapLive({
   /** Guards our own fitBounds from being mistaken for a user zoom. */
   const fittingRef = useRef(false);
   const fitRef = useRef<(() => void) | null>(null);
-  const boundsRef = useRef<google.maps.LatLngBounds | null>(null);
 
 
   const seenRef = useRef(false);
@@ -374,7 +373,6 @@ export function ShareMapLive({
         });
       };
       fitRef.current = fit;
-      boundsRef.current = bounds;
       fit();
 
       // Any interaction that isn't our own fitBounds locks the viewport.
@@ -405,6 +403,8 @@ export function ShareMapLive({
       alive = false;
       resizeObsRef.current?.disconnect();
       resizeObsRef.current = null;
+      viewportLockedRef.current = false;
+      fitRef.current = null;
       shapesRef.current.forEach(({ shape }) => shape.setMap(null));
       shapesRef.current = [];
       overlaysRef.current.forEach((o) => o.setMap(null));
