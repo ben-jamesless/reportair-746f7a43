@@ -24,6 +24,15 @@ import { event as trackEvent } from "@/lib/analytics";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
 
+/** "13 Aug" — used to label a comment anchor with the day it refers to. */
+function timeLabelDate(iso: string): string | null {
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+
+
 
 export default function SharePageV2() {
   const { token } = useParams<{ token: string }>();
