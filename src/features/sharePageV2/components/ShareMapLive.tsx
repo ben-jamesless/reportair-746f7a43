@@ -4,7 +4,7 @@ import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusHex } from "../tokens";
+import { V2, statusHex, STATUS_SEVERITY, normaliseStatus } from "../tokens";
 import type { ShareV2DayArea } from "../types";
 
 /**
@@ -220,6 +220,13 @@ export function ShareMapLive({
   const shapesRef = useRef<Array<{ feature: MapFeature; shape: google.maps.Polygon | google.maps.Marker }>>([]);
   const overlaysRef = useRef<google.maps.OverlayView[]>([]);
   const resizeObsRef = useRef<ResizeObserver | null>(null);
+  /** True once the reader (or "Show on map") owns the viewport. */
+  const viewportLockedRef = useRef(false);
+  /** Guards our own fitBounds from being mistaken for a user zoom. */
+  const fittingRef = useRef(false);
+  const fitRef = useRef<(() => void) | null>(null);
+  const boundsRef = useRef<google.maps.LatLngBounds | null>(null);
+
 
   const seenRef = useRef(false);
   const [mapReady, setMapReady] = useState(0);
