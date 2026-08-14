@@ -311,39 +311,35 @@ export function ShareMapStatic({
           </svg>
 
           {/* Labels live outside the SVG so they can be counter-scaled: they
-              keep a constant on-screen size at every zoom level, like v1. */}
-          {features.map((f) => {
-            const pts = featurePoints(f).map(view.toPx);
-            if (pts.length === 0) return null;
-            const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-            const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-            const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
-            if (!label) return null;
-            return (
-              <div
-                key={`lbl-${f.id}`}
-                className="absolute whitespace-nowrap"
-                style={{
-                  left: `${(cx / W) * 100}%`,
-                  top: `${(cy / H) * 100}%`,
-                  transform: `translate(-50%, -50%) scale(${1 / tf.s})`,
-                  transformOrigin: "center",
-                  pointerEvents: "none",
-                  backgroundColor: "rgba(20,20,20,0.82)",
-                  color: "#ffffff",
-                  fontFamily: "'Geist', system-ui, sans-serif",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  lineHeight: "18px",
-                  letterSpacing: "-0.01em",
-                  padding: "2px 8px",
-                  borderRadius: 4,
-                }}
-              >
-                {label}
-              </div>
-            );
-          })}
+              keep a constant on-screen size at every zoom level, like v1.
+              De-collision runs through the same shared, deterministic pass the
+              live Google map uses, so both renderings drop the same labels. */}
+          {labelPlacements.map((l) => (
+            <div
+              key={`lbl-${l.id}`}
+              className="absolute whitespace-nowrap"
+              style={{
+                left: `${(l.cx / W) * 100}%`,
+                top: `${(l.cy / H) * 100}%`,
+                transform: `translate(-50%, -50%) scale(${1 / tf.s})`,
+                transformOrigin: "center",
+                pointerEvents: "none",
+                opacity: l.hidden ? 0 : 1,
+                backgroundColor: "rgba(20,20,20,0.82)",
+                color: "#ffffff",
+                fontFamily: "'Geist', system-ui, sans-serif",
+                fontSize: 13,
+                fontWeight: 700,
+                lineHeight: "18px",
+                letterSpacing: "-0.01em",
+                padding: "2px 8px",
+                borderRadius: 4,
+              }}
+            >
+              {l.label}
+            </div>
+          ))}
+
 
           {/* Pulsing marker for a photo located from the lightbox. */}
           {focusPoint &&
