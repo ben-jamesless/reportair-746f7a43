@@ -2008,6 +2008,7 @@ export type Database = {
       }
       share_ops_contact: { Args: { _token: string }; Returns: Json }
       share_viewer_is_ops: { Args: { _token: string }; Returns: boolean }
+      share_viewer_role: { Args: { _token: string }; Returns: string }
       team_domain_matching_enabled: {
         Args: { _team_id: string }
         Returns: boolean
