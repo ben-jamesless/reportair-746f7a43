@@ -540,6 +540,8 @@ export default function SharePageV2() {
                           photos={photosByArea.get(a.area_id) ?? []}
                           onOpenPhoto={openPhoto}
                           isToday={isToday}
+                          onLeaveComment={() => leaveCommentOnArea(a.area_id, a.name)}
+
                         />
                       </div>
                     ))}
@@ -802,6 +804,8 @@ export default function SharePageV2() {
           onClose={() => setRefLightboxIndex(null)}
           onIndexChange={setRefLightboxIndex}
           onShowOnMap={meta.show_photo_pins ? showOnMap : undefined}
+          onLeaveComment={isFiled ? undefined : leaveCommentOnPhoto}
+
         />
       )}
 
