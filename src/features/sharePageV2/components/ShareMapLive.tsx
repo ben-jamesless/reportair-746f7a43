@@ -4,7 +4,7 @@ import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { loadGoogleMaps } from "@/lib/googleMaps";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusHex } from "../tokens";
+import { V2, statusHex, STATUS_SEVERITY, normaliseStatus } from "../tokens";
 import type { ShareV2DayArea } from "../types";
 
 /**
@@ -47,7 +47,14 @@ function makeLabelOverlay(g: typeof google) {
     /** Screen-space box of the last draw, used for collision resolution. */
     public rect: { left: number; top: number; right: number; bottom: number } | null = null;
     public hidden = false;
-    constructor(private position: google.maps.LatLng, private text: string, public priority = 0) {
+    constructor(
+      private position: google.maps.LatLng,
+      private text: string,
+      /** Deterministic placement order: higher severity wins a collision. */
+      public severity = 0,
+      /** Tie-break within a severity band, so order never depends on fetch order. */
+      public sortName = "",
+    ) {
       super();
     }
     onAdd() {
@@ -93,22 +100,27 @@ function makeLabelOverlay(g: typeof google) {
   };
 }
 
-type CollidableLabel = {
+export type CollidableLabel = {
   rect: { left: number; top: number; right: number; bottom: number } | null;
-  priority: number;
+  severity: number;
+  sortName: string;
   setHidden: (hidden: boolean) => void;
 };
 
 /**
- * Greedy label de-clutter: keep the highest-priority label in any overlapping
- * cluster and fade the rest. Runs after every idle so it re-evaluates on zoom.
+ * Greedy label de-clutter with a *stable* placement order.
+ *
+ * The candidate order is a pure function of the data (status severity, then
+ * area name), never of geometry, fetch order or container size. That is what
+ * makes the interactive share map and the static map baked into the PDF export
+ * hide the same labels, and makes one site render identically at any width.
  */
-function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
+export function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
   const kept: Array<NonNullable<CollidableLabel["rect"]>> = [];
   const ordered = labels
     .filter((l) => l.rect)
     .slice()
-    .sort((a, b) => b.priority - a.priority);
+    .sort((a, b) => b.severity - a.severity || a.sortName.localeCompare(b.sortName));
   for (const l of ordered) {
     const r = l.rect!;
     const clash = kept.some(
@@ -122,6 +134,7 @@ function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
     if (!clash) kept.push(r);
   }
 }
+
 
 
 // Pulsing dot + optional caption chip marking where a photo was taken.
@@ -207,6 +220,12 @@ export function ShareMapLive({
   const shapesRef = useRef<Array<{ feature: MapFeature; shape: google.maps.Polygon | google.maps.Marker }>>([]);
   const overlaysRef = useRef<google.maps.OverlayView[]>([]);
   const resizeObsRef = useRef<ResizeObserver | null>(null);
+  /** True once the reader (or "Show on map") owns the viewport. */
+  const viewportLockedRef = useRef(false);
+  /** Guards our own fitBounds from being mistaken for a user zoom. */
+  const fittingRef = useRef(false);
+  const fitRef = useRef<(() => void) | null>(null);
+
 
   const seenRef = useRef(false);
   const [mapReady, setMapReady] = useState(0);
@@ -323,12 +342,15 @@ export function ShareMapLive({
             (acc, p) => ({ lat: acc.lat + p.lat / pts.length, lng: acc.lng + p.lng / pts.length }),
             { lat: 0, lng: 0 }
           );
-          // Bigger footprints win when labels collide — small pins hide first.
-          const lats = pts.map((p) => p.lat);
-          const lngs = pts.map((p) => p.lng);
-          const span =
-            (Math.max(...lats) - Math.min(...lats)) * (Math.max(...lngs) - Math.min(...lngs));
-          const ov = new LabelOverlay(new g.maps.LatLng(c.lat, c.lng), label, f.kind === "pin" ? 0 : span);
+          // Placement order is data-driven, not geometry-driven: the worst
+          // status is the label a reader must not lose, then alphabetical.
+          const severity = STATUS_SEVERITY[normaliseStatus(statusByArea.get(f.area_id) ?? null)];
+          const ov = new LabelOverlay(
+            new g.maps.LatLng(c.lat, c.lng),
+            label,
+            f.kind === "pin" ? severity - 0.5 : severity,
+            label.toLowerCase(),
+          );
           ov.setMap(map);
           overlaysRef.current.push(ov);
         }
@@ -338,25 +360,51 @@ export function ShareMapLive({
       const declutter = () => resolveLabelCollisions(overlaysRef.current as unknown as CollidableLabel[]);
       map.addListener("idle", declutter);
 
-      // The map often mounts before its container has final width (collapsed
-      // section, sidebar reflow), which leaves the site squashed in a corner.
-      // Re-fit whenever the element resizes until the size stops changing.
+      // Fit-bounds is an *initial framing* step, not a resize handler. Once the
+      // reader has moved the map — or "Show on map" has framed a photo — the
+      // viewport is theirs: a mobile soft keyboard opening under the comment
+      // composer resizes the container, and must not yank the map back out.
       const fit = () => {
-        if (!bounds.isEmpty()) map.fitBounds(bounds, 48);
+        if (bounds.isEmpty()) return;
+        fittingRef.current = true;
+        map.fitBounds(bounds, 48);
+        g.maps.event.addListenerOnce(map, "idle", () => {
+          fittingRef.current = false;
+        });
       };
+      fitRef.current = fit;
       fit();
+
+      // Any interaction that isn't our own fitBounds locks the viewport.
+      const lock = () => {
+        if (!fittingRef.current) viewportLockedRef.current = true;
+      };
+      map.addListener("dragstart", lock);
+      map.addListener("zoom_changed", lock);
+
       const ro = new ResizeObserver(() => {
+        const centre = map.getCenter();
+        const zoom = map.getZoom();
         g.maps.event.trigger(map, "resize");
-        fit();
+        if (viewportLockedRef.current) {
+          // Preserve exactly what the reader was looking at.
+          if (centre) map.setCenter(centre);
+          if (typeof zoom === "number") map.setZoom(zoom);
+        } else {
+          fit();
+        }
       });
       ro.observe(mapElRef.current);
       resizeObsRef.current = ro;
     })();
 
+
     return () => {
       alive = false;
       resizeObsRef.current?.disconnect();
       resizeObsRef.current = null;
+      viewportLockedRef.current = false;
+      fitRef.current = null;
       shapesRef.current.forEach(({ shape }) => shape.setMap(null));
       shapesRef.current = [];
       overlaysRef.current.forEach((o) => o.setMap(null));
@@ -409,8 +457,11 @@ export function ShareMapLive({
       const ov = new FocusOverlay(pos, focusPoint.label, () => onFocusClick?.(focusPoint.photoId));
       ov.setMap(map);
       focusRef.current = ov;
+      // Framing a photo hands the viewport to the reader: keep it on resize.
+      viewportLockedRef.current = true;
       map.panTo(pos);
       if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
+
     })();
 
     return () => {
@@ -427,7 +478,7 @@ export function ShareMapLive({
   return (
     <div
       ref={rootRef}
-      className="overflow-hidden"
+      className="relative overflow-hidden"
       style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
     >
       <div
@@ -437,6 +488,31 @@ export function ShareMapLive({
         aria-label="Interactive satellite map of the site with area boundaries"
         role="application"
       />
+
+      {/* The only path back to the whole-site framing now that resize no
+          longer re-fits the map under the reader. */}
+      <button
+        type="button"
+        onClick={() => {
+          viewportLockedRef.current = false;
+          fitRef.current?.();
+        }}
+        className="absolute left-2.5 top-2.5"
+        style={{
+          fontFamily: V2.mono,
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: V2.ink,
+          backgroundColor: "rgba(255,255,255,0.92)",
+          padding: "5px 9px",
+          borderRadius: 4,
+        }}
+      >
+        Reset view
+      </button>
+
 
       {legend.length > 0 && (
         <div

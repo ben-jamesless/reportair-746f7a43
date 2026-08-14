@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { event as trackEvent } from "@/lib/analytics";
 import { supabase } from "@/integrations/supabase/client";
 import type { MapFeature } from "@/features/projectMap/useMapFeatures";
-import { V2, statusHex } from "../tokens";
+import { V2, statusHex, STATUS_SEVERITY, normaliseStatus } from "../tokens";
+import { resolveLabelCollisions } from "./ShareMapLive";
+
 import type { ShareV2DayArea } from "../types";
 
 /**
@@ -179,7 +181,43 @@ export function ShareMapStatic({
     view.center.lng
   }&zoom=${view.zoom}&w=${W}&h=${H}&scale=2`;
 
+  // Label de-collision, shared with the live Google map so the interactive
+  // view and this fallback (also used for print/PDF) hide the same labels.
+  // Boxes are measured in screen space: labels are counter-scaled, so their
+  // on-screen size is constant while their position follows the pan/zoom.
+  const labelCandidates = features
+    .map((f) => {
+      const pts = featurePoints(f).map(view.toPx);
+      if (pts.length === 0) return null;
+      const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+      const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+      const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+      if (!label) return null;
+      const w = label.length * 7.5 + 16;
+      const h = 22;
+      const sx = cx * tf.s + tf.x;
+      const sy = cy * tf.s + tf.y;
+      const severity = STATUS_SEVERITY[normaliseStatus(statusByArea.get(f.area_id) ?? null)];
+      return {
+        id: f.id,
+        label,
+        cx,
+        cy,
+        hidden: false,
+        severity: f.kind === "pin" ? severity - 0.5 : severity,
+        sortName: label.toLowerCase(),
+        rect: { left: sx - w / 2, top: sy - h / 2, right: sx + w / 2, bottom: sy + h / 2 },
+        setHidden(v: boolean) {
+          this.hidden = v;
+        },
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+  resolveLabelCollisions(labelCandidates);
+  const labelPlacements = labelCandidates;
+
   const mapped = new Set(features.map((f) => f.area_id));
+
   const legend = areas.filter((a) => mapped.has(a.area_id));
 
   const select = (areaId: string, featureId: string | null, label?: string) => {
@@ -311,39 +349,35 @@ export function ShareMapStatic({
           </svg>
 
           {/* Labels live outside the SVG so they can be counter-scaled: they
-              keep a constant on-screen size at every zoom level, like v1. */}
-          {features.map((f) => {
-            const pts = featurePoints(f).map(view.toPx);
-            if (pts.length === 0) return null;
-            const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
-            const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-            const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
-            if (!label) return null;
-            return (
-              <div
-                key={`lbl-${f.id}`}
-                className="absolute whitespace-nowrap"
-                style={{
-                  left: `${(cx / W) * 100}%`,
-                  top: `${(cy / H) * 100}%`,
-                  transform: `translate(-50%, -50%) scale(${1 / tf.s})`,
-                  transformOrigin: "center",
-                  pointerEvents: "none",
-                  backgroundColor: "rgba(20,20,20,0.82)",
-                  color: "#ffffff",
-                  fontFamily: "'Geist', system-ui, sans-serif",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  lineHeight: "18px",
-                  letterSpacing: "-0.01em",
-                  padding: "2px 8px",
-                  borderRadius: 4,
-                }}
-              >
-                {label}
-              </div>
-            );
-          })}
+              keep a constant on-screen size at every zoom level, like v1.
+              De-collision runs through the same shared, deterministic pass the
+              live Google map uses, so both renderings drop the same labels. */}
+          {labelPlacements.map((l) => (
+            <div
+              key={`lbl-${l.id}`}
+              className="absolute whitespace-nowrap"
+              style={{
+                left: `${(l.cx / W) * 100}%`,
+                top: `${(l.cy / H) * 100}%`,
+                transform: `translate(-50%, -50%) scale(${1 / tf.s})`,
+                transformOrigin: "center",
+                pointerEvents: "none",
+                opacity: l.hidden ? 0 : 1,
+                backgroundColor: "rgba(20,20,20,0.82)",
+                color: "#ffffff",
+                fontFamily: "'Geist', system-ui, sans-serif",
+                fontSize: 13,
+                fontWeight: 700,
+                lineHeight: "18px",
+                letterSpacing: "-0.01em",
+                padding: "2px 8px",
+                borderRadius: 4,
+              }}
+            >
+              {l.label}
+            </div>
+          ))}
+
 
           {/* Pulsing marker for a photo located from the lightbox. */}
           {focusPoint &&
