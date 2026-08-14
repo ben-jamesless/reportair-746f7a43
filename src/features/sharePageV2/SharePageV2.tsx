@@ -197,15 +197,25 @@ export default function SharePageV2() {
 
   const openPhoto = (photoId: string) => {
     const i = dayPhotos.findIndex((p) => p.id === photoId);
-    if (i >= 0) setLightboxIndex(i);
+    if (i < 0) return;
+    trackEvent("share_link_photo_opened", {
+      photo_id: photoId,
+      area_id: dayPhotos[i].area_id ?? undefined,
+      source: "area_card",
+    });
+    setLightboxIndex(i);
   };
 
   /** Lightbox → map: drop a pulsing marker where the photo was taken. */
-  const showOnMap = (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null }) => {
+  const showOnMap = (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null; area_id?: string | null }) => {
     if (photo.gps_lat == null || photo.gps_lng == null) return;
     setLightboxIndex(null);
     setRefLightboxIndex(null);
     setMapOpen(true);
+    trackEvent("share_link_show_on_map_clicked", {
+      photo_id: photo.id,
+      area_id: photo.area_id ?? undefined,
+    });
     trackEvent("share_link_photo_located", { photo_id: photo.id });
     setFocusPoint({
       lat: photo.gps_lat,
@@ -217,6 +227,28 @@ export default function SharePageV2() {
       document.getElementById("site-map")?.scrollIntoView({ behavior: "smooth", block: "start" })
     );
   };
+
+  /** Area card / lightbox → feedback panel, with the anchor pre-filled. */
+  const leaveCommentOnArea = (areaId: string, areaName: string) => {
+    setCommentAnchor({
+      area_id: areaId,
+      day: activeDate ?? null,
+      label: [areaName, activeDate ? timeLabelDate(activeDate) : null].filter(Boolean).join(" · "),
+    });
+  };
+
+  const leaveCommentOnPhoto = (photo: { id: string; area_id: string | null; caption: string | null }) => {
+    setLightboxIndex(null);
+    setRefLightboxIndex(null);
+    const areaName = photo.area_id ? areaNameById.get(photo.area_id) ?? null : null;
+    setCommentAnchor({
+      photo_id: photo.id,
+      area_id: photo.area_id,
+      day: activeDate ?? null,
+      label: [areaName, activeDate ? timeLabelDate(activeDate) : null, "photo"].filter(Boolean).join(" · "),
+    });
+  };
+
 
   /** Map marker → lightbox: re-open the photo it came from. */
   const openPhotoById = (photoId: string) => {
