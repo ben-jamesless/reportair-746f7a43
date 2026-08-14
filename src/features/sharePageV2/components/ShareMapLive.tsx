@@ -47,7 +47,14 @@ function makeLabelOverlay(g: typeof google) {
     /** Screen-space box of the last draw, used for collision resolution. */
     public rect: { left: number; top: number; right: number; bottom: number } | null = null;
     public hidden = false;
-    constructor(private position: google.maps.LatLng, private text: string, public priority = 0) {
+    constructor(
+      private position: google.maps.LatLng,
+      private text: string,
+      /** Deterministic placement order: higher severity wins a collision. */
+      public severity = 0,
+      /** Tie-break within a severity band, so order never depends on fetch order. */
+      public sortName = "",
+    ) {
       super();
     }
     onAdd() {
@@ -93,22 +100,27 @@ function makeLabelOverlay(g: typeof google) {
   };
 }
 
-type CollidableLabel = {
+export type CollidableLabel = {
   rect: { left: number; top: number; right: number; bottom: number } | null;
-  priority: number;
+  severity: number;
+  sortName: string;
   setHidden: (hidden: boolean) => void;
 };
 
 /**
- * Greedy label de-clutter: keep the highest-priority label in any overlapping
- * cluster and fade the rest. Runs after every idle so it re-evaluates on zoom.
+ * Greedy label de-clutter with a *stable* placement order.
+ *
+ * The candidate order is a pure function of the data (status severity, then
+ * area name), never of geometry, fetch order or container size. That is what
+ * makes the interactive share map and the static map baked into the PDF export
+ * hide the same labels, and makes one site render identically at any width.
  */
-function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
+export function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
   const kept: Array<NonNullable<CollidableLabel["rect"]>> = [];
   const ordered = labels
     .filter((l) => l.rect)
     .slice()
-    .sort((a, b) => b.priority - a.priority);
+    .sort((a, b) => b.severity - a.severity || a.sortName.localeCompare(b.sortName));
   for (const l of ordered) {
     const r = l.rect!;
     const clash = kept.some(
@@ -122,6 +134,7 @@ function resolveLabelCollisions(labels: CollidableLabel[], padding = 4) {
     if (!clash) kept.push(r);
   }
 }
+
 
 
 // Pulsing dot + optional caption chip marking where a photo was taken.
