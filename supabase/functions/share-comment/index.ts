@@ -64,20 +64,61 @@ function anchorLabel(areaName: string | null, day: string | null, hasPhoto: bool
   return parts.join(" · ");
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+// Notification delivery. A missing key or a Resend failure is NEVER silent:
+// it logs an error and persists a failed-delivery row in email_send_log so the
+// gap is visible after the fact.
+async function sendEmail(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  to: string,
+  subject: string,
+  html: string,
+  metadata: Record<string, unknown> = {},
+) {
+  const logFailure = async (error: string) => {
+    console.error(`[share-comment] notification to ${to} failed: ${error}`);
+    await supabase.from("email_send_log").insert({
+      template_name: "share_comment_notification",
+      recipient_email: to,
+      status: "failed",
+      error_message: error.slice(0, 1000),
+      metadata: { ...metadata, subject },
+    });
+  };
+
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) {
-    console.warn("RESEND_API_KEY not set — skipping notification");
+    await logFailure("RESEND_API_KEY is not set — notification not sent");
     return;
   }
   const from = Deno.env.get("RESEND_FROM_EMAIL") || "BuildFolder <onboarding@resend.dev>";
-  const resp = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ from, to: [to], subject, html }),
-  });
-  if (!resp.ok) console.error(`Resend ${resp.status}: ${await resp.text()}`);
+  try {
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ from, to: [to], subject, html }),
+    });
+    const text = await resp.text();
+    if (!resp.ok) {
+      await logFailure(`Resend ${resp.status}: ${text}`);
+      return;
+    }
+    let messageId: string | null = null;
+    try {
+      messageId = (JSON.parse(text) as { id?: string }).id ?? null;
+    } catch { /* non-JSON success body */ }
+    await supabase.from("email_send_log").insert({
+      message_id: messageId,
+      template_name: "share_comment_notification",
+      recipient_email: to,
+      status: "sent",
+      metadata: { ...metadata, subject },
+    });
+  } catch (err) {
+    await logFailure(err instanceof Error ? err.message : String(err));
+  }
 }
+
 
 function notificationHtml(opts: {
   heading: string;
