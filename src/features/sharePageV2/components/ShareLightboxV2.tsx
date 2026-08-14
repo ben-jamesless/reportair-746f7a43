@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, MessageSquarePlus, X } from "lucide-react";
 import type { ShareV2Photo } from "../types";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
 import { V2, timeLabel } from "../tokens";
@@ -53,6 +53,22 @@ export function ShareLightboxV2({
           {timeLabel(photo.captured_at) ? ` · ${timeLabel(photo.captured_at)}` : ""}
         </span>
         <div className="flex items-center gap-1">
+          {onLeaveComment && (
+            <button
+              type="button"
+              onClick={() => onLeaveComment(photo)}
+              className="flex items-center gap-1.5 border border-white/40 px-3 py-1.5 text-white hover:bg-white/10"
+              style={{
+                fontFamily: V2.mono,
+                fontSize: 11,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+              }}
+            >
+              <MessageSquarePlus className="h-3.5 w-3.5" />
+              Comment
+            </button>
+          )}
           {onShowOnMap && photo.gps_lat != null && photo.gps_lng != null && (
             <button
               type="button"
@@ -72,6 +88,7 @@ export function ShareLightboxV2({
           <button type="button" onClick={onClose} aria-label="Close" className="p-2 text-white/70 hover:text-white">
             <X className="h-5 w-5" />
           </button>
+
         </div>
       </div>
       <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-4 pb-6">
