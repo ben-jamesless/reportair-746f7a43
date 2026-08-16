@@ -388,7 +388,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                                   e.stopPropagation();
                                   handleHideToggle(p.id);
                                 }}
-                                className="absolute right-1 top-1 rounded-md bg-background/90 px-1.5 py-1 text-xs opacity-0 shadow-sm transition group-hover:opacity-100 focus:opacity-100"
+                                className="absolute right-1 top-1 border border-border bg-background/90 px-1.5 py-1 text-xs opacity-0 transition group-hover:opacity-100 focus:opacity-100"
                                 title={isHidden ? "Restore to this day" : "Hide from this day"}
                               >
                                 {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}

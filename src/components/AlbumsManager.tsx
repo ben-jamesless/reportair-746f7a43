@@ -162,7 +162,7 @@ export const AlbumsManager = ({ projectId, onChanged }: Props) => {
       {albums.length === 0 ? (
         <p className="text-sm text-muted-foreground">No albums yet. Add one above.</p>
       ) : (
-        <ul className="divide-y rounded-md border">
+        <ul className="divide-y border">
           {albums.map((a, i) => (
             <li key={a.id} className="flex items-center gap-2 p-2">
               <div className="flex flex-col">

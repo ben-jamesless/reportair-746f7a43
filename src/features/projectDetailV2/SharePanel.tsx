@@ -424,7 +424,7 @@ export function SharePanel({
                 alt="QR code for client link"
                 width={280}
                 height={280}
-                className="rounded-md border"
+                className="border"
                 style={{ borderColor: "#E3DFD4" }}
               />
               <p className="text-xs text-muted-foreground text-center break-all" style={{ fontFamily: MONO }}>

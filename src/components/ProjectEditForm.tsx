@@ -361,7 +361,7 @@ export const ProjectEditForm = ({
     const multiOwner = ownerCount > 1;
     return (
       <div className="space-y-4">
-        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+        <div className="border border-destructive/30 bg-destructive/5 p-3 text-sm">
           <p className="font-medium text-destructive">
             {multiOwner ? "This project has multiple owners." : "This action is permanent."}
           </p>
@@ -534,7 +534,7 @@ export const ProjectEditForm = ({
             placeholder="Start typing a venue, city or address…"
           />
           {geoLat != null && geoLng != null ? (
-            <LocationMapPreview lat={geoLat} lng={geoLng} className="mt-2 h-40 w-full overflow-hidden rounded-md border" />
+            <LocationMapPreview lat={geoLat} lng={geoLng} className="mt-2 h-40 w-full overflow-hidden border" />
           ) : (
             // Coordinates are what pin the event's timezone. Without them every
             // capture time falls back to UTC, so say so rather than let the
@@ -621,7 +621,7 @@ export const ProjectEditForm = ({
               }}
             />
             <div className="flex items-center gap-3">
-              <div className="flex h-16 w-24 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
+              <div className="flex h-16 w-24 items-center justify-center overflow-hidden border bg-muted/40">
                 {logoUrl ? (
                   <img src={logoUrl} alt="Project logo" className="max-h-full max-w-full object-contain" />
                 ) : (
@@ -656,7 +656,7 @@ export const ProjectEditForm = ({
         ) : (
           <div className="space-y-2 sm:col-span-2">
             <Label>Project logo <Crown className="ml-1 h-3 w-3 text-amber-400 inline" /></Label>
-            <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+            <div className="border border-dashed p-4 text-center text-sm text-muted-foreground">
               Custom logos are available on the Studio plan.{" "}
               <a href="/billing" className="underline font-medium">Upgrade</a>
             </div>

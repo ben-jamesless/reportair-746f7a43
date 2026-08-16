@@ -436,7 +436,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
       {/* Selection toolbar */}
       {inSelectionMode && (
-        <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 border border-border bg-background/95 px-3 py-2 shadow-sm backdrop-blur">
+        <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 border border-border bg-background/95 px-3 py-2 backdrop-blur">
           <span className="text-sm font-medium">
             {selectedCount} selected
           </span>
@@ -535,7 +535,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                       }
                     }}
                     className={cn(
-                      "absolute left-2 top-2 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 shadow-sm transition",
+                      "absolute left-2 top-2 z-10 flex h-6 w-6 cursor-pointer items-center justify-center border-2 transition",
                       isSel
                         ? "border-primary bg-primary text-primary-foreground opacity-100"
                         : cn(
@@ -553,18 +553,18 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                 {isSel && (
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    className="pointer-events-none absolute inset-0 ring-2 ring-primary ring-offset-2 ring-offset-background"
                   />
                 )}
                 {/* Area label — stored assignment only. No badge = unassigned. */}
                 {p.area_id && (
-                  <span className="pointer-events-none absolute right-1.5 top-1.5 max-w-[70%] truncate rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm">
+                  <span className="pointer-events-none absolute right-1.5 top-1.5 max-w-[70%] truncate bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
                     {areaMap.get(p.area_id) ?? "Area"}
                   </span>
                 )}
                 {/* Hidden-from-day marker */}
                 {hiddenDays.length > 0 && (
-                  <div className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-1 rounded-md bg-black/70 px-1.5 py-1 text-[10px] text-white shadow-sm">
+                  <div className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-1 bg-black/70 px-1.5 py-1 text-[10px] text-white">
                     <span className="flex min-w-0 items-center gap-1 truncate">
                       <EyeOff className="h-3 w-3 shrink-0" />
                       <span className="truncate">
@@ -653,7 +653,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition",
+        "inline-flex items-center border px-3 py-1 text-xs font-medium transition",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-background text-foreground hover:bg-muted"
