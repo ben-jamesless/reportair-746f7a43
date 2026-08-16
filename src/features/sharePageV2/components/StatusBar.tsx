@@ -1,3 +1,4 @@
+import { formatAbsoluteStamp, getAmbientEventTimeZone } from "@/lib/eventTime";
 import { Download, Moon, Sun } from "lucide-react";
 import { V2, statusMeta } from "../tokens";
 import type { ShareMode } from "../types";
@@ -38,11 +39,11 @@ export function StatusBar({
   const live = !filed && isToday;
   const updated =
     !filed && lastUpdated
-      ? new Date(lastUpdated).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+      ? formatAbsoluteStamp(lastUpdated, getAmbientEventTimeZone())
       : null;
   const filedStamp =
     filed && filedAt
-      ? new Date(filedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+      ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: getAmbientEventTimeZone() }).format(new Date(filedAt))
       : null;
 
   return (
