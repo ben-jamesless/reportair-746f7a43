@@ -106,8 +106,10 @@ export const ProjectEditForm = ({
   onBusyChange,
   onSavedAt,
 }: Props) => {
-
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { canUseCustomLogo } = useProjectPlan(projectId);
+
 
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? "");
