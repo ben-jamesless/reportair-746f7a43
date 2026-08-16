@@ -385,8 +385,12 @@ Deno.serve(async (req) => {
 
     if (!proj) throw new Error("Project not found");
 
-    // Event-local timezone — the same zone the UI buckets days in.
-    const eventTz = await resolveEventTimeZone(proj.geo_lat, proj.geo_lng) ?? UTC;
+    // Event-local timezone — the same zone the UI buckets days in. When it
+    // cannot be resolved the document says so on the cover; it never guesses
+    // silently.
+    const eventZone = await resolveEventZone(proj.geo_lat, proj.geo_lng);
+    const eventTz = eventZone.tz;
+    const tzNote = timeZoneNote(eventZone);
 
     const sortedAreas = (areas ?? []) as Array<{ id: string; name: string; sort_order: number }>;
     const statusByArea = new Map<string, string>();
