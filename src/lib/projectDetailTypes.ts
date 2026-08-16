@@ -79,10 +79,18 @@ export const areaStatusAccent = (s: AreaStatus | null | undefined): string => {
   }
 };
 
-export const dayKey = (p: LightboxPhoto): string => {
-  const raw = p.captured_at || p.created_at;
-  const d = raw ? new Date(raw) : new Date(0);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate()
-  ).padStart(2, "0")}`;
-};
+/** A photo with no capture time belongs to no build day — it is never guessed. */
+export const UNDATED = "__undated__";
+
+/**
+ * The build day a photo belongs to, in the EVENT's timezone.
+ *
+ * This used to read `captured_at || created_at` and bucket with
+ * `Date.getFullYear()/getMonth()/getDate()` — i.e. the viewer's browser zone,
+ * with upload time silently standing in for capture time. That put the same
+ * photo on different days in the Library, the share page and the PDF. Callers
+ * must pass the event zone; an undated photo returns UNDATED so it can be
+ * shown as such instead of disappearing into a wrong day.
+ */
+export const dayKey = (p: LightboxPhoto, tz: string = UTC): string =>
+  eventDayKey(p.captured_at, tz) ?? UNDATED;
