@@ -81,6 +81,8 @@ export function SharePanel({
   onOpenChange: (v: boolean) => void;
 }) {
   const { photos, project } = useProjectDetail(projectId);
+  const eventTz = useProjectTimeZone(projectId);
+
   const [link, setLink] = useState<ShareLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
