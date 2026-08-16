@@ -535,11 +535,18 @@ export const ProjectEditForm = ({
           />
           {geoLat != null && geoLng != null ? (
             <LocationMapPreview lat={geoLat} lng={geoLng} className="mt-2 h-40 w-full overflow-hidden rounded-md border" />
-          ) : eventLocation.trim() ? (
+          ) : (
+            // Coordinates are what pin the event's timezone. Without them every
+            // capture time falls back to UTC, so say so rather than let the
+            // report quietly show the wrong clock.
             <p className="text-xs text-muted-foreground">
-              Pick a suggestion to verify the location — weather uses these coordinates.
+              {eventLocation.trim()
+                ? "Pick a suggestion to verify the location."
+                : "No location set."}{" "}
+              Weather and the event timezone both use these coordinates — until one is verified, capture times
+              on the report and PDF are shown in UTC.
             </p>
-          ) : null}
+          )}
         </div>
 
 
