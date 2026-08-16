@@ -140,3 +140,15 @@ export function formatAbsoluteStamp(iso: string | null | undefined, tz: string =
   }).format(d);
   return `${date}, ${time}`;
 }
+
+/**
+ * Ambient event timezone for the share page. The client report renders one
+ * event per document, so the zone is set once when the report loads and every
+ * nested component (zone cards, lightbox, stat strip) formats against it
+ * instead of threading a prop through every level.
+ */
+let ambientTz: string = UTC;
+export const setAmbientEventTimeZone = (tz: string) => {
+  ambientTz = tz || UTC;
+};
+export const getAmbientEventTimeZone = () => ambientTz;
