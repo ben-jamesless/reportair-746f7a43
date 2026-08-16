@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.share_preview_sign(uuid, uuid) TO service_role, postgres;
