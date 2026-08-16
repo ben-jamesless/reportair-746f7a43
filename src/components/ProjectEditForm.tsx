@@ -100,9 +100,13 @@ export const ProjectEditForm = ({
   hideDangerZone,
   extraSections,
   timelineSection,
+  elsewhereSection,
+  hideFooter,
+  saveRef,
+  onBusyChange,
+  onSavedAt,
 }: Props) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+
   const { canUseCustomLogo } = useProjectPlan(projectId);
 
   const [name, setName] = useState(initialName);
