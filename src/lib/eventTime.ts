@@ -43,23 +43,49 @@ export function cachedEventTimeZone(lat?: number | null, lng?: number | null): s
   return tzCache.get(keyFor(lat, lng)) ?? UTC;
 }
 
+/**
+ * UTC is both a real answer and a failure answer, so the resolver reports
+ * which one it gave. Surfaces must state the zone rather than imply one.
+ */
+export type EventZone = {
+  tz: string;
+  resolved: boolean;
+  reason: "coords" | "no_coords" | "lookup_failed";
+};
+
+export async function resolveEventZone(
+  lat?: number | null,
+  lng?: number | null
+): Promise<EventZone> {
+  if (lat == null || lng == null) return { tz: UTC, resolved: false, reason: "no_coords" };
+  const k = keyFor(lat, lng);
+  const hit = tzCache.get(k);
+  if (hit) return { tz: hit, resolved: true, reason: "coords" };
+  await ensureLookup();
+  if (!tzLookup) return { tz: UTC, resolved: false, reason: "lookup_failed" };
+  try {
+    const zone = tzLookup(lat, lng);
+    if (!zone) return { tz: UTC, resolved: false, reason: "lookup_failed" };
+    tzCache.set(k, zone);
+    return { tz: zone, resolved: true, reason: "coords" };
+  } catch {
+    return { tz: UTC, resolved: false, reason: "lookup_failed" };
+  }
+}
+
+/** The line a surface prints so the reader knows the basis of the times. */
+export function timeZoneNote(z: { tz: string; resolved: boolean; reason: string }): string {
+  if (z.resolved) return `Times shown in ${z.tz} (event local)`;
+  return z.reason === "no_coords"
+    ? "Times shown in UTC — no event location set"
+    : "Times shown in UTC — event timezone could not be resolved";
+}
+
 export async function resolveEventTimeZone(
   lat?: number | null,
   lng?: number | null
 ): Promise<string> {
-  if (lat == null || lng == null) return UTC;
-  const k = keyFor(lat, lng);
-  const hit = tzCache.get(k);
-  if (hit) return hit;
-  await ensureLookup();
-  if (!tzLookup) return UTC;
-  try {
-    const zone = tzLookup(lat, lng);
-    if (zone) tzCache.set(k, zone);
-    return zone || UTC;
-  } catch {
-    return UTC;
-  }
+  return (await resolveEventZone(lat, lng)).tz;
 }
 
 /**
