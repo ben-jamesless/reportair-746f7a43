@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowDown, ArrowUp, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { GripVertical, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { MONO, T } from "@/features/projectSettings/settingsUi";
 
 export type Area = { id: string; project_id: string; name: string; sort_order: number };
 
@@ -14,22 +15,33 @@ interface Props {
 
 export const AreasManager = ({ projectId, onChanged }: Props) => {
   const [areas, setAreas] = useState<Area[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const { data } = await supabase
-      .from("areas")
-      .select("id, project_id, name, sort_order")
-      .eq("project_id", projectId)
-      .is("deleted_at", null)
-      .order("sort_order");
+    const [{ data }, { data: photos }] = await Promise.all([
+      supabase
+        .from("areas")
+        .select("id, project_id, name, sort_order")
+        .eq("project_id", projectId)
+        .is("deleted_at", null)
+        .order("sort_order"),
+      supabase.from("photos").select("area_id").eq("project_id", projectId),
+    ]);
     setAreas((data ?? []) as Area[]);
+    const next: Record<string, number> = {};
+    for (const p of photos ?? []) {
+      if (p.area_id) next[p.area_id] = (next[p.area_id] ?? 0) + 1;
+    }
+    setCounts(next);
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
+
 
   const add = async () => {
     const name = newName.trim();
