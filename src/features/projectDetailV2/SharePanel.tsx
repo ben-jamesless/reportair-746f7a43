@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
-import { dayKey as photoDayKey } from "@/lib/projectDetailTypes";
+import { dayKey as photoDayKey, UNDATED } from "@/lib/projectDetailTypes";
 import { FinaliseEventBlock } from "./FinaliseEventBlock";
 import {
   T,
@@ -120,14 +120,17 @@ export function SharePanel({
   const latestDay = useMemo(() => {
     if (photos.length === 0) return null;
     const keys = new Set<string>();
-    for (const p of photos) keys.add(photoDayKey(p));
+    for (const p of photos) {
+      const k = photoDayKey(p, eventTz);
+      if (k !== UNDATED) keys.add(k);
+    }
     const sorted = Array.from(keys).sort().reverse();
     const key = sorted[0];
     if (!key) return null;
     const [y, m, d] = key.split("-").map(Number);
     const date = new Date(y, m - 1, d);
     const label = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
-    const count = photos.filter((p) => photoDayKey(p) === key).length;
+    const count = photos.filter((p) => photoDayKey(p, eventTz) === key).length;
     return { key, label, date, count };
   }, [photos]);
 
