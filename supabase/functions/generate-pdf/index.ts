@@ -765,6 +765,8 @@ Deno.serve(async (req) => {
       page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
       page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
+      // The document states the basis of every time it prints.
+      page.drawText(tzNote, { x: M + 8, y: dateY - 13, size: 7.5, font: irFont, color: COLOR.MIST });
 
       // Event logo (only render when an image was uploaded)
       const logoBoxX = W - M - 66, logoBoxY = H - 48 * MM, logoBoxW = 66, logoBoxH = 32;
