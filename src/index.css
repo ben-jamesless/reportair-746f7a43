@@ -48,7 +48,7 @@
     --bs-shadow-md: 0 4px 12px rgba(15, 20, 23, 0.06);
     --bs-shadow-lg: 0 12px 28px rgba(15, 20, 23, 0.10);
 
-    --bs-focus-ring: 0 0 0 3px rgba(217, 79, 42, 0.28);
+    --bs-focus-ring: 0 0 0 3px rgba(20, 24, 28, 0.28);
 
     /* PDF-only tokens — pure white, cooler greys */
     --bs-pdf-page-bg:    #FFFFFF;
@@ -109,7 +109,7 @@
     /* rule #E5E1D6 */
     --border: 45 26% 87%;
     --input: 45 26% 87%;
-    --ring: 13 70% 51%;
+    --ring: 200 11% 8%;
 
     --radius: 0.75rem;
 
@@ -128,7 +128,7 @@
     --sidebar-accent-foreground: 42 24% 94%;
     /* ink-3 border */
     --sidebar-border: 206 11% 19%;
-    --sidebar-ring: 13 70% 51%;
+    --sidebar-ring: 42 24% 94%;
 
     /* Filed-sheet surface tokens (Daily Report, share sheets) */
     --sheet-bg: #FAF8F2;
@@ -181,7 +181,7 @@
 
     --border: 206 11% 19%;
     --input: 206 11% 19%;
-    --ring: 13 70% 51%;
+    --ring: 200 11% 8%;
 
     --sidebar-background: 200 11% 8%;
     --sidebar-foreground: 42 24% 94%;
@@ -190,7 +190,7 @@
     --sidebar-accent: 207 14% 13%;
     --sidebar-accent-foreground: 42 24% 94%;
     --sidebar-border: 206 11% 19%;
-    --sidebar-ring: 13 70% 51%;
+    --sidebar-ring: 42 24% 94%;
 
     /* Filed-sheet surface — dark variant: lifted dark card with warm ink */
     --sheet-bg: #171A1E;
