@@ -13,6 +13,7 @@ import {
   CircleHelp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { inkButtonClass } from "@/features/projectSettings/settingsUi";
 import {
   Dialog,
   DialogContent,
@@ -724,6 +725,7 @@ export function GlobalUploadModal({
               <Button
                 onClick={runUpload}
                 disabled={!canUpload}
+                className={inkButtonClass}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 {readyCount === items.length
@@ -745,7 +747,7 @@ export function GlobalUploadModal({
                   Open Unassigned tray
                 </Button>
               ) : null}
-              <Button onClick={handleClose}>Done</Button>
+              <Button onClick={handleClose} className={inkButtonClass}>Done</Button>
             </>
           )}
         </DialogFooter>

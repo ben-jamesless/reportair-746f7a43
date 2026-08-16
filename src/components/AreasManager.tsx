@@ -132,7 +132,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
           onKeyDown={(e) => e.key === "Enter" && add()}
           className="rounded-none"
         />
-        <Button onClick={add} disabled={busy || !newName.trim()} className="rounded-none">
+        <Button onClick={add} disabled={busy || !newName.trim()} className={inkButtonClass}>
           <Plus className="mr-1 h-4 w-4" /> Add
         </Button>
       </div>
