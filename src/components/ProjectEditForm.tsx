@@ -55,7 +55,18 @@ interface Props extends ProjectEditValues {
   extraSections?: React.ReactNode;
   /** Rendered inline with the event date fields (timeline / lifecycle controls). */
   timelineSection?: React.ReactNode;
+  /** "Elsewhere" pointer block rendered at the very foot of the form. */
+  elsewhereSection?: React.ReactNode;
+  /** Hide the built-in Cancel/Save row — the container renders its own footer. */
+  hideFooter?: boolean;
+  /** Container-owned save: the form writes its save handler here. */
+  saveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
+  /** Reports busy state up so a container footer can disable itself. */
+  onBusyChange?: (busy: boolean) => void;
+  /** Fires with an ISO stamp each time a save succeeds. */
+  onSavedAt?: (iso: string) => void;
 }
+
 
 const toIsoDate = (d: Date | undefined): string | null => {
   if (!d) return null;
