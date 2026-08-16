@@ -132,7 +132,7 @@ export function SharePanel({
     const label = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
     const count = photos.filter((p) => photoDayKey(p, eventTz) === key).length;
     return { key, label, date, count };
-  }, [photos]);
+  }, [photos, eventTz]);
 
   // Canonical share host — never derived from window.location so preview,
   // custom-domain and lovable.app all copy/QR to the same public URL clients use.
