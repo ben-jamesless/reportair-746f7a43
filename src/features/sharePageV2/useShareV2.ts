@@ -37,9 +37,15 @@ export function useShareV2(token: string | undefined) {
     async (password: string | null, isRefresh = false) => {
       if (!token) return;
       if (!isRefresh) setState((s) => ({ ...s, loading: true }));
+      // ?preview=<signed token> is appended only by the app's own team-facing
+      // Open/Copy actions. It attributes the view to "Team previews" even when
+      // the member is signed out or on a preview origin — session state alone
+      // used to decide this, which inflated the client-facing number.
+      const previewToken = new URLSearchParams(window.location.search).get("preview");
       const { data, error } = await supabase.rpc("share_meta" as never, {
         _token: token,
         _password: password,
+        _preview: previewToken,
       } as never);
       const meta = (data ?? null) as unknown as ShareV2Meta | null;
 
