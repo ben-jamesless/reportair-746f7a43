@@ -401,3 +401,16 @@
   opacity: 0.6;
   animation: bf-photo-pulse 1.8s ease-out infinite;
 }
+
+
+/* Scroll containers are focusable so keyboard users can scroll them, but they
+   must never paint the accent ring — an orange outline around a panel body
+   reads as a validation error. */
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible,
+[data-radix-scroll-area-viewport]:focus,
+[data-radix-scroll-area-viewport]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000;
+}
