@@ -35,9 +35,9 @@ import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
-import { dayKey } from "@/lib/projectDetailTypes";
+import { dayKey, UNDATED } from "@/lib/projectDetailTypes";
 import { formatCaptureTime } from "@/lib/eventTime";
-import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
+import { useProjectTimeZoneInfo } from "@/hooks/useProjectTimeZone";
 import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
@@ -83,7 +83,8 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     applyPhotoAlbumChange,
   } = useProjectDetail(projectId);
   const hidden = useDayHiddenPhotos(projectId);
-  const eventTz = useProjectTimeZone(projectId);
+  const tzInfo = useProjectTimeZoneInfo(projectId);
+  const eventTz = tzInfo.tz;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialFilterParam = searchParams.get("filter");
@@ -133,9 +134,19 @@ export function LibraryTab({ projectId }: { projectId: string }) {
   // Distinct days across all photos
   const allDays = useMemo(() => {
     const s = new Set<string>();
-    for (const p of photos) s.add(dayKey(p));
+    for (const p of photos) {
+      const k = dayKey(p, eventTz);
+      if (k !== UNDATED) s.add(k);
+    }
     return Array.from(s).sort().reverse();
-  }, [photos]);
+  }, [photos, eventTz]);
+
+  // Photos with no capture time. They belong to no build day, so they are
+  // given their own filter rather than being quietly folded into today.
+  const undated = useMemo(
+    () => photos.filter((p) => dayKey(p, eventTz) === UNDATED),
+    [photos, eventTz]
+  );
 
   const unassigned = useMemo(() => photos.filter((p) => !p.area_id), [photos]);
 
@@ -145,10 +156,10 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     return photos.filter((p) => {
       if (areaFilter === UNASSIGNED && p.area_id) return false;
       if (areaFilter !== ALL && areaFilter !== UNASSIGNED && p.area_id !== areaFilter) return false;
-      if (dayFilter !== ALL && dayKey(p) !== dayFilter) return false;
+      if (dayFilter !== ALL && dayKey(p, eventTz) !== dayFilter) return false;
       return true;
     });
-  }, [photos, referencePhotos, areaFilter, dayFilter]);
+  }, [photos, referencePhotos, areaFilter, dayFilter, eventTz]);
 
   const viewingReference = areaFilter === REFERENCE;
 
@@ -343,14 +354,50 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           {allDays.length > 12 && (
             <span className="text-xs text-muted-foreground">+{allDays.length - 12} older</span>
           )}
+          {undated.length > 0 && (
+            <FilterChip active={dayFilter === UNDATED} onClick={() => setDayFilter(UNDATED)}>
+              Undated
+              <span className="ml-1.5 opacity-70">{undated.length}</span>
+            </FilterChip>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
+          <span className="font-mono text-xs text-muted-foreground">
             {filtered.length} of {photos.length}
           </span>
         </div>
       </div>
+
+      {/* The basis of every time on this page, stated rather than assumed. */}
+      <p className="-mt-2 font-mono text-[11px] text-muted-foreground">
+        {tzInfo.note}
+        {!tzInfo.resolved && " · add a location in Project settings"}
+      </p>
+
+      {/* Undated tray — a photo without a capture time is visible and fixable
+          here instead of silently landing on the wrong build day. */}
+      {undated.length > 0 && dayFilter !== UNDATED && (
+        <section className="border border-dashed border-border bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Time not recorded</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {undated.length} photo{undated.length === 1 ? "" : "s"} carry no capture time — screenshots and
+                forwarded images usually lose it. They sit outside every build day and print in the PDF&rsquo;s
+                Undated section until a capture date is set.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDayFilter(UNDATED)}
+              className="shrink-0 border border-border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wide"
+            >
+              Show them
+            </button>
+          </div>
+        </section>
+      )}
 
 
       {/* Unassigned tray */}
