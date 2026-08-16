@@ -36,18 +36,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { dayKey } from "@/lib/projectDetailTypes";
+import { formatCaptureTime } from "@/lib/eventTime";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
 const UNASSIGNED = "__unassigned__";
 const REFERENCE = "__reference__";
 
-function captureTimeLabel(p: { captured_at: string | null }): string | null {
-  if (!p.captured_at) return null;
-  const d = new Date(p.captured_at);
-  if (Number.isNaN(d.getTime())) return null;
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
+
 
 function formatDayShort(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
@@ -86,6 +83,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
     applyPhotoAlbumChange,
   } = useProjectDetail(projectId);
   const hidden = useDayHiddenPhotos(projectId);
+  const eventTz = useProjectTimeZone(projectId);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialFilterParam = searchParams.get("filter");
@@ -465,7 +463,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                     alt={p.caption || p.file_name}
                     onClick={() => openLightbox(p.id)}
                     selected={isSel}
-                    captureTime={captureTimeLabel(p)}
+                    captureTime={formatCaptureTime(p.captured_at, eventTz)}
                   />
                 </div>
                 {/* Selection circle — always available when canEdit, permanently
@@ -637,7 +635,7 @@ function TrayThumb({
         path={photo.storage_path}
         alt={photo.caption || photo.file_name}
         onClick={onOpen}
-        captureTime={captureTimeLabel(photo)}
+        captureTime={formatCaptureTime(photo.captured_at, eventTz)}
       />
       {canEdit && areas.length > 0 && (
         <div className="absolute inset-x-1 bottom-1 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">

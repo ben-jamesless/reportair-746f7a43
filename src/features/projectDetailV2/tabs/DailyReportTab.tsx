@@ -35,12 +35,7 @@ function toTodayKey(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function captureTimeLabel(p: { captured_at: string | null }): string | null {
-  if (!p.captured_at) return null;
-  const d = new Date(p.captured_at);
-  if (Number.isNaN(d.getTime())) return null;
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
+
 
 function formatDayLabel(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
@@ -342,7 +337,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                                 path={p.storage_path}
                                 alt={p.caption || p.file_name}
                                 onClick={() => openLightbox(p.id)}
-                                captureTime={captureTimeLabel(p)}
+                                captureTime={formatCaptureTime2(p)}
                               />
                             </div>
                             {canEdit && !previewMode && (
@@ -389,7 +384,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                     path={p.storage_path}
                     alt={p.caption || p.file_name}
                     onClick={() => openLightbox(p.id)}
-                    captureTime={captureTimeLabel(p)}
+                    captureTime={formatCaptureTime2(p)}
                   />
                 ))}
               </div>
