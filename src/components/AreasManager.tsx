@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GripVertical, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
-import { MONO, T } from "@/features/projectSettings/settingsUi";
+import { MONO, T, inkButtonClass } from "@/features/projectSettings/settingsUi";
 
 export type Area = { id: string; project_id: string; name: string; sort_order: number };
 
