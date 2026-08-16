@@ -414,6 +414,16 @@ Deno.serve(async (req) => {
       photosByArea.set(p.area_id, arr);
     }
 
+    // Photos that cannot be placed. A record whose purpose is completeness
+    // must never drop evidence silently, so both classes get their own
+    // section at the END of the document rather than disappearing:
+    //   - undated:    captured_at is null, so they belong to no build day
+    //   - unassigned: on this day but with no area, so no area page holds them
+    const undatedPhotos = ((photos ?? []) as typeof dayPhotos)
+      .filter((p) => !p.captured_at && !hiddenIds.has(p.id));
+    const unassignedPhotos = dayPhotos.filter((p) => !p.area_id && p.captured_at);
+
+
     // ============ Compute derived fields ============
     const reportDate = parseISODate(reportDateStr);
     const reportDateLabel = fmtDateLong(reportDate);
