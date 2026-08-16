@@ -77,6 +77,9 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   const [copying, setCopying] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  /** Reveals areas that have nothing recorded for the selected day. */
+  const [showQuietAreas, setShowQuietAreas] = useState(false);
+
 
   const hidden = useDayHiddenPhotos(projectId);
 
