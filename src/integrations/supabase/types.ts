@@ -2071,6 +2071,7 @@ export type Database = {
         Args: { _link_id: string; _preview: string; _project_id: string }
         Returns: boolean
       }
+      share_preview_selftest: { Args: never; Returns: Json }
       share_preview_sign: {
         Args: { _link_id: string; _user_id: string }
         Returns: string
