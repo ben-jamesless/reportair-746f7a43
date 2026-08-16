@@ -12,6 +12,8 @@ import { areaStatusAccent, dayKey as photoDayKey, type DailyField } from "@/lib/
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
+import { formatCaptureTime } from "@/lib/eventTime";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
 import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
 
