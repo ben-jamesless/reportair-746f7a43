@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { formatAbsoluteStamp } from "@/lib/eventTime";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { Copy, QrCode, Loader2, FileText, FileArchive, Lock, Unlock, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
   Sheet,
@@ -45,6 +46,8 @@ type ShareLink = {
   expires_at: string | null;
   revoked_at: string | null;
   view_count: number;
+  /** Opens by signed-in project members — never counted as client opens. */
+  team_view_count: number;
   last_accessed_at: string | null;
   created_at: string;
   show_photo_pins: boolean;
@@ -78,6 +81,8 @@ export function SharePanel({
   onOpenChange: (v: boolean) => void;
 }) {
   const { photos, project } = useProjectDetail(projectId);
+  const eventTz = useProjectTimeZone(projectId);
+
   const [link, setLink] = useState<ShareLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -107,7 +112,7 @@ export function SharePanel({
     setLoading(true);
     const { data } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,show_photo_pins")
+      .select("id,token,label,has_password,expires_at,revoked_at,view_count,team_view_count,last_accessed_at,created_at,show_photo_pins")
       .eq("project_id", projectId)
       .is("revoked_at", null)
       .order("created_at", { ascending: false })
@@ -333,26 +338,33 @@ export function SharePanel({
 
 
 
-                {/* Client views */}
-                {(link.view_count > 0 || link.last_accessed_at) && (
+                {/* Views — client opens and team previews are separate figures */}
+                {(link.view_count > 0 || link.team_view_count > 0 || link.last_accessed_at) && (
                   <section style={{ borderTop: DASH, paddingTop: 20 }}>
-                    <BlockLabel dot="#7B8B4F">Client views</BlockLabel>
-                    <dl className="grid grid-cols-2 gap-3 text-sm">
+                    <BlockLabel dot="#7B8B4F">Views</BlockLabel>
+                    <dl className="grid grid-cols-3 gap-3 text-sm">
                       <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Total opens</dt>
+                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Client opens</dt>
                         <dd className="mt-1 text-lg font-semibold" style={{ fontFamily: MONO }}>
                           {link.view_count}
                         </dd>
                       </div>
                       <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Last opened</dt>
-                        <dd className="mt-1 text-sm">
-                          {link.last_accessed_at
-                            ? formatDistanceToNow(new Date(link.last_accessed_at), { addSuffix: true })
-                            : "—"}
+                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Team previews</dt>
+                        <dd className="mt-1 text-lg font-semibold text-muted-foreground" style={{ fontFamily: MONO }}>
+                          {link.team_view_count}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Last client open</dt>
+                        <dd className="mt-1 text-sm" style={{ fontFamily: MONO }}>
+                          {formatAbsoluteStamp(link.last_accessed_at, eventTz)}
                         </dd>
                       </div>
                     </dl>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Opens by anyone with a role on this event count as team previews.
+                    </p>
                   </section>
                 )}
 

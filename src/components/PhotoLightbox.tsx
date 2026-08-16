@@ -78,6 +78,9 @@ export type LightboxPhoto = {
 export type LightboxArea = { id: string; name: string };
 export type LightboxAlbum = { id: string; name: string };
 
+import { formatAbsoluteStamp } from "@/lib/eventTime";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
+
 interface Props {
   photos: LightboxPhoto[];
   index: number | null;
@@ -97,6 +100,7 @@ const UNASSIGNED = "__unassigned__";
 import type { GuestNote } from "@/lib/types";
 
 export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId, isOwner = false }: Props) => {
+  const eventTz = useProjectTimeZone(projectId);
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
@@ -240,7 +244,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 <div className="space-y-3 text-sm">
                   {photo.captured_at && (
                     <Row icon={<Calendar className="h-4 w-4" />} label="Captured">
-                      {new Date(photo.captured_at).toLocaleString()}
+                      {formatAbsoluteStamp(photo.captured_at, eventTz)}
                     </Row>
                   )}
                   {photo.gps_lat !== null && photo.gps_lng !== null && (

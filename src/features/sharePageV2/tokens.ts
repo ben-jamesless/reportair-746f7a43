@@ -1,3 +1,4 @@
+import { formatCaptureTime, getAmbientEventTimeZone } from "@/lib/eventTime";
 /**
  * Share page v2 — editorial design tokens.
  * Deliberately self-contained (copied, not extracted) while v2 settles, so
@@ -81,12 +82,12 @@ export const parseISO = (s: string) => {
 export const daysBetween = (a: string, b: string) =>
   Math.round((parseISO(b).getTime() - parseISO(a).getTime()) / 86400000);
 
-export const timeLabel = (iso: string | null) => {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
+/**
+ * Capture times render in the *event's* local timezone, never the viewer's,
+ * so the same photo reads the same time for the site team and the client.
+ */
+export const timeLabel = (iso: string | null) =>
+  formatCaptureTime(iso, getAmbientEventTimeZone());
 
 /**
  * Client mirror of the DB function `derive_area_display_status`:

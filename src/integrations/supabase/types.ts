@@ -1282,6 +1282,7 @@ export type Database = {
           project_id: string
           revoked_at: string | null
           show_photo_pins: boolean
+          team_view_count: number
           token: string
           view_count: number
         }
@@ -1297,6 +1298,7 @@ export type Database = {
           project_id: string
           revoked_at?: string | null
           show_photo_pins?: boolean
+          team_view_count?: number
           token?: string
           view_count?: number
         }
@@ -1312,6 +1314,7 @@ export type Database = {
           project_id?: string
           revoked_at?: string | null
           show_photo_pins?: boolean
+          team_view_count?: number
           token?: string
           view_count?: number
         }
@@ -2026,6 +2029,7 @@ export type Database = {
           project_id: string
           revoked_at: string | null
           show_photo_pins: boolean
+          team_view_count: number
           token: string
           view_count: number
         }
