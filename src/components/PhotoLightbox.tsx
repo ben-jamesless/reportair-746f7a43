@@ -279,7 +279,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                         <div className="flex items-baseline justify-between gap-2">
                           <p className="text-xs font-medium">{n.guest_name}</p>
                           <span className="text-[10px] text-muted-foreground">
-                            {formatAbsoluteStamp(n.created_at, getAmbientEventTimeZone())}
+                            {formatAbsoluteStamp(n.created_at, eventTz)}
                           </span>
                         </div>
                         <p className="mt-1 whitespace-pre-wrap text-xs">{n.body}</p>
