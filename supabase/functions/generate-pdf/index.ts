@@ -653,6 +653,50 @@ Deno.serve(async (req) => {
       (a) => a.photoCount > 0 || (a.status && a.status !== "not_started") || (a.notes && a.notes.trim() !== "")
     );
 
+    // ── Trailing sections for photos that cannot be filed ─────────────────────
+    // Rendered as ordinary area pages so every template picks them up without
+    // a layout change. They are appended last, after the real areas.
+    const buildOrphanSection = async (
+      id: string,
+      name: string,
+      notes: string,
+      list: typeof dayPhotos,
+    ): Promise<AreaData | null> => {
+      if (list.length === 0) return null;
+      const ps = list.slice(0, 9);
+      const urls = await Promise.all(ps.map((p) => photoUrlFor(p)));
+      const images = await Promise.all(urls.map((u) => u ? fetchAndEmbedImage(pdfDoc, u) : Promise.resolve(null)));
+      return {
+        id,
+        name,
+        status: "",
+        notes: list.length > 9 ? `${notes} Showing the first 9 of ${list.length}.` : notes,
+        photoCount: list.length,
+        photoImages: images,
+        photoCaptions: ps.map((p) => {
+          const cap = (p.caption ?? "").trim();
+          if (p.captured_at) return cap;
+          return cap ? `${cap} — Time not recorded` : "Time not recorded";
+        }),
+      };
+    };
+
+    const undatedSection = await buildOrphanSection(
+      "__undated__",
+      "Undated",
+      "These photos carry no capture time, so they cannot be placed on a build day. Screenshots and forwarded images routinely lose it. Set a capture date in the Library to file them.",
+      undatedPhotos,
+    );
+    const unassignedSection = await buildOrphanSection(
+      "__unassigned__",
+      "Unassigned",
+      "Taken on this day but not assigned to an area. Assign them in the Library so they appear under the right area.",
+      unassignedPhotos,
+    );
+    if (unassignedSection) areaData.push(unassignedSection);
+    if (undatedSection) areaData.push(undatedSection);
+
+
     // ============ Template branch ============
     // The export dialog writes `template` into options. Three layouts are
     // wired up so far:
