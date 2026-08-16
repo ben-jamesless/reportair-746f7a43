@@ -30,7 +30,9 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
         .eq("project_id", projectId)
         .is("deleted_at", null)
         .order("sort_order"),
-      supabase.from("photos").select("area_id").eq("project_id", projectId),
+      // Build photos only — the same definition the Library chips and the
+      // client link use. Reference photos are never counted against an area.
+      supabase.from("photos").select("area_id").eq("project_id", projectId).eq("is_reference", false),
     ]);
     setAreas((data ?? []) as Area[]);
     const next: Record<string, number> = {};
