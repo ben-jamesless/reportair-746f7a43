@@ -11,20 +11,52 @@ export const UTC = "UTC";
 
 let tzLookup: ((lat: number, lng: number) => string) | null = null;
 
-export async function resolveEventTimeZone(
+/**
+ * Why this returns a reason and not just a zone: UTC is both a real answer
+ * (an event in Greenwich in winter) and a failure answer (no coordinates on
+ * the project). Callers must be able to tell them apart, because every
+ * surface has to SAY which zone it is rendering in rather than guess quietly.
+ */
+export type EventZone = {
+  tz: string;
+  /** false when the zone is a fallback, not a lookup result. */
+  resolved: boolean;
+  reason: "coords" | "no_coords" | "lookup_failed";
+};
+
+export async function resolveEventZone(
   lat?: number | null,
   lng?: number | null,
-): Promise<string> {
-  if (lat == null || lng == null) return UTC;
+): Promise<EventZone> {
+  if (lat == null || lng == null) {
+    return { tz: UTC, resolved: false, reason: "no_coords" };
+  }
   try {
     if (!tzLookup) {
       const m = await import("https://esm.sh/tz-lookup@6.1.25");
       tzLookup = (m.default ?? m) as (lat: number, lng: number) => string;
     }
-    return tzLookup(Number(lat), Number(lng)) || UTC;
+    const zone = tzLookup(Number(lat), Number(lng));
+    if (!zone) return { tz: UTC, resolved: false, reason: "lookup_failed" };
+    return { tz: zone, resolved: true, reason: "coords" };
   } catch {
-    return UTC;
+    return { tz: UTC, resolved: false, reason: "lookup_failed" };
   }
+}
+
+/** The line every document prints so the reader knows the basis of the times. */
+export function timeZoneNote(z: EventZone): string {
+  if (z.resolved) return `Times shown in ${z.tz} (event local)`;
+  return z.reason === "no_coords"
+    ? "Times shown in UTC — no event location set"
+    : "Times shown in UTC — event timezone could not be resolved";
+}
+
+export async function resolveEventTimeZone(
+  lat?: number | null,
+  lng?: number | null,
+): Promise<string> {
+  return (await resolveEventZone(lat, lng)).tz;
 }
 
 /** "2026-08-16" in event-local time. Null when there is no usable timestamp. */
