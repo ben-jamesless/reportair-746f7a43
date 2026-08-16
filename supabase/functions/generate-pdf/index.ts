@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 import { renderEditorialPortraitV1, renderGridLandscapeV1 } from "./new-layouts.ts";
-import { eventDayKey, resolveEventTimeZone, UTC } from "../_shared/eventDay.ts";
+import { eventDayKey, resolveEventZone, timeZoneNote, UTC } from "../_shared/eventDay.ts";
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
