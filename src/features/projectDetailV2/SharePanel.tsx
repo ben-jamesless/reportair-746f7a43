@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatAbsoluteStamp } from "@/lib/eventTime";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
-import { Copy, QrCode, Loader2, FileText, FileArchive, Lock, Unlock, Trash2, Plus, ExternalLink } from "lucide-react";
+import { Copy, QrCode, Loader2, Lock, Unlock, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +10,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -25,8 +24,19 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { dayKey as photoDayKey } from "@/lib/projectDetailTypes";
-import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { FinaliseEventBlock } from "./FinaliseEventBlock";
+import {
+  T,
+  PanelBar,
+  SectionLabel,
+  FieldLabel,
+  fieldClass,
+  fieldStyle,
+  inkButtonClass,
+  quietButtonClass,
+  SquareSwitch,
+} from "@/features/projectSettings/settingsUi";
+
 
 /**
  * Phase 3.5 — Share/Deliver side panel.
@@ -34,7 +44,6 @@ import { FinaliseEventBlock } from "./FinaliseEventBlock";
  * Design pass: dashed dividers between blocks, each with a 9px dot label.
  */
 
-const DASH = "1px dashed #E3DFD4";
 const LABEL_INK = "#5C5850";
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
@@ -52,24 +61,6 @@ type ShareLink = {
   created_at: string;
   show_photo_pins: boolean;
 };
-
-function BlockLabel({ dot, children }: { dot: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-3 flex items-center gap-2">
-      <span
-        aria-hidden
-        className="inline-block shrink-0 rounded-full"
-        style={{ width: 9, height: 9, backgroundColor: dot }}
-      />
-      <span
-        className="font-semibold uppercase"
-        style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}
-      >
-        {children}
-      </span>
-    </div>
-  );
-}
 
 export function SharePanel({
   projectId,
@@ -232,202 +223,169 @@ export function SharePanel({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full sm:max-w-[480px] overflow-y-auto">
-          <SheetHeader>
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto rounded-none p-0 shadow-none sm:max-w-[480px]"
+          style={{ backgroundColor: T.paper, borderColor: T.rule }}
+        >
+          <PanelBar title="Share & deliver" />
+          <SheetHeader className="sr-only">
             <SheetTitle>Share &amp; deliver</SheetTitle>
             <SheetDescription>
               One live link for your client. Same link the share page serves — no publish step.
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
+          <div className="px-4 py-5">
             {loading ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm" style={{ color: T.muted }}>
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading…
               </div>
             ) : !link ? (
-              <div className="py-8 text-center">
-                <BlockLabel dot="#D94F2A">Live client link</BlockLabel>
-                <p className="text-sm text-muted-foreground mb-4">No link yet.</p>
-                <Button onClick={createLink} disabled={creating}>
-                  {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+              <section>
+                <SectionLabel>Live client link</SectionLabel>
+                <p className="mb-3 text-sm" style={{ color: T.ink2 }}>
+                  No client link yet. One live link per project — it updates as you work, with no publish step.
+                </p>
+                <button type="button" className={inkButtonClass} onClick={createLink} disabled={creating}>
+                  {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Create client link
-                </Button>
-              </div>
+                </button>
+              </section>
             ) : (
               <>
                 {/* Live client link */}
-                <section>
-                  <BlockLabel dot="#D94F2A">Live client link</BlockLabel>
+                <section className="mb-6">
+                  <SectionLabel>Live client link</SectionLabel>
                   <div
-                    className="rounded-md border p-3 text-xs break-all"
-                    style={{ fontFamily: MONO, borderColor: "#E3DFD4", backgroundColor: "#FAF8F2" }}
+                    className="border p-3 text-xs break-all"
+                    style={{ fontFamily: MONO, borderColor: T.rule, backgroundColor: T.white, borderRadius: 0, color: T.ink }}
                   >
                     {shareUrl}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" onClick={copyUrl}>
-                      <Copy className="mr-1.5 h-4 w-4" /> Copy
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setQrOpen(true)}>
-                      <QrCode className="mr-1.5 h-4 w-4" /> QR
-                    </Button>
-                    <Button size="sm" variant="ghost" asChild>
-                      <a href={shareUrl!} target="_blank" rel="noreferrer">
-                        <ExternalLink className="mr-1.5 h-4 w-4" /> Open
-                      </a>
-                    </Button>
+                    <button type="button" className={inkButtonClass} onClick={copyUrl}>
+                      <Copy className="h-4 w-4" /> Copy
+                    </button>
+                    <button type="button" className={quietButtonClass} onClick={() => setQrOpen(true)}>
+                      <QrCode className="h-4 w-4" /> QR
+                    </button>
+                    <a className={quietButtonClass} href={shareUrl!} target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-4 w-4" /> Open
+                    </a>
                   </div>
                   <div className="mt-3">
-                    <Button size="sm" variant="ghost" onClick={copyShareMessage}>
-                      <Copy className="mr-1.5 h-4 w-4" /> Copy message for WhatsApp / email
-                    </Button>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <button type="button" className={quietButtonClass} onClick={copyShareMessage}>
+                      <Copy className="h-4 w-4" /> Copy message for WhatsApp / email
+                    </button>
+                    <p className="mt-1.5 text-xs" style={{ color: T.muted }}>
                       Copies the event name plus the same link, ready to paste.
                     </p>
                   </div>
                 </section>
 
                 {/* Who can open it */}
-                <section style={{ borderTop: DASH, paddingTop: 20 }}>
-                  <BlockLabel dot="#3A6EA5">Who can open it</BlockLabel>
-                  <div className="flex items-center gap-2 text-sm mb-3">
+                <section className="mb-6">
+                  <SectionLabel>Who can open it</SectionLabel>
+                  <div className="mb-3 flex items-center gap-2 text-sm" style={{ color: T.ink2 }}>
                     {link.has_password ? (
                       <>
-                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        <Lock className="h-4 w-4" style={{ color: T.muted }} />
                         <span>Password required to open</span>
                       </>
                     ) : (
                       <>
-                        <Unlock className="h-4 w-4 text-muted-foreground" />
+                        <Unlock className="h-4 w-4" style={{ color: T.muted }} />
                         <span>Anyone with the link can open</span>
                       </>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <FieldLabel htmlFor="share-password">Link password</FieldLabel>
+                  <div className="mt-1.5 flex gap-2">
                     <input
+                      id="share-password"
                       type="password"
                       value={passwordDraft}
                       onChange={(e) => setPasswordDraft(e.target.value)}
                       placeholder={link.has_password ? "New password (leave blank to remove)" : "Set a password"}
-                      className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      className={fieldClass}
+                      style={fieldStyle}
                     />
-                    <Button size="sm" variant="outline" onClick={setPassword} disabled={savingPassword}>
+                    <button type="button" className={inkButtonClass} onClick={setPassword} disabled={savingPassword}>
                       {savingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : link.has_password && !passwordDraft ? "Remove" : "Save"}
-                    </Button>
+                    </button>
                   </div>
                 </section>
 
                 {/* Photo locations */}
-                <section style={{ borderTop: DASH, paddingTop: 20 }}>
-                  <BlockLabel dot="#3A6EA5">Photo locations</BlockLabel>
+                <section className="mb-6">
+                  <SectionLabel>Photo locations</SectionLabel>
                   <div className="flex items-start justify-between gap-4">
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm" style={{ color: T.ink2 }}>
                       Show a “Show on map” button on photos with GPS, and drop pins on the site map.
                     </p>
-                    <Button
-                      size="sm"
-                      variant={link.show_photo_pins ? "default" : "outline"}
-                      onClick={() => togglePhotoPins(!link.show_photo_pins)}
+                    <SquareSwitch
+                      checked={link.show_photo_pins}
+                      onChange={(next) => togglePhotoPins(next)}
                       disabled={savingPins}
-                    >
-                      {savingPins ? <Loader2 className="h-4 w-4 animate-spin" /> : link.show_photo_pins ? "On" : "Off"}
-                    </Button>
-                  </div>
-                </section>
-
-
-
-                {/* Views — client opens and team previews are separate figures */}
-                {(link.view_count > 0 || link.team_view_count > 0 || link.last_accessed_at) && (
-                  <section style={{ borderTop: DASH, paddingTop: 20 }}>
-                    <BlockLabel dot="#7B8B4F">Views</BlockLabel>
-                    <dl className="grid grid-cols-3 gap-3 text-sm">
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Client opens</dt>
-                        <dd className="mt-1 text-lg font-semibold" style={{ fontFamily: MONO }}>
-                          {link.view_count}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Team previews</dt>
-                        <dd className="mt-1 text-lg font-semibold text-muted-foreground" style={{ fontFamily: MONO }}>
-                          {link.team_view_count}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Last client open</dt>
-                        <dd className="mt-1 text-sm" style={{ fontFamily: MONO }}>
-                          {formatAbsoluteStamp(link.last_accessed_at, eventTz)}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p className="mt-2 text-[11px] text-muted-foreground">
-                      Opens by anyone with a role on this event count as team previews.
-                    </p>
-                  </section>
-                )}
-
-                {/* Exports */}
-                <section style={{ borderTop: DASH, paddingTop: 20 }}>
-                  <BlockLabel dot="#B7791F">Exports</BlockLabel>
-                  <div className="space-y-2">
-                    {latestDay ? (
-                      <ExportPdfDialog
-                        projectId={projectId}
-                        photoCount={latestDay.count}
-                        dayKey={latestDay.key}
-                        dayLabel={latestDay.label}
-                        lockMode="single"
-                        trigger={
-                          <Button variant="outline" size="sm" className="w-full justify-start">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Day PDF — {latestDay.label}
-                          </Button>
-                        }
-                      />
-                    ) : (
-                      <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                        <FileText className="mr-2 h-4 w-4" />
-                        Day PDF — no photos yet
-                      </Button>
-                    )}
-                    <ExportPdfDialog
-                      projectId={projectId}
-                      photoCount={photos.length}
-                      trigger={
-                        <Button variant="outline" size="sm" className="w-full justify-start">
-                          <FileArchive className="mr-2 h-4 w-4" />
-                          Full record
-                        </Button>
-                      }
+                      label="Photo locations"
                     />
                   </div>
                 </section>
 
-                {/* Finalise / Unfile */}
+                {/* Views — client opens and team previews are separate figures */}
+                <section className="mb-6">
+                  <SectionLabel>Views</SectionLabel>
+                  <dl className="grid grid-cols-3 gap-3">
+                    <div>
+                      <dt style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted }}>
+                        Client opens
+                      </dt>
+                      <dd className="mt-1 text-lg" style={{ fontFamily: MONO, color: T.ink }}>
+                        {link.view_count}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted }}>
+                        Team previews
+                      </dt>
+                      <dd className="mt-1 text-lg" style={{ fontFamily: MONO, color: T.muted }}>
+                        {link.team_view_count}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted }}>
+                        Last client open
+                      </dt>
+                      <dd className="mt-1 text-sm" style={{ fontFamily: MONO, color: T.ink }}>
+                        {formatAbsoluteStamp(link.last_accessed_at, eventTz)}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="mt-2 text-xs" style={{ color: T.muted }}>
+                    Opens by anyone with a role on this event count as team previews, not client opens.
+                  </p>
+                </section>
+
+                {/* Finalise / Unfile — outlined secondary, never the loudest control */}
                 <FinaliseEventBlock projectId={projectId} />
 
                 {/* Revoke */}
-                <section style={{ borderTop: DASH, paddingTop: 20 }}>
-                  <BlockLabel dot="#C7382A">Revoke link</BlockLabel>
-                  <p className="text-xs text-muted-foreground mb-3">
+                <section className="mb-2">
+                  <SectionLabel>Revoke link</SectionLabel>
+                  <p className="mb-3 text-xs" style={{ color: T.muted }}>
                     Revoking makes this URL stop working immediately. You can create a new one after.
                   </p>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setConfirmRevoke(true)}
-                    className="w-full"
-                  >
-                    <Trash2 className="mr-1.5 h-4 w-4" /> Revoke client link
-                  </Button>
+                  <button type="button" className={quietButtonClass} onClick={() => setConfirmRevoke(true)}>
+                    <Trash2 className="h-4 w-4" /> Revoke client link
+                  </button>
                 </section>
               </>
             )}
           </div>
         </SheetContent>
       </Sheet>
+
 
       {/* QR modal — no extra deps, uses external QR renderer with the same URL. */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>

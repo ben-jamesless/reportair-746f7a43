@@ -1,3 +1,4 @@
+import { formatAbsoluteStamp, getAmbientEventTimeZone } from "@/lib/eventTime";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,14 +35,8 @@ type CommentRow = {
 type Thread = { root: CommentRow; replies: CommentRow[] };
 
 function stamp(iso: string) {
-  const d = new Date(iso);
-  const today = new Date();
-  const sameDay = d.toDateString() === today.toDateString();
-  const yest = new Date(today.getTime() - 86400000).toDateString() === d.toDateString();
-  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  if (sameDay) return `Today, ${time}`;
-  if (yest) return `Yesterday, ${time}`;
-  return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${time}`;
+  // Event-local, never the viewer's browser zone — the report is one clock.
+  return formatAbsoluteStamp(iso, getAmbientEventTimeZone());
 }
 
 function dayLabel(day: string | null) {
