@@ -1725,6 +1725,10 @@ export type Database = {
         Args: { _name: string; _user: string }
         Returns: boolean
       }
+      can_read_photo_object: {
+        Args: { _name: string; _user: string }
+        Returns: boolean
+      }
       can_write_export_asset: {
         Args: { _name: string; _user: string }
         Returns: boolean
