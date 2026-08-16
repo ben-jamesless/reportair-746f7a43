@@ -240,7 +240,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
                 <div className="space-y-3 text-sm">
                   {photo.captured_at && (
                     <Row icon={<Calendar className="h-4 w-4" />} label="Captured">
-                      {new Date(photo.captured_at).toLocaleString()}
+                      {formatAbsoluteStamp(photo.captured_at, eventTz)}
                     </Row>
                   )}
                   {photo.gps_lat !== null && photo.gps_lng !== null && (
