@@ -361,6 +361,7 @@ export type NewLayoutParams = {
   areaData: AreaData[];
   dayNote: Record<string, unknown> | null;
   reportDateLabel: string;
+  tzNote?: string;
   buildDayLabel: string;
   reportNumber: string;
   logoImage: PDFImage | null;
@@ -378,7 +379,7 @@ export type NewLayoutParams = {
 // ════════════════════════════════════════════════════════════════════════════
 
 export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<void> {
-  const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
+  const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, tzNote, buildDayLabel,
           logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName,
           showBuildSlidesBranding = true } = p;
 
@@ -562,6 +563,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 
     // Bottom strip: date left, PREPARED FOR right
     page.drawText(reportDateLabel, { x: ML, y: 52, size: 8, font: body, color: C.COVER_DATE });
+    if (tzNote) page.drawText(tzNote, { x: ML, y: 40, size: 6.5, font: body, color: C.COVER_DATE });
     const prepLbl = "PREPARED FOR";
     const prepLblW = body.widthOfTextAtSize(prepLbl, 6.5);
     page.drawText(prepLbl, { x: W - MR - prepLblW, y: 67, size: 6.5, font: body, color: C.COVER_DATE });
@@ -668,7 +670,7 @@ export async function renderEditorialPortraitV1(p: NewLayoutParams): Promise<voi
 // ════════════════════════════════════════════════════════════════════════════
 
 export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
-  const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, buildDayLabel,
+  const { pdfDoc, pjsFont, irFont, proj, areaData, dayNote, reportDateLabel, tzNote, buildDayLabel,
           logoImage, coverImage, brandMarkImage, accentColour, whiteLabelPdf, companyName,
           showBuildSlidesBranding = true } = p;
 
@@ -845,6 +847,7 @@ export async function renderGridLandscapeV1(p: NewLayoutParams): Promise<void> {
     // Date — Mono style
     const dateY = ruleY - 16;
     page.drawText(reportDateLabel.toUpperCase(), { x: LX, y: dateY, size: 9, font: body, color: hex("#888888") });
+    if (tzNote) page.drawText(tzNote, { x: LX, y: dateY - 12, size: 7, font: body, color: hex("#999999") });
 
     // 4 info fields — 2×2 grid in left column
     const fieldColW = (LW - 10) / 2;
