@@ -147,9 +147,13 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
         <div>
           <Label>Cover image</Label>
           <p className="mt-1 text-xs text-muted-foreground">
+            PNG or JPG, up to 2MB. Recommended 1920 × 1080.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
             This image is used as the hero photo on the cover page of Client Deck exports. Changes apply to all future exports.
           </p>
         </div>
+
 
         {loading ? (
           <div className="flex gap-2 overflow-hidden">
