@@ -304,9 +304,17 @@ export const ProjectEditForm = ({
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Project updated");
+    onSavedAt?.(new Date().toISOString());
     onSaved?.();
-    onClose?.();
+    if (!hideFooter) onClose?.();
   };
+
+  // Expose save to a container-owned footer, and mirror busy state up.
+  useEffect(() => {
+    if (saveRef) saveRef.current = save;
+  });
+  useEffect(() => { onBusyChange?.(busy); }, [busy, onBusyChange]);
+
 
   const confirmDelete = async () => {
     if (ownerCount <= 1 && confirmText.trim() !== initialName.trim()) {
