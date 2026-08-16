@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatAbsoluteStamp } from "@/lib/eventTime";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
-import { Copy, QrCode, Loader2, FileText, FileArchive, Lock, Unlock, Trash2, Plus, ExternalLink } from "lucide-react";
+import { Copy, QrCode, Loader2, Lock, Unlock, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +10,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -25,8 +24,19 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { dayKey as photoDayKey } from "@/lib/projectDetailTypes";
-import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { FinaliseEventBlock } from "./FinaliseEventBlock";
+import {
+  T,
+  PanelBar,
+  SectionLabel,
+  FieldLabel,
+  fieldClass,
+  fieldStyle,
+  inkButtonClass,
+  quietButtonClass,
+  SquareSwitch,
+} from "@/features/projectSettings/settingsUi";
+
 
 /**
  * Phase 3.5 — Share/Deliver side panel.
