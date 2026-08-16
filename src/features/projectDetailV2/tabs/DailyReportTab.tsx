@@ -68,6 +68,8 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
     setAreaDayStatus,
     setDayStatus,
   } = useProjectDetail(projectId);
+  const eventTz = useProjectTimeZone(projectId);
+
 
 
   const todayKey = useMemo(() => toTodayKey(), []);
