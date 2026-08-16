@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { TeamSeatStrip } from "./TeamSeatStrip";
 import { ApprovalsInbox } from "./ApprovalsInbox";
 import { UnclassifiedMembersPanel } from "./UnclassifiedMembersPanel";
+import { PanelBar } from "@/features/projectSettings/settingsUi";
 
 /**
  * Members panel (v2). Wraps the existing InvitesManager and adds the
@@ -67,17 +68,18 @@ export function MembersPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-[520px] overflow-y-auto"
+        className="w-full rounded-none p-0 shadow-none sm:max-w-[520px] overflow-y-auto"
       >
-        <SheetHeader>
-          <SheetTitle>Members</SheetTitle>
+        <PanelBar title="Members" />
+        <SheetHeader className="space-y-1 px-6 pt-5 text-left">
+          <SheetTitle className="sr-only">Members</SheetTitle>
           <SheetDescription>
             Invite teammates, change roles, and remove access. Internal team
             only — client sharing lives in Share &amp; deliver.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6">
+        <div className="mt-6 px-6 pb-8">
           <TeamSeatStrip teamId={teamId} />
           <ApprovalsInbox teamId={teamId} canManage={canManage} />
           <UnclassifiedMembersPanel teamId={teamId} canManage={canManage} />

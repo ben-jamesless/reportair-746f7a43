@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { inkButtonClass } from "@/features/projectSettings/settingsUi";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Trash2, Mail, Copy, Send, LogOut, Crown, UserPlus } from "lucide-react";
+import { Trash2, Mail, Copy, Send, LogOut, Lock, UserPlus } from "lucide-react";
 import { z } from "zod";
 import type { ProjectRole } from "@/lib/projectPermissions";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
@@ -512,7 +513,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 </SelectContent>
               </Select>
               <Button
-                className="flex-1"
+                className={`flex-1 ${inkButtonClass}`}
                 onClick={addInvite}
                 disabled={
                   loading || !planIncludesInvites ||
@@ -524,7 +525,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 }
               >
                 {(!canInviteMember || !planIncludesInvites) && classification !== "external" && explicitChoice !== "external" && (
-                  <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />
+                  <Lock className="mr-1.5 h-3.5 w-3.5 text-[#14181C] opacity-70" />
                 )}
                 <Mail className="mr-2 h-4 w-4" />
                 {classification === "external" || explicitChoice === "external"

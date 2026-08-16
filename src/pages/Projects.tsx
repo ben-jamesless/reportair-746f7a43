@@ -25,7 +25,6 @@ import {
 import { CalendarDays, Camera, Plus, MoreVertical, Pencil, Trash2, Search, X, Archive, ArchiveRestore, FolderInput, LogOut, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { EmptyState } from "@/components/EmptyState";
 import { ProjectGridSkeleton } from "@/components/Skeletons";
 import { DEFAULT_PROJECT_COLOR } from "@/lib/projectColors";

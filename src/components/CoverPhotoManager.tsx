@@ -147,9 +147,13 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
         <div>
           <Label>Cover image</Label>
           <p className="mt-1 text-xs text-muted-foreground">
+            PNG or JPG, up to 2MB. Recommended 1920 × 1080.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
             This image is used as the hero photo on the cover page of Client Deck exports. Changes apply to all future exports.
           </p>
         </div>
+
 
         {loading ? (
           <div className="flex gap-2 overflow-hidden">
@@ -171,8 +175,8 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
                     onClick={() => selectPhoto(p.id)}
                     disabled={saving}
                     className={cn(
-                      "relative h-[60px] w-[90px] shrink-0 overflow-hidden rounded bg-muted ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                      selected && "ring-2 ring-primary ring-offset-2",
+                      "relative h-[60px] w-[90px] shrink-0 overflow-hidden rounded-none border-2 border-transparent bg-muted transition focus:outline-none focus-visible:border-[#14181C]",
+                      selected && "border-[#14181C]",
                     )}
                     aria-label="Select cover photo"
                   >
@@ -202,7 +206,7 @@ export const CoverPhotoManager = ({ projectId }: Props) => {
         <div>
           <Label>Or upload a custom cover image</Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            PNG or JPG only. SVG is not supported. Recommended size: 1920 × 1080 px (landscape).
+            PNG or JPG, up to 2MB. Recommended 1920 × 1080. SVG is not supported.
           </p>
         </div>
 

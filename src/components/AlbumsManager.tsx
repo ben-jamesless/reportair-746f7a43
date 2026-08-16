@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { inkButtonClass } from "@/features/projectSettings/settingsUi";
 import { Input } from "@/components/ui/input";
 import { ArrowDown, ArrowUp, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -153,7 +154,7 @@ export const AlbumsManager = ({ projectId, onChanged }: Props) => {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
         />
-        <Button onClick={add} disabled={busy || !newName.trim()}>
+        <Button onClick={add} disabled={busy || !newName.trim()} className={inkButtonClass}>
           <Plus className="mr-1 h-4 w-4" /> Add album
         </Button>
       </div>

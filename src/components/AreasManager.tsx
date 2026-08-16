@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GripVertical, Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
-import { MONO, T } from "@/features/projectSettings/settingsUi";
+import { MONO, T, inkButtonClass } from "@/features/projectSettings/settingsUi";
 
 export type Area = { id: string; project_id: string; name: string; sort_order: number };
 
@@ -132,7 +132,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
           onKeyDown={(e) => e.key === "Enter" && add()}
           className="rounded-none"
         />
-        <Button onClick={add} disabled={busy || !newName.trim()} className="rounded-none">
+        <Button onClick={add} disabled={busy || !newName.trim()} className={inkButtonClass}>
           <Plus className="mr-1 h-4 w-4" /> Add
         </Button>
       </div>

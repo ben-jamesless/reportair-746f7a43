@@ -10,6 +10,7 @@ import {
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { inkButtonClass } from "@/features/projectSettings/settingsUi";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -254,7 +255,7 @@ function ShellBody({
 function UploadButton() {
   const { open } = useUploadModal();
   return (
-    <Button size="sm" onClick={() => open()}>
+    <Button size="sm" onClick={() => open()} className={inkButtonClass}>
       <Upload className="h-4 w-4 sm:mr-2" />
       <span className="hidden sm:inline">Upload photos</span>
     </Button>
