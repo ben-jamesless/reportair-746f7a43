@@ -79,6 +79,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   const [previewMode, setPreviewMode] = useState(false);
   /** Reveals areas that have nothing recorded for the selected day. */
   const [showQuietAreas, setShowQuietAreas] = useState(false);
+  useEffect(() => { setShowQuietAreas(false); }, [activeDay]);
 
 
   const hidden = useDayHiddenPhotos(projectId);
