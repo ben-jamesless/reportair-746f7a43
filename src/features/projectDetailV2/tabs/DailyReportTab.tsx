@@ -295,7 +295,37 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
         </p>
       ) : (
         <div className="space-y-4">
-          {areas.map((ar) => {
+          {(() => {
+            // An area with no photos, no note and a default status has nothing
+            // to say for this day — those collapse into one summary row.
+            const isQuiet = (ar: { id: string }) =>
+              (photosByArea.get(ar.id)?.length ?? 0) === 0 &&
+              !(areaDayNotes.get(`${ar.id}|${activeDay}`) ?? "").trim() &&
+              (areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "not_started") === "not_started";
+            const quiet = areas.filter(isQuiet);
+            if (quiet.length === 0 || showQuietAreas) return null;
+            return (
+              <button
+                type="button"
+                onClick={() => setShowQuietAreas(true)}
+                className="flex w-full flex-wrap items-center justify-between gap-2 border border-dashed border-border px-4 py-2.5 text-left"
+              >
+                <span className="text-xs text-muted-foreground">
+                  {quiet.length} area{quiet.length === 1 ? "" : "s"} with no update today — {quiet.map((a) => a.name).join(", ")}
+                </span>
+                <span className="text-xs font-medium underline">Show</span>
+              </button>
+            );
+          })()}
+          {areas
+            .filter((ar) =>
+              showQuietAreas ||
+              (photosByArea.get(ar.id)?.length ?? 0) > 0 ||
+              (areaDayNotes.get(`${ar.id}|${activeDay}`) ?? "").trim() !== "" ||
+              (areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "not_started") !== "not_started",
+            )
+            .map((ar) => {
+
             const st = areaDayStatus.get(`${ar.id}|${activeDay}`) ?? "not_started";
             const note = areaDayNotes.get(`${ar.id}|${activeDay}`) ?? null;
             const ps = photosByArea.get(ar.id) ?? [];
