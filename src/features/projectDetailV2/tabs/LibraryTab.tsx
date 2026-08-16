@@ -374,6 +374,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9">
             {unassigned.slice(0, 18).map((p) => (
               <TrayThumb
+              eventTz={eventTz}
                 key={p.id}
                 photo={p}
                 areas={areas}
@@ -622,12 +623,14 @@ function TrayThumb({
   canEdit,
   onOpen,
   onAssign,
+  eventTz,
 }: {
   photo: LightboxPhoto;
   areas: { id: string; name: string }[];
   canEdit: boolean;
   onOpen: () => void;
   onAssign: (areaId: string) => void;
+  eventTz: string;
 }) {
   return (
     <div className="group relative">
