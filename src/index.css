@@ -405,7 +405,8 @@
 
 /* Scroll containers are focusable so keyboard users can scroll them, but they
    must never paint the accent ring — an orange outline around a panel body
-   reads as a validation error. */
+   reads as a validation error. Scoped to programmatically-focused nodes
+   (tabindex="-1" is never reached by Tab) so keyboard focus stays visible. */
 [tabindex="-1"]:focus,
 [tabindex="-1"]:focus-visible,
 [data-radix-scroll-area-viewport]:focus,
@@ -414,3 +415,21 @@
   box-shadow: none !important;
   --tw-ring-shadow: 0 0 #0000;
 }
+
+/* Keyboard focus: 1px ink outline on interactive elements only. */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="option"]:focus-visible,
+[role="switch"]:focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline: 1px solid hsl(var(--foreground));
+  outline-offset: 2px;
+}
+
