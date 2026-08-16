@@ -44,7 +44,6 @@ import {
  * Design pass: dashed dividers between blocks, each with a 9px dot label.
  */
 
-const DASH = "1px dashed #E3DFD4";
 const LABEL_INK = "#5C5850";
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
@@ -62,24 +61,6 @@ type ShareLink = {
   created_at: string;
   show_photo_pins: boolean;
 };
-
-function BlockLabel({ dot, children }: { dot: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-3 flex items-center gap-2">
-      <span
-        aria-hidden
-        className="inline-block shrink-0 rounded-full"
-        style={{ width: 9, height: 9, backgroundColor: dot }}
-      />
-      <span
-        className="font-semibold uppercase"
-        style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}
-      >
-        {children}
-      </span>
-    </div>
-  );
-}
 
 export function SharePanel({
   projectId,
