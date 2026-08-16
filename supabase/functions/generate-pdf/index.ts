@@ -4,6 +4,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 import { renderEditorialPortraitV1, renderGridLandscapeV1 } from "./new-layouts.ts";
+import { eventDayKey, resolveEventTimeZone, UTC } from "../_shared/eventDay.ts";
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
@@ -175,9 +176,13 @@ function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: numb
 function fmtDateLong(d: Date) {
   return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
-function dateKeyOf(p: { captured_at: string | null; created_at: string }) {
-  const d = new Date(p.captured_at || p.created_at);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+// captured_at is the single source of truth for "when this photo was taken".
+// There is deliberately no created_at fallback: stamping a photo with its
+// upload time here while every other surface shows its capture time would put
+// two different fields on the same record. A photo with no captured_at cannot
+// be bucketed into a day at all, and is labelled "Time not recorded".
+function dateKeyOf(p: { captured_at: string | null }, tz: string) {
+  return eventDayKey(p.captured_at, tz);
 }
 function parseISODate(s: string): Date {
   const [y, m, d] = s.split("-").map(Number);
@@ -380,6 +385,9 @@ Deno.serve(async (req) => {
 
     if (!proj) throw new Error("Project not found");
 
+    // Event-local timezone — the same zone the UI buckets days in.
+    const eventTz = await resolveEventTimeZone(proj.geo_lat, proj.geo_lng) ?? UTC;
+
     const sortedAreas = (areas ?? []) as Array<{ id: string; name: string; sort_order: number }>;
     const statusByArea = new Map<string, string>();
     for (const r of (areaStatusRows ?? []) as Array<{ area_id: string; status: string }>) statusByArea.set(r.area_id, r.status);
@@ -392,7 +400,7 @@ Deno.serve(async (req) => {
     // Photos for the report date, grouped by area — exclude any explicitly hidden from this day
     const hiddenIds = new Set<string>(((hiddenRows ?? []) as Array<{ photo_id: string }>).map((r) => r.photo_id));
     const dayPhotos = ((photos ?? []) as Array<{ id: string; storage_path: string; report_path: string | null; area_id: string | null; captured_at: string | null; created_at: string; caption: string | null }>)
-      .filter((p) => dateKeyOf(p) === reportDateStr && !hiddenIds.has(p.id));
+      .filter((p) => dateKeyOf(p, eventTz) === reportDateStr && !hiddenIds.has(p.id));
 
     const photosByArea = new Map<string, typeof dayPhotos>();
     for (const p of dayPhotos) {
@@ -619,7 +627,11 @@ Deno.serve(async (req) => {
         notes: notesByArea.get(a.id) ?? "",
         photoCount: (photosByArea.get(a.id) ?? []).length,
         photoImages: images,
-        photoCaptions: ps.map((p) => (p.caption ?? "").trim()),
+        photoCaptions: ps.map((p) => {
+          const cap = (p.caption ?? "").trim();
+          if (p.captured_at) return cap;
+          return cap ? `${cap} — Time not recorded` : "Time not recorded";
+        }),
       };
     }));
     // Exclude empty areas: 0 photos AND no status AND no notes
