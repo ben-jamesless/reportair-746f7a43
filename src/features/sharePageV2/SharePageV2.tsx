@@ -820,6 +820,7 @@ export default function SharePageV2() {
           teamPlan={meta.team_plan ?? "free"}
           hideBranding={!!meta.hide_buildslides_branding}
           filedAt={filedAt}
+          tzNote={tzNote}
         />
       </div>
 
