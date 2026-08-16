@@ -571,7 +571,7 @@ export const ProjectEditForm = ({
                 onClick={() => setColor(c)}
                 aria-label={`Select color ${c}`}
                 className={cn(
-                  "relative h-7 w-7 rounded-full border transition-transform hover:scale-110",
+                  "relative h-7 w-7 rounded-none border transition-transform hover:scale-110",
                   color === c && "ring-2 ring-offset-2 ring-foreground/40",
                 )}
                 style={{ backgroundColor: c }}
@@ -584,13 +584,17 @@ export const ProjectEditForm = ({
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="h-8 w-10 cursor-pointer rounded border"
+                className="h-8 w-10 cursor-pointer rounded-none border"
                 aria-label="Custom color picker"
               />
-              <Input value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-28 font-mono text-xs" />
+              <Input value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-28 rounded-none font-mono text-xs" />
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Accent applies to the cover page and PDF chrome only. Status colours are fixed and cannot be overridden.
+          </p>
         </div>
+
 
         {canUseCustomLogo ? (
           <div className="space-y-2 sm:col-span-2">
