@@ -337,7 +337,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                                 path={p.storage_path}
                                 alt={p.caption || p.file_name}
                                 onClick={() => openLightbox(p.id)}
-                                captureTime={formatCaptureTime2(p)}
+                                captureTime={formatCaptureTime(p.captured_at, eventTz)}
                               />
                             </div>
                             {canEdit && !previewMode && (
@@ -384,7 +384,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                     path={p.storage_path}
                     alt={p.caption || p.file_name}
                     onClick={() => openLightbox(p.id)}
-                    captureTime={formatCaptureTime2(p)}
+                    captureTime={formatCaptureTime(p.captured_at, eventTz)}
                   />
                 ))}
               </div>
