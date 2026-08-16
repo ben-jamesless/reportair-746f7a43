@@ -411,19 +411,23 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   return (
     <div className="space-y-6">
-      {canManage && (
-        <section className="space-y-3 rounded-lg border bg-card p-4">
+      {/* Collapsed to a single line when there is nobody left to add — an
+          empty card was taking a card's worth of space to say "nothing here". */}
+      {canManage && teamCandidates.length === 0 && (
+        <p className="border-b pb-3 text-xs text-muted-foreground">
+          Everyone on your team already has access. Invite by email below to add anyone new.
+        </p>
+      )}
+      {canManage && teamCandidates.length > 0 && (
+        <section className="space-y-3 rounded-none border bg-card p-4 shadow-none">
           <div>
             <h4 className="text-sm font-semibold">Add from your team</h4>
             <p className="text-xs text-muted-foreground">
               Grant access to someone already on your team — no email invite, no accept step.
             </p>
           </div>
-          {teamCandidates.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              Everyone on your team already has access to this project. Use the invite-by-email option below for anyone new.
-            </p>
-          ) : (
+          {false ? null : (
+
             <>
               <Input
                 type="search"
