@@ -23,7 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { event as trackEvent } from "@/lib/analytics";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import type { ShareMode } from "./types";
-import { resolveEventTimeZone, setAmbientEventTimeZone } from "@/lib/eventTime";
+import { resolveEventZone, setAmbientEventTimeZone, timeZoneNote } from "@/lib/eventTime";
 
 /** "13 Aug" — used to label a comment anchor with the day it refers to. */
 function timeLabelDate(iso: string): string | null {
@@ -117,11 +117,13 @@ export default function SharePageV2() {
   // Capture times on this report render in the event's local timezone, so the
   // client reads the same clock the site team did.
   const [, setTzTick] = useState(0);
+  const [tzNote, setTzNote] = useState<string>("");
   useEffect(() => {
     let cancelled = false;
-    void resolveEventTimeZone(project?.geo_lat ?? null, project?.geo_lng ?? null).then((tz) => {
+    void resolveEventZone(project?.geo_lat ?? null, project?.geo_lng ?? null).then((z) => {
       if (cancelled) return;
-      setAmbientEventTimeZone(tz);
+      setAmbientEventTimeZone(z.tz);
+      setTzNote(timeZoneNote(z));
       setTzTick((n) => n + 1);
     });
     return () => { cancelled = true; };
@@ -818,6 +820,7 @@ export default function SharePageV2() {
           teamPlan={meta.team_plan ?? "free"}
           hideBranding={!!meta.hide_buildslides_branding}
           filedAt={filedAt}
+          tzNote={tzNote}
         />
       </div>
 

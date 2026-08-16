@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
-import { dayKey as photoDayKey } from "@/lib/projectDetailTypes";
+import { dayKey as photoDayKey, UNDATED } from "@/lib/projectDetailTypes";
 import { FinaliseEventBlock } from "./FinaliseEventBlock";
 import {
   T,
@@ -120,21 +120,43 @@ export function SharePanel({
   const latestDay = useMemo(() => {
     if (photos.length === 0) return null;
     const keys = new Set<string>();
-    for (const p of photos) keys.add(photoDayKey(p));
+    for (const p of photos) {
+      const k = photoDayKey(p, eventTz);
+      if (k !== UNDATED) keys.add(k);
+    }
     const sorted = Array.from(keys).sort().reverse();
     const key = sorted[0];
     if (!key) return null;
     const [y, m, d] = key.split("-").map(Number);
     const date = new Date(y, m - 1, d);
     const label = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
-    const count = photos.filter((p) => photoDayKey(p) === key).length;
+    const count = photos.filter((p) => photoDayKey(p, eventTz) === key).length;
     return { key, label, date, count };
-  }, [photos]);
+  }, [photos, eventTz]);
 
   // Canonical share host — never derived from window.location so preview,
   // custom-domain and lovable.app all copy/QR to the same public URL clients use.
   const SHARE_BASE = "https://buildfolder.com";
   const shareUrl = link ? `${SHARE_BASE}/s/${link.token}` : null;
+
+  // Signed token so the team's own opens are attributed as previews rather than
+  // client opens. Minted per member; it stops working if they lose access.
+  const [previewToken, setPreviewToken] = useState<string | null>(null);
+  useEffect(() => {
+    if (!link?.id) { setPreviewToken(null); return; }
+    let cancelled = false;
+    void supabase
+      .rpc("share_preview_token" as never, { _share_link_id: link.id } as never)
+      .then(({ data }) => { if (!cancelled) setPreviewToken((data as string | null) ?? null); });
+    return () => { cancelled = true; };
+  }, [link?.id]);
+
+  /** The link the TEAM opens. Never the one copied for the client. */
+  const teamPreviewUrl = shareUrl
+    ? previewToken
+      ? `${shareUrl}?preview=${encodeURIComponent(previewToken)}`
+      : shareUrl
+    : null;
   // Message variant for chat apps: the event name in the message text, then the
   // plain share URL (chat apps only unfurl the real page, so we never send a
   // redirect wrapper — those render as a bare, untrusted-looking URL).
@@ -270,7 +292,7 @@ export function SharePanel({
                     <button type="button" className={quietButtonClass} onClick={() => setQrOpen(true)}>
                       <QrCode className="h-4 w-4" /> QR
                     </button>
-                    <a className={quietButtonClass} href={shareUrl!} target="_blank" rel="noreferrer">
+                    <a className={quietButtonClass} href={teamPreviewUrl!} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4" /> Open
                     </a>
                   </div>
@@ -363,7 +385,9 @@ export function SharePanel({
                     </div>
                   </dl>
                   <p className="mt-2 text-xs" style={{ color: T.muted }}>
-                    Opens by anyone with a role on this event count as team previews, not client opens.
+                    Basis: an open counts as a team preview when the viewer is a signed-in member of this event,
+                    or arrives via the Open button above (which carries a signed team marker). Everything else
+                    counts as a client open.
                   </p>
                 </section>
 
@@ -400,7 +424,7 @@ export function SharePanel({
                 alt="QR code for client link"
                 width={280}
                 height={280}
-                className="rounded-md border"
+                className="border"
                 style={{ borderColor: "#E3DFD4" }}
               />
               <p className="text-xs text-muted-foreground text-center break-all" style={{ fontFamily: MONO }}>

@@ -665,13 +665,14 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
             // Owners cannot remove other owners (transfer/demote first), and never themselves.
             const showRemove = canManage && !isSelf && !isOwnerRow;
             return (
-              <div key={m.user_id} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+              <div key={m.user_id} className="flex items-center justify-between gap-2 border border-border px-3 py-2 text-sm">
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">
                     {m.full_name || m.email || m.user_id.slice(0, 8)}
                     {isSelf && <span className="ml-1 text-xs font-normal text-muted-foreground">(you)</span>}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  {/* Dates are data, so they get the mono treatment. */}
+                  <div className="truncate font-mono text-[11px] text-muted-foreground">
                     {[
                       m.full_name && m.email ? m.email : null,
                       m.last_active_at

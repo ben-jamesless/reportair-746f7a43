@@ -11,6 +11,7 @@ export function ReportFooter({
   teamPlan,
   hideBranding,
   filedAt,
+  tzNote,
 }: {
   projectName: string;
   mode: ShareMode;
@@ -22,6 +23,8 @@ export function ReportFooter({
   teamName: string | null;
   teamPlan: string;
   hideBranding: boolean;
+  /** States which zone every time on this report is rendered in. */
+  tzNote?: string;
 }) {
   const stamp = generatedAt ? new Date(generatedAt) : new Date();
   const todayLong = new Intl.DateTimeFormat("en-GB", {
@@ -65,6 +68,11 @@ export function ReportFooter({
         </div>
         <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
           {mode === "filed" ? `Generated ${DATE_LONG.format(stamp)}` : `Report day: ${todayLong}`}
+        </div>
+      </div>
+      <div className="mt-1.5">
+        <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
+          {tzNote}
         </div>
       </div>
     </footer>

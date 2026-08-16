@@ -1320,6 +1320,24 @@ export type Database = {
         }
         Relationships: []
       }
+      share_preview_secret: {
+        Row: {
+          created_at: string
+          id: number
+          secret: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          secret: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          secret?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -2045,10 +2063,19 @@ export type Database = {
         }
       }
       share_meta: {
-        Args: { _password?: string; _token: string }
+        Args: { _password?: string; _preview?: string; _token: string }
         Returns: Json
       }
       share_ops_contact: { Args: { _token: string }; Returns: Json }
+      share_preview_is_team: {
+        Args: { _link_id: string; _preview: string; _project_id: string }
+        Returns: boolean
+      }
+      share_preview_sign: {
+        Args: { _link_id: string; _user_id: string }
+        Returns: string
+      }
+      share_preview_token: { Args: { _share_link_id: string }; Returns: string }
       share_viewer_is_ops: { Args: { _token: string }; Returns: boolean }
       share_viewer_role: { Args: { _token: string }; Returns: string }
       team_domain_matching_enabled: {

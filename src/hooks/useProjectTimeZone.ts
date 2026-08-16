@@ -1,18 +1,32 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { resolveEventTimeZone, cachedEventTimeZone, UTC } from "@/lib/eventTime";
+import {
+  resolveEventZone,
+  cachedEventTimeZone,
+  timeZoneNote,
+  UTC,
+  type EventZone,
+} from "@/lib/eventTime";
 
 /**
  * The event's local timezone for a project id, resolved from its coordinates.
  * Cached per project so every surface (Library, Daily Report, lightbox,
  * exports) renders capture times from the same zone.
+ *
+ * The zone is returned WITH its provenance: a project with no coordinates
+ * falls back to UTC, and every surface that prints a time has to say so
+ * rather than let the reader assume site-local.
  */
 const geoCache = new Map<string, { lat: number | null; lng: number | null }>();
-const tzByProject = new Map<string, string>();
+const zoneByProject = new Map<string, EventZone>();
 
-export function useProjectTimeZone(projectId: string | null | undefined): string {
-  const [tz, setTz] = useState<string>(() =>
-    projectId ? tzByProject.get(projectId) ?? UTC : UTC
+const UNRESOLVED: EventZone = { tz: UTC, resolved: false, reason: "no_coords" };
+
+export function useProjectTimeZoneInfo(
+  projectId: string | null | undefined
+): EventZone & { note: string } {
+  const [zone, setZone] = useState<EventZone>(() =>
+    projectId ? zoneByProject.get(projectId) ?? UNRESOLVED : UNRESOLVED
   );
 
   useEffect(() => {
@@ -33,9 +47,9 @@ export function useProjectTimeZone(projectId: string | null | undefined): string
         };
         geoCache.set(projectId, geo);
       }
-      const zone = await resolveEventTimeZone(geo.lat, geo.lng);
-      tzByProject.set(projectId, zone);
-      if (!cancelled) setTz(zone);
+      const z = await resolveEventZone(geo.lat, geo.lng);
+      zoneByProject.set(projectId, z);
+      if (!cancelled) setZone(z);
     })();
 
     return () => {
@@ -43,7 +57,11 @@ export function useProjectTimeZone(projectId: string | null | undefined): string
     };
   }, [projectId]);
 
-  return tz;
+  return { ...zone, note: timeZoneNote(zone) };
+}
+
+export function useProjectTimeZone(projectId: string | null | undefined): string {
+  return useProjectTimeZoneInfo(projectId).tz;
 }
 
 export { cachedEventTimeZone };

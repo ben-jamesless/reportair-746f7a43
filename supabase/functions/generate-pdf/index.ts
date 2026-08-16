@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 import { renderEditorialPortraitV1, renderGridLandscapeV1 } from "./new-layouts.ts";
-import { eventDayKey, resolveEventTimeZone, UTC } from "../_shared/eventDay.ts";
+import { eventDayKey, resolveEventZone, timeZoneNote, UTC } from "../_shared/eventDay.ts";
 
 function corsFor(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
@@ -385,8 +385,12 @@ Deno.serve(async (req) => {
 
     if (!proj) throw new Error("Project not found");
 
-    // Event-local timezone — the same zone the UI buckets days in.
-    const eventTz = await resolveEventTimeZone(proj.geo_lat, proj.geo_lng) ?? UTC;
+    // Event-local timezone — the same zone the UI buckets days in. When it
+    // cannot be resolved the document says so on the cover; it never guesses
+    // silently.
+    const eventZone = await resolveEventZone(proj.geo_lat, proj.geo_lng);
+    const eventTz = eventZone.tz;
+    const tzNote = timeZoneNote(eventZone);
 
     const sortedAreas = (areas ?? []) as Array<{ id: string; name: string; sort_order: number }>;
     const statusByArea = new Map<string, string>();
@@ -409,6 +413,16 @@ Deno.serve(async (req) => {
       arr.push(p);
       photosByArea.set(p.area_id, arr);
     }
+
+    // Photos that cannot be placed. A record whose purpose is completeness
+    // must never drop evidence silently, so both classes get their own
+    // section at the END of the document rather than disappearing:
+    //   - undated:    captured_at is null, so they belong to no build day
+    //   - unassigned: on this day but with no area, so no area page holds them
+    const undatedPhotos = ((photos ?? []) as typeof dayPhotos)
+      .filter((p) => !p.captured_at && !hiddenIds.has(p.id));
+    const unassignedPhotos = dayPhotos.filter((p) => !p.area_id && p.captured_at);
+
 
     // ============ Compute derived fields ============
     const reportDate = parseISODate(reportDateStr);
@@ -639,6 +653,50 @@ Deno.serve(async (req) => {
       (a) => a.photoCount > 0 || (a.status && a.status !== "not_started") || (a.notes && a.notes.trim() !== "")
     );
 
+    // ── Trailing sections for photos that cannot be filed ─────────────────────
+    // Rendered as ordinary area pages so every template picks them up without
+    // a layout change. They are appended last, after the real areas.
+    const buildOrphanSection = async (
+      id: string,
+      name: string,
+      notes: string,
+      list: typeof dayPhotos,
+    ): Promise<AreaData | null> => {
+      if (list.length === 0) return null;
+      const ps = list.slice(0, 9);
+      const urls = await Promise.all(ps.map((p) => photoUrlFor(p)));
+      const images = await Promise.all(urls.map((u) => u ? fetchAndEmbedImage(pdfDoc, u) : Promise.resolve(null)));
+      return {
+        id,
+        name,
+        status: "",
+        notes: list.length > 9 ? `${notes} Showing the first 9 of ${list.length}.` : notes,
+        photoCount: list.length,
+        photoImages: images,
+        photoCaptions: ps.map((p) => {
+          const cap = (p.caption ?? "").trim();
+          if (p.captured_at) return cap;
+          return cap ? `${cap} — Time not recorded` : "Time not recorded";
+        }),
+      };
+    };
+
+    const undatedSection = await buildOrphanSection(
+      "__undated__",
+      "Undated",
+      "These photos carry no capture time, so they cannot be placed on a build day. Screenshots and forwarded images routinely lose it. Set a capture date in the Library to file them.",
+      undatedPhotos,
+    );
+    const unassignedSection = await buildOrphanSection(
+      "__unassigned__",
+      "Unassigned",
+      "Taken on this day but not assigned to an area. Assign them in the Library so they appear under the right area.",
+      unassignedPhotos,
+    );
+    if (unassignedSection) areaData.push(unassignedSection);
+    if (undatedSection) areaData.push(undatedSection);
+
+
     // ============ Template branch ============
     // The export dialog writes `template` into options. Three layouts are
     // wired up so far:
@@ -707,6 +765,8 @@ Deno.serve(async (req) => {
       page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
       page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
+      // The document states the basis of every time it prints.
+      page.drawText(tzNote, { x: M + 8, y: dateY - 13, size: 7.5, font: irFont, color: COLOR.MIST });
 
       // Event logo (only render when an image was uploaded)
       const logoBoxX = W - M - 66, logoBoxY = H - 48 * MM, logoBoxW = 66, logoBoxH = 32;
@@ -972,6 +1032,7 @@ Deno.serve(async (req) => {
         pdfDoc, pjsFont, irFont, proj, areaData,
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
+        tzNote,
         logoImage: eventLogoImage,
         coverImage,
         brandMarkImage,
@@ -985,6 +1046,7 @@ Deno.serve(async (req) => {
         pdfDoc, pjsFont, irFont, proj, areaData,
         dayNote: dayNote ?? null,
         reportDateLabel, buildDayLabel, reportNumber,
+        tzNote,
         logoImage: eventLogoImage,
         coverImage,
         brandMarkImage,

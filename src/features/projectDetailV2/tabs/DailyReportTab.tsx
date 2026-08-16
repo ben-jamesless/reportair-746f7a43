@@ -8,12 +8,12 @@ import { EditableNote } from "@/components/EditableNote";
 import { AreaStatusPicker, type AreaStatus } from "@/components/AreaStatusPicker";
 import { PhotoThumb } from "@/components/PhotoThumb";
 import { PhotoLightbox, type LightboxPhoto } from "@/components/PhotoLightbox";
-import { areaStatusAccent, dayKey as photoDayKey, type DailyField } from "@/lib/projectDetailTypes";
+import { areaStatusAccent, dayKey as photoDayKey, UNDATED, type DailyField } from "@/lib/projectDetailTypes";
 import { supabase } from "@/integrations/supabase/client";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { useDayHiddenPhotos } from "@/hooks/useDayHiddenPhotos";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
-import { formatCaptureTime } from "@/lib/eventTime";
+import { formatCaptureTime, eventDayKey } from "@/lib/eventTime";
 import { useSeedObjectives } from "@/hooks/useSeedObjectives";
 import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
 
@@ -32,9 +32,9 @@ const SHEET_BORDER = "var(--sheet-border)";
 const LABEL_INK = "var(--sheet-label)";
 const SUBLABEL_INK = "var(--sheet-sublabel)";
 
-function toTodayKey(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+/** Today in the EVENT's zone, not the viewer's. */
+function toTodayKey(tz: string): string {
+  return eventDayKey(new Date().toISOString(), tz) ?? "";
 }
 
 
@@ -72,7 +72,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
 
 
-  const todayKey = useMemo(() => toTodayKey(), []);
+  const todayKey = useMemo(() => toTodayKey(eventTz), [eventTz]);
   const [activeDay, setActiveDay] = useState<string>(todayKey);
   const [copying, setCopying] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -92,16 +92,19 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
   const days = useMemo(() => {
     const set = new Set<string>();
     set.add(todayKey);
-    for (const p of photos) set.add(photoDayKey(p));
+    for (const p of photos) {
+      const k = photoDayKey(p, eventTz);
+      if (k !== UNDATED) set.add(k);
+    }
     return Array.from(set).sort().reverse();
-  }, [photos, todayKey]);
+  }, [photos, todayKey, eventTz]);
 
   useEffect(() => {
     if (!days.includes(activeDay)) setActiveDay(days[0] ?? todayKey);
   }, [days, activeDay, todayKey]);
 
   // Photos for the active day, per-area
-  const dayPhotos = useMemo(() => photos.filter((p) => photoDayKey(p) === activeDay), [photos, activeDay]);
+  const dayPhotos = useMemo(() => photos.filter((p) => photoDayKey(p, eventTz) === activeDay), [photos, activeDay, eventTz]);
   const visibleDayPhotos = useMemo(
     () => (previewMode ? dayPhotos.filter((p) => !hidden.isHidden(p.id, activeDay)) : dayPhotos),
     [dayPhotos, previewMode, hidden, activeDay]
@@ -385,7 +388,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                                   e.stopPropagation();
                                   handleHideToggle(p.id);
                                 }}
-                                className="absolute right-1 top-1 rounded-md bg-background/90 px-1.5 py-1 text-xs opacity-0 shadow-sm transition group-hover:opacity-100 focus:opacity-100"
+                                className="absolute right-1 top-1 border border-border bg-background/90 px-1.5 py-1 text-xs opacity-0 transition group-hover:opacity-100 focus:opacity-100"
                                 title={isHidden ? "Restore to this day" : "Hide from this day"}
                               >
                                 {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
