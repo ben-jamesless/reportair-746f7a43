@@ -78,6 +78,9 @@ export type LightboxPhoto = {
 export type LightboxArea = { id: string; name: string };
 export type LightboxAlbum = { id: string; name: string };
 
+import { formatAbsoluteStamp } from "@/lib/eventTime";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
+
 interface Props {
   photos: LightboxPhoto[];
   index: number | null;
@@ -97,6 +100,7 @@ const UNASSIGNED = "__unassigned__";
 import type { GuestNote } from "@/lib/types";
 
 export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [], albums = [], onAreaChanged, onAlbumChanged, projectId, isOwner = false }: Props) => {
+  const eventTz = useProjectTimeZone(projectId);
   const [i, setI] = useState(index ?? 0);
   useEffect(() => { if (index !== null) setI(index); }, [index]);
 
