@@ -1,7 +1,11 @@
-import { V2, STATUS_SEVERITY, normaliseStatus } from "../tokens";
-import type { ShareV2AreaMeta } from "../types";
+import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { V2, STATUS_SEVERITY, normaliseStatus, timeLabel } from "../tokens";
+import type { ShareV2AreaMeta, ShareV2Photo } from "../types";
 import { SectionLabel, StatusPill } from "./Primitives";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
+import { ShareLightboxV2 } from "./ShareLightboxV2";
 
 /** Full-bleed hero for the Filed view — explicit pick, else server auto-pick. */
 export function FiledHero({
