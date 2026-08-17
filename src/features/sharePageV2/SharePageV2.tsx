@@ -17,7 +17,7 @@ import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
-import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
+import { EventSummary, FiledAreasGrid } from "./components/FiledMain";
 import { ReportFeedback, OpsContact, type CommentAnchor } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { event as trackEvent } from "@/lib/analytics";
