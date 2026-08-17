@@ -492,8 +492,7 @@ export default function SharePageV2() {
 
             {isFiled ? (
               <>
-                {/* Filed landing: hero → details → calendar → map → areas → day record. */}
-                <FiledHero token={token ?? ""} photoId={meta.hero_photo_id ?? null} projectName={project.name} />
+                {/* Filed landing: calendar → map → areas → day record. No cover photo. */}
                 <EventSummary text={project.event_summary_text} />
 
                 {hasBuildTimeline && (meta.areas?.length ?? 0) > 0 && (
