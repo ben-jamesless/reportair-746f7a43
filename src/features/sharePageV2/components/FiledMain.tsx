@@ -7,35 +7,6 @@ import { SectionLabel, StatusPill } from "./Primitives";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
 import { ShareLightboxV2 } from "./ShareLightboxV2";
 
-/** Full-bleed hero for the Filed view — explicit pick, else server auto-pick. */
-export function FiledHero({
-  token,
-  photoId,
-  projectName,
-}: {
-  token: string;
-  photoId: string | null;
-  projectName: string;
-}) {
-  const url = useSharePhotoUrl(token, photoId ?? "", "lightbox");
-  if (!photoId) return null;
-  return (
-    <div
-      className="mb-8 overflow-hidden"
-      style={{ backgroundColor: V2.paperDim, borderRadius: V2.radiusReport, aspectRatio: "16 / 9" }}
-    >
-      {url && (
-        <img
-          src={url}
-          alt={`${projectName} — event record`}
-          className="h-full w-full object-cover"
-          decoding="async"
-        />
-      )}
-    </div>
-  );
-}
-
 /**
  * The single most editorial piece of copy on the Filed view: no card, no
  * heading — just a large soft-ink paragraph sitting between hero and map.

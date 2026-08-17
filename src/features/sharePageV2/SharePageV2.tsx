@@ -17,7 +17,7 @@ import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
 import { ShareLightboxV2 } from "./components/ShareLightboxV2";
-import { EventSummary, FiledAreasGrid, FiledHero } from "./components/FiledMain";
+import { EventSummary, FiledAreasGrid } from "./components/FiledMain";
 import { ReportFeedback, OpsContact, type CommentAnchor } from "./components/ReportFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { event as trackEvent } from "@/lib/analytics";
@@ -492,8 +492,7 @@ export default function SharePageV2() {
 
             {isFiled ? (
               <>
-                {/* Filed landing: hero → details → calendar → map → areas → day record. */}
-                <FiledHero token={token ?? ""} photoId={meta.hero_photo_id ?? null} projectName={project.name} />
+                {/* Filed landing: calendar → map → areas → day record. No cover photo. */}
                 <EventSummary text={project.event_summary_text} />
 
                 {hasBuildTimeline && (meta.areas?.length ?? 0) > 0 && (
