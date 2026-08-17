@@ -492,13 +492,32 @@ export default function SharePageV2() {
 
             {isFiled ? (
               <>
-                {/* Filed landing: hero → summary → map → areas grid. */}
+                {/* Filed landing: hero → details → calendar → map → areas → day record. */}
                 <FiledHero token={token ?? ""} photoId={meta.hero_photo_id ?? null} projectName={project.name} />
                 <EventSummary text={project.event_summary_text} />
 
+                {hasBuildTimeline && (meta.areas?.length ?? 0) > 0 && (
+                  <>
+                    <SectionLabel>Build calendar</SectionLabel>
+                    <BuildHeatmap
+                      areas={meta.areas ?? []}
+                      grid={meta.grid ?? []}
+                      phases={meta.phases ?? []}
+                      activeDate={activeDate}
+                      activityDates={(meta.days ?? []).map((d) => d.date)}
+                      onSelect={setActiveDate}
+                      onSelectArea={() => {
+                        window.requestAnimationFrame(() =>
+                          document.getElementById("filed-areas")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        );
+                      }}
+                    />
+                  </>
+                )}
+
                 {token && (
                   <>
-                    <SectionLabel>Site map</SectionLabel>
+                    <SectionLabel className="mt-8">Site map</SectionLabel>
                     <div id="site-map" style={{ scrollMarginTop: 16 }}>
                       <ShareMapV2
                         token={token}
@@ -511,8 +530,41 @@ export default function SharePageV2() {
                   </>
                 )}
 
-                <SectionLabel className="mt-8">Areas</SectionLabel>
-                <FiledAreasGrid token={token ?? ""} areas={meta.areas ?? []} />
+                <div id="filed-areas" style={{ scrollMarginTop: 16 }}>
+                  <SectionLabel className="mt-8">Areas</SectionLabel>
+                  <FiledAreasGrid token={token ?? ""} areas={meta.areas ?? []} />
+                </div>
+
+                {/* A day picked on the timeline or calendar still opens its record. */}
+                {activeDate && dayAreas.length > 0 && (
+                  <div id="filed-day" style={{ scrollMarginTop: 16 }}>
+                    <CollapsibleSectionLabel
+                      className="mt-8"
+                      open={areasOpen}
+                      onToggle={() => setAreasOpen((v) => !v)}
+                      count={dayAreas.length}
+                    >
+                      {`Day record · ${timeLabelDate(activeDate) ?? activeDate}`}
+                    </CollapsibleSectionLabel>
+                    {areasOpen && (
+                      <div style={{ borderBottom: `1px solid ${V2.rule}` }}>
+                        {dayAreas.map((a) => (
+                          <ZoneCard
+                            key={a.area_id}
+                            token={token ?? ""}
+                            name={a.name}
+                            status={areaStatus.get(a.area_id) ?? null}
+                            notes={a.notes}
+                            photos={photosByArea.get(a.area_id) ?? []}
+                            onOpenPhoto={openPhoto}
+                            isToday={false}
+                            commentCount={areaCommentCounts[a.area_id] ?? 0}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <>
