@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GripVertical, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { GripVertical, Plus, Trash2, Pencil, Check, X, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { MONO, T, inkButtonClass } from "@/features/projectSettings/settingsUi";
 
@@ -109,6 +109,17 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
     onChanged?.();
   };
 
+  /** Touch/keyboard-accessible reorder — HTML5 drag events never fire on mobile. */
+  const move = (idx: number, dir: -1 | 1) => {
+    const to = idx + dir;
+    if (to < 0 || to >= areas.length) return;
+    const next = [...areas];
+    const [moved] = next.splice(idx, 1);
+    next.splice(to, 0, moved);
+    setAreas(next);
+    void persistOrder(next);
+  };
+
   const dropOn = (targetId: string) => {
     if (!dragId || dragId === targetId) { setDragId(null); return; }
     const from = areas.findIndex((a) => a.id === dragId);
@@ -141,7 +152,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
         <p className="text-sm text-muted-foreground">No areas yet. Add one above.</p>
       ) : (
         <ul className="divide-y rounded-none border" style={{ borderColor: T.rule }}>
-          {areas.map((a) => (
+          {areas.map((a, idx) => (
             <li
               key={a.id}
               className="flex items-center gap-2 p-2"
@@ -173,6 +184,15 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
                   <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.08em", color: T.muted }}>
                     {counts[a.id] ?? 0} {(counts[a.id] ?? 0) === 1 ? "photo" : "photos"}
                   </span>
+                  {/* Touch-friendly reorder — drag-and-drop never fires on iOS/Android. */}
+                  <Button size="icon" variant="ghost" className="rounded-none" disabled={idx === 0}
+                    onClick={() => move(idx, -1)} aria-label={`Move ${a.name} up`} title="Move up">
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="rounded-none" disabled={idx === areas.length - 1}
+                    onClick={() => move(idx, 1)} aria-label={`Move ${a.name} down`} title="Move down">
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
                   <Button size="icon" variant="ghost" className="rounded-none" onClick={() => { setEditingId(a.id); setEditName(a.name); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
