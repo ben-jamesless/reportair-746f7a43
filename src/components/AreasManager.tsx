@@ -109,6 +109,17 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
     onChanged?.();
   };
 
+  /** Touch/keyboard-accessible reorder — HTML5 drag events never fire on mobile. */
+  const move = (idx: number, dir: -1 | 1) => {
+    const to = idx + dir;
+    if (to < 0 || to >= areas.length) return;
+    const next = [...areas];
+    const [moved] = next.splice(idx, 1);
+    next.splice(to, 0, moved);
+    setAreas(next);
+    void persistOrder(next);
+  };
+
   const dropOn = (targetId: string) => {
     if (!dragId || dragId === targetId) { setDragId(null); return; }
     const from = areas.findIndex((a) => a.id === dragId);
@@ -141,7 +152,7 @@ export const AreasManager = ({ projectId, onChanged }: Props) => {
         <p className="text-sm text-muted-foreground">No areas yet. Add one above.</p>
       ) : (
         <ul className="divide-y rounded-none border" style={{ borderColor: T.rule }}>
-          {areas.map((a) => (
+          {areas.map((a, idx) => (
             <li
               key={a.id}
               className="flex items-center gap-2 p-2"
