@@ -808,6 +808,17 @@ export default function SharePageV2() {
                   }))}
                 />
                 <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
+                <BuildCalendar
+                  days={meta.days ?? []}
+                  phases={meta.phases ?? []}
+                  activeDate={activeDate}
+                  buildStart={project.build_start_date}
+                  buildEnd={project.build_end_date ?? project.event_date}
+                  onSelect={setActiveDate}
+                />
+                {day && (day.today_objectives || day.today_achievements || day.open_issues || day.tomorrow_objectives || day.notes) && (
+                  <TodayBox day={day} />
+                )}
                 <div className="mt-7">
                   <ReportFeedback token={token ?? ""} readOnly onAreaCounts={setAreaCommentCounts} />
                   <OpsContact contact={opsContact} />
