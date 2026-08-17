@@ -61,28 +61,33 @@ export function EventSummary({ text }: { text: string | null | undefined }) {
   );
 }
 
+function AreaThumb({ token, photoId, alt }: { token: string; photoId: string; alt: string }) {
+  const url = useSharePhotoUrl(token, photoId, "thumb");
+  return url ? <img src={url} alt={alt} className="h-full w-full object-cover" loading="lazy" decoding="async" /> : null;
+}
+
 function AreaCard({
   token,
   area,
-  onOpen,
+  expanded,
+  onToggle,
 }: {
   token: string;
   area: ShareV2AreaMeta;
-  onOpen?: (areaId: string) => void;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
   const url = useSharePhotoUrl(token, area.cover_photo_id ?? "", "thumb");
-  const interactive = !!onOpen;
   return (
-    <div
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      onClick={interactive ? () => onOpen?.(area.id) : undefined}
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={expanded}
       className="overflow-hidden text-left"
       style={{
-        border: `1px solid ${V2.rule}`,
+        border: `1px solid ${expanded ? V2.ink : V2.rule}`,
         backgroundColor: V2.white,
         borderRadius: V2.radiusReport,
-        cursor: interactive ? "pointer" : "default",
       }}
     >
       <div style={{ aspectRatio: "4 / 3", backgroundColor: V2.paperDim }}>
@@ -95,24 +100,104 @@ function AreaCard({
           <span style={{ fontSize: 14, fontWeight: 700, color: V2.ink, lineHeight: 1.3 }}>{area.name}</span>
           <StatusPill status={area.latest_status} small />
         </div>
-        <span style={{ fontFamily: V2.mono, fontSize: 10.5, letterSpacing: "0.06em", color: V2.muted }}>
-          {area.photo_count} PHOTO{area.photo_count === 1 ? "" : "S"}
+        <span className="flex items-center justify-between">
+          <span style={{ fontFamily: V2.mono, fontSize: 10.5, letterSpacing: "0.06em", color: V2.muted }}>
+            {area.photo_count} PHOTO{area.photo_count === 1 ? "" : "S"}
+          </span>
+          <ChevronDown
+            className="h-4 w-4 transition-transform"
+            style={{ color: V2.muted, transform: expanded ? "rotate(180deg)" : "none" }}
+          />
         </span>
       </div>
+    </button>
+  );
+}
+
+/** The full photo set for one area, fetched on demand from share_area. */
+function AreaGallery({ token, area }: { token: string; area: ShareV2AreaMeta }) {
+  const [photos, setPhotos] = useState<ShareV2Photo[] | null>(null);
+  const [index, setIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setPhotos(null);
+    (async () => {
+      const { data } = await supabase.rpc("share_area" as never, {
+        _token: token,
+        _area_id: area.id,
+      } as never);
+      const res = data as { ok?: boolean; photos?: ShareV2Photo[] } | null;
+      if (alive) setPhotos(res?.ok ? res.photos ?? [] : []);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [token, area.id]);
+
+  return (
+    <div
+      className="mt-2"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white, padding: 10 }}
+    >
+      <div
+        className="mb-2 uppercase"
+        style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.soft }}
+      >
+        {area.name} · {photos ? `${photos.length} photo${photos.length === 1 ? "" : "s"}` : "loading…"}
+      </div>
+      {photos && photos.length === 0 && (
+        <p style={{ fontSize: 12.5, color: V2.muted }}>No photos recorded for this area.</p>
+      )}
+      {photos && photos.length > 0 && (
+        <div className="grid grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-6">
+          {photos.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setIndex(i)}
+              className="relative overflow-hidden"
+              style={{ aspectRatio: "4 / 3", backgroundColor: V2.rule, borderRadius: 3 }}
+            >
+              <AreaThumb token={token} photoId={p.id} alt={p.caption || p.file_name} />
+              {timeLabel(p.captured_at) && (
+                <span
+                  className="absolute"
+                  style={{
+                    bottom: 4,
+                    right: 5,
+                    fontFamily: V2.mono,
+                    fontSize: 9,
+                    fontWeight: 700,
+                    color: "#fff",
+                    background: "rgba(15,21,32,.68)",
+                    padding: "1px 5px",
+                    borderRadius: 2,
+                  }}
+                >
+                  {timeLabel(p.captured_at)}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+      {index !== null && photos && (
+        <ShareLightboxV2
+          token={token}
+          photos={photos}
+          index={index}
+          onClose={() => setIndex(null)}
+          onIndexChange={setIndex}
+        />
+      )}
     </div>
   );
 }
 
 /** Areas grid — severity descending, then most-photographed, then name. */
-export function FiledAreasGrid({
-  token,
-  areas,
-  onOpenArea,
-}: {
-  token: string;
-  areas: ShareV2AreaMeta[];
-  onOpenArea?: (areaId: string) => void;
-}) {
+export function FiledAreasGrid({ token, areas }: { token: string; areas: ShareV2AreaMeta[] }) {
+  const [openId, setOpenId] = useState<string | null>(null);
   if (areas.length === 0) {
     return <p style={{ fontSize: 13, color: V2.muted }}>No areas were defined for this event.</p>;
   }
@@ -123,12 +208,22 @@ export function FiledAreasGrid({
     if (a.photo_count !== b.photo_count) return b.photo_count - a.photo_count;
     return a.name.localeCompare(b.name);
   });
+  const open = sorted.find((a) => a.id === openId) ?? null;
   return (
-    <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
-      {sorted.map((a) => (
-        <AreaCard key={a.id} token={token} area={a} onOpen={onOpenArea} />
-      ))}
-    </div>
+    <>
+      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+        {sorted.map((a) => (
+          <AreaCard
+            key={a.id}
+            token={token}
+            area={a}
+            expanded={a.id === openId}
+            onToggle={() => setOpenId((v) => (v === a.id ? null : a.id))}
+          />
+        ))}
+      </div>
+      {open && <AreaGallery key={open.id} token={token} area={open} />}
+    </>
   );
 }
 
