@@ -38,7 +38,10 @@ export type ShareV2AreaMeta = {
   latest_status: string | null;
   /** Most recent photo in the area — thumbnail for the Filed areas grid. */
   cover_photo_id?: string | null;
+  /** Most recent per-day note for the area, used as its one-line record. */
+  last_note?: string | null;
 };
+
 
 export type ShareV2GridCell = {
   area_id: string;
