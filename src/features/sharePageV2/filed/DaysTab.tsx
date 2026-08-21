@@ -375,6 +375,7 @@ export function DaysTab({
                 areas={areas}
                 phase={phaseFor(d.date)}
                 onOpenAlbum={onOpenAlbum}
+                onShowOnMap={onShowOnMap}
               />
             </div>
           );

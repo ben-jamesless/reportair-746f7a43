@@ -57,6 +57,9 @@ export function FiledReport({
     return t && (TABS as readonly string[]).includes(t) ? t : "overview";
   });
   const [openAreaId, setOpenAreaId] = useState<string | null>(() => params.get("area"));
+  const [focusPoint, setFocusPoint] = useState<
+    { lat: number; lng: number; photoId: string; label?: string } | null
+  >(null);
   const [activeDay, setActiveDay] = useState<string | null>(
     () => params.get("day") ?? model.defaultDay
   );
@@ -86,6 +89,21 @@ export function FiledReport({
     setTab("areas");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  /** Lightbox → Site map tab: drop a pulsing marker where the photo was taken. */
+  const showOnMap = meta.show_photo_pins
+    ? (photo: { id: string; gps_lat: number | null; gps_lng: number | null; caption: string | null; captured_at: string | null }) => {
+        if (photo.gps_lat == null || photo.gps_lng == null) return;
+        setFocusPoint({
+          lat: photo.gps_lat,
+          lng: photo.gps_lng,
+          photoId: photo.id,
+          label: photo.caption || undefined,
+        });
+        setTab("map");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    : undefined;
+
   const openDay = (date: string) => {
     setActiveDay(date);
     setTab("days");
@@ -159,7 +177,13 @@ export function FiledReport({
         )}
 
         {tab === "areas" && (
-          <AreasTab token={token} areas={model.areas} openAreaId={openAreaId} onOpenArea={setOpenAreaId} />
+          <AreasTab
+            token={token}
+            areas={model.areas}
+            openAreaId={openAreaId}
+            onOpenArea={setOpenAreaId}
+            onShowOnMap={showOnMap}
+          />
         )}
 
         {tab === "days" && (
@@ -173,6 +197,7 @@ export function FiledReport({
             onSelectDay={setActiveDay}
             filedAt={filedAt}
             onOpenAlbum={openAlbum}
+            onShowOnMap={showOnMap}
           />
         )}
 
@@ -183,6 +208,8 @@ export function FiledReport({
             areas={model.areas}
             provenance={meta.map_provenance}
             onOpenAlbum={openAlbum}
+            focusPoint={focusPoint}
+            onFocusClear={() => setFocusPoint(null)}
           />
         )}
 
