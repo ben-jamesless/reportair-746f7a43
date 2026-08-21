@@ -11,6 +11,8 @@ import { formatCaptureTime, getAmbientEventTimeZone } from "@/lib/eventTime";
  */
 export const V2 = {
   ink: "var(--v2-ink)",
+  /** Foreground for anything filled with `ink` (flips with the theme). */
+  inkFg: "var(--v2-ink-fg)",
   soft: "var(--v2-soft)",
   muted: "var(--v2-muted)",
   rule: "var(--v2-rule)",
