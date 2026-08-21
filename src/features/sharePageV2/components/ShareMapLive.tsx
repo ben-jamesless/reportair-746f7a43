@@ -204,6 +204,10 @@ export function ShareMapLive({
   focusPoint,
   onFocusClick,
   onFocusClear,
+  labelFor,
+  colorFor,
+  colorKey,
+  heightRatio = "640 / 420",
 }: {
   token: string;
   areas: ShareV2DayArea[];
@@ -212,7 +216,15 @@ export function ShareMapLive({
   focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
   onFocusClick?: (photoId: string) => void;
   onFocusClear?: () => void;
+  /** Filed site map: letter markers A–F instead of names that never fit. */
+  labelFor?: (areaId: string) => string;
+  /** Filed site map: colour modes (final status / photo coverage / plan). */
+  colorFor?: (areaId: string) => string;
+  /** Changes whenever `colorFor` would return different colours. */
+  colorKey?: string;
+  heightRatio?: string;
 }) {
+
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   const [highlight, setHighlight] = useState<{ featureId: string | null; areaId: string } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
