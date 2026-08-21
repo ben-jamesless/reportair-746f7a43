@@ -1950,8 +1950,10 @@ export type Database = {
           area_id: string
           geometry: Json
           id: string
+          is_primary: boolean
           kind: string
           label: string
+          plan_color: string
         }[]
       }
       mark_notifications_read: { Args: { _ids?: string[] }; Returns: number }
