@@ -316,7 +316,7 @@ export function DaysTab({
                 padding: "5px 9px",
                 border: `1px solid ${on ? V2.ink : V2.rule}`,
                 backgroundColor: on ? V2.ink : V2.white,
-                color: on ? V2.bandFg : V2.soft,
+                color: on ? V2.inkFg : V2.soft,
               }}
             >
               {fmtDay(d.date).toUpperCase()}

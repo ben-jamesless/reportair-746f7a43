@@ -317,6 +317,7 @@
 /* ============ Share page v2 — themable tokens ============ */
 :root {
   --v2-ink: #0F1520;
+  --v2-ink-fg: #FFFFFF;
   --v2-soft: #3C4250;
   --v2-muted: #85837B;
   --v2-rule: #E3DCD3;
@@ -337,6 +338,7 @@
 
 [data-v2-theme="dark"] {
   --v2-ink: #F2EFE9;
+  --v2-ink-fg: #0D1013;
   --v2-soft: #C3BFB6;
   --v2-muted: #8C8880;
   --v2-rule: #2C3037;
@@ -358,7 +360,7 @@
 /* Print: always print the light palette, hide interactive chrome */
 @media print {
   [data-v2-theme] {
-    --v2-ink: #0F1520; --v2-soft: #3C4250; --v2-muted: #85837B;
+    --v2-ink: #0F1520; --v2-ink-fg: #FFFFFF; --v2-soft: #3C4250; --v2-muted: #85837B;
     --v2-rule: #E3DCD3; --v2-paper: #FFFFFF; --v2-paper-dim: #F3EEE8;
     --v2-white: #FFFFFF; --v2-signal-red: #FF3131;
     --v2-band: #0F1520; --v2-band-fg: #FFFFFF; --v2-band-fg-soft: rgba(255,255,255,.65);

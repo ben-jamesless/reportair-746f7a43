@@ -535,7 +535,8 @@ export function ShareMapLive({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           color: V2.ink,
-          backgroundColor: "rgba(255,255,255,0.92)",
+          backgroundColor: V2.white,
+          border: `1px solid ${V2.rule}`,
           padding: "5px 9px",
           borderRadius: 4,
         }}

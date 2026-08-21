@@ -169,7 +169,7 @@ export function TimelineGrid({
                       fontWeight: 700,
                       margin: "1px 1px 0",
                       padding: "1px 0",
-                      color: isActive ? V2.bandFg : V2.soft,
+                      color: isActive ? V2.inkFg : V2.soft,
                       backgroundColor: isActive ? V2.ink : "transparent",
                     }}
                   >
