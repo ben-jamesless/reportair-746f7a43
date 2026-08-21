@@ -68,12 +68,14 @@ function ExpandedDay({
   areas,
   phase,
   onOpenAlbum,
+  onShowOnMap,
 }: {
   token: string;
   date: string;
   areas: FiledArea[];
   phase: ShareV2Phase | undefined;
   onOpenAlbum: (areaId: string) => void;
+  onShowOnMap?: (photo: ShareV2Photo) => void;
 }) {
   const [day, setDay] = useState<ShareV2Day | null>(null);
   const [lightbox, setLightbox] = useState<{ photos: ShareV2Photo[]; index: number } | null>(null);
@@ -237,6 +239,7 @@ function ExpandedDay({
           index={lightbox.index}
           onClose={() => setLightbox(null)}
           onIndexChange={(i) => setLightbox((l) => (l ? { ...l, index: i } : l))}
+          onShowOnMap={onShowOnMap}
         />
       )}
     </div>
@@ -254,6 +257,7 @@ export function DaysTab({
   onSelectDay,
   filedAt,
   onOpenAlbum,
+  onShowOnMap,
 }: {
   token: string;
   days: FiledDay[];
@@ -264,6 +268,7 @@ export function DaysTab({
   onSelectDay: (d: string | null) => void;
   filedAt: string | null;
   onOpenAlbum: (areaId: string) => void;
+  onShowOnMap?: (photo: ShareV2Photo) => void;
 }) {
   const ordered = useMemo(() => [...days].sort((a, b) => (a.date < b.date ? 1 : -1)), [days]);
   const phaseFor = (d: string) =>

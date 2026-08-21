@@ -48,7 +48,7 @@ function AlbumCard({
 }
 
 /** The full photographic record for one area, grouped into capture visits. */
-function Album({ token, area, onClose }: { token: string; area: FiledArea; onClose: () => void }) {
+function Album({ token, area, onClose, onShowOnMap }: { token: string; area: FiledArea; onClose: () => void; onShowOnMap?: (photo: ShareV2Photo) => void }) {
   const [photos, setPhotos] = useState<ShareV2Photo[] | null>(null);
   const [newestFirst, setNewestFirst] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -152,6 +152,7 @@ function Album({ token, area, onClose }: { token: string; area: FiledArea; onClo
           index={lightbox.index}
           onClose={() => setLightbox(null)}
           onIndexChange={(i) => setLightbox((l) => (l ? { ...l, index: i } : l))}
+          onShowOnMap={onShowOnMap}
         />
       )}
     </div>
@@ -164,11 +165,13 @@ export function AreasTab({
   areas,
   openAreaId,
   onOpenArea,
+  onShowOnMap,
 }: {
   token: string;
   areas: FiledArea[];
   openAreaId: string | null;
   onOpenArea: (id: string | null) => void;
+  onShowOnMap?: (photo: ShareV2Photo) => void;
 }) {
   const open = areas.find((a) => a.id === openAreaId) ?? null;
   return (
@@ -184,7 +187,7 @@ export function AreasTab({
       )}
       {open && (
         <div className="mt-8">
-          <Album key={open.id} token={token} area={open} onClose={() => onOpenArea(null)} />
+          <Album key={open.id} token={token} area={open} onClose={() => onOpenArea(null)} onShowOnMap={onShowOnMap} />
         </div>
       )}
     </>
