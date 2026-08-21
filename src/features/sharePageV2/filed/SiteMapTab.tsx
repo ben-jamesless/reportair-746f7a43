@@ -45,12 +45,17 @@ export function SiteMapTab({
   areas,
   provenance,
   onOpenAlbum,
+  focusPoint,
+  onFocusClear,
 }: {
   token: string;
   project: ShareV2Project;
   areas: FiledArea[];
   provenance: ShareV2MapProvenance | null | undefined;
   onOpenAlbum: (areaId: string) => void;
+  /** Pulsing marker for a photo located from a lightbox on another tab. */
+  focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
+  onFocusClear?: () => void;
 }) {
   const [features, setFeatures] = useState<ShareFeature[] | null>(null);
   const [mode, setMode] = useState<ColourMode>("status");
@@ -126,6 +131,8 @@ export function SiteMapTab({
           labelFor={(id) => letterOf.get(id) ?? ""}
           colorFor={colorFor}
           colorKey={mode}
+          focusPoint={focusPoint}
+          onFocusClear={onFocusClear}
           onAreaClick={(id) => setSelected(id)}
           areas={areas.map((a) => ({
             area_id: a.id,
