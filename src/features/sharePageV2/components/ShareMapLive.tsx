@@ -386,7 +386,15 @@ export function ShareMapLive({
         });
       };
       fitRef.current = fit;
-      fit();
+      // A photo was already located before this map mounted (e.g. "Show on map"
+      // switching to the Site map tab): frame the photo, not the whole site.
+      if (focusPointRef.current) {
+        viewportLockedRef.current = true;
+        map.setCenter({ lat: focusPointRef.current.lat, lng: focusPointRef.current.lng });
+        map.setZoom(20);
+      } else {
+        fit();
+      }
 
       // Any interaction that isn't our own fitBounds locks the viewport.
       const lock = () => {
