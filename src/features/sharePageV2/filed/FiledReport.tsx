@@ -132,7 +132,7 @@ export function FiledReport({
             style={{
               ...MONO_LABEL,
               backgroundColor: V2.ink,
-              color: V2.bandFg,
+              color: V2.inkFg,
               padding: "4px 9px",
             }}
           >

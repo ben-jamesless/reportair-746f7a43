@@ -125,7 +125,7 @@ export function FlatButton({
         padding: "6px 11px",
         border: `1px solid ${solid ? V2.ink : V2.rule}`,
         backgroundColor: solid ? V2.ink : V2.white,
-        color: solid ? V2.bandFg : V2.soft,
+        color: solid ? V2.inkFg : V2.soft,
         cursor: "pointer",
       }}
     >
