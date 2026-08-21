@@ -93,6 +93,9 @@ export type ShareV2Meta = {
   /** Pre-build / last-year reference photos — outside the build timeline. */
   reference_photos?: ShareV2Photo[];
   latest_export?: { id: string; created_at: string; photo_count: number | null } | null;
+  /** Who drew the site boundaries and when — shown on the filed site map. */
+  map_provenance?: ShareV2MapProvenance | null;
+
 };
 
 export type ShareV2Photo = {
