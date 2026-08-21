@@ -243,6 +243,9 @@ export function ShareMapLive({
   const seenRef = useRef(false);
   const [mapReady, setMapReady] = useState(0);
   const focusRef = useRef<google.maps.OverlayView | null>(null);
+  /** Latest focus target, readable inside the (features-only) build effect. */
+  const focusPointRef = useRef(focusPoint);
+  focusPointRef.current = focusPoint;
   const onFocusClearRef = useRef<(() => void) | undefined>(undefined);
   onFocusClearRef.current = onFocusClear;
   const selectRef = useRef<(areaId: string, featureId: string | null, label?: string) => void>(() => {});
