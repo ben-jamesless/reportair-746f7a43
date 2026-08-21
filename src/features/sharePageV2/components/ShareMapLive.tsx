@@ -243,6 +243,9 @@ export function ShareMapLive({
   const seenRef = useRef(false);
   const [mapReady, setMapReady] = useState(0);
   const focusRef = useRef<google.maps.OverlayView | null>(null);
+  /** Latest focus target, readable inside the (features-only) build effect. */
+  const focusPointRef = useRef(focusPoint);
+  focusPointRef.current = focusPoint;
   const onFocusClearRef = useRef<(() => void) | undefined>(undefined);
   onFocusClearRef.current = onFocusClear;
   const selectRef = useRef<(areaId: string, featureId: string | null, label?: string) => void>(() => {});
@@ -383,7 +386,15 @@ export function ShareMapLive({
         });
       };
       fitRef.current = fit;
-      fit();
+      // A photo was already located before this map mounted (e.g. "Show on map"
+      // switching to the Site map tab): frame the photo, not the whole site.
+      if (focusPointRef.current) {
+        viewportLockedRef.current = true;
+        map.setCenter({ lat: focusPointRef.current.lat, lng: focusPointRef.current.lng });
+        map.setZoom(20);
+      } else {
+        fit();
+      }
 
       // Any interaction that isn't our own fitBounds locks the viewport.
       const lock = () => {
@@ -472,6 +483,16 @@ export function ShareMapLive({
       viewportLockedRef.current = true;
       map.panTo(pos);
       if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
+      // An initial fitBounds still in flight would settle *after* this and undo
+      // the framing, so re-assert once the map next comes to rest.
+      if (fittingRef.current) {
+        g.maps.event.addListenerOnce(map, "idle", () => {
+          if (!alive || mapRef.current !== map) return;
+          map.setCenter(pos);
+          if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
+        });
+      }
+
 
     })();
 
