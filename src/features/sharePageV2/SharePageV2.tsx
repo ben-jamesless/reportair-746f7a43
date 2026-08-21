@@ -422,7 +422,6 @@ export default function SharePageV2() {
           theme={theme}
           onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
           onExport={() => setExportOpen(true)}
-          opsContact={opsContact}
           filedRange={filedRange}
         />
         {project?.id && token && (

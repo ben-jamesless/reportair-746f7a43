@@ -4,7 +4,7 @@ import { V2 } from "../tokens";
 import type { ShareV2Meta } from "../types";
 import { Masthead } from "../components/Masthead";
 import { ReportFooter } from "../components/ReportFooter";
-import { ReportFeedback, OpsContact } from "../components/ReportFeedback";
+import { ReportFeedback } from "../components/ReportFeedback";
 import { Counted, FlatButton, MONO_LABEL, fmtDayYear } from "./ui";
 import { closingSummary, useFiledModel } from "./useFiledModel";
 import { OverviewTab } from "./OverviewTab";
@@ -36,7 +36,6 @@ export function FiledReport({
   theme,
   onToggleTheme,
   onExport,
-  opsContact,
   filedRange,
 }: {
   token: string;
@@ -47,7 +46,6 @@ export function FiledReport({
   theme: "light" | "dark";
   onToggleTheme: () => void;
   onExport: () => void;
-  opsContact: { name: string; role?: string | null } | null;
   filedRange: string | null;
 }) {
   const project = meta.project!;
@@ -188,9 +186,10 @@ export function FiledReport({
           />
         )}
 
+        {/* No ops contact card here: it carries a name and no way to make
+            contact, which is an empty card by any useful definition. */}
         <div className="mt-10">
           <ReportFeedback token={token} readOnly hideWhenEmpty />
-          <OpsContact contact={opsContact} />
         </div>
 
         <ReportFooter
