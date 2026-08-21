@@ -38,7 +38,10 @@ export type ShareV2AreaMeta = {
   latest_status: string | null;
   /** Most recent photo in the area — thumbnail for the Filed areas grid. */
   cover_photo_id?: string | null;
+  /** Most recent per-day note for the area, used as its one-line record. */
+  last_note?: string | null;
 };
+
 
 export type ShareV2GridCell = {
   area_id: string;
@@ -53,7 +56,19 @@ export type ShareV2DayMeta = {
   worst_status: string | null;
   photo_count: number;
   has_notes: boolean;
+  /** One-line narrative for the day, from the report's own progress fields. */
+  summary?: string | null;
+  /** Areas with photos or an explicit status that day. */
+  area_count?: number | null;
 };
+
+export type ShareV2MapProvenance = {
+  feature_count: number;
+  first_drawn: string | null;
+  last_edited: string | null;
+  drawn_by: string | null;
+};
+
 
 export type ShareV2Meta = {
   ok: boolean;
@@ -78,6 +93,9 @@ export type ShareV2Meta = {
   /** Pre-build / last-year reference photos — outside the build timeline. */
   reference_photos?: ShareV2Photo[];
   latest_export?: { id: string; created_at: string; photo_count: number | null } | null;
+  /** Who drew the site boundaries and when — shown on the filed site map. */
+  map_provenance?: ShareV2MapProvenance | null;
+
 };
 
 export type ShareV2Photo = {

@@ -8,6 +8,7 @@ import { ReportFooter } from "./components/ReportFooter";
 import { useShareV2 } from "./useShareV2";
 import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, parseISO, timeLabel, worstStatus } from "./tokens";
 import { Masthead } from "./components/Masthead";
+import { FiledReport } from "./filed/FiledReport";
 import { StatusBar } from "./components/StatusBar";
 import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
@@ -406,6 +407,41 @@ export default function SharePageV2() {
     if (first && end && first !== end) return `${fmt(first)} — ${fmtLong(end)}`;
     return first ? fmtLong(first) : end ? fmtLong(end) : null;
   })();
+
+  // A filed record is a document, not a dashboard: it gets its own four-tab,
+  // single-column surface with no rail and no duplicated components.
+  if (isFiled) {
+    return (
+      <>
+        <FiledReport
+          token={token ?? ""}
+          meta={meta}
+          logoUrl={logoUrl}
+          filedAt={filedAt}
+          tzNote={tzNote}
+          theme={theme}
+          onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+          onExport={() => setExportOpen(true)}
+          filedRange={filedRange}
+        />
+        {project?.id && token && (
+          <ExportPdfDialog
+            projectId={project.id}
+            shareToken={token}
+            photoCount={meta.photo_count ?? 0}
+            dayKey={null}
+            dayLabel={null}
+            availableDays={exportDays}
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            trigger={<span className="hidden" aria-hidden />}
+          />
+        )}
+      </>
+    );
+  }
+
+
 
   const stats = [
     buildWindow.dayNo
@@ -839,20 +875,11 @@ export default function SharePageV2() {
                 />
               )}
               {/* Redundant with the build calendar heatmap on desktop. */}
+              {/* The calendar is gone at every breakpoint: it has no area axis,
+                  so it can never answer "when was this area worked on". The day
+                  list is the navigator; the heatmap grid carries the rest. */}
               {hasBuildTimeline && (
-                <div className="lg:hidden">
-                  <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
-                </div>
-              )}
-              {hasBuildTimeline && (
-                <BuildCalendar
-                  days={meta.days ?? []}
-                  phases={meta.phases ?? []}
-                  activeDate={activeDate}
-                  buildStart={project.build_start_date}
-                  buildEnd={project.build_end_date ?? project.event_date}
-                  onSelect={setActiveDate}
-                />
+                <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
               )}
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}

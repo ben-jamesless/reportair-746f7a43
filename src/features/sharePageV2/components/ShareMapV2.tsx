@@ -27,7 +27,14 @@ export function ShareMapV2(props: {
   focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
   onFocusClick?: (photoId: string) => void;
   onFocusClear?: () => void;
+  /** Filed site map: letter markers A–F keyed to the index below the map. */
+  labelFor?: (areaId: string) => string;
+  /** Filed site map: colour modes (final status / photo coverage / plan). */
+  colorFor?: (areaId: string) => string;
+  colorKey?: string;
+  heightRatio?: string;
 }) {
+
   const [mode, setMode] = useState<"pending" | "live" | "static">("pending");
 
   useEffect(() => {

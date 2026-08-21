@@ -54,12 +54,18 @@ export function ShareMapStatic({
   onAreaClick,
   focusPoint,
   onFocusClick,
+  labelFor,
+  colorFor,
 }: {
   token: string;
   areas: ShareV2DayArea[];
   onAreaClick?: (areaId: string, featureLabel?: string) => void;
   focusPoint?: { lat: number; lng: number; photoId: string; label?: string } | null;
   onFocusClick?: (photoId: string) => void;
+  /** Filed site map: letter markers instead of names. */
+  labelFor?: (areaId: string) => string;
+  /** Filed site map: colour modes. */
+  colorFor?: (areaId: string) => string;
 }) {
   const [features, setFeatures] = useState<MapFeature[] | null>(null);
   // Selection is per drawn feature, not per area group: several features can
@@ -185,7 +191,9 @@ export function ShareMapStatic({
       if (pts.length === 0) return null;
       const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
       const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
-      const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+      const label = labelFor
+        ? labelFor(f.area_id)
+        : f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
       if (!label) return null;
       const w = label.length * 7.5 + 16;
       const h = 22;
@@ -285,7 +293,7 @@ export function ShareMapStatic({
             role="presentation"
           >
             {features.map((f) => {
-              const col = statusHex(statusByArea.get(f.area_id) ?? null);
+              const col = colorFor ? colorFor(f.area_id) : statusHex(statusByArea.get(f.area_id) ?? null);
               const active = highlight
                 ? highlight.featureId
                   ? highlight.featureId === f.id
@@ -312,7 +320,9 @@ export function ShareMapStatic({
               }
 
               const points = pts.map((p) => `${p.x},${p.y}`).join(" ");
-              const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+              const label = labelFor
+                ? labelFor(f.area_id)
+                : f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
               return (
                 // White halo underneath keeps small boundaries legible against
                 // busy satellite imagery; the status colour sits on top.

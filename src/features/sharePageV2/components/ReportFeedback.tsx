@@ -212,6 +212,7 @@ function Composer({
 export function ReportFeedback({
   token,
   readOnly = false,
+  hideWhenEmpty = false,
   pendingAnchor = null,
   onPendingAnchorHandled,
   onAreaCounts,
@@ -219,6 +220,8 @@ export function ReportFeedback({
   token: string;
   /** Filed events: structure preserved, no inputs, no resolve toggles. */
   readOnly?: boolean;
+  /** Filed record: an empty archive card is noise, so don't render it. */
+  hideWhenEmpty?: boolean;
   /** Set by the area card / lightbox "Leave a comment" entry points. */
   pendingAnchor?: CommentAnchor | null;
   onPendingAnchorHandled?: () => void;
@@ -384,6 +387,8 @@ export function ReportFeedback({
     load();
   };
 
+  if (hideWhenEmpty && threads.length === 0) return null;
+
   const headerTitle = readOnly ? "Feedback archive" : "Feedback";
   const headerCount = readOnly ? threads.length : openCount;
 
@@ -405,7 +410,9 @@ export function ReportFeedback({
           title={readOnly ? "Archived threads" : "Open threads"}
         >
           {headerCount}
-          {!readOnly && <span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.7 }}> OPEN</span>}
+          <span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.7 }}>
+            {readOnly ? (headerCount === 1 ? " THREAD" : " THREADS") : " OPEN"}
+          </span>
         </span>
       </div>
 
