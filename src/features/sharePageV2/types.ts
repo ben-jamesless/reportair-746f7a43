@@ -53,7 +53,19 @@ export type ShareV2DayMeta = {
   worst_status: string | null;
   photo_count: number;
   has_notes: boolean;
+  /** One-line narrative for the day, from the report's own progress fields. */
+  summary?: string | null;
+  /** Areas with photos or an explicit status that day. */
+  area_count?: number | null;
 };
+
+export type ShareV2MapProvenance = {
+  feature_count: number;
+  first_drawn: string | null;
+  last_edited: string | null;
+  drawn_by: string | null;
+};
+
 
 export type ShareV2Meta = {
   ok: boolean;
