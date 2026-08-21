@@ -94,7 +94,7 @@ export function FiledReport({
 
   return (
     <div style={{ backgroundColor: V2.paper, color: V2.ink, minHeight: "100vh" }} className="overflow-x-hidden">
-      <div className="mx-auto w-full max-w-[1280px] px-4 pb-16 sm:px-6 md:px-10">
+      <div className="mx-auto w-full px-4 pb-16 sm:px-6 md:px-10 lg:px-14">
         <Masthead
           project={project}
           mode="filed"
