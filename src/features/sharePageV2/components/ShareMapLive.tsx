@@ -323,8 +323,10 @@ export function ShareMapLive({
         const pts = featurePoints(f);
         if (pts.length === 0) continue;
         pts.forEach((p) => bounds.extend(p));
-        const col = statusHex(statusByArea.get(f.area_id) ?? null);
-        const label = f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
+        const col = colorFor ? colorFor(f.area_id) : statusHex(statusByArea.get(f.area_id) ?? null);
+        const label = labelFor
+          ? labelFor(f.area_id)
+          : f.label || areas.find((a) => a.area_id === f.area_id)?.name || "";
 
         if (f.kind === "pin") {
           const marker = new g.maps.Marker({ position: pts[0], map, title: label || undefined });
@@ -429,7 +431,7 @@ export function ShareMapLive({
   useEffect(() => {
     for (const { feature, shape } of shapesRef.current) {
       if (!(shape instanceof google.maps.Polygon)) continue;
-      const col = statusHex(statusByArea.get(feature.area_id) ?? null);
+      const col = colorFor ? colorFor(feature.area_id) : statusHex(statusByArea.get(feature.area_id) ?? null);
       const active = highlight
         ? highlight.featureId
           ? highlight.featureId === feature.id
@@ -443,7 +445,8 @@ export function ShareMapLive({
         zIndex: active ? 2 : 1,
       });
     }
-  }, [highlight, statusByArea, features]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlight, statusByArea, features, colorKey]);
 
   // Pulsing marker for a photo located from the lightbox.
   useEffect(() => {
@@ -490,7 +493,7 @@ export function ShareMapLive({
       <div
         ref={mapElRef}
         className="w-full"
-        style={{ aspectRatio: "640 / 420", backgroundColor: V2.rule }}
+        style={{ aspectRatio: heightRatio, backgroundColor: V2.rule }}
         aria-label="Interactive satellite map of the site with area boundaries"
         role="application"
       />
