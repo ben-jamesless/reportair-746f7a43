@@ -407,6 +407,42 @@ export default function SharePageV2() {
     return first ? fmtLong(first) : end ? fmtLong(end) : null;
   })();
 
+  // A filed record is a document, not a dashboard: it gets its own four-tab,
+  // single-column surface with no rail and no duplicated components.
+  if (isFiled) {
+    return (
+      <>
+        <FiledReport
+          token={token ?? ""}
+          meta={meta}
+          logoUrl={logoUrl}
+          filedAt={filedAt}
+          tzNote={tzNote}
+          theme={theme}
+          onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+          onExport={() => setExportOpen(true)}
+          opsContact={opsContact}
+          filedRange={filedRange}
+        />
+        {project?.id && token && (
+          <ExportPdfDialog
+            projectId={project.id}
+            shareToken={token}
+            photoCount={meta.photo_count ?? 0}
+            dayKey={null}
+            dayLabel={null}
+            availableDays={exportDays}
+            open={exportOpen}
+            onOpenChange={setExportOpen}
+            trigger={<span className="hidden" aria-hidden />}
+          />
+        )}
+      </>
+    );
+  }
+
+
+
   const stats = [
     buildWindow.dayNo
       ? {
