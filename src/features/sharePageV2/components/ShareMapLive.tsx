@@ -483,6 +483,16 @@ export function ShareMapLive({
       viewportLockedRef.current = true;
       map.panTo(pos);
       if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
+      // An initial fitBounds still in flight would settle *after* this and undo
+      // the framing, so re-assert once the map next comes to rest.
+      if (fittingRef.current) {
+        g.maps.event.addListenerOnce(map, "idle", () => {
+          if (!alive || mapRef.current !== map) return;
+          map.setCenter(pos);
+          if ((map.getZoom() ?? 0) < 20) map.setZoom(20);
+        });
+      }
+
 
     })();
 
