@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { V2 } from "../tokens";
 import { StatusPill } from "../components/Primitives";
@@ -174,6 +174,14 @@ export function AreasTab({
   onShowOnMap?: (photo: ShareV2Photo) => void;
 }) {
   const open = areas.find((a) => a.id === openAreaId) ?? null;
+  const albumRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const el = albumRef.current;
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [open?.id]);
+
   return (
     <>
       <RuleLabel note={`${areas.length} albums`}>Albums</RuleLabel>
@@ -186,7 +194,7 @@ export function AreasTab({
         <p style={{ fontSize: 13, color: V2.muted }}>No areas were defined for this event.</p>
       )}
       {open && (
-        <div className="mt-8">
+        <div className="mt-8" ref={albumRef} style={{ scrollMarginTop: 12 }}>
           <Album key={open.id} token={token} area={open} onClose={() => onOpenArea(null)} onShowOnMap={onShowOnMap} />
         </div>
       )}
