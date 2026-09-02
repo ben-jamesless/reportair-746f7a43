@@ -194,7 +194,7 @@ export function AreasTab({
         <p style={{ fontSize: 13, color: V2.muted }}>No areas were defined for this event.</p>
       )}
       {open && (
-        <div className="mt-8">
+        <div className="mt-8" ref={albumRef} style={{ scrollMarginTop: 12 }}>
           <Album key={open.id} token={token} area={open} onClose={() => onOpenArea(null)} onShowOnMap={onShowOnMap} />
         </div>
       )}
