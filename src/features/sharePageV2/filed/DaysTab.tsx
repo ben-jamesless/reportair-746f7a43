@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getSharePassword } from "../sharePassword";
 import { V2, deriveAreaStatus, normaliseStatus, statusMeta } from "../tokens";
 import { StatusPill } from "../components/Primitives";
 import { ShareLightboxV2 } from "../components/ShareLightboxV2";
@@ -84,7 +85,7 @@ function ExpandedDay({
     let alive = true;
     setDay(null);
     (async () => {
-      const { data } = await supabase.rpc("share_day" as never, { _token: token, _date: date } as never);
+      const { data } = await supabase.rpc("share_day" as never, { _token: token, _password: getSharePassword(), _date: date } as never);
       const d = data as ShareV2Day | null;
       if (alive) setDay(d?.ok ? d : null);
     })();

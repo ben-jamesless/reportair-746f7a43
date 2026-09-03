@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getSharePassword } from "../sharePassword";
 import { V2 } from "../tokens";
 import { StatusPill } from "../components/Primitives";
 import { ShareLightboxV2 } from "../components/ShareLightboxV2";
@@ -59,7 +60,7 @@ function Album({ token, area, onClose, onShowOnMap }: { token: string; area: Fil
     setPhotos(null);
     setExpanded({});
     (async () => {
-      const { data } = await supabase.rpc("share_area" as never, { _token: token, _area_id: area.id } as never);
+      const { data } = await supabase.rpc("share_area" as never, { _token: token, _password: getSharePassword(), _area_id: area.id } as never);
       const res = data as { ok?: boolean; photos?: ShareV2Photo[] } | null;
       if (alive) setPhotos(res?.ok ? res.photos ?? [] : []);
     })();
