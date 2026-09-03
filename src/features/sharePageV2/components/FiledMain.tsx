@@ -5,6 +5,7 @@ import { V2, STATUS_SEVERITY, normaliseStatus, timeLabel } from "../tokens";
 import type { ShareV2AreaMeta, ShareV2Photo } from "../types";
 import { SectionLabel, StatusPill } from "./Primitives";
 import { useSharePhotoUrl } from "../useSharePhotoUrl";
+import { getSharePassword } from "../sharePassword";
 import { ShareLightboxV2 } from "./ShareLightboxV2";
 
 /**
@@ -96,6 +97,7 @@ function AreaGallery({ token, area }: { token: string; area: ShareV2AreaMeta }) 
     (async () => {
       const { data } = await supabase.rpc("share_area" as never, {
         _token: token,
+        _password: getSharePassword(),
         _area_id: area.id,
       } as never);
       const res = data as { ok?: boolean; photos?: ShareV2Photo[] } | null;

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ShareV2Day, ShareV2Meta } from "./types";
 import { isoToday } from "./tokens";
+import { setSharePassword } from "./sharePassword";
 
 type State = {
   meta: ShareV2Meta | null;
@@ -60,6 +61,7 @@ export function useShareV2(token: string | undefined) {
         return;
       }
       pwdRef.current = password;
+      setSharePassword(password);
       setState((s) => ({
         ...s,
         meta,
