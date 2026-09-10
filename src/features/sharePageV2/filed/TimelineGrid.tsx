@@ -52,7 +52,9 @@ export function TimelineGrid({
     const sorted = [...activityDates].sort();
     const phaseDates = phases.filter((p) => p.start_date).flatMap((p) => [p.start_date!, p.end_date ?? p.start_date!]);
     const all = [...sorted, ...phaseDates].sort();
-    const start = all[0];
+    // Clamp the axis to the first defined phase — activity before pre-build
+    // (e.g. a platform set up months ahead) is excluded from the timeline.
+    const start = [...phaseDates].sort()[0] ?? all[0];
     const end = all[all.length - 1];
     if (!start || !end) return [] as string[];
     const len = daysBetween(start, end) + 1;

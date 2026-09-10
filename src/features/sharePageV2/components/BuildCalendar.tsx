@@ -58,8 +58,16 @@ export function BuildCalendar({
     return out;
   }, [cursor]);
 
+  // Window starts at the first defined phase (pre-build) when phases exist,
+  // so setup months before the build are not shaded as part of the event.
+  const phasesStart = useMemo(
+    () => phases.filter((p) => p.start_date).map((p) => p.start_date!).sort()[0] ?? null,
+    [phases]
+  );
+  const windowStart = phasesStart ?? buildStart;
+
   const inWindow = (date: string) =>
-    !!buildStart && date >= buildStart && (!buildEnd || date <= buildEnd);
+    !!windowStart && date >= windowStart && (!buildEnd || date <= buildEnd);
 
   const shift = (delta: number) =>
     setCursor((c) => new Date(c.getFullYear(), c.getMonth() + delta, 1));

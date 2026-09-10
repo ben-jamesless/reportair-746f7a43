@@ -71,7 +71,9 @@ export function BuildHeatmap({
       ...definedPhases.map((p) => p.end_date ?? p.start_date!),
       today,
     ].sort();
-    const start = candidatesStart[0];
+    // Once phases are defined, the timeline starts at the first phase
+    // (pre-build) — setup-time activity before it is not part of the record.
+    const start = definedPhases[0]?.start_date ?? candidatesStart[0];
     const end = candidatesEnd[candidatesEnd.length - 1];
     if (!start || !end) return [] as string[];
     let len = daysBetween(start, end) + 1;
