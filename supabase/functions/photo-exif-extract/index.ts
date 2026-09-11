@@ -5,6 +5,33 @@
 // an existing real capture date with `now()`.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import exifr from "https://esm.sh/exifr@7.1.3";
+import { resolveEventZone, UTC } from "../_shared/eventDay.ts";
+
+/**
+ * EXIF capture times are naive wall clock ("2026:09:11 16:34:34"). Reading
+ * them as UTC shifted every photo by the event's offset — a 16:34 Seoul photo
+ * became 01:34 the next day. Anchor the wall clock to the event zone instead.
+ */
+function zoneOffsetMs(tz: string, utcMs: number): number {
+  const p = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(new Date(utcMs));
+  const g = (t: string) => Number(p.find((x) => x.type === t)?.value ?? 0);
+  return Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"), g("second"))
+    - Math.floor(utcMs / 1000) * 1000;
+}
+
+function wallClockToUtcIso(wall: string, tz: string): string | null {
+  const m = wall.trim().match(/^(\d{4})[-:](\d{2})[-:](\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return null;
+  const [, y, mo, d, h, mi, sec] = m;
+  const guess = Date.UTC(+y, +mo - 1, +d, +h, +mi, sec ? +sec : 0);
+  let utcMs = guess - zoneOffsetMs(tz, guess);
+  utcMs = guess - zoneOffsetMs(tz, utcMs);
+  const date = new Date(utcMs);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +67,7 @@ Deno.serve(async (req) => {
     });
     const { data: photo, error: readErr } = await userClient
       .from("photos")
-      .select("id, storage_path, captured_at")
+      .select("id, storage_path, captured_at, project_id")
       .eq("id", photo_id)
       .maybeSingle();
     if (readErr) return json(403, { error: readErr.message });
@@ -62,16 +89,40 @@ Deno.serve(async (req) => {
       exif = null;
     }
 
-    const captured =
-      (exif?.DateTimeOriginal as string | Date | undefined) ||
-      (exif?.CreateDate as string | Date | undefined) ||
-      null;
+    // Raw (un-revived) strings so we can apply the event zone ourselves.
+    let rawDates: Record<string, string | undefined> | null = null;
+    try {
+      rawDates = (await exifr.parse(buf, {
+        pick: ["DateTimeOriginal", "CreateDate", "OffsetTimeOriginal", "OffsetTime"],
+        reviveValues: false,
+      })) as Record<string, string | undefined> | null;
+    } catch (_e) {
+      rawDates = null;
+    }
 
-    if (!captured) {
+    const wall = rawDates?.DateTimeOriginal || rawDates?.CreateDate || null;
+    if (!wall) {
       return json(200, { updated: false, reason: "no exif date" });
     }
 
-    const capturedIso = new Date(captured).toISOString();
+    const { data: proj } = await admin
+      .from("projects")
+      .select("geo_lat, geo_lng")
+      .eq("id", photo.project_id)
+      .maybeSingle();
+    const zone = await resolveEventZone(proj?.geo_lat, proj?.geo_lng);
+
+    const offset = (rawDates?.OffsetTimeOriginal || rawDates?.OffsetTime || "").trim();
+    let capturedIso: string | null = null;
+    if (/^[+-]\d{2}:?\d{2}$/.test(offset)) {
+      const iso = wall.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3").replace(" ", "T");
+      const d = new Date(`${iso}${offset}`);
+      if (!Number.isNaN(d.getTime())) capturedIso = d.toISOString();
+    }
+    capturedIso ??= wallClockToUtcIso(wall, zone.tz || UTC);
+    if (!capturedIso) {
+      return json(200, { updated: false, reason: "unparsable exif date" });
+    }
     const update: Record<string, unknown> = { captured_at: capturedIso };
     if (exif?.Make) update.camera_make = exif.Make;
     if (exif?.Model) update.camera_model = exif.Model;

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, X, Check, ImagePlus, Upload, Loader2, ArrowRight } from "lucide-react";
@@ -30,6 +31,7 @@ export default function EventSetup({
   projectId, areas, albumId, uploadAreaId, onAreasChanged, onUploaded,
 }: Props) {
   const { user } = useAuth();
+  const eventTz = useProjectTimeZone(projectId);
   const [name, setName] = useState("");
   const [adding, setAdding] = useState(false);
   const [advanced, setAdvanced] = useState(false); // user clicked "Done — add photos"
@@ -114,7 +116,7 @@ export default function EventSetup({
           try { file = await convertHeicToJpeg(file); }
           catch (e) { console.warn("HEIC conversion failed", e); }
         }
-        const exif = await parseExif(file);
+        const exif = await parseExif(file, eventTz);
         if (!exif.width || !exif.height) {
           const dims = await getImageDimensions(file);
           if (dims) { exif.width = dims.width; exif.height = dims.height; }
