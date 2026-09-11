@@ -1,3 +1,5 @@
+import { UTC, wallClockToUtcIso, wallClockHasOffset } from "@/lib/eventTime";
+
 // exifr is heavy (~50KB gz). Loaded on demand the first time a user picks a file.
 let exifrModulePromise: Promise<typeof import("exifr").default> | null = null;
 const loadExifr = () => {
@@ -115,9 +117,9 @@ export async function parseExif(file: File, tz: string = UTC): Promise<ExifData>
     const exifr = await loadExifr();
     const data = (await exifr.parse(file, { gps: true, tiff: true, exif: true })) as ExifRaw | null;
     if (!data) return { ...EMPTY_EXIF, captured_at: lastMod };
-    const captured = data.DateTimeOriginal || data.CreateDate || data.ModifyDate || null;
+    const captured = await rawCapturedIso(file, tz);
     return {
-      captured_at: captured ? new Date(captured).toISOString() : lastMod,
+      captured_at: captured ?? lastMod,
       camera_make: data.Make ?? null,
       camera_model: data.Model ?? null,
       lens: data.LensModel ?? data.Lens ?? null,
