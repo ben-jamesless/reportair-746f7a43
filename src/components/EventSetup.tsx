@@ -31,6 +31,7 @@ export default function EventSetup({
   projectId, areas, albumId, uploadAreaId, onAreasChanged, onUploaded,
 }: Props) {
   const { user } = useAuth();
+  const eventTz = useProjectTimeZone(projectId);
   const [name, setName] = useState("");
   const [adding, setAdding] = useState(false);
   const [advanced, setAdvanced] = useState(false); // user clicked "Done — add photos"

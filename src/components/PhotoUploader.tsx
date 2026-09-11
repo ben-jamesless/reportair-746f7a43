@@ -40,6 +40,7 @@ const todayYmd = () => {
 
 export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], onUploaded, trigger }: Props) => {
   const { user } = useAuth();
+  const eventTz = useProjectTimeZone(projectId);
   const projectPlan = useProjectPlan(projectId);
   const { limits } = projectPlan;
   const { dayCount, loading: daysLoading } = useProjectUpdateDays(
