@@ -149,6 +149,7 @@ export function GlobalUploadModal({
   onUploaded,
 }: Props) {
   const { user } = useAuth();
+  const eventTz = useProjectTimeZone(projectId);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const zonesRef = useRef<PrimaryZone[] | null>(null);
