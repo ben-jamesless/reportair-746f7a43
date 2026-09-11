@@ -106,6 +106,58 @@ export function useEventTimeZone(lat?: number | null, lng?: number | null): stri
   return tz;
 }
 
+/**
+ * EXIF capture times are *naive wall clock* — "2026:09:11 16:34:34" with no
+ * zone. Reading them as UTC (which most parsers do) shifts every photo by the
+ * event's UTC offset: a 16:34 Seoul photo was landing at 01:34 the next day.
+ * These helpers reinterpret a wall clock in the event zone and return the real
+ * UTC instant.
+ */
+const partsFmtCache = new Map<string, Intl.DateTimeFormat>();
+function partsFmt(tz: string) {
+  let f = partsFmtCache.get(tz);
+  if (!f) {
+    f = new Intl.DateTimeFormat("en-GB", {
+      timeZone: tz,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    partsFmtCache.set(tz, f);
+  }
+  return f;
+}
+
+/** Milliseconds the zone is ahead of UTC at the given instant. */
+function zoneOffsetMs(tz: string, utcMs: number): number {
+  const p = partsFmt(tz).formatToParts(new Date(utcMs));
+  const g = (t: string) => Number(p.find((x) => x.type === t)?.value ?? 0);
+  const asUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour") % 24, g("minute"), g("second"));
+  return asUtc - Math.floor(utcMs / 1000) * 1000;
+}
+
+/** "2026:09:11 16:34:34" (or ISO-ish, no offset) read as `tz` local -> UTC ISO. */
+export function wallClockToUtcIso(wall: string, tz: string = UTC): string | null {
+  const m = wall
+    .trim()
+    .match(/^(\d{4})[-:](\d{2})[-:](\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return null;
+  const [, y, mo, d, h, mi, s] = m;
+  const guess = Date.UTC(+y, +mo - 1, +d, +h, +mi, s ? +s : 0);
+  let utcMs = guess - zoneOffsetMs(tz, guess);
+  // One refinement handles DST boundaries.
+  utcMs = guess - zoneOffsetMs(tz, utcMs);
+  const date = new Date(utcMs);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+/** True when the EXIF string already carries a UTC offset / Z suffix. */
+export const wallClockHasOffset = (wall: string) => /(Z|[+-]\d{2}:?\d{2})\s*$/.test(wall.trim());
+
 const timeFmtCache = new Map<string, Intl.DateTimeFormat>();
 function timeFmt(tz: string) {
   let f = timeFmtCache.get(tz);
