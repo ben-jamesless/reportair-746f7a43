@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { toast } from "sonner";
 import {
   Upload,
@@ -244,7 +245,7 @@ export function GlobalUploadModal({
       for (const it of newItems) {
         setItems((cur) => cur.map((c) => (c.id === it.id ? { ...c, status: "analyzing" } : c)));
         try {
-          const exif = await parseExif(it.file);
+          const exif = await parseExif(it.file, eventTz);
           let gpsAreaId: string | null = null;
           let gpsAreaName: string | null = null;
           // GPS auto-sort only when the user did NOT preselect an area.

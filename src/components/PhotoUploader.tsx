@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -116,7 +117,7 @@ export const PhotoUploader = ({ projectId, albumId, areaId = null, areas = [], o
           }
         }
 
-        const exif = await parseExif(file);
+        const exif = await parseExif(file, eventTz);
         // For iOS-stripped batches, if we have no real captured_at, use the
         // user-supplied date so photos don't all land on "today".
         if (!exif.captured_at && fallbackIso && isExifStrippedIosUpload(file)) {
