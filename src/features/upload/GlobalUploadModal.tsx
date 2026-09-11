@@ -305,7 +305,7 @@ export function GlobalUploadModal({
         }
       }
     },
-    [projectId, initialAreaId]
+    [projectId, initialAreaId, eventTz]
   );
 
   // If launched with initial files (e.g. drag-drop onto shell), start analyzing immediately.
