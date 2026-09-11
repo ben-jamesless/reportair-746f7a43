@@ -73,7 +73,38 @@ const isIosTempFile = (file: File) => /^tempImage/i.test(file.name);
 
 export const isExifStrippedIosUpload = isIosTempFile;
 
-export async function parseExif(file: File): Promise<ExifData> {
+/**
+ * EXIF capture times have no timezone — exifr revives them as if they were
+ * UTC, so a 16:34 Seoul photo was stored as 16:34Z and displayed as 01:34 the
+ * next day. We re-read the raw strings and anchor them to the event's zone.
+ */
+async function rawCapturedIso(file: File, tz: string): Promise<string | null> {
+  try {
+    const exifr = await loadExifr();
+    const raw = (await exifr.parse(file, {
+      pick: ["DateTimeOriginal", "CreateDate", "ModifyDate", "OffsetTimeOriginal", "OffsetTime"],
+      reviveValues: false,
+    })) as Record<string, string | undefined> | null;
+    if (!raw) return null;
+    const wall = raw.DateTimeOriginal || raw.CreateDate || raw.ModifyDate;
+    if (!wall || typeof wall !== "string") return null;
+    const offset = raw.OffsetTimeOriginal || raw.OffsetTime;
+    if (wallClockHasOffset(wall)) {
+      const d = new Date(wall.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3").replace(" ", "T"));
+      return Number.isNaN(d.getTime()) ? null : d.toISOString();
+    }
+    if (offset && /^[+-]\d{2}:?\d{2}$/.test(offset.trim())) {
+      const iso = wall.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3").replace(" ", "T");
+      const d = new Date(`${iso}${offset.trim()}`);
+      if (!Number.isNaN(d.getTime())) return d.toISOString();
+    }
+    return wallClockToUtcIso(wall, tz);
+  } catch {
+    return null;
+  }
+}
+
+export async function parseExif(file: File, tz: string = UTC): Promise<ExifData> {
   const iosTemp = isIosTempFile(file);
   // Fallback: the file's own lastModified is closer to the capture date than
   // the DB upload time. Better than nothing when EXIF is stripped (screenshots,
