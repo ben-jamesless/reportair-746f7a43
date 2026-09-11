@@ -373,7 +373,10 @@ export default function SharePageV2() {
   // last recorded day, so the timeline never reads as sparse.
   const dayMap = new Map((meta.days ?? []).map((d) => [d.date, d]));
   const recorded = (meta.days ?? []).map((d) => d.date).sort();
-  const firstDay = project.build_start_date ?? recorded[0] ?? null;
+  // Clamp the start to the first defined phase (pre-build) — platform set-up
+  // time before that shouldn't stretch the sidebar timeline either.
+  const phaseStart = (meta.phases ?? []).map((p) => p.start_date).filter(Boolean).sort()[0] ?? null;
+  const firstDay = phaseStart ?? project.build_start_date ?? recorded[0] ?? null;
   const lastDay = recorded[recorded.length - 1] ?? project.build_end_date ?? firstDay;
   const timelineDays =
     firstDay && lastDay && daysBetween(firstDay, lastDay) >= 0 && daysBetween(firstDay, lastDay) < 400
