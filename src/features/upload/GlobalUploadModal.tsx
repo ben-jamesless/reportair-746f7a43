@@ -128,6 +128,12 @@ interface Props {
   initialFiles: File[] | null;
   onClose: () => void;
   onUploaded?: () => void;
+  /** When true the modal stays mounted (so uploads keep running) but renders nothing. */
+  hidden?: boolean;
+  /** Minimise to the background pill — only offered while uploading. */
+  onMinimize?: () => void;
+  /** Reports upload progress so the background pill can show it. */
+  onProgress?: (done: number, total: number) => void;
 }
 
 /**
@@ -147,6 +153,9 @@ export function GlobalUploadModal({
   initialFiles,
   onClose,
   onUploaded,
+  hidden = false,
+  onMinimize,
+  onProgress,
 }: Props) {
   const { user } = useAuth();
   // Resolved lazily and awaited inside analyzeFiles — the hook equivalent
@@ -506,11 +515,20 @@ export function GlobalUploadModal({
     }
   }, [user, items, fallbackDate, noDateCount, projectId, albumId, onUploaded]);
 
+  // Report upload progress to the provider so the background pill stays in sync.
+  useEffect(() => {
+    if (phase === "uploading") onProgress?.(uploadProgress.done, uploadProgress.total);
+  }, [phase, uploadProgress, onProgress]);
+
   const handleClose = useCallback(() => {
-    if (phase === "uploading") return; // block close mid-upload
+    if (phase === "uploading") {
+      // Mid-upload: minimise instead of closing so the upload keeps running.
+      onMinimize?.();
+      return;
+    }
     for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     onClose();
-  }, [phase, items, onClose]);
+  }, [phase, items, onClose, onMinimize]);
 
   const openUnassignedTray = useCallback(() => {
     for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
@@ -531,6 +549,9 @@ export function GlobalUploadModal({
     setIsDragging(false);
     if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
   };
+
+  // Minimised: stay mounted so the upload loop keeps running, render nothing.
+  if (hidden) return null;
 
   return (
     <Dialog open onOpenChange={(o) => { if (!o) handleClose(); }}>
@@ -740,10 +761,15 @@ export function GlobalUploadModal({
             </>
           )}
           {phase === "uploading" && (
-            <Button disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Uploading…
-            </Button>
+            <>
+              <Button variant="outline" onClick={onMinimize}>
+                Continue in background
+              </Button>
+              <Button disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading…
+              </Button>
+            </>
           )}
           {phase === "done" && summary && (
             <>
