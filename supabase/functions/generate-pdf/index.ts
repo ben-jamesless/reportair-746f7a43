@@ -1,7 +1,7 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
 // Layout: BuildFolder V3 daily report — 1 cover page + 1 page per area.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { eventDayKey, resolveEventZone, timeZoneNote, UTC } from "../_shared/eventDay.ts";
@@ -141,7 +141,7 @@ function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: numb
     // Hanging indent for wrapped bullet continuation lines.
     const isBullet = /^\u2022\s+/.test(para);
     const indent = isBullet ? "   " : "";
-    const words = para.split(/\s+/);
+    const words = para.match(/[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]|[^\s\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]+/gu) ?? [];
     let current = "";
     let first = true;
     for (const w of words) {
@@ -279,7 +279,7 @@ async function loadFontBytes(needsCjk: boolean) {
     return new Uint8Array(await response.arrayBuffer());
   };
   if (needsCjk) {
-    cachedCjk ??= await download("https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf");
+    cachedCjk ??= await download("https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf");
     return { regular: cachedCjk, bold: cachedCjk };
   }
   cachedFonts ??= await Promise.all([
@@ -853,8 +853,9 @@ Deno.serve(async (req) => {
         }
         page.drawRectangle({ x: M + 8, y: rowY - ROW_H, width: 4, height: ROW_H, color: meta.text });
         const areaName = (a.name ?? "");
-        page.drawText(areaName.length > 38 ? areaName.slice(0, 37) + "..." : areaName, {
-          x: M + 16, y: rowY - ROW_H / 2 - 3, size: 8.5, font: pjsFont, color: COLOR.INK,
+        const areaLines = wrapLines(areaName, pjsFont, 8.5, C_AREA - 12).slice(0, 3);
+        page.drawText(areaLines.join("\n"), {
+          x: M + 16, y: rowY - 14, size: 8.5, lineHeight: 11, font: pjsFont, color: COLOR.INK,
         });
         const rowPillH = 8 + 4 * 2;
         drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - rowPillH / 2, meta.label, meta.text, meta.bg, irFont, 8);
