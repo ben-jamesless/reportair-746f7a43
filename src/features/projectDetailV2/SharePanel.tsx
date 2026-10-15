@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { Copy, QrCode, Loader2, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
@@ -79,6 +82,27 @@ export function SharePanel({
   const [qrOpen, setQrOpen] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [savingPins, setSavingPins] = useState(false);
+  const [expiry, setExpiry] = useState("");
+  const [savingExpiry, setSavingExpiry] = useState(false);
+
+  useEffect(() => {
+    setExpiry(link?.expires_at ? new Date(link.expires_at).toISOString().slice(0, 10) : "");
+  }, [link?.id, link?.expires_at]);
+
+  const saveExpiry = async () => {
+    if (!link) return;
+    // Date-only choice expires at the end of the chosen UTC day, not browser-local midnight.
+    const expiresAt = expiry ? `${expiry}T23:59:59.999Z` : null;
+    if (expiresAt && (!Number.isFinite(Date.parse(expiresAt)) || Date.parse(expiresAt) <= Date.now())) {
+      toast.error("Choose a future expiry date."); return;
+    }
+    setSavingExpiry(true);
+    const { error } = await supabase.from("share_links").update({ expires_at: expiresAt }).eq("id", link.id);
+    setSavingExpiry(false);
+    if (error) { toast.error("Couldn’t save the expiry date."); return; }
+    setLink(current => current ? { ...current, expires_at: expiresAt } : current);
+    toast.success(expiresAt ? "Link expiry saved." : "Link expiry removed.");
+  };
 
   const togglePhotoPins = async (next: boolean) => {
     if (!link) return;
@@ -263,7 +287,7 @@ export function SharePanel({
                     <button type="button" className={quietButtonClass} onClick={() => setQrOpen(true)}>
                       <QrCode className="h-4 w-4" /> QR
                     </button>
-                    <a className={quietButtonClass} href={teamPreviewUrl!} target="_blank" rel="noreferrer">
+                    <a className={quietButtonClass} href={teamPreviewUrl ?? undefined} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4" /> Open
                     </a>
                   </div>
@@ -274,6 +298,16 @@ export function SharePanel({
                     <p className="mt-1.5 text-xs" style={{ color: T.muted }}>
                       Copies the event name plus the same link, ready to paste.
                     </p>
+                  </div>
+                </section>
+
+                <section className="mb-6 space-y-3">
+                  <SectionLabel>Link expiry</SectionLabel>
+                  <Label htmlFor="client-link-expiry">Expiry date (optional, end of day UTC)</Label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input id="client-link-expiry" type="date" className="w-auto rounded-none" value={expiry} onChange={event => setExpiry(event.target.value)} />
+                    <Button type="button" variant="outline" className="rounded-none" disabled={savingExpiry} onClick={saveExpiry}>{savingExpiry ? "Saving…" : expiry ? "Save expiry" : "No expiry"}</Button>
+                    {expiry && <Button type="button" variant="ghost" onClick={() => setExpiry("")}>Clear date</Button>}
                   </div>
                 </section>
 
