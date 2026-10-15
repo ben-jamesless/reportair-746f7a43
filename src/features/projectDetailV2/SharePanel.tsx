@@ -214,32 +214,6 @@ export function SharePanel({
     setLink(null);
   };
 
-  const setPassword = async () => {
-    if (!link) return;
-    const pwd = passwordDraft.trim();
-    setSavingPassword(true);
-    try {
-      let hash: string | null = null;
-      if (pwd) {
-        const { data, error } = await supabase.rpc("hash_share_password", { _password: pwd });
-        if (error) throw error;
-        hash = data as string;
-      }
-      const { error: upErr } = await supabase
-        .from("share_links")
-        .update({ password_hash: hash, has_password: !!hash })
-        .eq("id", link.id);
-      if (upErr) throw upErr;
-      toast.success(pwd ? "Password set" : "Password removed");
-      setPasswordDraft("");
-      load();
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSavingPassword(false);
-    }
-  };
-
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
