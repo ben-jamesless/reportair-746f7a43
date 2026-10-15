@@ -128,6 +128,12 @@ interface Props {
   initialFiles: File[] | null;
   onClose: () => void;
   onUploaded?: () => void;
+  /** When true the modal stays mounted (so uploads keep running) but renders nothing. */
+  hidden?: boolean;
+  /** Minimise to the background pill — only offered while uploading. */
+  onMinimize?: () => void;
+  /** Reports upload progress so the background pill can show it. */
+  onProgress?: (done: number, total: number) => void;
 }
 
 /**
@@ -147,6 +153,9 @@ export function GlobalUploadModal({
   initialFiles,
   onClose,
   onUploaded,
+  hidden = false,
+  onMinimize,
+  onProgress,
 }: Props) {
   const { user } = useAuth();
   // Resolved lazily and awaited inside analyzeFiles — the hook equivalent
