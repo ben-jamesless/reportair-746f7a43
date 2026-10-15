@@ -1,15 +1,16 @@
-// Curated palette of project accent colors.
-// Red, orange and amber are deliberately absent: those hues are reserved for
-// Flagged / Delayed / issue status and must never read as a brand accent.
+// Curated palette of vibrant preset colours. Users can also pick any custom
+// colour via the colour picker beside the presets.
 export const PROJECT_COLOR_PALETTE: string[] = [
-  "#01696F", // teal (default)
-  "#23527C", // blue
-  "#4C51BF", // indigo
-  "#6B46C1", // violet
-  "#2F6B45", // green
-  "#6B7A3A", // olive
-  "#4A5568", // slate
-  "#14181C", // ink
+  "#0EA5A4", // teal (default)
+  "#2563EB", // blue
+  "#0EA5E9", // sky
+  "#6366F1", // indigo
+  "#8B5CF6", // violet
+  "#D946EF", // magenta
+  "#EC4899", // pink
+  "#F97362", // coral
+  "#10B981", // emerald
+  "#84CC16", // lime
 ];
 
 export const DEFAULT_PROJECT_COLOR = PROJECT_COLOR_PALETTE[0];
