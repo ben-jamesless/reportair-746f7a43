@@ -349,6 +349,36 @@ export type Database = {
         }
         Relationships: []
       }
+      early_access_requests: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          reviewed_at: string | null
+          status: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -2011,6 +2041,15 @@ export type Database = {
         }[]
       }
       remove_team_member: { Args: { _user_id: string }; Returns: undefined }
+      request_early_access: {
+        Args: {
+          _company?: string
+          _email: string
+          _full_name: string
+          _website?: string
+        }
+        Returns: undefined
+      }
       resolve_share_link: {
         Args: { _password?: string; _token: string }
         Returns: Json
