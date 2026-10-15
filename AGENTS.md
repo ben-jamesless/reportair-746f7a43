@@ -7,3 +7,4 @@
 - Preserve paid billing state separately from beta entitlements and prevent service-role billing updates from replacing active beta access, so billing can resume without destroying history.
 - Accept company invitations through authenticated email-matched server functions and explicit project assignments; ordinary company membership must never grant access to every project.
 - Keep company invitation screens shared between company and project members panels, so role choices and delivery states remain consistent.
+- Keep billing email calls isolated from the registered app-email sender; validate app-email actors and derive recipients and links server-side to prevent arbitrary sends.

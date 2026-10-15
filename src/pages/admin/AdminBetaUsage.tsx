@@ -13,7 +13,7 @@ export default function AdminBetaUsage() {
     void (async () => {
       const { data, error: queryError } = await supabase.rpc("admin_beta_usage");
       if (queryError) { if (!cancelled) { setError("Couldn’t load beta usage."); setLoading(false); } return; }
-      const result = await Promise.all((data as unknown as Usage[]).map(async row => {
+      const result = await Promise.all(((data ?? []) as unknown as Usage[]).map(async row => {
         const dates = await Promise.all(row.activity.map(async a => { const zone = await resolveEventZone(a.geo_lat, a.geo_lng); return `${a.project_id}:${eventDayKey(a.captured_at ?? a.created_at, zone.tz)}`; }));
         return { ...row, days: new Set(dates).size };
       }));

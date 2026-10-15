@@ -56,8 +56,7 @@ serve(async (req) => {
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return null;
     const priceId = sub.items.data[0]?.price?.id;
-    const rawPlan = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
-    const plan = rawPlan === "pro" ? "crew" : rawPlan;
+    const plan = resolvePlan(priceId, PRICE_TO_PLAN);
 
     const update: Record<string, unknown> = {
       plan,

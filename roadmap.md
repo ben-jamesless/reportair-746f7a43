@@ -21,8 +21,9 @@
 - [ ] Replace the unreliable share-link view counters with a proper analytics platform (accurate client opens, team previews, and engagement over time).
 
 # Beta membership simplification
-- [ ] Unlimited beta entitlements, protected billing history and hidden commercial UI.
-- [ ] Owner-only colleague invitations with company/project acceptance and simple roles.
-- [ ] Access-request and approval emails (shared inbox address and sender verification required).
-- [ ] Optional share expiry and admin-only factual usage reporting.
-- [ ] Verify permissions, invitation flow, exports and paid-tier regressions; document exact inventory.
+- [x] Unlimited beta entitlements, protected billing history and hidden commercial UI.
+- [x] Owner-only colleague invitations with company/project acceptance and simple roles.
+- [x] Wire access-request, approval and invitation emails to the chosen shared inbox and registered templates; retain copied-link fallback.
+- [ ] Verify inbox delivery after sender-domain verification (blocked: notify.reportair.co verification timed out; retry through Cloud → Emails).
+- [x] Optional share expiry and admin-only factual usage reporting.
+- [x] Verify signed-in invitation creation/acceptance/readback, beta PDF download, share expiry/readback, public report and paid-tier regression tests; inventory in beta-membership-verification.md.

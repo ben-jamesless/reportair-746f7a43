@@ -16,13 +16,17 @@ export function EarlyAccessForm() {
     setBusy(true);
     setError("");
     try {
-      const { error: requestError } = await supabase.rpc("request_early_access", {
-        _email: String(values.get("email") ?? "").trim(),
-        _full_name: String(values.get("name") ?? "").trim(),
-        _company: String(values.get("company") ?? "").trim(),
-        _website: String(values.get("website") ?? ""),
-      });
-      if (requestError) throw requestError;
+      const email = String(values.get("email") ?? "").trim();
+      const name = String(values.get("name") ?? "").trim();
+      const company = String(values.get("company") ?? "").trim();
+      const website = String(values.get("website") ?? "");
+      const { data, error: requestError } = await supabase.functions.invoke("send-transactional-email", { body: { templateName: "access-request", email, name, company, website } });
+      // A saved request must survive an email outage. The same protected request
+      // operation is idempotent, so a retry never creates duplicate requests.
+      if (requestError || !data?.success) {
+        const { error } = await supabase.rpc("request_early_access", { _email: email, _full_name: name, _company: company, _website: website });
+        if (error) throw error;
+      }
       setSent(true);
     } catch {
       setError("We couldn’t save your request. Please try again.");
