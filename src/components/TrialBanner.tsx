@@ -6,7 +6,7 @@ export function TrialBanner() {
   const { subscriptionStatus, plan, trialEndsAt } = usePlan();
   const { isAdmin } = usePlatformAdmin();
 
-  if (isAdmin) return null;
+  if (isAdmin || plan === "beta") return null;
   if (subscriptionStatus !== "trialing" || !trialEndsAt) return null;
 
   const daysLeft = Math.max(

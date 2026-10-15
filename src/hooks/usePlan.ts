@@ -55,13 +55,25 @@ export const usePlan = (): PlanState => {
     (async () => {
       if (!user?.id) { setState(s => ({ ...s, loading: false })); return; }
 
-      const [{ data: team }, { data: ownedCount }] = await Promise.all([
+      const [{ data: ownedTeam }, { data: ownedCount }] = await Promise.all([
         supabase.from("teams").select(
           "id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at, payment_failed_at"
         ).eq("billing_owner_user_id", user.id).maybeSingle(),
         supabase.rpc("my_owned_projects_count"),
       ]);
 
+      if (cancelled) return;
+
+      // Colleagues use their company's entitlement, not an invented Free account.
+      let team = ownedTeam;
+      if (!team) {
+        const { data: memberships } = await supabase.from("team_members").select("team_id").eq("user_id", user.id).order("created_at").limit(1);
+        const joinedTeamId = memberships?.[0]?.team_id;
+        if (joinedTeamId) {
+          const { data: joinedTeam } = await supabase.from("teams").select("id, plan, subscription_status, trial_ends_at, current_period_end, exports_this_month, exports_reset_at, payment_failed_at").eq("id", joinedTeamId).maybeSingle();
+          team = joinedTeam;
+        }
+      }
       if (cancelled) return;
 
       const planName = normalisePlan(team?.plan);
@@ -86,7 +98,7 @@ export const usePlan = (): PlanState => {
           // room under the 5:1 ratio for at least one more external.
           const coreRoom = coreCap === -1 || core < coreCap;
           const extRoom  = limits.allowsExternals && ext + 1 <= core * 5;
-          canInviteMember = coreRoom || extRoom;
+           canInviteMember = planName === "beta" || coreRoom || extRoom;
         }
       }
 

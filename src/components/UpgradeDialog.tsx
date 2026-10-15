@@ -85,6 +85,8 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
   const planOrder: Record<string, number> = { solo: 0, pro: 1, studio: 2 };
   const availablePlans = PLANS.filter(p => (planOrder[p.key] ?? 0) > (planOrder[currentPlan] ?? 0));
 
+  if (currentPlan === "beta") return null;
+
   const handleUpgrade = async (planKey: string) => {
     setLoading(planKey);
     try {

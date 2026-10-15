@@ -107,7 +107,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
   const daysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
     : null;
-  const isTrialing = subscriptionStatus === "trialing" && daysLeft !== null && !isAdmin;
+  const isTrialing = plan !== "beta" && subscriptionStatus === "trialing" && daysLeft !== null && !isAdmin;
 
   // Profile load + realtime
   useEffect(() => {

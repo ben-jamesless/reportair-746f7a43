@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 
 export function PaymentFailedBanner() {
-  const { subscriptionStatus, paymentFailedAt } = usePlan();
+  const { subscriptionStatus, paymentFailedAt, plan } = usePlan();
   const [loading, setLoading] = useState(false);
 
   const showBanner =
@@ -11,7 +11,7 @@ export function PaymentFailedBanner() {
     subscriptionStatus === "unpaid" ||
     !!paymentFailedAt;
 
-  if (!showBanner) return null;
+  if (!showBanner || plan === "beta") return null;
 
   const openPortal = async () => {
     setLoading(true);
