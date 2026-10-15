@@ -550,6 +550,9 @@ export function GlobalUploadModal({
     if (e.dataTransfer?.files?.length) addFiles(e.dataTransfer.files);
   };
 
+  // Minimised: stay mounted so the upload loop keeps running, render nothing.
+  if (hidden) return null;
+
   return (
     <Dialog open onOpenChange={(o) => { if (!o) handleClose(); }}>
       <DialogContent
@@ -758,10 +761,15 @@ export function GlobalUploadModal({
             </>
           )}
           {phase === "uploading" && (
-            <Button disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Uploading…
-            </Button>
+            <>
+              <Button variant="outline" onClick={onMinimize}>
+                Continue in background
+              </Button>
+              <Button disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading…
+              </Button>
+            </>
           )}
           {phase === "done" && summary && (
             <>
