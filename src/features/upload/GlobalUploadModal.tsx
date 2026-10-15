@@ -515,11 +515,20 @@ export function GlobalUploadModal({
     }
   }, [user, items, fallbackDate, noDateCount, projectId, albumId, onUploaded]);
 
+  // Report upload progress to the provider so the background pill stays in sync.
+  useEffect(() => {
+    if (phase === "uploading") onProgress?.(uploadProgress.done, uploadProgress.total);
+  }, [phase, uploadProgress, onProgress]);
+
   const handleClose = useCallback(() => {
-    if (phase === "uploading") return; // block close mid-upload
+    if (phase === "uploading") {
+      // Mid-upload: minimise instead of closing so the upload keeps running.
+      onMinimize?.();
+      return;
+    }
     for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     onClose();
-  }, [phase, items, onClose]);
+  }, [phase, items, onClose, onMinimize]);
 
   const openUnassignedTray = useCallback(() => {
     for (const it of items) if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
