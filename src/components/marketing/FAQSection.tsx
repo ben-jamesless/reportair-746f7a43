@@ -10,7 +10,7 @@ const faqs = [
   {
     question: "Can I brand the PDF with our logo and colours?",
     answer:
-      "Yes. Drop in your logo and your brand colour and every export comes out with your cover page, header, and footer. White-label PDFs (no BuildFolder watermark) are included on the Studio tier.",
+      "Yes. Drop in your logo and your brand colour and every export comes out with your cover page, header, and footer. Branding options are being refined during beta.",
   },
   {
     question: "What does the PDF look like?",
@@ -25,12 +25,12 @@ const faqs = [
   {
     question: "When can I use it?",
     answer:
-      "Closed beta is running with Hong Kong and London crews now. Public beta opens Q2 2026. Drop your email below and you'll get an invite slot.",
+      "BuildFolder is in invitation-only beta while we test it across real events. Request early access to be considered for a beta place.",
   },
   {
     question: "What does it cost?",
     answer:
-      "Solo HK$128/mo, Crew HK$298/mo, Studio HK$688/mo. Annual billing saves 20%. 7-day free trial on every tier — see the pricing section below.",
+      "Public pricing is on hold while BuildFolder is in beta. You can request early access, and we’ll be in touch if a place becomes available.",
   },
   {
     question: "Can multiple people work on the same event at once?",

@@ -7,6 +7,7 @@ const tabs = [
   { to: "/admin/users", label: "Users" },
   { to: "/admin/projects", label: "Projects" },
   { to: "/admin/signups", label: "Signups" },
+  { to: "/admin/early-access", label: "Early access" },
 ];
 
 const AdminLayout = () => {
@@ -19,7 +20,7 @@ const AdminLayout = () => {
             Internal dashboard. Visible only to platform administrators.
           </p>
         </header>
-        <nav className="flex gap-1 border-b">
+        <nav className="flex gap-1 overflow-x-auto border-b">
           {tabs.map((t) => (
             <NavLink
               key={t.to}
