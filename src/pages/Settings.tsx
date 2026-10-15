@@ -38,7 +38,8 @@ const isValidHex = (v: string) => /^#[0-9a-fA-F]{6}$/.test(v);
 
 export default function SettingsPage() {
   const { plan, teamId, loading: planLoading } = usePlan();
-  const isStudio = plan === "studio";
+  const isBeta = plan === "beta";
+  const isStudio = plan === "studio" || isBeta;
 
   const [email, setEmail] = useState<string>("");
   const [logoPath, setLogoPath] = useState<string | null>(null);
@@ -172,7 +173,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Account</CardTitle>
-            <CardDescription>Your sign-in email and current plan.</CardDescription>
+            <CardDescription>Your sign-in email.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between gap-3">
@@ -180,18 +181,18 @@ export default function SettingsPage() {
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
                 <p className="truncate text-sm font-medium">{email || <Skeleton className="h-4 w-40" />}</p>
               </div>
-              {planLoading ? (
+              {!isBeta && (planLoading ? (
                 <Skeleton className="h-6 w-16" />
               ) : (
                 <Badge variant={isStudio ? "default" : "secondary"} className="capitalize">
                   {plan}
                 </Badge>
-              )}
+              ))}
             </div>
-            <Separator />
+            {!isBeta && <><Separator />
             <Button asChild variant="outline" size="sm">
               <Link to="/billing">Manage subscription</Link>
-            </Button>
+            </Button></>}
           </CardContent>
         </Card>
 
