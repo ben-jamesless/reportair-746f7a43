@@ -10,6 +10,6 @@
 - [x] Verify generated PDFs and downloads through the real export flow.
 
 # PDF typography corrections
-- [ ] Use platform fonts with international-text fallback and consistent character spacing.
-- [ ] Correct logo placement, timezone divider, and area heading layout.
-- [ ] Verify a real report download and visually inspect every generated page.
+- [x] Use platform fonts with international-text fallback and consistent character spacing.
+- [x] Correct logo placement, timezone divider, and area heading layout.
+- [x] Verify a real report download and visually inspect every generated page.
