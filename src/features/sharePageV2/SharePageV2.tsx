@@ -13,7 +13,7 @@ import { StatusBar } from "./components/StatusBar";
 import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
-import { AreaGlance, DayTimeline, TodayBox } from "./components/Sidebar";
+import { AreaGlance, TodayBox } from "./components/Sidebar";
 import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
@@ -658,6 +658,25 @@ export default function SharePageV2() {
                   </>
                 )}
 
+                {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
+                  <>
+                    <SectionLabel className="mt-7">Unassigned photos</SectionLabel>
+                    <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
+                      {(photosByArea.get("__unassigned") ?? []).map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => openPhoto(p.id)}
+                          className="overflow-hidden"
+                          style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
+                        >
+                          <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
                 {token && (
                   <>
                     <CollapsibleSectionLabel
@@ -714,24 +733,6 @@ export default function SharePageV2() {
                 )}
 
 
-                {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
-                  <>
-                    <SectionLabel className="mt-7">Unassigned photos</SectionLabel>
-                    <div className="grid gap-1" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))" }}>
-                      {(photosByArea.get("__unassigned") ?? []).map((p) => (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => openPhoto(p.id)}
-                          className="overflow-hidden"
-                          style={{ aspectRatio: "4 / 3", borderRadius: 3, backgroundColor: V2.rule }}
-                        >
-                          <ZoneThumb token={token ?? ""} photoId={p.id} alt={p.caption || p.file_name} />
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
               </>
             )}
 
@@ -845,7 +846,6 @@ export default function SharePageV2() {
                     photos: a.photo_count,
                   }))}
                 />
-                <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
                 <BuildCalendar
                   days={meta.days ?? []}
                   phases={meta.phases ?? []}
@@ -881,9 +881,7 @@ export default function SharePageV2() {
               {/* The calendar is gone at every breakpoint: it has no area axis,
                   so it can never answer "when was this area worked on". The day
                   list is the navigator; the heatmap grid carries the rest. */}
-              {hasBuildTimeline && (
-                <DayTimeline days={timelineDays} activeDate={activeDate} onSelect={setActiveDate} />
-              )}
+
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}
               <div className={hasBuildTimeline ? "mt-7" : undefined}>

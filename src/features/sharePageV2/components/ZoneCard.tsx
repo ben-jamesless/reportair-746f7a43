@@ -73,7 +73,7 @@ export function ZoneCard({
 }) {
   const inactive = normaliseStatus(status) === "not_started" && !notes && photos.length === 0;
   const dayWord = isToday ? "today" : "this day";
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(photos.length > 0 || !!notes);
   return (
     <article className="py-[18px]" style={{ borderTop: `1px solid ${V2.rule}`, opacity: inactive ? 0.55 : 1 }}>
       {/* Not a single <button>: the comment action is a sibling control. */}
