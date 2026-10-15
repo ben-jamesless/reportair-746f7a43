@@ -248,7 +248,7 @@ const HeroSectionV2 = () => {
             Capture and sort event site photos. Export a client-safe link or polished PDF in minutes.
           </p>
           <div className="cta-row">
-            <Link className="btn-primary" to="/auth">Start your first build</Link>
+            <Link className="btn-primary" to="/early-access">Request early access</Link>
             <a
               className="btn-secondary"
               href="#how-it-works"

@@ -75,13 +75,13 @@ const About = () => {
 
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <Link
-              to="/auth?tab=signup"
+              to="/early-access"
               className="rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors"
               style={{ backgroundColor: BRAND.sky }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND.deepSky)}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND.sky)}
             >
-              Start your first build
+              Request early access
             </Link>
             <Link
               to="/#how-it-works"

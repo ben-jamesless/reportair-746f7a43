@@ -41,6 +41,7 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
 const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
 const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
+const AdminEarlyAccess = lazy(() => import("./pages/admin/AdminEarlyAccess.tsx"));
 const AdminLeadMagnet = lazy(() => import("./pages/admin/AdminLeadMagnet.tsx"));
 
 
@@ -66,6 +67,7 @@ const App = () => (
                 <Route path="/" element={<ErrorBoundary label="page"><PreviewHomeV2 /></ErrorBoundary>} />
                 <Route path="/preview/home-v2" element={<ErrorBoundary label="page"><PreviewHomeV2 /></ErrorBoundary>} />
                 <Route path="/home-v1" element={<ErrorBoundary label="page"><Index /></ErrorBoundary>} />
+                <Route path="/early-access" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/pricing" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/preview/pricing-v2" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
@@ -94,6 +96,7 @@ const App = () => (
                   <Route path="accounts" element={<AdminUsers />} />
                   <Route path="projects" element={<AdminProjects />} />
                   <Route path="signups" element={<AdminLeadMagnet />} />
+                  <Route path="early-access" element={<AdminEarlyAccess />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

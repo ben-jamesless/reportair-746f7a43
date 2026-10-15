@@ -6,6 +6,7 @@ import { withTimeout, NETWORK_TIMEOUT_MS, NETWORK_HELP } from "@/lib/network";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EarlyAccessForm } from "@/components/marketing/EarlyAccessForm";
 import { OnboardingLayout } from "@/components/OnboardingLayout";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +30,8 @@ const Auth = () => {
   const tabParam = params.get("tab");
   const inviteProject = params.get("invite_project") ?? "";
   const isInvite = params.get("invite") === "1" || !!inviteProject;
+  const hasBetaInvitation = params.get("beta") === "1";
+  const canShowSignup = isInvite || hasBetaInvitation;
   const [mode, setMode] = useState<"signin" | "signup">(
     tabParam === "signup" || (prefillEmail && !isInvite && tabParam !== "signin") ? "signup"
       : tabParam === "signin" ? "signin"
@@ -99,7 +102,7 @@ const Auth = () => {
         "Sign up"
       );
       setBusy(false);
-      if (error) return toast.error(error.message, { description: NETWORK_HELP });
+      if (error) return toast.error("Couldn’t create your account. Beta signup requires an approved email or a project invitation.", { description: "Already a tester? Sign in instead." });
       gaEvent("sign_up", { method: "email" });
       if (data.session) {
         navigate(redirect, { replace: true });
@@ -247,14 +250,15 @@ const Auth = () => {
       {googleButton}
       <p className="mt-6 text-center text-sm text-muted-foreground">
         No account yet?{" "}
-        <button
-          type="button"
-          onClick={() => setMode("signup")}
-          className="text-[#D94F2A] hover:underline font-medium"
-        >
-          Sign up →
-        </button>
+        {canShowSignup ? <Button variant="link" onClick={() => setMode("signup")}>Create invited account →</Button> : <Link to="/early-access" className="font-medium text-primary hover:underline">Request early access →</Link>}
       </p>
+    </div>
+  ) : !canShowSignup ? (
+    <div>
+      <h2 className="mb-3 text-2xl font-bold">Coming soon</h2>
+      <p className="mb-6 text-sm text-muted-foreground">BuildFolder is in invitation-only beta. Request early access while we test it across real events.</p>
+      <EarlyAccessForm />
+      <Button variant="link" className="mt-5 w-full" onClick={() => setMode("signin")}>Already a tester? Sign in</Button>
     </div>
   ) : (
     <div>
@@ -266,7 +270,7 @@ const Auth = () => {
       <p className="text-sm text-muted-foreground mb-6">
         {isInvite
           ? "Create your account to accept the invite."
-          : "Start your free 14-day trial. No credit card required."}
+          : "Create your invited beta account using your approved email address."}
       </p>
       <form onSubmit={handleSignUp} className="space-y-3">
         <div className="space-y-2">
