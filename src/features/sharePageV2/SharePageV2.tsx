@@ -10,7 +10,7 @@ import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, parseISO,
 import { Masthead } from "./components/Masthead";
 import { FiledReport } from "./filed/FiledReport";
 import { StatusBar } from "./components/StatusBar";
-import { StatStrip } from "./components/StatStrip";
+import { StatTable } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
 import { AreaGlance, TodayBox } from "./components/Sidebar";
