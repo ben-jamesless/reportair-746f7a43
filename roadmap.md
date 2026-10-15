@@ -5,6 +5,6 @@
 - [x] Verify the request submission, admin approval readback, and unapproved signup denial.
 
 # PDF export
-- [ ] Repair PDF generation failure and date-range coverage.
-- [ ] Simplify branded popup: portrait only, compressed/large, current date/range without tabs or albums.
-- [ ] Verify generated PDFs and downloads through the real export flow.
+- [x] Repair PDF generation failure and date-range coverage.
+- [x] Simplify branded popup: portrait only, compressed/large, current date/range without tabs or albums.
+- [x] Verify generated PDFs and downloads through the real export flow.
