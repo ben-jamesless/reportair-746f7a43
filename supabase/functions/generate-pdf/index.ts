@@ -279,7 +279,7 @@ async function loadFontBytes(needsCjk: boolean) {
     return new Uint8Array(await response.arrayBuffer());
   };
   if (needsCjk) {
-    cachedCjk ??= await download("https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf");
+    cachedCjk ??= await download("https://buildfolder.com/__l5e/assets-v1/5bead406-4bed-4698-abe0-e10025f7874f/NotoSansSC-Regular.ttf");
     return { regular: cachedCjk, bold: cachedCjk };
   }
   cachedFonts ??= await Promise.all([
