@@ -13,3 +13,7 @@
 - [x] Use platform fonts with international-text fallback and consistent character spacing.
 - [x] Correct logo placement, timezone divider, and area heading layout.
 - [x] Verify a real report download and visually inspect every generated page.
+
+# PDF build-day numbering
+- [x] Use scheduled build start and count every calendar day, including upload gaps.
+- [x] Verify regression tests and a fresh PDF export.

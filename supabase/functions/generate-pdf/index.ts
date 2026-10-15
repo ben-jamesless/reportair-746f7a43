@@ -4,6 +4,7 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { PDFDocument, PDFFont, PDFImage, PDFPage, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 import { embedReportFonts, drawText, textWidth } from "./typography.ts";
+import { buildDayNumber } from "./buildDay.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { eventDayKey, resolveEventZone, timeZoneNote, UTC } from "../_shared/eventDay.ts";
 
@@ -337,6 +338,10 @@ Deno.serve(async (req) => {
     if ((from && !keyPattern.test(from)) || (to && !keyPattern.test(to)) || (day && !keyPattern.test(day)) || (from && to && from > to)) throw new Error("Invalid report dates");
     const { data: scopeProject } = await supabase.from("projects").select("geo_lat,geo_lng").eq("id", projectId).single();
     const scopeZone = await resolveEventZone(scopeProject?.geo_lat, scopeProject?.geo_lng);
+    const { data: buildPhase, error: buildPhaseError } = await supabase.from("event_phases")
+      .select("start_date").eq("project_id", projectId).eq("kind", "build")
+      .order("start_date", { ascending: true }).limit(1).maybeSingle();
+    if (buildPhaseError) throw new Error("Could not load the scheduled build start");
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: scopeZone.tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
     const reportDates: string[] = [];
     if (from && to) {
@@ -419,14 +424,11 @@ Deno.serve(async (req) => {
     const reportDate = parseISODate(reportDateStr);
     const reportDateLabel = fmtDateLong(reportDate);
 
-    let buildDayLabel = "Build Day 1";
-    if (proj.build_start_date) {
-      const buildStart = parseISODate(proj.build_start_date as string);
-      const diffDays = Math.floor((reportDate.getTime() - buildStart.getTime()) / 86400000);
-      buildDayLabel = `Build Day ${diffDays + 1}`;
-    }
-    const buildDayN = buildDayLabel.replace(/\D+/g, "") || "1";
-    const reportNumber = `DR-${String(buildDayN).padStart(3, "0")}`;
+    const buildDayN = buildDayNumber(reportDateStr, buildPhase?.start_date ?? proj.build_start_date);
+    const buildDayLabel = buildDayN === null ? "" : `Build Day ${buildDayN}`;
+    const reportNumber = buildDayN === null
+      ? `DR-${reportDateStr.replace(/-/g, "")}`
+      : `DR-${String(buildDayN).padStart(3, "0")}`;
 
     // ============ Weather (Open-Meteo) — silent on failure ============
     const WMO: Record<number, string> = {
@@ -878,7 +880,7 @@ Deno.serve(async (req) => {
       nameLines.forEach((line, index) => drawText(page, line, { x: M + 6, y: H - 56 - index * 23, size: 18, font: pjsFont, color: COLOR.WHITE }));
       drawPill(page, W - M - pillW, H - 60, pillLabel, meta.text, meta.bg, irFont, pillFontSize);
 
-      const metaLines = wrapLines(`Photos: ${area.photoCount} · ${reportDateLabel} · ${buildDayLabel}`, irFont, 8, CW - 12);
+      const metaLines = wrapLines([`Photos: ${area.photoCount}`, reportDateLabel, buildDayLabel].filter(Boolean).join(" · "), irFont, 8, CW - 12);
       const META_H = 20 + metaLines.length * 12;
       const META_Y = H - HDR_H - META_H;
       page.drawRectangle({ x: 0, y: META_Y, width: W, height: META_H, color: COLOR.CLOUD });
