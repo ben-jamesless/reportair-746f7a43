@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
+import { ensureProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { toast } from "sonner";
 import {
   Upload,
@@ -149,7 +149,9 @@ export function GlobalUploadModal({
   onUploaded,
 }: Props) {
   const { user } = useAuth();
-  const eventTz = useProjectTimeZone(projectId);
+  // Resolved lazily and awaited inside analyzeFiles — the hook equivalent
+  // returns UTC on first render, which mis-timed drag-and-drop uploads.
+  const tzPromiseRef = useRef<Promise<string> | null>(null);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const zonesRef = useRef<PrimaryZone[] | null>(null);
@@ -241,6 +243,7 @@ export function GlobalUploadModal({
       setItems((cur) => [...cur, ...newItems]);
 
       const zones = zonesRef.current ?? (await (zonesPromiseRef.current ?? fetchPrimaryZones(projectId)));
+      const eventTz = await (tzPromiseRef.current ??= ensureProjectTimeZone(projectId));
 
       // Sequential analysis keeps the streaming visible and avoids EXIF-lib CPU spikes.
       for (const it of newItems) {
@@ -305,7 +308,7 @@ export function GlobalUploadModal({
         }
       }
     },
-    [projectId, initialAreaId, eventTz]
+    [projectId, initialAreaId]
   );
 
   // If launched with initial files (e.g. drag-drop onto shell), start analyzing immediately.
