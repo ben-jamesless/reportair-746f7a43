@@ -259,7 +259,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           {/* ── Primary nav ── */}
           <nav className="mt-2 space-y-0.5 px-2 lg:px-3">
             {navItems.filter((item) => {
-              if ((item.href === "/share-links") && plan !== "crew" && plan !== "studio") return false;
+              if (item.href === "/share-links" && !["crew", "studio", "beta"].includes(plan)) return false;
               return true;
             }).map((item) => {
 

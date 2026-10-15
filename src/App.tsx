@@ -33,6 +33,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const SharePageV2 = lazy(() => import("./features/sharePageV2/SharePageV2.tsx"));
 const CompanyInviteAccept = lazy(() => import("./pages/CompanyInviteAccept.tsx"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
 const AdminBetaUsage = lazy(() => import("./pages/admin/AdminBetaUsage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
@@ -75,6 +76,7 @@ const App = () => (
                 <Route path="/preview/pricing-v2" element={<ErrorBoundary label="page"><PreviewPricingV2 /></ErrorBoundary>} />
                 <Route path="/auth" element={<ErrorBoundary label="page"><Auth /></ErrorBoundary>} />
                 <Route path="/about" element={<ErrorBoundary label="page"><About /></ErrorBoundary>} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
                 <Route path="/reset-password" element={<ErrorBoundary label="page"><ResetPassword /></ErrorBoundary>} />
                 <Route path="/onboarding" element={<ErrorBoundary label="page"><ProtectedRoute><Onboarding /></ProtectedRoute></ErrorBoundary>} />

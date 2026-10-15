@@ -33,8 +33,8 @@ export function CompanyInvites({ teamId, initialProjectId, onAccepted }: { teamI
   }, [teamId, user?.id]);
   useEffect(() => { void load(); }, [load]);
   const sendEmail = async (id: string) => {
-    const { data, error } = await supabase.functions.invoke("send-company-invite", { body: { inviteId: id } });
-    if (error || !data?.ok) toast.error("Invitation saved, but the email was not sent. You can copy the link or retry.");
+    const { data, error } = await supabase.functions.invoke("send-transactional-email", { body: { templateName: "company-invite", inviteId: id } });
+    if (error || !data?.success) toast.error("Invitation saved, but the email was not sent. You can copy the link or retry.");
     else toast.success("Invitation email queued.");
   };
   const submit = async (event: React.FormEvent) => {
@@ -44,7 +44,7 @@ export function CompanyInvites({ teamId, initialProjectId, onAccepted }: { teamI
       if (error) throw error;
       if (!data?.id) throw new Error("Couldn’t save the invitation.");
       setEmail(""); await sendEmail(data.id); await load(); onAccepted?.();
-    } catch (e) { toast.error(e instanceof Error ? e.message : "Couldn’t invite this colleague."); }
+    } catch (e) { toast.error(e && typeof e === "object" && "message" in e ? String(e.message) : "Couldn’t invite this colleague."); }
     finally { setBusy(false); }
   };
   const cancel = async (id: string) => {
