@@ -17,3 +17,5 @@
 # PDF build-day numbering
 - [x] Use scheduled build start and count every calendar day, including upload gaps.
 - [x] Verify regression tests and a fresh PDF export.
+# Analytics platform (later)
+- [ ] Replace the unreliable share-link view counters with a proper analytics platform (accurate client opens, team previews, and engagement over time).

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { formatAbsoluteStamp } from "@/lib/eventTime";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { Copy, QrCode, Loader2, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
@@ -292,42 +291,6 @@ export function SharePanel({
                       label="Photo locations"
                     />
                   </div>
-                </section>
-
-                {/* Views — client opens and team previews are separate figures */}
-                <section className="mb-6">
-                  <SectionLabel>Views</SectionLabel>
-                  <dl className="grid grid-cols-3 gap-3">
-                    <div>
-                      <dt style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted }}>
-                        Client opens
-                      </dt>
-                      <dd className="mt-1 text-lg" style={{ fontFamily: MONO, color: T.ink }}>
-                        {link.view_count}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted }}>
-                        Team previews
-                      </dt>
-                      <dd className="mt-1 text-lg" style={{ fontFamily: MONO, color: T.muted }}>
-                        {link.team_view_count}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted }}>
-                        Last client open
-                      </dt>
-                      <dd className="mt-1 text-sm" style={{ fontFamily: MONO, color: T.ink }}>
-                        {formatAbsoluteStamp(link.last_accessed_at, eventTz)}
-                      </dd>
-                    </div>
-                  </dl>
-                  <p className="mt-2 text-xs" style={{ color: T.muted }}>
-                    Basis: an open counts as a team preview when the viewer is a signed-in member of this event,
-                    or arrives via the Open button above (which carries a signed team marker). Everything else
-                    counts as a client open.
-                  </p>
                 </section>
 
                 {/* Finalise / Unfile — outlined secondary, never the loudest control */}
