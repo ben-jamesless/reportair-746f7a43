@@ -10,7 +10,7 @@ import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, parseISO,
 import { Masthead } from "./components/Masthead";
 import { FiledReport } from "./filed/FiledReport";
 import { StatusBar } from "./components/StatusBar";
-import { StatStrip } from "./components/StatStrip";
+import { StatTable } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
 import { AreaGlance, TodayBox } from "./components/Sidebar";
@@ -606,8 +606,6 @@ export default function SharePageV2() {
               </>
             ) : (
               <>
-                {hasBuildTimeline && <StatStrip stats={stats} />}
-
                 {hasBuildTimeline && (meta.areas?.length ?? 0) > 0 && (
                   <>
                     <SectionLabel>Build calendar</SectionLabel>
@@ -881,6 +879,13 @@ export default function SharePageV2() {
               {/* The calendar is gone at every breakpoint: it has no area axis,
                   so it can never answer "when was this area worked on". The day
                   list is the navigator; the heatmap grid carries the rest. */}
+
+              {/* Headline stats as a rail table, above the feedback panel. */}
+              {hasBuildTimeline && (
+                <div className="mt-7">
+                  <StatTable stats={stats} />
+                </div>
+              )}
 
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}
