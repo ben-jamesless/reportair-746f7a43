@@ -15,5 +15,5 @@
 - [x] Verify a real report download and visually inspect every generated page.
 
 # PDF build-day numbering
-- [ ] Use scheduled build start and count every calendar day, including upload gaps.
-- [ ] Verify regression tests and a fresh PDF export.
+- [x] Use scheduled build start and count every calendar day, including upload gaps.
+- [x] Verify regression tests and a fresh PDF export.
