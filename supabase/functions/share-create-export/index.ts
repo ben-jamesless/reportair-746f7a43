@@ -9,11 +9,7 @@
 //   { export_id }
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -79,12 +75,7 @@ Deno.serve(async (req) => {
     // Client-supplied overrides (layout, quality, sections) from the share
     // page's export dialog. Only whitelisted keys are honoured.
     const client = (body?.options ?? {}) as Record<string, unknown>;
-    if (typeof client.template === "string") {
-      options.template = client.template;
-      options.orientation = client.template === "grid_landscape_v1" ? "landscape" : "portrait";
-    }
     if (client.quality === "high_res" || client.quality === "compressed") options.quality = client.quality;
-    if (client.sections && typeof client.sections === "object") options.sections = client.sections;
 
     if (mode === "range" && date_from && date_to) {
       const lo = date_from <= date_to ? date_from : date_to;
@@ -112,9 +103,10 @@ Deno.serve(async (req) => {
     }
 
     // Fire-and-forget the generator with the share token so it bypasses JWT auth.
-    supabase.functions.invoke("generate-pdf", {
+    const work = supabase.functions.invoke("generate-pdf", {
       body: { export_id: row.id, share_token: token },
     }).catch((e) => console.error("invoke generate-pdf failed", e));
+    EdgeRuntime.waitUntil(work);
 
     return new Response(JSON.stringify({ export_id: row.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

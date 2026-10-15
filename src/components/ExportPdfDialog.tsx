@@ -1,1223 +1,182 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
+import { FileDown, Loader2, Download, Calendar as CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { event as gaEvent } from "@/lib/analytics";
-import {
-  EVENT_TEMPLATE_DEFS,
-  RECOMMENDED_LAYOUT_KEY,
-  TEMPLATE_ID_KEY,
-} from "@/lib/eventTemplates";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
+import { ensureProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import {
-  FileDown,
-  Loader2,
-  AlertTriangle,
-  Download,
-  Calendar as CalendarIcon,
-  ChevronDown,
-  History,
-  Crown,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useProjectPlan } from "@/hooks/useProjectPlan";
-
-const PHOTO_CAP = 300;
-
-type ExportRow = {
-  id: string;
-  status: "queued" | "processing" | "ready" | "failed";
-  output_path: string | null;
-  error_message: string | null;
-  photo_count: number | null;
-};
-
-type HistoryRow = {
-  id: string;
-  status: "queued" | "processing" | "ready" | "failed";
-  output_path: string | null;
-  error_message: string | null;
-  photo_count: number | null;
-  created_at: string;
-  options: Record<string, unknown> | null;
-};
-
-type Sections = {
-  cover: boolean; grid: boolean; captions: boolean; exif: boolean; notes: boolean; activity: boolean;
-};
-
-const DEFAULT_SECTIONS: Sections = { cover: true, grid: true, captions: true, exif: false, notes: true, activity: false };
-
-// Layout variant — drives orientation + template in the PDF generator.
-// portrait_v1 ships at launch on every plan. The two horizontal variants are
-// Pro+ at launch; backend branches on options.template.
-type LayoutVariant = "portrait_v1" | "editorial_portrait_v1" | "grid_landscape_v1";
-
-// `comingSoon` gates layouts that don't yet have a renderer in the generate-pdf
-// edge function. With editorial_portrait_v1 and grid_landscape_v1 now wired up
-// in generate-pdf/new-layouts.ts, all three tiles are selectable.
-// Keep the flag on the type so future templates can ship in the UI first
-// while the renderer is still in progress.
-const LAYOUTS: { value: LayoutVariant; label: string; hint: string; orientation: "portrait" | "landscape"; pro: boolean; comingSoon: boolean }[] = [
-  { value: "portrait_v1",            label: "Portrait",    hint: "Original · photo-led report",          orientation: "portrait",  pro: false, comingSoon: false },
-  { value: "editorial_portrait_v1",  label: "Editorial",   hint: "Portrait · dark cover, area pages",    orientation: "portrait",  pro: true,  comingSoon: false },
-  { value: "grid_landscape_v1",      label: "Grid",        hint: "Landscape · 3-column photo grid",      orientation: "landscape", pro: true,  comingSoon: false },
-];
-
-const LAYOUT_STORAGE_KEY = (projectId: string) => `bs:export:layout:${projectId}`;
 
 export type AvailableDay = { key: string; label: string; date: Date; photoCount: number };
-
-type AlbumOption = { id: string; name: string; photoCount: number };
-
 type Props = {
-  projectId: string;
-  /** Single-day photo count (used when mode=single & dayKey set) or fallback total. */
-  photoCount: number;
-  /** When set, scope export to this single day (YYYY-M-D, matches edge function dayKey) and label. */
-  dayKey?: string | null;
-  dayLabel?: string | null;
-  /** All days that have photos in the project, used by date-range mode. */
-  availableDays?: AvailableDay[];
-  /** Lock the mode toggle to "single" (used from the per-day icon). */
-  lockMode?: "single" | null;
-  /** Render a custom trigger instead of the default "Export PDF" button. */
-  trigger?: React.ReactNode;
-  /** Public share-link token — enables the anonymous export path on /s2/:token. */
-  shareToken?: string | null;
-  /** Controlled open (optional). */
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  projectId: string; photoCount: number; dayKey?: string | null; dayLabel?: string | null;
+  availableDays?: AvailableDay[]; lockMode?: "single" | null; trigger?: React.ReactNode;
+  shareToken?: string | null; open?: boolean; onOpenChange?: (open: boolean) => void;
 };
+const dateKey = (date: Date) => format(date, "yyyy-MM-dd");
+const normalizeKey = (key: string) => key.split("-").map((part, index) => index ? part.padStart(2, "0") : part).join("-");
+const toDate = (key: string) => { const [y,m,d] = key.split("-").map(Number); return new Date(y,m-1,d); };
 
-type Mode = "single" | "range" | "album";
-
-const fmtScope = (opts: Record<string, unknown> | null): string => {
-  if (!opts) return "Export";
-  const dayLabel = (opts.day_label as string | undefined) ?? null;
-  const dayKey = (opts.day_key as string | undefined) ?? null;
-  const dateFrom = (opts.date_from as string | undefined) ?? null;
-  const dateTo = (opts.date_to as string | undefined) ?? null;
-  const albumLabel = (opts.album_label as string | undefined) ?? null;
-  const albumId = (opts.album_id as string | undefined) ?? null;
-  if (dayLabel || dayKey) return `Single day — ${dayLabel ?? dayKey}`;
-  if (dateFrom && dateTo) {
-    const fmt = (k: string) => {
-      const [y, m, d] = k.split("-").map(Number);
-      return new Date(y, m - 1, d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-    };
-    return `Date range — ${fmt(dateFrom)} – ${fmt(dateTo)}`;
-  }
-  if (albumLabel || albumId) return `Album — ${albumLabel ?? "Album"}`;
-  return "Full project";
-};
-
-const fmtCreated = (iso: string) =>
-  new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
-
-export const ExportPdfDialog = ({
-  projectId,
-  photoCount,
-  dayKey = null,
-  dayLabel = null,
-  availableDays = [],
-  lockMode = null,
-  trigger,
-  shareToken = null,
-  open: controlledOpen,
-  onOpenChange,
-}: Props) => {
-  const { canExportPdf, exportsThisMonth, limits, plan, showBuildSlidesBranding, canUseCustomLogo } = useProjectPlan(projectId);
-  // Public share visitors have no session: plan lookups, albums, cover pickers
-  // and history all require auth, so the share path skips them entirely.
-  const isShare = !!shareToken;
-  const mayExport = isShare || canExportPdf;
+export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, availableDays = [], trigger, shareToken, open: controlledOpen, onOpenChange }: Props) {
+  const { canExportPdf, loading: planLoading } = useProjectPlan(projectId);
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
-  const setOpen = (v: boolean) => { if (onOpenChange) onOpenChange(v); else setInternalOpen(v); };
-  const sections: Sections = { ...DEFAULT_SECTIONS, cover: true, grid: true, captions: true, activity: false };
-  const [accent, setAccent] = useState("#D94F2A");
-  const [submitting, setSubmitting] = useState(false);
-  const [currentExport, setCurrentExport] = useState<ExportRow | null>(null);
-  const [quality, setQuality] = useState<"compressed" | "high_res">("compressed");
+  const setOpen = (value: boolean) => onOpenChange ? onOpenChange(value) : setInternalOpen(value);
+  const [mode, setMode] = useState("single");
+  const [quality, setQuality] = useState("compressed");
+  const [currentDay, setCurrentDay] = useState(dayKey ? normalizeKey(dayKey) : dateKey(new Date()));
+  const [days, setDays] = useState<AvailableDay[]>(availableDays);
+  const [from, setFrom] = useState<string | null>(null);
+  const [to, setTo] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [loadingDays, setLoadingDays] = useState(false);
+  const [error, setError] = useState("");
+  const [file, setFile] = useState<Blob | null>(null);
+  const [readyUrl, setReadyUrl] = useState<string | null>(null);
+  const generation = useRef(0);
 
-  // Cover photo selector (Studio only)
-  const isStudio = plan === "studio" && !isShare;
-  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(null);
-  const [coverAssetPath, setCoverAssetPath] = useState<string | null>(null);
-  const [coverAssetUrl, setCoverAssetUrl] = useState<string | null>(null);
-  const [coverPhotos, setCoverPhotos] = useState<{ id: string; storage_path: string }[]>([]);
-  const [coverThumbs, setCoverThumbs] = useState<Record<string, string>>({});
-  const [coverSaving, setCoverSaving] = useState(false);
-  const [coverUploading, setCoverUploading] = useState(false);
-  const coverFileRef = useRef<HTMLInputElement>(null);
-
-  // Pro+ unlocks the two new layouts at launch. Solo gets portrait only.
-  const isPro = plan !== "solo";
-
-  // Default order: last-used layout for THIS project (LAYOUT_STORAGE_KEY) →
-  // template's recommended layout (set by NewEventPanel at create time) →
-  // portrait. This means a freshly-created Exhibition project opens the
-  // export dialog with Grid already selected, while users who
-  // override it once keep their override.
-  const isValidLayout = (v: unknown): v is LayoutVariant =>
-    v === "portrait_v1" || v === "editorial_portrait_v1" || v === "grid_landscape_v1";
-  const recommendedLayout = useMemo<LayoutVariant | null>(() => {
-    if (typeof window === "undefined") return null;
-    const v = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
-    return isValidLayout(v) ? (v as LayoutVariant) : null;
-  }, [projectId]);
-  const templateForProject = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    const id = window.localStorage.getItem(TEMPLATE_ID_KEY(projectId));
-    return EVENT_TEMPLATE_DEFS.find((t) => t.id === id) ?? null;
-  }, [projectId]);
-  // A layout is selectable only if it isn't coming-soon and the user has Pro
-  // (when required). Used to keep the default selection on a working tile.
-  const isSelectableLayout = (v: LayoutVariant): boolean => {
-    const def = LAYOUTS.find(l => l.value === v);
-    if (!def) return false;
-    if (def.comingSoon) return false;
-    if (def.pro && !isPro) return false;
-    return true;
-  };
-  const [layout, setLayout] = useState<LayoutVariant>(() => {
-    if (typeof window === "undefined") return "portrait_v1";
-    const saved = window.localStorage.getItem(LAYOUT_STORAGE_KEY(projectId)) as LayoutVariant | null;
-    if (isValidLayout(saved) && isSelectableLayout(saved)) return saved;
-    const rec = window.localStorage.getItem(RECOMMENDED_LAYOUT_KEY(projectId));
-    if (isValidLayout(rec) && isSelectableLayout(rec as LayoutVariant)) return rec as LayoutVariant;
-    return "portrait_v1";
-  });
-  // Guard: if a remembered layout becomes unavailable (Pro downgrade, or layout
-  // newly flagged coming-soon), fall back to portrait.
   useEffect(() => {
-    if (!isSelectableLayout(layout)) setLayout("portrait_v1");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPro, layout]);
-  const orientation = LAYOUTS.find(l => l.value === layout)?.orientation ?? "portrait";
+    if (!open) { generation.current += 1; return; }
+    let cancelled = false;
+    setError(""); setFile(null); setReadyUrl(null); setBusy(false); setMode("single");
+    setLoadingDays(true);
+    (async () => {
+      let list = availableDays.map(day => ({ ...day, key: normalizeKey(day.key) }));
+      let today = dateKey(new Date());
+      if (!shareToken) {
+        const tz = await ensureProjectTimeZone(projectId);
+        today = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+        const counts = new Map<string, number>();
+        for (let offset = 0; ; offset += 1000) {
+          const { data, error } = await supabase.from("photos").select("captured_at").eq("project_id", projectId).not("captured_at", "is", null).range(offset, offset + 999);
+          if (error) throw error;
+          for (const photo of data ?? []) {
+            if (!photo.captured_at) continue;
+            const key = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(photo.captured_at));
+            counts.set(key, (counts.get(key) ?? 0) + 1);
+          }
+          if (!data || data.length < 1000) break;
+        }
+        list = [...counts].map(([key, count]) => ({ key, date: toDate(key), label: key, photoCount: count }));
+      }
+      if (cancelled) return;
+      list.sort((a,b) => a.key.localeCompare(b.key));
+      setDays(list); setCurrentDay(dayKey ? normalizeKey(dayKey) : today);
+      setFrom(list[0]?.key ?? today); setTo(list[list.length - 1]?.key ?? today);
+    })().catch(() => { if (!cancelled) setError("Couldn’t load report dates. Close and try again."); }).finally(() => { if (!cancelled) setLoadingDays(false); });
+    return () => { cancelled = true; };
+  }, [open, projectId, dayKey, shareToken]);
 
-  const initialMode: Mode = lockMode === "single" || dayKey ? "single" : "single";
-  const [mode, setMode] = useState<Mode>(initialMode);
-  const [rangeFrom, setRangeFrom] = useState<string | null>(null);
-  const [rangeTo, setRangeTo] = useState<string | null>(null);
-
-  // Albums
-  const [albums, setAlbums] = useState<AlbumOption[]>([]);
-  const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
-
-  // History
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [history, setHistory] = useState<HistoryRow[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [downloadingPath, setDownloadingPath] = useState<string | null>(null);
-  const [downloadLinks, setDownloadLinks] = useState<Record<string, string>>({});
-
-  // Sorted ascending for picker convenience
-  const daysAsc = useMemo(
-    () => [...availableDays].sort((a, b) => a.date.getTime() - b.date.getTime()),
-    [availableDays],
-  );
-
-  // Reset session state whenever the dialog opens/closes
-  useEffect(() => {
-    if (!open) {
-      setCurrentExport(null);
-      setSubmitting(false);
-      setHistoryOpen(false);
-    } else {
-      setMode(lockMode === "single" || dayKey ? "single" : "single");
-      if (daysAsc.length > 0) {
-        setRangeFrom(daysAsc[0].key);
-        setRangeTo(daysAsc[daysAsc.length - 1].key);
+  const count = useMemo(() => mode === "range" ? days.filter(day => from && to && day.key >= from && day.key <= to).reduce((sum, day) => sum + day.photoCount, 0) : days.find(day => day.key === currentDay)?.photoCount ?? (dayKey ? photoCount : 0), [mode, days, from, to, currentDay, dayKey, photoCount]);
+  const overCap = count > 300;
+  const start = async () => {
+    setBusy(true); setError(""); setFile(null); setReadyUrl(null);
+    const run = ++generation.current;
+    try {
+      const options = { template: "portrait_v1", orientation: "portrait", quality, ...(mode === "range" ? { date_from: from, date_to: to } : { day_key: currentDay, day_label: dayLabel ?? currentDay }) };
+      let id: string;
+      if (shareToken) {
+        const { data, error } = await supabase.functions.invoke("share-create-export", { body: { token: shareToken, mode, day_key: currentDay, date_from: from, date_to: to, options } });
+        if (error || !data?.export_id) throw new Error(data?.error ?? "Couldn’t start the export.");
+        id = data.export_id;
       } else {
-        setRangeFrom(null);
-        setRangeTo(null);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // Load albums + photo counts + project brand colour when opening
-  useEffect(() => {
-    if (!open || isShare) return;
-    let cancelled = false;
-    (async () => {
-      const [{ data: alb }, { data: ph }, { data: proj }] = await Promise.all([
-        supabase.from("albums").select("id, name, position").eq("project_id", projectId).order("position"),
-        supabase.from("photos").select("album_id").eq("project_id", projectId).not("album_id", "is", null),
-        supabase.from("projects").select("color").eq("id", projectId).maybeSingle(),
-      ]);
-      if (cancelled) return;
-      const counts = new Map<string, number>();
-      for (const r of (ph ?? []) as { album_id: string }[]) {
-        counts.set(r.album_id, (counts.get(r.album_id) ?? 0) + 1);
-      }
-      const opts: AlbumOption[] = (alb ?? []).map((a: { id: string; name: string }) => ({
-        id: a.id, name: a.name, photoCount: counts.get(a.id) ?? 0,
-      }));
-      setAlbums(opts);
-      setSelectedAlbumId((prev) => prev ?? opts[0]?.id ?? null);
-      // Seed accent from the project's brand colour so admin & share PDFs match.
-      const projColor = (proj as { color?: string | null } | null)?.color;
-      if (projColor && /^#[0-9a-fA-F]{6}$/.test(projColor)) setAccent(projColor);
-    })();
-    return () => { cancelled = true; };
-  }, [open, projectId, isShare]);
-
-  // Load cover photo selection + recent photo strip (Studio only)
-  useEffect(() => {
-    if (!open || !isStudio) return;
-    let cancelled = false;
-    (async () => {
-      const [{ data: proj }, { data: photos }] = await Promise.all([
-        supabase.from("projects").select("cover_photo_id, cover_asset_path").eq("id", projectId).maybeSingle(),
-        supabase.from("photos").select("id, storage_path").eq("project_id", projectId).order("captured_at", { ascending: false }).limit(12),
-      ]);
-      if (cancelled) return;
-      const p = proj as { cover_photo_id: string | null; cover_asset_path: string | null } | null;
-      setCoverPhotoId(p?.cover_photo_id ?? null);
-      setCoverAssetPath(p?.cover_asset_path ?? null);
-      setCoverPhotos((photos ?? []) as { id: string; storage_path: string }[]);
-    })();
-    return () => { cancelled = true; };
-  }, [open, projectId, isStudio]);
-
-  // Signed thumbnail URLs for the cover strip
-  useEffect(() => {
-    if (!isStudio || coverPhotos.length === 0) { setCoverThumbs({}); return; }
-    let cancelled = false;
-    (async () => {
-      const results = await Promise.all(coverPhotos.map(async (p) => {
-        const { data } = await supabase.storage.from("photos").createSignedUrl(p.storage_path, 60 * 30, {
-          transform: { width: 128, height: 96, resize: "cover" },
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user) throw new Error("Please sign in again to export.");
+        const { data, error } = await supabase.from("project_exports").insert({ project_id: projectId, created_by: auth.user.id, status: "queued", options }).select("id").single();
+        if (error || !data) throw new Error("Couldn’t start the export.");
+        id = data.id;
+        void supabase.functions.invoke("generate-pdf", { body: { export_id: id } }).then(({ error }) => {
+          if (error && generation.current === run) { setError("The report generator couldn’t complete the request. Please try again."); }
         });
-        return [p.id, data?.signedUrl ?? ""] as const;
-      }));
-      if (!cancelled) setCoverThumbs(Object.fromEntries(results));
-    })();
-    return () => { cancelled = true; };
-  }, [coverPhotos, isStudio]);
-
-  // Signed URL for custom cover asset preview
-  useEffect(() => {
-    if (!coverAssetPath) { setCoverAssetUrl(null); return; }
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase.storage.from("export-assets").createSignedUrl(coverAssetPath, 60 * 30);
-      if (!cancelled) setCoverAssetUrl(data?.signedUrl ?? null);
-    })();
-    return () => { cancelled = true; };
-  }, [coverAssetPath]);
-
-  const selectCoverPhoto = async (photoId: string) => {
-    setCoverSaving(true);
-    const { error } = await supabase.from("projects")
-      .update({ cover_photo_id: photoId })
-      .eq("id", projectId);
-    setCoverSaving(false);
-    if (error) { toast.error(error.message); return; }
-    setCoverPhotoId(photoId);
-  };
-
-  const selectCoverAsset = async () => {
-    if (!coverAssetPath) return;
-    setCoverSaving(true);
-    const { error } = await supabase.from("projects")
-      .update({ cover_photo_id: null })
-      .eq("id", projectId);
-    setCoverSaving(false);
-    if (error) { toast.error(error.message); return; }
-    setCoverPhotoId(null);
-  };
-
-  const clearCover = async () => {
-    setCoverSaving(true);
-    const { error } = await supabase.from("projects")
-      .update({ cover_photo_id: null, cover_asset_path: null })
-      .eq("id", projectId);
-    setCoverSaving(false);
-    if (error) { toast.error(error.message); return; }
-    setCoverPhotoId(null);
-    setCoverAssetPath(null);
-  };
-
-  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/jpeg") && file.type !== "image/png") {
-      toast.error("Only PNG or JPG files are supported.");
-      return;
-    }
-    setCoverUploading(true);
-    try {
-      const ext = file.type === "image/png" ? "png" : "jpg";
-      const storagePath = `covers/${projectId}/cover.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("export-assets")
-        .upload(storagePath, file, { upsert: true, contentType: file.type });
-      if (uploadError) { toast.error(uploadError.message); return; }
-      const { error: updateError } = await supabase.from("projects")
-        .update({ cover_asset_path: storagePath, cover_photo_id: null })
-        .eq("id", projectId);
-      if (updateError) { toast.error(updateError.message); return; }
-      toast.success("Cover image uploaded");
-      setCoverAssetPath(storagePath);
-      setCoverPhotoId(null);
-    } finally {
-      setCoverUploading(false);
-    }
-  };
-
-  // Poll the active export until it resolves
-  const pollStartedAt = useRef<number | null>(null);
-  useEffect(() => {
-    if (!open || !currentExport || isShare) return;
-    if (currentExport.status === "ready" || currentExport.status === "failed") return;
-    pollStartedAt.current = Date.now();
-    const t = setInterval(async () => {
-      const { data } = await supabase.from("project_exports")
-        .select("id,status,output_path,error_message,photo_count")
-        .eq("id", currentExport.id).maybeSingle();
-      if (data) setCurrentExport(data as ExportRow);
-      if (pollStartedAt.current && Date.now() - pollStartedAt.current > 5 * 60 * 1000) {
-        clearInterval(t);
-        setCurrentExport((prev) => prev ? { ...prev, status: "failed", error_message: "Export timed out" } : prev);
-        toast.error("Export timed out. Please try again.");
-        return;
       }
-    }, 3000);
-    return () => clearInterval(t);
-  }, [open, currentExport]);
-
-  // Load history when collapsible opens (or after a new export completes)
-  const loadHistory = async () => {
-    setHistoryLoading(true);
-    const { data } = await supabase
-      .from("project_exports")
-      .select("id, status, output_path, error_message, photo_count, created_at, options")
-      .eq("project_id", projectId)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    setHistory((data ?? []) as HistoryRow[]);
-    setHistoryLoading(false);
-  };
-  useEffect(() => {
-    if (open && historyOpen && !isShare) loadHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, historyOpen]);
-
-
-  // Compute photos covered + cap for current selection
-  const { effectivePhotoCount, rangeDays } = useMemo(() => {
-    if (mode === "range" && rangeFrom && rangeTo) {
-      const lo = rangeFrom <= rangeTo ? rangeFrom : rangeTo;
-      const hi = rangeFrom <= rangeTo ? rangeTo : rangeFrom;
-      const inRange = daysAsc.filter((d) => d.key >= lo && d.key <= hi);
-      const total = inRange.reduce((sum, d) => sum + d.photoCount, 0);
-      return { effectivePhotoCount: total, rangeDays: inRange };
-    }
-    if (mode === "album" && selectedAlbumId) {
-      const a = albums.find((x) => x.id === selectedAlbumId);
-      return { effectivePhotoCount: a?.photoCount ?? 0, rangeDays: [] as AvailableDay[] };
-    }
-    return { effectivePhotoCount: photoCount, rangeDays: [] as AvailableDay[] };
-  }, [mode, rangeFrom, rangeTo, daysAsc, photoCount, selectedAlbumId, albums]);
-
-  const overCap = effectivePhotoCount > PHOTO_CAP;
-
-  const startExport = async () => {
-    if (overCap) { toast.error(`Photo cap exceeded (${PHOTO_CAP}). Split per album first.`); return; }
-    if (mode === "range" && (!rangeFrom || !rangeTo)) {
-      toast.error("Pick a from and to date");
-      return;
-    }
-    if (mode === "album" && !selectedAlbumId) {
-      toast.error("Pick an album to export");
-      return;
-    }
-    setSubmitting(true);
-    setCurrentExport(null);
-    const { data: auth } = await supabase.auth.getUser();
-
-    const lo = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeFrom : rangeTo) : null;
-    const hi = mode === "range" && rangeFrom && rangeTo ? (rangeFrom <= rangeTo ? rangeTo : rangeFrom) : null;
-
-    const options: Record<string, unknown> = {
-      sections, orientation, quality, template: layout,
-      show_buildslides_branding: showBuildSlidesBranding,
-      allow_custom_logo: canUseCustomLogo,
-    };
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(LAYOUT_STORAGE_KEY(projectId), layout);
-    }
-    if (mode === "single") {
-      options.day_key = dayKey ?? null;
-      options.day_label = dayLabel ?? null;
-    } else if (mode === "range") {
-      options.date_from = lo;
-      options.date_to = hi;
-    } else if (mode === "album") {
-      const album = albums.find((a) => a.id === selectedAlbumId);
-      options.album_id = selectedAlbumId;
-      options.album_label = album?.name ?? null;
-    }
-
-    // Public share flow: anonymous visitors can't insert an export row, so the
-    // existing share-create-export / share-export-url pair does the work.
-    if (shareToken) {
-      setCurrentExport({ id: "share", status: "processing", output_path: null, error_message: null, photo_count: null } as ExportRow);
-      const { data: created, error: createErr } = await supabase.functions.invoke("share-create-export", {
-        body: {
-          token: shareToken,
-          mode: mode === "range" ? "range" : "single",
-          day_key: mode === "single" ? dayKey ?? null : null,
-          day_label: mode === "single" ? dayLabel ?? null : null,
-          date_from: lo,
-          date_to: hi,
-          options: { template: layout, quality, sections },
-        },
-      });
-      const createdRes = created as { export_id?: string; error?: string } | null;
-      if (createErr || !createdRes?.export_id) {
-        const msg = createdRes?.error ?? createErr?.message ?? "Could not start export";
-        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: msg, photo_count: null } as ExportRow);
-        toast.error(msg);
-        setSubmitting(false);
-        return;
-      }
-      const exportId = createdRes.export_id;
-      const started = Date.now();
+      const deadline = Date.now() + 5 * 60 * 1000;
       let url: string | null = null;
-      let lastError: string | null = null;
-      while (Date.now() - started < 5 * 60 * 1000) {
-        await new Promise((r) => setTimeout(r, 3000));
-        const { data: statusData } = await supabase.functions.invoke("share-export-url", {
-          body: { token: shareToken, export_id: exportId },
-        });
-        const st = statusData as { status?: string; url?: string | null; error_message?: string | null } | null;
-        if (st?.status === "ready" && st.url) { url = st.url; break; }
-        if (st?.status === "failed") { lastError = st.error_message ?? "Export failed"; break; }
-      }
-      if (!url) {
-        const msg = lastError ?? "Export timed out. Please try again.";
-        setCurrentExport({ id: "share", status: "failed", output_path: null, error_message: msg, photo_count: null } as ExportRow);
-        toast.error(msg);
-        setSubmitting(false);
-        return;
-      }
-      setCurrentExport({ id: "share", status: "ready", output_path: null, error_message: null, photo_count: null } as ExportRow);
-      try {
-        const resp = await fetch(url);
-        const blob = await resp.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = "build-report.pdf";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-      } catch {
-        window.open(url, "_blank", "noopener");
-      }
-      setSubmitting(false);
-      return;
-    }
-
-
-    const { data: row, error } = await supabase.from("project_exports").insert({
-      project_id: projectId,
-      created_by: auth.user!.id,
-      status: "queued",
-      options: options as never,
-      logo_path: null,
-      accent_color: accent,
-    }).select("id,status,output_path,error_message,photo_count").single();
-    if (error || !row) { setSubmitting(false); toast.error(error?.message ?? "Failed"); return; }
-
-    setCurrentExport(row as ExportRow);
-    gaEvent("generate_report", {
-      photo_count: (row as ExportRow).photo_count ?? null,
-    });
-    gaEvent("export_project", { format: "pdf" });
-    supabase.functions.invoke("generate-pdf", { body: { export_id: row.id } }).catch(() => { /* polling will catch failure */ });
-    setSubmitting(false);
-  };
-
-  const downloadingRef = useRef(false);
-  const downloadName = (path: string) => path.split("/").pop() || "site-story.pdf";
-
-  const signDownloadLink = async (path: string) => {
-    if (downloadLinks[path]) return downloadLinks[path];
-    const name = downloadName(path);
-    const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 60 * 60, { download: name });
-    if (error || !data?.signedUrl) throw error ?? new Error("No signed download URL returned");
-    setDownloadLinks((prev) => ({ ...prev, [path]: data.signedUrl }));
-    return data.signedUrl;
-  };
-
-  useEffect(() => {
-    const paths = [
-      currentExport?.status === "ready" ? currentExport.output_path : null,
-      ...(historyOpen ? historyRows.filter((h) => h.status === "ready").map((h) => h.output_path) : []),
-    ].filter((p): p is string => !!p && !downloadLinks[p]);
-    if (paths.length === 0) return;
-    paths.forEach((path) => {
-      signDownloadLink(path).catch((error) => console.error("preparing download link failed", error));
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentExport?.status, currentExport?.output_path, historyOpen, history]);
-
-  const downloadExport = async (path: string) => {
-    if (downloadingRef.current) return;
-    downloadingRef.current = true;
-    setDownloadingPath(path);
-
-    try {
-      let lastErr: unknown = null;
-      let signed: { signedUrl: string } | null = null;
-      const name = downloadName(path);
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          const url = downloadLinks[path] ?? await signDownloadLink(path);
-          signed = { signedUrl: url };
-          break;
-        } catch (e) {
-          try {
-            const { data, error } = await supabase.storage.from("exports").createSignedUrl(path, 300, { download: name });
-          if (!error && data?.signedUrl) { signed = data; break; }
-          lastErr = error;
-          } catch (retryError) {
-            lastErr = retryError;
+      while (Date.now() < deadline && generation.current === run) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        if (shareToken) {
+          const { data, error } = await supabase.functions.invoke("share-export-url", { body: { token: shareToken, export_id: id } });
+          if (error) throw new Error("Couldn’t check the export. Please try again.");
+          if (data?.status === "failed") throw new Error(data.error_message ?? "Export failed.");
+          if (data?.status === "ready" && data.url) { url = data.url; break; }
+        } else {
+          const { data, error } = await supabase.from("project_exports").select("status,output_path,error_message").eq("id", id).single();
+          if (error) throw new Error("Couldn’t check the export. Please try again.");
+          if (data.status === "failed") throw new Error(data.error_message ?? "Export failed.");
+          if (data.status === "ready" && data.output_path) {
+            const { data: signed, error } = await supabase.storage.from("exports").createSignedUrl(data.output_path, 3600, { download: "buildfolder-report.pdf" });
+            if (error || !signed) throw new Error("Couldn’t prepare the download.");
+            url = signed.signedUrl; break;
           }
         }
-        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
       }
-      if (!signed) {
-        console.error("createSignedUrl failed", lastErr);
-        toast.error("Could not get download link");
-        return;
-      }
-
-      // Fetch as blob so the download works inside iframes (Lovable preview)
-      // and on Safari, where cross-origin `a[download]` is ignored.
-      try {
-        const resp = await fetch(signed.signedUrl);
-        if (!resp.ok) throw new Error(`http ${resp.status}`);
-        const blob = await resp.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = name;
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-      } catch (e) {
-        console.error("blob download failed", e);
-        toast.error("Download failed");
-      }
-    } finally {
-      downloadingRef.current = false;
-      setDownloadingPath(null);
-    }
+      if (generation.current !== run) return;
+      if (!url) throw new Error("Export timed out. Please try a smaller date range.");
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Couldn’t prepare the download.");
+      const blob = await response.blob();
+      if (generation.current !== run) return;
+      setFile(blob); setReadyUrl(url); setError("");
+    } catch (error) { if (generation.current === run) setError(error instanceof Error ? error.message : "Export failed. Please try again."); }
+    finally { if (generation.current === run) setBusy(false); }
   };
-
-  const inProgress = currentExport && (currentExport.status === "queued" || currentExport.status === "processing");
-  const showModeToggle = !lockMode && (daysAsc.length > 0 || albums.length > 0);
-  const titleText = mode === "range"
-    ? "Export date range as PDF"
-    : mode === "album"
-      ? "Export album as PDF"
-      : dayKey ? "Export day as PDF" : "Export project as PDF";
-
-  // History excludes the current in-progress row
-  const historyRows = history.filter(
-    (h) => !(currentExport && h.id === currentExport.id),
-  );
-
-  const albumsDisabled = albums.length === 0;
-
+  const download = async () => {
+    if (!file) return;
+    const report = new File([file], "buildfolder-report.pdf", { type: "application/pdf" });
+    if (matchMedia("(pointer: coarse)").matches && navigator.canShare?.({ files: [report] })) {
+      try { await navigator.share({ files: [report], title: "BuildFolder report" }); return; }
+      catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; }
+    }
+    const url = URL.createObjectURL(file);
+    const anchor = document.createElement("a"); anchor.href = url; anchor.download = report.name;
+    document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="outline" size="sm"><FileDown className="mr-2 h-4 w-4" />Export PDF</Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{titleText}</DialogTitle>
-          <DialogDescription>
-            {mode === "range"
-              ? "Photos are grouped by day, then by area within each day."
-              : mode === "album"
-                ? "Photos in the selected album are grouped by date."
-                : dayKey
-                  ? `Only photos from ${dayLabel ?? "this day"} will be included, grouped by area.`
-                  : "Generate a branded PDF of your project. Photos are grouped by date."}
-          </DialogDescription>
+      <DialogTrigger asChild>{trigger ?? <Button variant="outline" size="sm"><FileDown />Export PDF</Button>}</DialogTrigger>
+      <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto rounded-none border-border bg-background p-0 shadow-none">
+        <DialogHeader className="border-b border-border px-6 py-5">
+          <DialogTitle className="flex items-center gap-2"><FileDown className="h-5 w-5" />Export PDF</DialogTitle>
+          <DialogDescription>Portrait report</DialogDescription>
         </DialogHeader>
-
-        <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-2">
-          {showModeToggle && (
-            <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="single">Single day</TabsTrigger>
-                <TabsTrigger value="range" disabled={daysAsc.length === 0}>Date range</TabsTrigger>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className={cn(albumsDisabled && "cursor-not-allowed")}>
-                        <TabsTrigger value="album" disabled={albumsDisabled} className="w-full">
-                          By album
-                        </TabsTrigger>
-                      </span>
-                    </TooltipTrigger>
-                    {albumsDisabled && (
-                      <TooltipContent>No albums in this project.</TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              </TabsList>
-            </Tabs>
-          )}
-
-
-
-          {mode === "single" && dayKey && (
-            <Card className="border-primary/30 bg-primary/5">
-              <CardContent className="flex items-center gap-2 pt-4 text-sm">
-                <CalendarIcon className="h-4 w-4 text-primary" />
-                <span>Scoped to <span className="font-medium">{dayLabel}</span> · {photoCount} photo{photoCount === 1 ? "" : "s"}</span>
-              </CardContent>
-            </Card>
-          )}
-
-          {mode === "range" && (
-            <Card>
-              <CardContent className="space-y-3 pt-4 text-sm">
-                {daysAsc.length === 0 ? (
-                  <p className="text-muted-foreground">This project has no dated photos yet.</p>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
-                      <DayPickerField
-                        label="From"
-                        value={rangeFrom}
-                        onChange={setRangeFrom}
-                        days={daysAsc}
-                        boundKey={rangeTo}
-                        boundary="max"
-                      />
-                      <DayPickerField
-                        label="To"
-                        value={rangeTo}
-                        onChange={setRangeTo}
-                        days={daysAsc}
-                        boundKey={rangeFrom}
-                        boundary="min"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{rangeDays.length} day{rangeDays.length === 1 ? "" : "s"} selected</span>
-                      <span>{effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"} total</span>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {mode === "album" && (
-            <Card>
-              <CardContent className="space-y-3 pt-4 text-sm">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Album</Label>
-                  <Select
-                    value={selectedAlbumId ?? ""}
-                    onValueChange={(v) => setSelectedAlbumId(v)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Pick an album" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {albums.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.name} · {a.photoCount} photo{a.photoCount === 1 ? "" : "s"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {effectivePhotoCount} photo{effectivePhotoCount === 1 ? "" : "s"} in this album
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {overCap && (
-            <Card className="border-destructive/40 bg-destructive/5">
-              <CardContent className="flex gap-3 pt-4 text-sm">
-                <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
-                <div>
-                  <p className="font-medium">Too many photos for a single export</p>
-                  <p className="mt-1 text-muted-foreground">
-                    {mode === "range"
-                      ? `This range covers ${effectivePhotoCount} photos across ${rangeDays.length} day${rangeDays.length === 1 ? "" : "s"}. The PDF export is capped at ${PHOTO_CAP}. Narrow the range or split into multiple albums before exporting.`
-                      : mode === "album"
-                        ? `This album contains ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Split into smaller albums or remove photos before exporting.`
-                        : dayKey
-                          ? `This day has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Remove some photos or split across more days before exporting.`
-                          : `This project has ${effectivePhotoCount} photos. The PDF export is capped at ${PHOTO_CAP}. Export day-by-day or a narrower date range, or remove photos before exporting.`}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
+        <div className="space-y-6 px-6 pb-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Layout</label>
-            <div className="grid grid-cols-3 gap-2">
-              {LAYOUTS.map((opt) => {
-                const selected = layout === opt.value;
-                // A tile is locked when it has no renderer yet (comingSoon) or
-                // the user's plan doesn't include the Pro tier it belongs to.
-                // We keep these two states visually distinct so a Pro upsell
-                // never reads as "this isn't built yet".
-                const planLocked = opt.pro && !isPro;
-                const locked = opt.comingSoon || planLocked;
-                const isRecommended = templateForProject && recommendedLayout === opt.value && !opt.comingSoon;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => { if (!locked) setLayout(opt.value); }}
-                    aria-pressed={selected}
-                    aria-disabled={locked}
-                    title={
-                      opt.comingSoon
-                        ? `${opt.label} — coming soon`
-                        : planLocked
-                          ? `${opt.label} — Pro feature. Upgrade to unlock.`
-                          : opt.label
-                    }
-                    className={cn(
-                      // Slightly taller padding so the hint never crowds the
-                      // badge; relative so the badge can float top-right.
-                      "group relative flex h-full flex-col rounded-lg border px-3 pb-3 pt-3 text-left transition",
-                      selected
-                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                        : "border-border bg-card hover:border-muted-foreground/60 hover:bg-accent/40",
-                      locked && "cursor-not-allowed opacity-70 hover:border-border hover:bg-card",
-                    )}
-                  >
-                    {/* Top-right badge.
-                        - comingSoon  → muted "Coming soon" pill (gated layouts)
-                        - planLocked  → amber "PRO" pill with crown (upsell)
-                        - unlocked Pro→ crown-only chip in primary (earns the feature) */}
-                    <span className="absolute right-2 top-2 inline-flex items-center">
-                      {opt.comingSoon ? (
-                        <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Soon
-                        </span>
-                      ) : planLocked ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
-                          <Crown className="h-3 w-3" />Pro
-                        </span>
-                      ) : opt.pro ? (
-                        <span
-                          className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary"
-                          aria-label="Pro feature"
-                        >
-                          <Crown className="h-3 w-3" />
-                        </span>
-                      ) : null}
-                    </span>
-
-                    {/* Title gets full width — badge sits on top of it but is
-                        small enough that there's no real collision risk. */}
-                    <p className="pr-8 text-sm font-medium leading-tight">{opt.label}</p>
-                    <p className="mt-1 pr-8 text-xs leading-snug text-muted-foreground">{opt.hint}</p>
-
-                    {/* Recommended pill pinned to the bottom so it doesn't
-                        make the selected tile taller than its siblings. */}
-                    {isRecommended && (
-                      <span className="mt-2 inline-flex w-fit items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                        Recommended
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Helper line under the grid — explains the Pro crown without
-                forcing every tile to carry the word "Pro". Only shown when
-                at least one Pro tile is visible. */}
-            {LAYOUTS.some(l => l.pro) && (
-              <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <Crown className="h-3 w-3 text-primary" />
-                {isPro
-                  ? "Client deck and Production log are Pro layouts — included on your plan."
-                  : <>Client deck and Production log are Pro layouts. <a href="/billing" className="underline underline-offset-2 hover:text-foreground">Upgrade to unlock.</a></>
-                }
-              </p>
+            <Label htmlFor="export-date-mode" className="font-mono text-xs uppercase text-muted-foreground">Report date</Label>
+            <Select value={mode} onValueChange={value => { setMode(value); setFile(null); }} disabled={busy}>
+              <SelectTrigger id="export-date-mode" className="rounded-none"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="single">Current date</SelectItem><SelectItem value="range">Date range</SelectItem></SelectContent>
+            </Select>
+            {mode === "single" ? <p className="flex items-center gap-2 py-2 text-sm"><CalendarIcon className="h-4 w-4 text-muted-foreground" />{format(toDate(currentDay), "d MMMM yyyy")}</p> : (
+              <div className="grid grid-cols-2 gap-3 pt-2"><DateField label="From" value={from} onChange={setFrom} max={to} disabled={busy} /><DateField label="To" value={to} onChange={setTo} min={from} disabled={busy} /></div>
             )}
+            <p className="text-xs text-muted-foreground">{loadingDays ? "Loading dates…" : `${count} photos`}</p>
           </div>
-
-          {isStudio && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5">
-                <label className="text-sm font-medium text-foreground">Cover photo</label>
-                <Crown className="h-3.5 w-3.5 text-primary" aria-label="Studio feature" />
-              </div>
-              <div className="-mx-1 overflow-x-auto px-1 py-1.5">
-                <div className="flex gap-3 p-1">
-                  {coverAssetPath && (
-                    <button
-                      type="button"
-                      onClick={selectCoverAsset}
-                      disabled={coverSaving || !coverPhotoId}
-                      className={cn(
-                        "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                        !coverPhotoId && "ring-2 ring-primary ring-offset-2",
-                      )}
-                      title="Custom upload"
-                      aria-label="Custom uploaded cover"
-                    >
-                      {coverAssetUrl ? (
-                        <img src={coverAssetUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="h-full w-full bg-muted" />
-                      )}
-                    </button>
-                  )}
-                  {coverPhotos.length === 0 && !coverAssetPath ? (
-                    <p className="text-xs text-muted-foreground">No photos in this project yet.</p>
-                  ) : (
-                    coverPhotos.map((p) => {
-                      const selected = coverPhotoId === p.id;
-                      const url = coverThumbs[p.id];
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => selectCoverPhoto(p.id)}
-                          disabled={coverSaving}
-                          className={cn(
-                            "relative h-12 w-16 shrink-0 overflow-hidden rounded bg-muted ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                            selected && "ring-2 ring-primary ring-offset-2",
-                          )}
-                          aria-label="Select cover photo"
-                        >
-                          {url ? (
-                            <img src={url} alt="" className="h-full w-full object-cover" />
-                          ) : null}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => coverFileRef.current?.click()}
-                  disabled={coverUploading}
-                >
-                  {coverUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Upload image
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearCover}
-                  disabled={coverSaving || (!coverPhotoId && !coverAssetPath)}
-                >
-                  Clear
-                </Button>
-                <input
-                  ref={coverFileRef}
-                  type="file"
-                  accept="image/png,image/jpeg"
-                  className="hidden"
-                  onChange={handleCoverUpload}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Used as the hero image on PDF exports.
-              </p>
+          <fieldset className="space-y-3" disabled={busy}>
+            <legend className="font-mono text-xs uppercase text-muted-foreground">File size</legend>
+            <div className="grid grid-cols-2 gap-3">
+              {[{ value: "compressed", label: "Compressed", detail: "Smaller file" }, { value: "high_res", label: "Large", detail: "Higher image detail" }].map(option => (
+                <label key={option.value} className={cn("flex cursor-pointer items-start gap-2 border p-3", quality === option.value ? "border-primary bg-primary/5" : "border-border")}>
+                  <input type="radio" name="export-quality" value={option.value} checked={quality === option.value} onChange={() => { setQuality(option.value); setFile(null); }} className="mt-1 accent-primary" />
+                  <span><span className="block text-sm font-medium">{option.label}</span><span className="mt-1 block text-xs text-muted-foreground">{option.detail}</span></span>
+                </label>
+              ))}
             </div>
-          )}
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Export quality</label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setQuality("compressed")}
-                className={`rounded-lg border-2 px-3 py-3 text-left transition-colors ${
-                  quality === "compressed"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground"
-                }`}
-              >
-                <p className="text-sm font-medium">Compressed</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Smaller file · ~2–4 MB</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuality("high_res")}
-                className={`rounded-lg border-2 px-3 py-3 text-left transition-colors ${
-                  quality === "high_res"
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-muted-foreground"
-                }`}
-              >
-                <p className="text-sm font-medium">High Res</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Full detail · ~6–10 MB</p>
-              </button>
-            </div>
-          </div>
-
-          {!mayExport && (
-            <p className="text-xs text-destructive">
-              You've used all {limits.maxExportsMonth} exports this month. Resets on the 1st.{" "}
-              <a href="/billing" className="underline">Upgrade for unlimited exports.</a>
-            </p>
-          )}
-
-          <Button
-            className="w-full"
-            onClick={startExport}
-            disabled={
-              submitting ||
-              overCap ||
-              !!inProgress ||
-              !mayExport ||
-              (mode === "range" && (!rangeFrom || !rangeTo || effectivePhotoCount === 0)) ||
-              (mode === "album" && (!selectedAlbumId || effectivePhotoCount === 0))
-            }
-          >
-            {(submitting || inProgress) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {!mayExport && !(submitting || inProgress) && <Crown className="mr-1.5 h-3.5 w-3.5 text-amber-400" />}
-            {inProgress ? "Generating…" : "Generate PDF"}
-          </Button>
-
-          {currentExport && (
-            <Card>
-              <CardContent className="flex items-center justify-between gap-2 pt-4 text-sm">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={currentExport.status === "ready" ? "default" : currentExport.status === "failed" ? "destructive" : "secondary"} className="capitalize">
-                      {(currentExport.status === "processing" || currentExport.status === "queued") && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                      {currentExport.status}
-                    </Badge>
-                    {currentExport.photo_count != null && (
-                      <span className="text-xs text-muted-foreground">{currentExport.photo_count} photos</span>
-                    )}
-                  </div>
-                  {currentExport.error_message && <p className="mt-1 text-xs text-destructive">{currentExport.error_message}</p>}
-                </div>
-                {currentExport.status === "ready" && currentExport.output_path && (
-                  <Button size="sm" variant="outline" onClick={() => downloadExport(currentExport.output_path!)} disabled={downloadingPath === currentExport.output_path}>
-                    {downloadingPath === currentExport.output_path ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="mr-2 h-4 w-4" />
-                    )}
-                    Download
-                  </Button>
-                )}
-                {currentExport.status === "ready" && currentExport.output_path && downloadingPath === currentExport.output_path && downloadLinks[currentExport.output_path] && (
-                  <span className="sr-only">Download started</span>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {!isShare && (
-          <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full justify-between">
-                <span className="flex items-center gap-2 text-sm">
-                  <History className="h-4 w-4" />
-                  Export history
-                </span>
-                <ChevronDown
-                  className={cn("h-4 w-4 transition-transform", historyOpen && "rotate-180")}
-                />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
-              {historyLoading ? (
-                <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading history…
-                </div>
-              ) : historyRows.length === 0 ? (
-                <p className="px-1 py-3 text-sm text-muted-foreground">No previous exports yet.</p>
-              ) : (
-                <ul className="divide-y rounded-md border">
-                  {historyRows.map((h) => {
-                    const ready = h.status === "ready" && !!h.output_path;
-                    const variant =
-                      h.status === "ready" ? "default" : h.status === "failed" ? "destructive" : "secondary";
-                    return (
-                      <li key={h.id} className="flex items-center gap-3 p-3 text-sm">
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate font-medium">{fmtScope(h.options)}</div>
-                          <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant={variant} className="capitalize">{h.status}</Badge>
-                            <span>{fmtCreated(h.created_at)}</span>
-                            {h.photo_count != null && <span>· {h.photo_count} photos</span>}
-                          </div>
-                          {h.error_message && (
-                            <p className="mt-1 truncate text-xs text-destructive">{h.error_message}</p>
-                          )}
-                        </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          disabled={!ready || downloadingPath === h.output_path}
-                          onClick={() => ready && downloadExport(h.output_path!)}
-                          aria-label="Download export"
-                        >
-                          {downloadingPath === h.output_path ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Download className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-          )}
+          </fieldset>
+          {overCap && <p role="alert" className="text-sm text-destructive">This selection exceeds 300 photos. Choose a smaller date range.</p>}
+          {!shareToken && !planLoading && !canExportPdf && <p className="text-sm text-destructive">PDF export isn’t available on your current plan or you’ve reached its export limit.</p>}
+          {error && <p role="alert" className="break-words border-t border-border pt-4 text-sm text-destructive">{error}</p>}
+          {file ? <div className="space-y-2 border-t border-border pt-4"><p role="status" className="text-sm">Your report is ready.</p><Button onClick={download} className="w-full rounded-none"><Download />Download PDF</Button>{readyUrl && <a href={readyUrl} target="_blank" rel="noopener noreferrer" className="block text-center text-xs text-muted-foreground underline">Open PDF</a>}</div> : <Button onClick={start} disabled={busy || loadingDays || overCap || (!shareToken && (planLoading || !canExportPdf)) || (mode === "range" && (!from || !to))} className="w-full rounded-none">{busy ? <Loader2 className="animate-spin" /> : <FileDown />}{busy ? "Generating report…" : "Generate PDF"}</Button>}
         </div>
       </DialogContent>
     </Dialog>
   );
-};
-
-/**
- * A date picker that only enables dates which actually have photos in the project.
- * `boundKey` + `boundary` constrains the range so From <= To.
- */
-const DayPickerField = ({
-  label,
-  value,
-  onChange,
-  days,
-  boundKey,
-  boundary,
-}: {
-  label: string;
-  value: string | null;
-  onChange: (k: string) => void;
-  days: AvailableDay[];
-  boundKey: string | null;
-  boundary: "min" | "max";
-}) => {
+}
+function DateField({ label, value, onChange, min, max, disabled }: { label: string; value: string | null; onChange: (value: string) => void; min?: string | null; max?: string | null; disabled: boolean }) {
   const [open, setOpen] = useState(false);
-  const valueDay = days.find((d) => d.key === value);
-  const allowedKeys = useMemo(() => new Set(days.map((d) => d.key)), [days]);
-
-  const selectedDate = valueDay?.date ?? undefined;
-  const minDate = days[0]?.date;
-  const maxDate = days[days.length - 1]?.date;
-
-  const dateKey = (d: Date) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-  const isDisabled = (d: Date) => {
-    const k = dateKey(d);
-    if (!allowedKeys.has(k)) return true;
-    if (boundKey) {
-      if (boundary === "min" && k < boundKey) return true;
-      if (boundary === "max" && k > boundKey) return true;
-    }
-    return false;
-  };
-
-  return (
-    <div>
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "mt-1 w-full justify-start text-left font-normal px-2 sm:px-3 truncate",
-              !valueDay && "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="mr-1.5 h-4 w-4 shrink-0 sm:mr-2" />
-            {valueDay ? (
-              <>
-                <span className="truncate sm:hidden">{format(valueDay.date, "d MMM yyyy")}</span>
-                <span className="hidden truncate sm:inline">{format(valueDay.date, "PPP")}</span>
-              </>
-            ) : (
-              <span className="truncate">Pick a date</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(d) => {
-              if (d) {
-                onChange(dateKey(d));
-                setOpen(false);
-              }
-            }}
-            disabled={isDisabled}
-            defaultMonth={selectedDate ?? maxDate ?? minDate}
-            fromDate={minDate}
-            toDate={maxDate}
-            initialFocus
-            className={cn("p-3 pointer-events-auto")}
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
-};
+  return <div className="space-y-1"><Label className="text-xs text-muted-foreground">{label}</Label><Popover open={open} onOpenChange={setOpen}><PopoverTrigger asChild><Button variant="outline" disabled={disabled} aria-label={label} className="w-full justify-start rounded-none px-2 font-normal"><CalendarIcon />{value ? format(toDate(value), "d MMM yyyy") : "Pick a date"}</Button></PopoverTrigger><PopoverContent className="w-auto rounded-none p-0" align="start"><Calendar mode="single" selected={value ? toDate(value) : undefined} defaultMonth={value ? toDate(value) : undefined} onSelect={date => { if (date) { onChange(dateKey(date)); setOpen(false); } }} disabled={date => !!((min && dateKey(date) < min) || (max && dateKey(date) > max))} initialFocus className="pointer-events-auto p-3" /></PopoverContent></Popover></div>;
+}

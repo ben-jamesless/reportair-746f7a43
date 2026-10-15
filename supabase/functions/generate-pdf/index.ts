@@ -1,27 +1,12 @@
 // Generate a PDF export for a project. Async: invoked once per export row.
 // Layout: BuildFolder V3 daily report — 1 cover page + 1 page per area.
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
-import { renderEditorialPortraitV1, renderGridLandscapeV1 } from "./new-layouts.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { eventDayKey, resolveEventZone, timeZoneNote, UTC } from "../_shared/eventDay.ts";
 
-function corsFor(req: Request): Record<string, string> {
-  const origin = req.headers.get("origin") ?? "";
-  const fallback = Deno.env.get("APP_URL") ?? "https://www.buildslides.com";
-  const allow =
-    /^https:\/\/([a-z0-9-]+\.)*buildfolder\.com$/i.test(origin) ||
-    /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i.test(origin) ||
-    /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i.test(origin) ||
-    /^http:\/\/localhost(:\d+)?$/i.test(origin)
-      ? origin
-      : fallback;
-  return {
-    "Access-Control-Allow-Origin": allow,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Vary": "Origin",
-  };
-}
+const corsFor = (_req: Request) => corsHeaders;
 
 async function fetchWithTimeout(url: string, ms = 8000): Promise<Response> {
   const ctrl = new AbortController();
@@ -156,7 +141,7 @@ function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: numb
     // Hanging indent for wrapped bullet continuation lines.
     const isBullet = /^\u2022\s+/.test(para);
     const indent = isBullet ? "   " : "";
-    const words = para.split(/\s+/);
+    const words = para.match(/[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]|[^\s\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]+/gu) ?? [];
     let current = "";
     let first = true;
     for (const w of words) {
@@ -284,19 +269,28 @@ async function fetchAndEmbedImage(pdfDoc: PDFDocument, url: string): Promise<PDF
   } catch { return null; }
 }
 
-// Module-scope font cache.
-let _fontCache: { pjs: Uint8Array; ir: Uint8Array } | null = null;
-const PJS_URL = "https://cdn.jsdelivr.net/gh/tokotype/PlusJakartaSans@master/fonts/ttf/PlusJakartaSans-Bold.ttf";
-const IR_URL = "https://cdn.jsdelivr.net/gh/rsms/inter@v4.0/docs/font-files/Inter-Regular.otf";
-async function loadFontBytes(): Promise<{ pjs: Uint8Array | null; ir: Uint8Array | null }> {
-  if (_fontCache) return _fontCache;
-  const fetchOne = async (url: string) => {
-    try { const r = await fetchWithTimeout(url); if (!r.ok) return null; return new Uint8Array(await r.arrayBuffer()); }
-    catch { return null; }
+// Cache Unicode font bytes across warm invocations; never fall back to WinAnsi.
+let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
+
+async function loadFontBytes(needsCjk: boolean, text: string) {
+  const download = async (url: string) => {
+    const response = await fetchWithTimeout(url, 30000);
+    if (!response.ok) throw new Error("Report fonts could not be loaded. Please try again.");
+    return new Uint8Array(await response.arrayBuffer());
   };
-  const [pjs, ir] = await Promise.all([fetchOne(PJS_URL), fetchOne(IR_URL)]);
-  if (pjs && ir) _fontCache = { pjs, ir };
-  return { pjs, ir };
+  if (needsCjk) {
+    const characters = [...new Set(Array.from(text + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,;:!?—–-•…°()[]/&+_%'\"\n"))].join("");
+    const css = await fetchWithTimeout(`https://fonts.googleapis.com/css?family=Noto+Sans+SC&text=${encodeURIComponent(characters)}`, 30000);
+    const fontUrl = /url\((https:[^)]+)\)/.exec(await css.text())?.[1];
+    if (!fontUrl) throw new Error("Couldn’t prepare the Unicode report font.");
+    const regular = await download(fontUrl);
+    return { regular, bold: regular };
+  }
+  cachedFonts ??= await Promise.all([
+    download("https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"),
+    download("https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf"),
+  ]).then(([regular, bold]) => ({ regular, bold }));
+  return cachedFonts;
 }
 
 Deno.serve(async (req) => {
@@ -357,11 +351,26 @@ Deno.serve(async (req) => {
 
     await supabase.from("project_exports").update({ status: "processing" }).eq("id", exportId);
 
-    // Determine report_date — prefer day_key, else date_from, else today.
-    const reportDateStr: string = exp.options?.day_key
-      ?? exp.options?.date_from
-      ?? new Date().toISOString().slice(0, 10);
-
+    const keyPattern = /^\d{4}-\d{2}-\d{2}$/;
+    const options = exp.options ?? {};
+    const from = options.date_from as string | undefined;
+    const to = options.date_to as string | undefined;
+    const day = options.day_key as string | undefined;
+    if ((from && !keyPattern.test(from)) || (to && !keyPattern.test(to)) || (day && !keyPattern.test(day)) || (from && to && from > to)) throw new Error("Invalid report dates");
+    const { data: scopeProject } = await supabase.from("projects").select("geo_lat,geo_lng").eq("id", projectId).single();
+    const scopeZone = await resolveEventZone(scopeProject?.geo_lat, scopeProject?.geo_lng);
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: scopeZone.tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const reportDates: string[] = [];
+    if (from && to) {
+      for (let date = parseISODate(from); date <= parseISODate(to); date.setDate(date.getDate() + 1)) {
+        if (reportDates.length >= 366) throw new Error("Please choose a range of at most one year.");
+        reportDates.push(`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`);
+      }
+    } else reportDates.push(day ?? today);
+    const combinedDoc = await PDFDocument.create();
+    combinedDoc.setTitle("BuildFolder report");
+    let totalPhotoCount = 0;
+    for (const reportDateStr of reportDates) {
     // ============ Fetch all data ============
     const [
       { data: proj },
@@ -377,7 +386,7 @@ Deno.serve(async (req) => {
       supabase.from("day_notes").select("today_objectives, today_achievements, tomorrow_objectives, open_issues, notes").eq("project_id", projectId).eq("date", reportDateStr).maybeSingle(),
       supabase.from("area_day_status").select("area_id, status").eq("project_id", projectId).eq("date", reportDateStr),
       supabase.from("area_day_notes").select("area_id, notes").eq("project_id", projectId).eq("date", reportDateStr),
-      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, report_path, area_id").eq("project_id", projectId).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }),
+      supabase.from("photos").select("id, file_name, caption, captured_at, created_at, storage_path, report_path, area_id").eq("project_id", projectId).gte("captured_at", new Date(parseISODate(reportDateStr).getTime() - 86400000).toISOString()).lt("captured_at", new Date(parseISODate(reportDateStr).getTime() + 2 * 86400000).toISOString()).order("captured_at", { ascending: true, nullsFirst: false }).order("created_at", { ascending: true }).limit(1000),
       supabase.from("photo_day_hidden").select("photo_id").eq("project_id", projectId).eq("date_key", reportDateStr),
     ]);
 
@@ -405,6 +414,10 @@ Deno.serve(async (req) => {
     const hiddenIds = new Set<string>(((hiddenRows ?? []) as Array<{ photo_id: string }>).map((r) => r.photo_id));
     const dayPhotos = ((photos ?? []) as Array<{ id: string; storage_path: string; report_path: string | null; area_id: string | null; captured_at: string | null; created_at: string; caption: string | null }>)
       .filter((p) => dateKeyOf(p, eventTz) === reportDateStr && !hiddenIds.has(p.id));
+
+    totalPhotoCount += dayPhotos.length;
+    if (totalPhotoCount > 300) throw new Error("This selection exceeds 300 photos. Choose a smaller date range.");
+    if (reportDates.length > 1 && dayPhotos.length === 0 && !dayNote && !(areaNotesRows?.length) && !(areaStatusRows?.length)) continue;
 
     const photosByArea = new Map<string, typeof dayPhotos>();
     for (const p of dayPhotos) {
@@ -491,15 +504,10 @@ Deno.serve(async (req) => {
     pdfDoc.registerFontkit(fontkit);
     pdfDoc.setTitle("BuildFolder Daily Report");
 
-    const fontBytes = await loadFontBytes();
-    let pjsFont: PDFFont, irFont: PDFFont;
-    if (fontBytes.pjs && fontBytes.ir) {
-      pjsFont = await pdfDoc.embedFont(fontBytes.pjs, { subset: true });
-      irFont = await pdfDoc.embedFont(fontBytes.ir, { subset: true });
-    } else {
-      pjsFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-      irFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    }
+    const needsCjk = /[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]/u.test(JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos]));
+    const fontBytes = await loadFontBytes(needsCjk, JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos, tzNote, weatherStr, reportDateLabel, buildDayLabel]));
+    const pjsFont = await pdfDoc.embedFont(fontBytes.bold, { subset: !needsCjk });
+    const irFont = needsCjk ? pjsFont : await pdfDoc.embedFont(fontBytes.regular, { subset: true });
 
     // Event logo: prefer per-export override, fall back to the project's saved default logo.
     let eventLogoImage: PDFImage | null = null;
@@ -512,7 +520,7 @@ Deno.serve(async (req) => {
 
     // ── PDF access gate ──────────────────────────────────────────────────────
     // Free & Solo plans cannot export PDFs.
-    const PDF_EXPORT_PLANS = ["pro", "team", "studio", "enterprise"];
+    const PDF_EXPORT_PLANS = ["crew", "pro", "team", "studio", "enterprise"];
     if (!PDF_EXPORT_PLANS.includes(teamPlan)) {
       if (exportId) await fail(supabase, exportId, "PDF export not available on this plan");
       return new Response(
@@ -524,7 +532,7 @@ Deno.serve(async (req) => {
     // ── Branding flags ───────────────────────────────────────────────────────
     // Crew (pro/team): client logo shown alongside BuildFolder wordmark.
     // Studio (studio/enterprise): BuildFolder suppressed entirely (full white-label).
-    const LOGO_PLANS        = ["pro", "team", "studio", "enterprise"];
+    const LOGO_PLANS        = ["crew", "pro", "team", "studio", "enterprise"];
     const WHITE_LABEL_PLANS = ["studio", "enterprise"];
     const canUseLogo              = LOGO_PLANS.includes(teamPlan);
     const showBuildSlidesBranding = !WHITE_LABEL_PLANS.includes(teamPlan);
@@ -586,7 +594,7 @@ Deno.serve(async (req) => {
 
     const photoUrlFor = async (p: { storage_path: string; report_path: string | null }): Promise<string | null> => {
       try {
-        const sourcePath = p.report_path || p.storage_path;
+        const sourcePath = exportQuality === "high_res" ? p.storage_path : p.report_path || p.storage_path;
         const { data: signed } = await supabase.storage.from("photos").createSignedUrl(sourcePath, 600, {
           transform: { width: transform.width, quality: transform.quality, resize: "contain" },
         });
@@ -631,7 +639,7 @@ Deno.serve(async (req) => {
       photoCaptions: string[];
     };
     const areaDataAll: AreaData[] = await Promise.all(sortedAreas.map(async (a) => {
-      const ps = (photosByArea.get(a.id) ?? []).slice(0, 9);
+      const ps = photosByArea.get(a.id) ?? [];
       const urls = await Promise.all(ps.map((p) => photoUrlFor(p)));
       const images = await Promise.all(urls.map((u) => u ? fetchAndEmbedImage(pdfDoc, u) : Promise.resolve(null)));
       return {
@@ -663,14 +671,14 @@ Deno.serve(async (req) => {
       list: typeof dayPhotos,
     ): Promise<AreaData | null> => {
       if (list.length === 0) return null;
-      const ps = list.slice(0, 9);
+      const ps = list;
       const urls = await Promise.all(ps.map((p) => photoUrlFor(p)));
       const images = await Promise.all(urls.map((u) => u ? fetchAndEmbedImage(pdfDoc, u) : Promise.resolve(null)));
       return {
         id,
         name,
         status: "",
-        notes: list.length > 9 ? `${notes} Showing the first 9 of ${list.length}.` : notes,
+        notes,
         photoCount: list.length,
         photoImages: images,
         photoCaptions: ps.map((p) => {
@@ -697,25 +705,16 @@ Deno.serve(async (req) => {
     if (undatedSection) areaData.push(undatedSection);
 
 
-    // ============ Template branch ============
-    // The export dialog writes `template` into options. Three layouts are
-    // wired up so far:
-    //   portrait_v1             — original portrait (untouched)
-    //   editorial_portrait_v1   — new Concept 1: dark cover, editorial layout
-    //   grid_landscape_v1       — new Concept 4: landscape 3-column grid
-    // Any unknown / missing value falls back to portrait_v1 so the function is
-    // backwards compatible with existing queued exports.
-    type TemplateKey = "portrait_v1" | "editorial_portrait_v1" | "grid_landscape_v1";
-    const rawTemplate = (exp.options?.template ?? "portrait_v1") as string;
-    const templateKey: TemplateKey =
-      rawTemplate === "editorial_portrait_v1" || rawTemplate === "grid_landscape_v1"
-        ? rawTemplate
-        : "portrait_v1";
-
-    if (templateKey === "portrait_v1") {
+    const pagedAreas = areaData.flatMap(area => {
+      if (area.photoImages.length <= 9) return [area];
+      const pages: AreaData[] = [];
+      for (let start = 0; start < area.photoImages.length; start += 9) pages.push({ ...area, name: start ? `${area.name} (continued)` : area.name, notes: start ? "" : area.notes, photoImages: area.photoImages.slice(start, start + 9), photoCaptions: area.photoCaptions.slice(start, start + 9) });
+      return pages;
+    });
+    {
     // ============ Page constants ============
     const W = 595.28, H = 841.89;
-    const totalPages = 1 + areaData.length;
+    const totalPages = 1 + pagedAreas.length;
     // Studio: custom accent overrides COLOR.SKY (the portrait template's accent).
     const effectiveAccent = brandColour && /^#[0-9a-fA-F]{6}$/.test(brandColour) ? HEX(brandColour) : COLOR.SKY;
     // Branding header: Studio (no BS branding) → logo only; Crew → logo + wordmark; else wordmark.
@@ -764,7 +763,7 @@ Deno.serve(async (req) => {
       const dateY = H - 47 * MM;
       page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
-      page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
+      page.drawText(buildDayLabel, { x: W - M - irFont.widthOfTextAtSize(buildDayLabel, 9), y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
       // The document states the basis of every time it prints.
       page.drawText(tzNote, { x: M + 8, y: dateY - 13, size: 7.5, font: irFont, color: COLOR.MIST });
 
@@ -858,8 +857,9 @@ Deno.serve(async (req) => {
         }
         page.drawRectangle({ x: M + 8, y: rowY - ROW_H, width: 4, height: ROW_H, color: meta.text });
         const areaName = (a.name ?? "");
-        page.drawText(areaName.length > 38 ? areaName.slice(0, 37) + "..." : areaName, {
-          x: M + 16, y: rowY - ROW_H / 2 - 3, size: 8.5, font: pjsFont, color: COLOR.INK,
+        const areaLines = wrapLines(areaName, pjsFont, 8.5, C_AREA - 12).slice(0, 3);
+        page.drawText(areaLines.join("\n"), {
+          x: M + 16, y: rowY - 14, size: 8.5, lineHeight: 11, font: pjsFont, color: COLOR.INK,
         });
         const rowPillH = 8 + 4 * 2;
         drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - rowPillH / 2, meta.label, meta.text, meta.bg, irFont, 8);
@@ -879,8 +879,8 @@ Deno.serve(async (req) => {
     }
 
     // ===== Area pages =====
-    for (let ai = 0; ai < areaData.length; ai++) {
-      const area = areaData[ai];
+    for (let ai = 0; ai < pagedAreas.length; ai++) {
+      const area = pagedAreas[ai];
       const meta = statusMeta(area.status);
       const M = 18 * MM;
       const CW = W - 2 * M;
@@ -890,7 +890,7 @@ Deno.serve(async (req) => {
       page.drawRectangle({ x: 0, y: H - HDR_H, width: W, height: HDR_H, color: COLOR.INK });
       page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: meta.text });
 
-      page.drawText(`AREA ${ai + 1} OF ${areaData.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
+      page.drawText(`AREA ${ai + 1} OF ${pagedAreas.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
       page.drawText((area.name ?? ""), { x: M + 6, y: H - 21 * MM, size: 18, font: pjsFont, color: COLOR.WHITE });
 
       const pillLabel = meta.label;
@@ -1027,38 +1027,14 @@ Deno.serve(async (req) => {
       const rw = irFont.widthOfTextAtSize((right ?? ""), fSize);
       p.drawText((right ?? ""), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
     }
-    } else if (templateKey === "editorial_portrait_v1") {
-      await renderEditorialPortraitV1({
-        pdfDoc, pjsFont, irFont, proj, areaData,
-        dayNote: dayNote ?? null,
-        reportDateLabel, buildDayLabel, reportNumber,
-        tzNote,
-        logoImage: eventLogoImage,
-        coverImage,
-        brandMarkImage,
-        accentColour: brandColour,
-        whiteLabelPdf,
-        companyName,
-        showBuildSlidesBranding: effectiveBranding,
-      });
-    } else if (templateKey === "grid_landscape_v1") {
-      await renderGridLandscapeV1({
-        pdfDoc, pjsFont, irFont, proj, areaData,
-        dayNote: dayNote ?? null,
-        reportDateLabel, buildDayLabel, reportNumber,
-        tzNote,
-        logoImage: eventLogoImage,
-        coverImage,
-        brandMarkImage,
-        accentColour: brandColour,
-        whiteLabelPdf,
-        companyName,
-        showBuildSlidesBranding: effectiveBranding,
-      });
     }
+    const pages = await combinedDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+    pages.forEach(page => combinedDoc.addPage(page));
+    }
+    if (combinedDoc.getPageCount() === 0) throw new Error("No report activity found in this date range.");
 
     // ===== Save and upload =====
-    const pdfBytes = await pdfDoc.save();
+    const pdfBytes = await combinedDoc.save();
     const outputPath = `${projectId}/${exportId}.pdf`;
     const { error: upErr } = await supabase.storage.from("exports").upload(outputPath, pdfBytes, {
       contentType: "application/pdf", upsert: true,
@@ -1068,9 +1044,9 @@ Deno.serve(async (req) => {
     await supabase.from("project_exports").update({
       status: "ready",
       output_path: outputPath,
-      photo_count: dayPhotos.length,
+      photo_count: totalPhotoCount,
       completed_at: new Date().toISOString(),
-      options: { ...(exp.options ?? {}), quality: exportQuality },
+      options: { ...(exp.options ?? {}), quality: exp.options?.quality === "high_res" ? "high_res" : "compressed", template: "portrait_v1", orientation: "portrait" },
     }).eq("id", exportId);
 
     console.log(JSON.stringify({ fn: "generate-pdf", event: "complete", export_id: exportId, output_path: outputPath, ts: new Date().toISOString() }));
