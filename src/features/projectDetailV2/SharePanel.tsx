@@ -79,8 +79,6 @@ export function SharePanel({
   const [creating, setCreating] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
-  const [passwordDraft, setPasswordDraft] = useState("");
-  const [savingPassword, setSavingPassword] = useState(false);
   const [savingPins, setSavingPins] = useState(false);
 
   const togglePhotoPins = async (next: boolean) => {
