@@ -1746,6 +1746,7 @@ export type Database = {
         Args: { _body: string; _parent_id: string; _token: string }
         Returns: string
       }
+      admin_beta_usage: { Args: never; Returns: Json }
       admin_billing_summary: { Args: never; Returns: Json }
       admin_delete_team: { Args: { _team_id: string }; Returns: undefined }
       admin_list_projects: {
