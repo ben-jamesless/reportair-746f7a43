@@ -13,7 +13,7 @@ import { StatusBar } from "./components/StatusBar";
 import { StatStrip } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
-import { AreaGlance, DayTimeline, TodayBox } from "./components/Sidebar";
+import { AreaGlance, TodayBox } from "./components/Sidebar";
 import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
