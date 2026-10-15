@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { formatAbsoluteStamp } from "@/lib/eventTime";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { Copy, QrCode, Loader2, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
