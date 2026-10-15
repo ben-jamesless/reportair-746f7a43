@@ -301,6 +301,92 @@ export type Database = {
         }
         Relationships: []
       }
+      company_invite_projects: {
+        Row: {
+          invite_id: string
+          project_id: string
+        }
+        Insert: {
+          invite_id: string
+          project_id: string
+        }
+        Update: {
+          invite_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_invite_projects_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "company_invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_invite_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          cancelled_at: string | null
+          created_at: string
+          delivery_error: string | null
+          delivery_status: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["project_role"]
+          team_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          delivery_error?: string | null
+          delivery_status?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          role?: Database["public"]["Enums"]["project_role"]
+          team_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          delivery_error?: string | null
+          delivery_status?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          role?: Database["public"]["Enums"]["project_role"]
+          team_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_invites_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       day_notes: {
         Row: {
           created_at: string
@@ -1490,8 +1576,10 @@ export type Database = {
       teams: {
         Row: {
           addon_seats: number
+          beta_joined_at: string | null
           billing_interval: string | null
           billing_owner_user_id: string
+          billing_plan: string | null
           brand_colour: string | null
           created_at: string
           created_by: string
@@ -1499,12 +1587,14 @@ export type Database = {
           domain_matching_override: boolean
           exports_reset_at: string
           exports_this_month: number
+          founding_member: boolean
           id: string
           industry: string | null
           logo_path: string | null
           name: string
           payment_failed_at: string | null
           plan: string
+          previous_plan: string | null
           region: string | null
           slug: string | null
           status: string
@@ -1518,8 +1608,10 @@ export type Database = {
         }
         Insert: {
           addon_seats?: number
+          beta_joined_at?: string | null
           billing_interval?: string | null
           billing_owner_user_id: string
+          billing_plan?: string | null
           brand_colour?: string | null
           created_at?: string
           created_by: string
@@ -1527,12 +1619,14 @@ export type Database = {
           domain_matching_override?: boolean
           exports_reset_at?: string
           exports_this_month?: number
+          founding_member?: boolean
           id?: string
           industry?: string | null
           logo_path?: string | null
           name: string
           payment_failed_at?: string | null
           plan?: string
+          previous_plan?: string | null
           region?: string | null
           slug?: string | null
           status?: string
@@ -1546,8 +1640,10 @@ export type Database = {
         }
         Update: {
           addon_seats?: number
+          beta_joined_at?: string | null
           billing_interval?: string | null
           billing_owner_user_id?: string
+          billing_plan?: string | null
           brand_colour?: string | null
           created_at?: string
           created_by?: string
@@ -1555,12 +1651,14 @@ export type Database = {
           domain_matching_override?: boolean
           exports_reset_at?: string
           exports_this_month?: number
+          founding_member?: boolean
           id?: string
           industry?: string | null
           logo_path?: string | null
           name?: string
           payment_failed_at?: string | null
           plan?: string
+          previous_plan?: string | null
           region?: string | null
           slug?: string | null
           status?: string
@@ -1627,6 +1725,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_company_invite: { Args: { _token: string }; Returns: string }
+      accept_my_company_invites: { Args: never; Returns: number }
       accept_project_invite: { Args: { _token: string }; Returns: string }
       add_guest_note_project_public: {
         Args: { _body: string; _email: string; _name: string; _token: string }
@@ -1781,6 +1881,7 @@ export type Database = {
         Args: { _name: string; _user: string }
         Returns: boolean
       }
+      cancel_company_invite: { Args: { _id: string }; Returns: undefined }
       classify_invitee: {
         Args: { _email: string; _team_id: string }
         Returns: string
@@ -1792,6 +1893,35 @@ export type Database = {
       copy_prior_day_statuses: {
         Args: { _date_key: string; _project_id: string }
         Returns: number
+      }
+      create_company_invite: {
+        Args: {
+          _email: string
+          _project_ids: string[]
+          _role: Database["public"]["Enums"]["project_role"]
+          _team_id: string
+        }
+        Returns: {
+          accepted_at: string | null
+          accepted_by: string | null
+          cancelled_at: string | null
+          created_at: string
+          delivery_error: string | null
+          delivery_status: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          role: Database["public"]["Enums"]["project_role"]
+          team_id: string
+          token: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "company_invites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       create_zone_with_geometry: {
         Args: {
@@ -1822,6 +1952,7 @@ export type Database = {
         Args: { _as_of?: string; _project_id: string }
         Returns: string
       }
+      get_company_invite_context: { Args: { _token: string }; Returns: Json }
       get_invite_context: {
         Args: { _token: string }
         Returns: {
@@ -1927,6 +2058,10 @@ export type Database = {
         Returns: boolean
       }
       is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_project_manager: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
