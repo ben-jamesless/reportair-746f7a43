@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
+import { ensureProjectTimeZone } from "@/hooks/useProjectTimeZone";
 import { toast } from "sonner";
 import {
   Upload,
