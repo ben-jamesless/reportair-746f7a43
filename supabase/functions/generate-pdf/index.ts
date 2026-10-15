@@ -499,7 +499,7 @@ Deno.serve(async (req) => {
 
     // ── PDF access gate ──────────────────────────────────────────────────────
     // Free & Solo plans cannot export PDFs.
-    const PDF_EXPORT_PLANS = ["crew", "pro", "team", "studio", "enterprise"];
+    const PDF_EXPORT_PLANS = ["beta", "crew", "pro", "team", "studio", "enterprise"];
     if (!PDF_EXPORT_PLANS.includes(teamPlan)) {
       if (exportId) await fail(supabase, exportId, "PDF export not available on this plan");
       return new Response(
@@ -511,8 +511,8 @@ Deno.serve(async (req) => {
     // ── Branding flags ───────────────────────────────────────────────────────
     // Crew (pro/team): client logo shown alongside BuildFolder wordmark.
     // Studio (studio/enterprise): BuildFolder suppressed entirely (full white-label).
-    const LOGO_PLANS        = ["crew", "pro", "team", "studio", "enterprise"];
-    const WHITE_LABEL_PLANS = ["studio", "enterprise"];
+    const LOGO_PLANS        = ["beta", "crew", "pro", "team", "studio", "enterprise"];
+    const WHITE_LABEL_PLANS = ["beta", "studio", "enterprise"];
     const canUseLogo              = LOGO_PLANS.includes(teamPlan);
     const showBuildSlidesBranding = !WHITE_LABEL_PLANS.includes(teamPlan);
 

@@ -21,8 +21,8 @@ async function sendTransactionalEmail(payload: { to: string; template: string; d
 }
 
 async function getBillingOwner(service: ReturnType<typeof createClient>, teamId: string): Promise<{ email: string; name: string } | null> {
-  const { data: team } = await service.from("teams").select("billing_owner_user_id").eq("id", teamId).maybeSingle();
-  if (!team?.billing_owner_user_id) return null;
+  const { data: team } = await service.from("teams").select("billing_owner_user_id, plan").eq("id", teamId).maybeSingle();
+  if (!team?.billing_owner_user_id || team.plan === "beta") return null;
   const { data: { user } } = await service.auth.admin.getUserById(team.billing_owner_user_id);
   if (!user?.email) return null;
   return {
@@ -56,7 +56,8 @@ serve(async (req) => {
     const teamId = sub.metadata?.supabase_team_id;
     if (!teamId) return null;
     const priceId = sub.items.data[0]?.price?.id;
-    const plan    = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
+    const rawPlan = PRICE_TO_PLAN[priceId ?? ""] ?? "solo";
+    const plan = rawPlan === "pro" ? "crew" : rawPlan;
 
     const update: Record<string, unknown> = {
       plan,

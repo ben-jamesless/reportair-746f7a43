@@ -159,11 +159,12 @@ serve(async (req) => {
 
   const { data: team } = await service
     .from("teams")
-    .select("id, name, stripe_customer_id")
+    .select("id, name, stripe_customer_id, plan")
     .eq("billing_owner_user_id", callerId)
     .maybeSingle();
 
   if (!team) return json(cors, { error: "No billing team found" }, 403);
+  if (team.plan === "beta") return json(cors, { error: "Billing is unavailable during beta" }, 403);
 
   const { data: { user } } = await service.auth.admin.getUserById(callerId);
   const email = user?.email ?? undefined;

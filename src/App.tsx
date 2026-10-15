@@ -32,6 +32,8 @@ const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const SharePageV2 = lazy(() => import("./features/sharePageV2/SharePageV2.tsx"));
+const CompanyInviteAccept = lazy(() => import("./pages/CompanyInviteAccept.tsx"));
+const AdminBetaUsage = lazy(() => import("./pages/admin/AdminBetaUsage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
 
@@ -80,6 +82,7 @@ const App = () => (
                 <Route path="/projects" element={<ErrorBoundary label="page"><ProtectedRoute><Projects /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/projects/:id" element={<ErrorBoundary label="page"><ProtectedRoute><ProjectDetail /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/profile" element={<ErrorBoundary label="page"><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/company-invite/:token" element={<ErrorBoundary label="page"><CompanyInviteAccept /></ErrorBoundary>} />
                 <Route path="/invite/:token" element={<ErrorBoundary label="page"><InviteAccept /></ErrorBoundary>} />
                 <Route path="/billing" element={<ErrorBoundary label="page"><ProtectedRoute><BetaCommercialGuard><Billing /></BetaCommercialGuard></ProtectedRoute></ErrorBoundary>} />
                 
@@ -98,6 +101,7 @@ const App = () => (
                   <Route path="projects" element={<AdminProjects />} />
                   <Route path="signups" element={<AdminLeadMagnet />} />
                   <Route path="early-access" element={<AdminEarlyAccess />} />
+                  <Route path="beta" element={<AdminBetaUsage />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
