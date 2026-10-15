@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { PlanGuard } from "@/components/PlanGuard";
+import { BetaCommercialGuard } from "@/components/BetaCommercialGuard";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ChunkLoadBoundary } from "@/components/ChunkLoadBoundary";
@@ -31,6 +32,8 @@ const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const SharePageV2 = lazy(() => import("./features/sharePageV2/SharePageV2.tsx"));
+const CompanyInviteAccept = lazy(() => import("./pages/CompanyInviteAccept.tsx"));
+const AdminBetaUsage = lazy(() => import("./pages/admin/AdminBetaUsage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
 
@@ -75,15 +78,16 @@ const App = () => (
                 <Route path="/forgot-password" element={<ErrorBoundary label="page"><ForgotPassword /></ErrorBoundary>} />
                 <Route path="/reset-password" element={<ErrorBoundary label="page"><ResetPassword /></ErrorBoundary>} />
                 <Route path="/onboarding" element={<ErrorBoundary label="page"><ProtectedRoute><Onboarding /></ProtectedRoute></ErrorBoundary>} />
-                <Route path="/onboarding/plan" element={<ErrorBoundary label="page"><ProtectedRoute><Plan /></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/onboarding/plan" element={<ErrorBoundary label="page"><ProtectedRoute><BetaCommercialGuard><Plan /></BetaCommercialGuard></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/projects" element={<ErrorBoundary label="page"><ProtectedRoute><Projects /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/projects/:id" element={<ErrorBoundary label="page"><ProtectedRoute><ProjectDetail /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/profile" element={<ErrorBoundary label="page"><ProtectedRoute><Profile /></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/company-invite/:token" element={<ErrorBoundary label="page"><CompanyInviteAccept /></ErrorBoundary>} />
                 <Route path="/invite/:token" element={<ErrorBoundary label="page"><InviteAccept /></ErrorBoundary>} />
-                <Route path="/billing" element={<ErrorBoundary label="page"><ProtectedRoute><Billing /></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/billing" element={<ErrorBoundary label="page"><ProtectedRoute><BetaCommercialGuard><Billing /></BetaCommercialGuard></ProtectedRoute></ErrorBoundary>} />
                 
-                <Route path="/share-links" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio"]}><ShareLinks /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
-                <Route path="/team" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio"]}><Team /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/share-links" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio", "beta"]}><ShareLinks /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
+                <Route path="/team" element={<ErrorBoundary label="page"><ProtectedRoute><PlanGuard allow={["crew", "studio", "beta"]}><Team /></PlanGuard></ProtectedRoute></ErrorBoundary>} />
 
                 <Route path="/settings" element={<ErrorBoundary label="page"><ProtectedRoute><Settings /></ProtectedRoute></ErrorBoundary>} />
                 <Route path="/s/:token" element={<ErrorBoundary label="page"><SharePageV2 /></ErrorBoundary>} />
@@ -97,6 +101,7 @@ const App = () => (
                   <Route path="projects" element={<AdminProjects />} />
                   <Route path="signups" element={<AdminLeadMagnet />} />
                   <Route path="early-access" element={<AdminEarlyAccess />} />
+                  <Route path="beta" element={<AdminBetaUsage />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

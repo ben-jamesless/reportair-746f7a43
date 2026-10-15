@@ -41,7 +41,7 @@ serve(async (req) => {
 
   const { data: team } = await service
     .from("teams")
-    .select("id, stripe_customer_id")
+    .select("id, stripe_customer_id, plan")
     .eq("billing_owner_user_id", callerId)
     .maybeSingle();
 
@@ -50,6 +50,8 @@ serve(async (req) => {
       status: 400, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
+
+  if (team.plan === "beta") return new Response(JSON.stringify({ error: "Billing is unavailable during beta" }), { status: 403, headers: { ...cors, "Content-Type": "application/json" } });
 
   const { return_url } = await req.json().catch(() => ({}));
   const returnUrl = return_url ?? `${Deno.env.get("APP_URL")}/billing`;

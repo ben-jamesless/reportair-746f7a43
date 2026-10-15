@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { ChevronDown, Copy, Mail, Trash2, Users, X } from "lucide-react";
 
+import { CompanyInvites } from "@/features/members/CompanyInvites";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -160,9 +161,11 @@ export default function TeamPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Team</h1>
           <p className="text-sm text-muted-foreground">
-            Everyone collaborating across your projects.
+            Members collaborating across your projects.
           </p>
         </div>
+
+        {teamId && plan === "beta" && <CompanyInvites teamId={teamId} onAccepted={load} />}
 
         {/* A. Seat bar */}
         <div className="rounded-lg border bg-card p-4">
@@ -173,7 +176,7 @@ export default function TeamPage() {
                 ? `${seatCount} collaborators`
                 : `${seatCount} of ${limits.maxMembers} seats used`}
             </div>
-            <Badge variant="secondary" className="ml-auto">{planLabel}</Badge>
+            {plan !== "beta" && <Badge variant="secondary" className="ml-auto">{planLabel}</Badge>}
             {nearLimit && (
               <Button asChild size="sm" variant="outline">
                 <Link to="/billing">Upgrade</Link>
@@ -242,7 +245,7 @@ export default function TeamPage() {
                             to={`/projects/${p.id}`}
                             className="inline-flex items-center rounded-full border bg-background px-2.5 py-0.5 text-xs text-foreground transition-colors hover:bg-muted"
                           >
-                            {p.name} · {p.role}
+                            {p.name} · {p.role === "commenter" ? "viewer" : p.role}
                           </Link>
                         ))}
                       </div>

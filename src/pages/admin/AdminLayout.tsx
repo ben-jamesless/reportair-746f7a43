@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { cn } from "@/lib/utils";
 
 const tabs = [
+  { to: "/admin/beta", label: "Beta companies" },
   { to: "/admin/summary", label: "Summary" },
   { to: "/admin/users", label: "Users" },
   { to: "/admin/projects", label: "Projects" },

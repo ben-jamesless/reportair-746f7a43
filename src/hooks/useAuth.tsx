@@ -84,7 +84,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     let cancelled = false;
     setProfileLoading(true);
-    fetchProfile(uid).then((p) => {
+    (async () => {
+      // Acceptance is server-validated and runs only once the email is confirmed.
+      await supabase.rpc("accept_my_company_invites");
+      return fetchProfile(uid);
+    })().then((p) => {
       if (cancelled) return;
       setProfile(p);
       setProfileLoading(false);

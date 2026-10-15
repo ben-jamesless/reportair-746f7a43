@@ -25,8 +25,8 @@ function buildPriceToPlan(): Record<string, string> {
   const pairs: Array<[string, string]> = [
     ["STRIPE_PRICE_SOLO_MONTHLY",   "solo"],
     ["STRIPE_PRICE_SOLO_ANNUAL",    "solo"],
-    ["STRIPE_PRICE_PRO_MONTHLY",    "pro"],
-    ["STRIPE_PRICE_PRO_ANNUAL",     "pro"],
+    ["STRIPE_PRICE_PRO_MONTHLY",    "crew"],
+    ["STRIPE_PRICE_PRO_ANNUAL",     "crew"],
     ["STRIPE_PRICE_STUDIO_MONTHLY", "studio"],
     ["STRIPE_PRICE_STUDIO_ANNUAL",  "studio"],
   ];

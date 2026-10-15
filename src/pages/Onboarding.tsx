@@ -27,6 +27,12 @@ const Onboarding = () => {
       return;
     }
     (async () => {
+      const { error: inviteError } = await supabase.rpc("accept_my_company_invites");
+      if (inviteError) {
+        toast.error(inviteError.message);
+        setChecking(false);
+        return;
+      }
       // Guard: if user already owns a team, skip onboarding entirely
       const { data: existingTeam } = await supabase
         .from("teams")
@@ -92,7 +98,7 @@ const Onboarding = () => {
           supabase.functions.invoke("send-transactional-email", {
             body: { to: user.email, template: "welcome", data: { name: metaFullName } },
           }).catch(() => {});
-          navigate("/onboarding/plan", { replace: true });
+          navigate("/projects", { replace: true });
           return;
         }
       }
@@ -170,7 +176,7 @@ const Onboarding = () => {
 
     setBusy(false);
     toast.success(`Welcome, ${fullName.split(" ")[0]}!`);
-    navigate("/onboarding/plan", { replace: true });
+    navigate("/projects", { replace: true });
   };
 
   if (loading || checking) {

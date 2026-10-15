@@ -107,7 +107,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
   const daysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
     : null;
-  const isTrialing = subscriptionStatus === "trialing" && daysLeft !== null && !isAdmin;
+  const isTrialing = plan !== "beta" && subscriptionStatus === "trialing" && daysLeft !== null && !isAdmin;
 
   // Profile load + realtime
   useEffect(() => {
@@ -297,7 +297,8 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           {/* ── Bottom nav (Team / Billing / Settings) ── */}
           <nav className="space-y-0.5 px-2 lg:px-3">
             {bottomNavItems.filter((item) => {
-              if (item.href === "/team" && plan !== "crew" && plan !== "studio") return false;
+              if (item.href === "/billing" && plan === "beta") return false;
+              if (item.href === "/team" && !["crew", "studio", "beta"].includes(plan)) return false;
               return true;
             }).map((item) => {
 

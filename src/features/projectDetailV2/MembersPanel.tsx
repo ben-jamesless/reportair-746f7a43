@@ -6,6 +6,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { CompanyInvites } from "@/features/members/CompanyInvites";
+import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { InvitesManager } from "@/components/InvitesManager";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +34,7 @@ export function MembersPanel({
   onOpenChange: (v: boolean) => void;
 }) {
   const { user } = useAuth();
+  const { plan } = useProjectPlan(projectId);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [canManage, setCanManage] = useState(false);
 
@@ -80,9 +83,8 @@ export function MembersPanel({
         </SheetHeader>
 
         <div className="mt-6 px-6 pb-8">
-          <TeamSeatStrip teamId={teamId} />
-          <ApprovalsInbox teamId={teamId} canManage={canManage} />
-          <UnclassifiedMembersPanel teamId={teamId} canManage={canManage} />
+          {plan !== "beta" && <><TeamSeatStrip teamId={teamId} /><ApprovalsInbox teamId={teamId} canManage={canManage} /><UnclassifiedMembersPanel teamId={teamId} canManage={canManage} /></>}
+          {plan === "beta" && teamId && <CompanyInvites teamId={teamId} initialProjectId={projectId} />}
 
 
           <div className="mb-4 flex items-center gap-2">

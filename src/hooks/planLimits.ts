@@ -1,7 +1,7 @@
 // Single source of truth for plan tiers, limits, and normalisation.
 // Both usePlan (account-scoped) and useProjectPlan (project-scoped) import from here.
 
-export type PlanName = "free" | "solo" | "crew" | "studio";
+export type PlanName = "free" | "solo" | "crew" | "studio" | "beta";
 
 export interface PlanLimits {
   maxProjects:            number;   // -1 = unlimited
@@ -21,6 +21,12 @@ export interface PlanLimits {
 }
 
 export const LIMITS: Record<PlanName, PlanLimits> = {
+  beta: {
+    maxProjects: -1, maxMembers: -1, maxUpdateDays: -1, maxExportsMonth: -1,
+    pdfExport: true, shareLinks: true, shareLinkEmail: true, passwordLinks: false,
+    showBuildSlidesBranding: false, allowCustomLogo: true, whiteLabelFull: true,
+    projectFolders: true, planIncludesInvites: true, allowsExternals: true,
+  },
   free: {
     maxProjects:             1,
     maxMembers:              1,
@@ -96,6 +102,7 @@ export const LIMITS: Record<PlanName, PlanLimits> = {
 // once B6 backfill is verified and Stripe archive of old Prices is confirmed.
 export function normalisePlan(raw: string | null | undefined): PlanName {
   switch (raw) {
+    case "beta":       return "beta";
     case "free":       return "free";
     case "solo":       return "solo";
     case "crew":       return "crew";

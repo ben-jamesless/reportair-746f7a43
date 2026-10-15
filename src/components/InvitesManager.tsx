@@ -64,7 +64,7 @@ const ROLE_DESCRIPTIONS: Record<ProjectRole, string> = {
 export const InvitesManager = ({ projectId }: { projectId: string }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { canInviteMember, planIncludesInvites, teamId: planTeamId } = useProjectPlan(projectId);
+  const { canInviteMember, planIncludesInvites, teamId: planTeamId, plan } = useProjectPlan(projectId);
   const [teamId, setTeamId] = useState<string | null>(null);
   const seat = useTeamSeatSummary(teamId ?? planTeamId ?? null);
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -100,7 +100,8 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
   const currentUserRole: ProjectRole | null =
     members.find((m) => m.user_id === user?.id)?.role ?? null;
-  const canManage = currentUserRole === "owner" || isAppAdmin;
+  const isBeta = plan === "beta";
+  const canManage = currentUserRole === "owner" || (!isBeta && isAppAdmin);
   const ownerCount = members.filter((m) => m.role === "owner").length;
 
   const load = useCallback(async () => {
@@ -197,7 +198,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
   // submission — on failure we degrade to a neutral "confirm on send" state.
   useEffect(() => {
     const effectiveTeamId = teamId ?? planTeamId;
-    if (!effectiveTeamId) { setClassification(null); setClassifyState("idle"); return; }
+    if (isBeta || !effectiveTeamId) { setClassification(null); setClassifyState("idle"); return; }
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) { setClassification(null); setClassifyState("idle"); return; }
     setClassifyState("loading");
@@ -218,7 +219,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
       }
     }, 350);
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [email, teamId, planTeamId]);
+  }, [email, teamId, planTeamId, isBeta]);
 
   // Reset per-email UX state when the address changes.
   useEffect(() => { setUseCaseNote(""); setExplicitChoice(""); }, [email]);
@@ -414,7 +415,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
     <div className="space-y-6">
       {/* Collapsed to a single line when there is nobody left to add — an
           empty card was taking a card's worth of space to say "nothing here". */}
-      {canManage && teamCandidates.length === 0 && (
+      {!isBeta && canManage && teamCandidates.length === 0 && (
         <p className="border-b pb-3 text-xs text-muted-foreground">
           Everyone on your team already has access. Invite by email below to add anyone new.
         </p>
@@ -468,10 +469,10 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 <Select value={candidateRole} onValueChange={(v) => setCandidateRole(v as ProjectRole)}>
                   <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="owner">Owner</SelectItem>
+                    
                     <SelectItem value="editor">Editor</SelectItem>
                     <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="commenter">Commenter</SelectItem>
+                    
                     <SelectItem value="crew">Crew</SelectItem>
                   </SelectContent>
                 </Select>
@@ -485,7 +486,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         </section>
       )}
 
-      {canManage && (
+      {!isBeta && canManage && (
         <section className="space-y-3 rounded-lg border bg-card p-4">
           <div>
             <h4 className="text-sm font-semibold">Invite someone to this project</h4>
@@ -505,10 +506,10 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               <Select value={role} onValueChange={(v) => setRole(v as ProjectRole)}>
                 <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="owner">Owner</SelectItem>
+                  
                   <SelectItem value="editor">Editor</SelectItem>
                   <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="commenter">Commenter — Can view photos and leave comments</SelectItem>
+                  
                   <SelectItem value="crew">Crew — Upload photos only, no report access</SelectItem>
                 </SelectContent>
               </Select>
@@ -661,7 +662,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
             const isLastOwner = isOwnerRow && ownerCount <= 1;
             // Owners can edit any non-self member's role (including other owners),
             // unless that would demote the last remaining owner.
-            const showRoleSelect = canManage && !isSelf && !isLastOwner;
+            const showRoleSelect = canManage && !isSelf && !isOwnerRow;
             // Owners cannot remove other owners (transfer/demote first), and never themselves.
             const showRemove = canManage && !isSelf && !isOwnerRow;
             return (
@@ -685,22 +686,22 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
                 </div>
                 {showRoleSelect ? (
                   <Select
-                    value={m.role}
+                    value={m.role === "commenter" ? "viewer" : m.role}
                     onValueChange={(v) => changeRole(m, v as ProjectRole)}
                   >
                     <SelectTrigger className="h-8 w-28">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="owner">Owner</SelectItem>
+                      
                       <SelectItem value="editor">Editor</SelectItem>
                       <SelectItem value="viewer">Viewer</SelectItem>
-                      <SelectItem value="commenter">Commenter</SelectItem>
+                      
                       <SelectItem value="crew">Crew</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant="secondary" className="capitalize">{m.role}</Badge>
+                  <Badge variant="secondary" className="capitalize">{m.role === "owner" ? "Owner" : m.role === "commenter" ? "Viewer" : m.role}</Badge>
                 )}
                 {showRemove ? (
                   <Button
