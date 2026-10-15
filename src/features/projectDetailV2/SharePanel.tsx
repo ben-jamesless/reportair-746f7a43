@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatAbsoluteStamp } from "@/lib/eventTime";
 import { useProjectTimeZone } from "@/hooks/useProjectTimeZone";
-import { Copy, QrCode, Loader2, Lock, Unlock, Trash2, Plus, ExternalLink } from "lucide-react";
+import { Copy, QrCode, Loader2, Trash2, Plus, ExternalLink } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -79,8 +79,6 @@ export function SharePanel({
   const [creating, setCreating] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
-  const [passwordDraft, setPasswordDraft] = useState("");
-  const [savingPassword, setSavingPassword] = useState(false);
   const [savingPins, setSavingPins] = useState(false);
 
   const togglePhotoPins = async (next: boolean) => {
@@ -216,32 +214,6 @@ export function SharePanel({
     setLink(null);
   };
 
-  const setPassword = async () => {
-    if (!link) return;
-    const pwd = passwordDraft.trim();
-    setSavingPassword(true);
-    try {
-      let hash: string | null = null;
-      if (pwd) {
-        const { data, error } = await supabase.rpc("hash_share_password", { _password: pwd });
-        if (error) throw error;
-        hash = data as string;
-      }
-      const { error: upErr } = await supabase
-        .from("share_links")
-        .update({ password_hash: hash, has_password: !!hash })
-        .eq("id", link.id);
-      if (upErr) throw upErr;
-      toast.success(pwd ? "Password set" : "Password removed");
-      setPasswordDraft("");
-      load();
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSavingPassword(false);
-    }
-  };
-
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -303,39 +275,6 @@ export function SharePanel({
                     <p className="mt-1.5 text-xs" style={{ color: T.muted }}>
                       Copies the event name plus the same link, ready to paste.
                     </p>
-                  </div>
-                </section>
-
-                {/* Who can open it */}
-                <section className="mb-6">
-                  <SectionLabel>Who can open it</SectionLabel>
-                  <div className="mb-3 flex items-center gap-2 text-sm" style={{ color: T.ink2 }}>
-                    {link.has_password ? (
-                      <>
-                        <Lock className="h-4 w-4" style={{ color: T.muted }} />
-                        <span>Password required to open</span>
-                      </>
-                    ) : (
-                      <>
-                        <Unlock className="h-4 w-4" style={{ color: T.muted }} />
-                        <span>Anyone with the link can open</span>
-                      </>
-                    )}
-                  </div>
-                  <FieldLabel htmlFor="share-password">Link password</FieldLabel>
-                  <div className="mt-1.5 flex gap-2">
-                    <input
-                      id="share-password"
-                      type="password"
-                      value={passwordDraft}
-                      onChange={(e) => setPasswordDraft(e.target.value)}
-                      placeholder={link.has_password ? "New password (leave blank to remove)" : "Set a password"}
-                      className={fieldClass}
-                      style={fieldStyle}
-                    />
-                    <button type="button" className={inkButtonClass} onClick={setPassword} disabled={savingPassword}>
-                      {savingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : link.has_password && !passwordDraft ? "Remove" : "Save"}
-                    </button>
                   </div>
                 </section>
 
