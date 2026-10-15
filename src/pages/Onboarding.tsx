@@ -96,7 +96,7 @@ const Onboarding = () => {
           });
           // Welcome email — fire and forget
           supabase.functions.invoke("send-transactional-email", {
-            body: { to: user.email, template: "welcome", data: { name: metaFullName } },
+            body: { templateName: "welcome", idempotencyKey: `welcome-${user.id}` },
           }).catch(() => {});
           navigate("/projects", { replace: true });
           return;
@@ -166,9 +166,8 @@ const Onboarding = () => {
       if (!session?.user?.email) return;
       supabase.functions.invoke("send-transactional-email", {
         body: {
-          to: session.user.email,
-          template: "welcome",
-          data: { name: fullName ?? session.user.user_metadata?.full_name ?? "" },
+          templateName: "welcome",
+          idempotencyKey: `welcome-${session.user.id}`,
         },
       }).catch(() => {});
     });

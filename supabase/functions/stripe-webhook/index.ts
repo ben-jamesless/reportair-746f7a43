@@ -9,7 +9,7 @@ const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
 const PRICE_TO_PLAN = buildPriceToPlan();
 
 async function sendTransactionalEmail(payload: { to: string; template: string; data: Record<string, string> }) {
-  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-transactional-email`;
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-billing-email`;
   await fetch(url, {
     method: "POST",
     headers: {
