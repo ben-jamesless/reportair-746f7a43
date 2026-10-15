@@ -271,16 +271,20 @@ async function fetchAndEmbedImage(pdfDoc: PDFDocument, url: string): Promise<PDF
 
 // Cache Unicode font bytes across warm invocations; never fall back to WinAnsi.
 let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
-let cachedCjk: Uint8Array | null = null;
-async function loadFontBytes(needsCjk: boolean) {
+
+async function loadFontBytes(needsCjk: boolean, text: string) {
   const download = async (url: string) => {
     const response = await fetchWithTimeout(url, 30000);
     if (!response.ok) throw new Error("Report fonts could not be loaded. Please try again.");
     return new Uint8Array(await response.arrayBuffer());
   };
   if (needsCjk) {
-    cachedCjk ??= await download("https://buildfolder.com/__l5e/assets-v1/5bead406-4bed-4698-abe0-e10025f7874f/NotoSansSC-Regular.ttf");
-    return { regular: cachedCjk, bold: cachedCjk };
+    const characters = [...new Set(Array.from(text + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,;:!?—–-•…°()[]/&+_%'\"\n"))].join("");
+    const css = await fetchWithTimeout(`https://fonts.googleapis.com/css?family=Noto+Sans+SC&text=${encodeURIComponent(characters)}`, 30000);
+    const fontUrl = /url\((https:[^)]+)\)/.exec(await css.text())?.[1];
+    if (!fontUrl) throw new Error("Couldn’t prepare the Unicode report font.");
+    const regular = await download(fontUrl);
+    return { regular, bold: regular };
   }
   cachedFonts ??= await Promise.all([
     download("https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"),
@@ -501,7 +505,7 @@ Deno.serve(async (req) => {
     pdfDoc.setTitle("BuildFolder Daily Report");
 
     const needsCjk = /[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]/u.test(JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos]));
-    const fontBytes = await loadFontBytes(needsCjk);
+    const fontBytes = await loadFontBytes(needsCjk, JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos, tzNote, weatherStr, reportDateLabel, buildDayLabel]));
     const pjsFont = await pdfDoc.embedFont(fontBytes.bold, { subset: !needsCjk });
     const irFont = needsCjk ? pjsFont : await pdfDoc.embedFont(fontBytes.regular, { subset: true });
 
