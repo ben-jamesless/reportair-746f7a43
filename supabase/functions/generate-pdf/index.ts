@@ -3,6 +3,7 @@
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { PDFDocument, PDFFont, PDFImage, PDFPage, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
+import { embedReportFonts, drawText, textWidth } from "./typography.ts";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { eventDayKey, resolveEventZone, timeZoneNote, UTC } from "../_shared/eventDay.ts";
 
@@ -146,7 +147,7 @@ function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: numb
     let first = true;
     for (const w of words) {
       const test = current ? `${current} ${w}` : w;
-      if (font.widthOfTextAtSize(test, fontSize) <= maxWidth) current = test;
+      if (textWidth(test, font, fontSize) <= maxWidth) current = test;
       else {
         if (current) out.push(current);
         current = first ? w : `${indent}${w}`;
@@ -207,14 +208,14 @@ function drawPill(
   fontSize = 8,
 ): number {
   const padX = 8, padY = 4;
-  const tw = font.widthOfTextAtSize((text ?? ""), fontSize);
+  const tw = textWidth((text ?? ""), font, fontSize);
   const w = tw + padX * 2;
   const h = fontSize + padY * 2;
   const r = h / 2;
   page.drawRectangle({ x: x + r, y, width: Math.max(0, w - h), height: h, color: bgColor });
   page.drawCircle({ x: x + r, y: y + r, size: r, color: bgColor });
   page.drawCircle({ x: x + w - r, y: y + r, size: r, color: bgColor });
-  page.drawText((text ?? ""), { x: x + padX, y: y + padY + 0.8, size: fontSize, font, color: textColor });
+  drawText(page, (text ?? ""), { x: x + padX, y: y + padY + 0.8, size: fontSize, font, color: textColor });
   return w;
 }
 
@@ -247,7 +248,7 @@ function drawWordmark(page: PDFPage, x: number, y: number, fontSize: number, pjs
   drawLogomark(page, x, y - iconSize * 0.15, iconSize, brandMarkImage);
   const gap = iconSize * 0.35;
   const text = "BuildFolder";
-  page.drawText(text, { x: x + iconSize + gap, y, size: fontSize, font: pjsFont, color: COLOR.INK });
+  drawText(page, text, { x: x + iconSize + gap, y, size: fontSize, font: pjsFont, color: COLOR.INK });
 }
 
 
@@ -267,30 +268,6 @@ async function fetchAndEmbedImage(pdfDoc: PDFDocument, url: string): Promise<PDF
       }
     }
   } catch { return null; }
-}
-
-// Cache Unicode font bytes across warm invocations; never fall back to WinAnsi.
-let cachedFonts: { regular: Uint8Array; bold: Uint8Array } | null = null;
-
-async function loadFontBytes(needsCjk: boolean, text: string) {
-  const download = async (url: string) => {
-    const response = await fetchWithTimeout(url, 30000);
-    if (!response.ok) throw new Error("Report fonts could not be loaded. Please try again.");
-    return new Uint8Array(await response.arrayBuffer());
-  };
-  if (needsCjk) {
-    const characters = [...new Set(Array.from(text + "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,;:!?—–-•…°()[]/&+_%'\"\n"))].join("");
-    const css = await fetchWithTimeout(`https://fonts.googleapis.com/css?family=Noto+Sans+SC&text=${encodeURIComponent(characters)}`, 30000);
-    const fontUrl = /url\((https:[^)]+)\)/.exec(await css.text())?.[1];
-    if (!fontUrl) throw new Error("Couldn’t prepare the Unicode report font.");
-    const regular = await download(fontUrl);
-    return { regular, bold: regular };
-  }
-  cachedFonts ??= await Promise.all([
-    download("https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf"),
-    download("https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf"),
-  ]).then(([regular, bold]) => ({ regular, bold }));
-  return cachedFonts;
 }
 
 Deno.serve(async (req) => {
@@ -504,10 +481,9 @@ Deno.serve(async (req) => {
     pdfDoc.registerFontkit(fontkit);
     pdfDoc.setTitle("BuildFolder Daily Report");
 
-    const needsCjk = /[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]/u.test(JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos]));
-    const fontBytes = await loadFontBytes(needsCjk, JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos, tzNote, weatherStr, reportDateLabel, buildDayLabel]));
-    const pjsFont = await pdfDoc.embedFont(fontBytes.bold, { subset: !needsCjk });
-    const irFont = needsCjk ? pjsFont : await pdfDoc.embedFont(fontBytes.regular, { subset: true });
+    const fonts = await embedReportFonts(pdfDoc, JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos, tzNote, weatherStr, reportDateLabel, buildDayLabel]));
+    const pjsFont = fonts.bold;
+    const irFont = fonts.regular;
 
     // Event logo: prefer per-export override, fall back to the project's saved default logo.
     let eventLogoImage: PDFImage | null = null;
@@ -749,53 +725,58 @@ Deno.serve(async (req) => {
       // Header: wordmark (or team logo when white-label) + report number
       drawBrandHeader(page, M + 8, H - 16 * MM, 10);
       const rnText = `No. ${reportNumber}`;
-      const rnW = irFont.widthOfTextAtSize(rnText, 8);
-      page.drawText(rnText, { x: W - M - rnW, y: H - 16 * MM, size: 8, font: irFont, color: COLOR.MIST });
+      const rnW = textWidth(rnText, irFont, 8);
+      drawText(page, rnText, { x: W - M - rnW, y: H - 16 * MM, size: 8, font: irFont, color: COLOR.MIST });
       page.drawLine({ start: { x: M + 8, y: H - 20 * MM }, end: { x: W - M, y: H - 20 * MM }, thickness: 0.5, color: COLOR.BORDER });
 
-      // Event identity
+      // Identity text and logo have separate columns; all following rows flow below both.
+      const identityX = M + 8;
+      const identityWidth = CW - 126;
+      let identityY = H - 33 * MM;
       const eventName = ((proj.name as string) || "Event");
-      page.drawText(eventName, { x: M + 8, y: H - 33 * MM, size: 22, font: pjsFont, color: COLOR.INK });
-      const venue = ((proj.event_location as string) || "");
-      if (venue) page.drawText(venue, { x: M + 8, y: H - 40 * MM, size: 10, font: irFont, color: COLOR.SLATE });
-
-      // Date row
-      const dateY = H - 47 * MM;
-      page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
-      const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
-      page.drawText(buildDayLabel, { x: W - M - irFont.widthOfTextAtSize(buildDayLabel, 9), y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
-      // The document states the basis of every time it prints.
-      page.drawText(tzNote, { x: M + 8, y: dateY - 13, size: 7.5, font: irFont, color: COLOR.MIST });
-
-      // Event logo (only render when an image was uploaded)
-      const logoBoxX = W - M - 66, logoBoxY = H - 48 * MM, logoBoxW = 66, logoBoxH = 32;
-      if (eventLogoImage) {
-        const scale = Math.min(logoBoxW / eventLogoImage.width, logoBoxH / eventLogoImage.height);
-        const lw = eventLogoImage.width * scale, lh = eventLogoImage.height * scale;
-        page.drawImage(eventLogoImage, { x: logoBoxX + (logoBoxW - lw) / 2, y: logoBoxY + (logoBoxH - lh) / 2, width: lw, height: lh });
+      for (const line of wrapLines(eventName, pjsFont, 22, identityWidth)) {
+        drawText(page, line, { x: identityX, y: identityY, size: 22, font: pjsFont, color: COLOR.INK });
+        identityY -= 27;
       }
-
-      page.drawLine({ start: { x: M + 8, y: H - 51 * MM }, end: { x: W - M, y: H - 51 * MM }, thickness: 0.5, color: COLOR.BORDER });
+      identityY -= 2;
+      const venue = ((proj.event_location as string) || "");
+      if (venue) {
+        for (const line of wrapLines(venue, irFont, 9, identityWidth)) {
+          drawText(page, line, { x: identityX, y: identityY, size: 9, font: irFont, color: COLOR.SLATE });
+          identityY -= 13;
+        }
+      }
+      if (eventLogoImage) {
+        const logoBoxW = 100, logoBoxH = 64;
+        const scale = Math.min(logoBoxW / eventLogoImage.width, logoBoxH / eventLogoImage.height);
+        const width = eventLogoImage.width * scale, height = eventLogoImage.height * scale;
+        page.drawImage(eventLogoImage, { x: W - M - width, y: H - 27 * MM - height, width, height });
+      }
+      const dateY = Math.min(identityY - 12, H - 54 * MM);
+      drawText(page, reportDateLabel, { x: identityX, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
+      drawText(page, buildDayLabel, { x: W - M - textWidth(buildDayLabel, irFont, 9), y: dateY, size: 9, font: irFont, color: COLOR.MIST });
+      drawText(page, tzNote, { x: identityX, y: dateY - 16, size: 7.5, font: irFont, color: COLOR.MIST });
+      const ROW_TOP = dateY - 28;
+      page.drawLine({ start: { x: identityX, y: ROW_TOP }, end: { x: W - M, y: ROW_TOP }, thickness: 0.5, color: COLOR.BORDER });
 
       // Status + Weather row
-      const ROW_TOP = H - 51 * MM;
       const LABEL_Y = ROW_TOP - 6 * MM;
       const PILL_Y = ROW_TOP - 14 * MM;
-      page.drawText("OVERALL STATUS", { x: M + 8, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
+      drawText(page, "OVERALL STATUS", { x: M + 8, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
       const overallMeta = statusMeta(proj.overall_status as string | null);
       drawPill(page, M + 8, PILL_Y, overallMeta.label, overallMeta.text, overallMeta.bg, irFont, 8);
       const DIV_X = W / 2.5;
       page.drawLine({ start: { x: DIV_X, y: ROW_TOP - 5 * MM }, end: { x: DIV_X, y: ROW_TOP - 15 * MM }, thickness: 0.5, color: COLOR.BORDER });
-      page.drawText("WEATHER", { x: DIV_X + 10, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
-      page.drawText(weatherStr || "—", { x: DIV_X + 10, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
+      drawText(page, "WEATHER", { x: DIV_X + 10, y: LABEL_Y, size: 7, font: irFont, color: COLOR.MIST });
+      drawText(page, weatherStr || "—", { x: DIV_X + 10, y: PILL_Y + 2, size: 9, font: irFont, color: COLOR.SLATE });
       page.drawLine({ start: { x: M + 8, y: ROW_TOP - 18 * MM + 2 }, end: { x: W - M, y: ROW_TOP - 18 * MM + 2 }, thickness: 0.5, color: COLOR.BORDER });
 
       // Daily Updates 2x2 cards (dynamic height per row)
       const UPD_TOP = ROW_TOP - 18 * MM - 6 * MM;
       const HALF = (CW - 10) / 2;
       const BLK_GAP = 6;
-      const LINE_H = 9.5;
-      const CARD_PAD_TOP = 22; // label + spacing
+      const LINE_H = 12;
+      const CARD_PAD_TOP = 26; // label + spacing
       const CARD_PAD_BOTTOM = 8;
       const MIN_BLK_H = 52;
       const cards = [
@@ -818,10 +799,10 @@ Deno.serve(async (req) => {
         const by_bot = by_top - blkH;
 
         page.drawRectangle({ x: bx, y: by_bot, width: 3, height: blkH, color: effectiveAccent });
-        page.drawText(cards[i].label, { x: bx + 10, y: by_top - 11, size: 7.5, font: pjsFont, color: COLOR.INK });
+        drawText(page, cards[i].label, { x: bx + 10, y: by_top - 11, size: 7.5, font: pjsFont, color: COLOR.INK });
         let ly = by_top - CARD_PAD_TOP;
         for (const ln of cardLines[i]) {
-          page.drawText(ln, { x: bx + 10, y: ly, size: 8, font: irFont, color: COLOR.SLATE });
+          drawText(page, ln, { x: bx + 10, y: ly, size: 8, font: irFont, color: COLOR.SLATE });
           ly -= LINE_H;
         }
       }
@@ -830,8 +811,8 @@ Deno.serve(async (req) => {
       const CARD_GRID_H = row1H + BLK_GAP + row2H;
       const TBL_HEADER_Y = UPD_TOP - CARD_GRID_H - 20;
       const tblTitle = "AREA SUMMARY";
-      page.drawText(tblTitle, { x: M + 8, y: TBL_HEADER_Y, size: 9, font: pjsFont, color: COLOR.INK });
-      const tblTitleW = pjsFont.widthOfTextAtSize(tblTitle, 9);
+      drawText(page, tblTitle, { x: M + 8, y: TBL_HEADER_Y, size: 9, font: pjsFont, color: COLOR.INK });
+      const tblTitleW = textWidth(tblTitle, pjsFont, 9);
       page.drawLine({ start: { x: M + 8, y: TBL_HEADER_Y - 2 }, end: { x: M + 8 + tblTitleW, y: TBL_HEADER_Y - 2 }, thickness: 1.5, color: effectiveAccent });
 
       const TABLE_W = CW - 8;
@@ -842,10 +823,10 @@ Deno.serve(async (req) => {
 
       const COL_HDR_Y = TBL_HEADER_Y - 10;
       page.drawRectangle({ x: M + 8, y: COL_HDR_Y - 9, width: TABLE_W, height: 14, color: COLOR.CLOUD });
-      page.drawText("AREA", { x: M + 16, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
-      page.drawText("STATUS", { x: M + 16 + C_AREA, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
-      page.drawText("PHOTOS", { x: M + 16 + C_AREA + C_STATUS, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
-      page.drawText("NOTES", { x: M + 16 + C_AREA + C_STATUS + C_PHOTO, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
+      drawText(page, "AREA", { x: M + 16, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
+      drawText(page, "STATUS", { x: M + 16 + C_AREA, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
+      drawText(page, "PHOTOS", { x: M + 16 + C_AREA + C_STATUS, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
+      drawText(page, "NOTES", { x: M + 16 + C_AREA + C_STATUS + C_PHOTO, y: COL_HDR_Y - 4, size: 7, font: irFont, color: COLOR.MIST });
 
       const ROW_H = 44;
       let rowY = COL_HDR_Y - 12;
@@ -858,19 +839,19 @@ Deno.serve(async (req) => {
         page.drawRectangle({ x: M + 8, y: rowY - ROW_H, width: 4, height: ROW_H, color: meta.text });
         const areaName = (a.name ?? "");
         const areaLines = wrapLines(areaName, pjsFont, 8.5, C_AREA - 12).slice(0, 3);
-        page.drawText(areaLines.join("\n"), {
+        drawText(page, areaLines.join("\n"), {
           x: M + 16, y: rowY - 14, size: 8.5, lineHeight: 11, font: pjsFont, color: COLOR.INK,
         });
         const rowPillH = 8 + 4 * 2;
         drawPill(page, M + 16 + C_AREA, rowY - ROW_H / 2 - rowPillH / 2, meta.label, meta.text, meta.bg, irFont, 8);
-        page.drawText(String(a.photoCount), { x: M + 16 + C_AREA + C_STATUS, y: rowY - ROW_H / 2 - 3, size: 8.5, font: irFont, color: COLOR.SLATE });
+        drawText(page, String(a.photoCount), { x: M + 16 + C_AREA + C_STATUS, y: rowY - ROW_H / 2 - 3, size: 8.5, font: irFont, color: COLOR.SLATE });
         const notesX = M + 16 + C_AREA + C_STATUS + C_PHOTO;
         const notesMaxW = W - M - notesX - 10;
         const noteLines = wrapLines(normaliseBullets(a.notes) || "—", irFont, 8, notesMaxW).slice(0, 3);
         const blockH = noteLines.length * 11;
         let ny = rowY - ROW_H / 2 + blockH / 2 - 4;
         for (const ln of noteLines) {
-          page.drawText(ln, { x: notesX, y: ny, size: 8, font: irFont, color: COLOR.SLATE });
+          drawText(page, ln, { x: notesX, y: ny, size: 8, font: irFont, color: COLOR.SLATE });
           ny -= 11;
         }
         page.drawLine({ start: { x: M + 8, y: rowY - ROW_H }, end: { x: M + 8 + TABLE_W, y: rowY - ROW_H }, thickness: 0.25, color: COLOR.BORDER });
@@ -886,36 +867,25 @@ Deno.serve(async (req) => {
       const CW = W - 2 * M;
       const page = pdfDoc.addPage([W, H]);
 
-      const HDR_H = 30 * MM;
-      page.drawRectangle({ x: 0, y: H - HDR_H, width: W, height: HDR_H, color: COLOR.INK });
-      page.drawRectangle({ x: 0, y: H - 3.5, width: W, height: 3.5, color: meta.text });
-
-      page.drawText(`AREA ${ai + 1} OF ${pagedAreas.length}`, { x: M + 6, y: H - 9 * MM, size: 7.5, font: irFont, color: COLOR.SKY_SOFT });
-      page.drawText((area.name ?? ""), { x: M + 6, y: H - 21 * MM, size: 18, font: pjsFont, color: COLOR.WHITE });
-
       const pillLabel = meta.label;
       const pillFontSize = 8;
-      const pillPadX = 9;
-      const pillPadY = 4;
-      const pillTextW = irFont.widthOfTextAtSize(pillLabel, pillFontSize);
-      const pillW = pillTextW + pillPadX * 2;
-      const pillH = pillFontSize + pillPadY * 2;
-      const pillX = W - M - pillW;
-      const pillY = H - 23 * MM;
-      drawRoundedRect(page, { x: pillX, y: pillY, width: pillW, height: pillH, radius: pillH / 2, fill: meta.bg });
-      page.drawText(pillLabel, { x: pillX + pillPadX, y: pillY + pillPadY + 0.8, size: pillFontSize, font: irFont, color: meta.text });
+      const pillW = textWidth(pillLabel, irFont, pillFontSize) + 18;
+      const nameLines = wrapLines(area.name ?? "", pjsFont, 18, CW - pillW - 26);
+      const HDR_H = Math.max(30 * MM, 50 + nameLines.length * 23);
+      page.drawRectangle({ x: 0, y: H - HDR_H, width: W, height: HDR_H, color: COLOR.INK });
+      drawText(page, `AREA ${ai + 1} OF ${pagedAreas.length}`, { x: M + 6, y: H - 26, size: 7.5, font: irFont, color: COLOR.WHITE });
+      nameLines.forEach((line, index) => drawText(page, line, { x: M + 6, y: H - 56 - index * 23, size: 18, font: pjsFont, color: COLOR.WHITE }));
+      drawPill(page, W - M - pillW, H - 60, pillLabel, meta.text, meta.bg, irFont, pillFontSize);
 
-      const META_H = 12 * MM;
+      const metaLines = wrapLines(`Photos: ${area.photoCount} · ${reportDateLabel} · ${buildDayLabel}`, irFont, 8, CW - 12);
+      const META_H = 20 + metaLines.length * 12;
       const META_Y = H - HDR_H - META_H;
       page.drawRectangle({ x: 0, y: META_Y, width: W, height: META_H, color: COLOR.CLOUD });
-      page.drawRectangle({ x: 0, y: 0, width: 4, height: H, color: meta.text });
-      const metaLeft = `Photos: ${area.photoCount}  ·  ${reportDateLabel}  ·  ${buildDayLabel}`;
-      page.drawText((metaLeft ?? ""), { x: M + 6, y: META_Y + 4 * MM, size: 8, font: irFont, color: COLOR.SLATE });
-      drawBrandHeader(page, W - M - 70, META_Y + 3.5 * MM, 8.5);
+      metaLines.forEach((line, index) => drawText(page, line, { x: M + 6, y: META_Y + META_H - 18 - index * 12, size: 8, font: irFont, color: COLOR.SLATE }));
 
       const NOTES_TOP = META_Y - 10 * MM;
-      page.drawText("AREA NOTES", { x: M + 6, y: NOTES_TOP, size: 9, font: pjsFont, color: COLOR.INK });
-      const anW = pjsFont.widthOfTextAtSize("AREA NOTES", 9);
+      drawText(page, "AREA NOTES", { x: M + 6, y: NOTES_TOP, size: 9, font: pjsFont, color: COLOR.INK });
+      const anW = textWidth("AREA NOTES", pjsFont, 9);
       page.drawLine({ start: { x: M + 6, y: NOTES_TOP - 2 }, end: { x: M + 6 + anW, y: NOTES_TOP - 2 }, thickness: 1.5, color: meta.text });
 
       const trimmedNotes = normaliseBullets(area.notes).trim();
@@ -924,7 +894,7 @@ Deno.serve(async (req) => {
         const noteLines = wrapLines(trimmedNotes, irFont, 10, CW - 14);
         for (const ln of noteLines) {
           if (noteY < 80) break;
-          page.drawText(ln, { x: M + 6, y: noteY, size: 10, font: irFont, color: COLOR.SLATE });
+          drawText(page, ln, { x: M + 6, y: noteY, size: 10, font: irFont, color: COLOR.SLATE });
           noteY -= 14;
         }
       }
@@ -932,8 +902,8 @@ Deno.serve(async (req) => {
 
       const PH_TOP = endY - 12;
       if (area.photoCount > 0) {
-        page.drawText("PHOTOS", { x: M + 6, y: PH_TOP, size: 9, font: pjsFont, color: COLOR.INK });
-        const phW = pjsFont.widthOfTextAtSize("PHOTOS", 9);
+        drawText(page, "PHOTOS", { x: M + 6, y: PH_TOP, size: 9, font: pjsFont, color: COLOR.INK });
+        const phW = textWidth("PHOTOS", pjsFont, 9);
         page.drawLine({ start: { x: M + 6, y: PH_TOP - 2 }, end: { x: M + 6 + phW, y: PH_TOP - 2 }, thickness: 1.5, color: meta.text });
       }
 
@@ -998,11 +968,11 @@ Deno.serve(async (req) => {
             page.drawRectangle({ x: px, y: py - CAPTION_H, width: tile_w, height: CAPTION_H, color: COLOR.CAPTION_BAR });
             let cap = caption;
             const maxW = tile_w - 8;
-            while (cap.length > 0 && irFont.widthOfTextAtSize(cap, 7) > maxW) {
+            while (cap.length > 0 && textWidth(cap, irFont, 7) > maxW) {
               cap = cap.slice(0, -1);
             }
             if (cap.length < caption.length && cap.length > 1) cap = cap.slice(0, -1) + "…";
-            page.drawText(cap, { x: px + 4, y: py - CAPTION_H + 4, size: 7, font: irFont, color: COLOR.SLATE });
+            drawText(page, cap, { x: px + 4, y: py - CAPTION_H + 4, size: 7, font: irFont, color: COLOR.SLATE });
           }
         }
       }
@@ -1015,17 +985,17 @@ Deno.serve(async (req) => {
       const p = allPages[i];
       const pageNum = i + 1;
       p.drawLine({ start: { x: 18 * MM, y: 19 * MM }, end: { x: W - 18 * MM, y: 19 * MM }, thickness: 0.4, color: COLOR.BORDER });
-      const left = `${eventNameForFooter} · ${reportDateLabel}`;
+      const left = eventNameForFooter;
       const center = `Page ${pageNum} of ${totalPages}`;
       const right = !effectiveBranding && companyName
         ? `${reportNumber} · ${companyName}`
         : `${reportNumber} · Daily Report`;
       const fSize = 7;
-      p.drawText((left ?? ""), { x: 18 * MM, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
-      const cw = irFont.widthOfTextAtSize(center, fSize);
-      p.drawText(center, { x: (W - cw) / 2, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
-      const rw = irFont.widthOfTextAtSize((right ?? ""), fSize);
-      p.drawText((right ?? ""), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
+      drawText(p, wrapLines(left, irFont, fSize, 180)[0] ?? "", { x: 18 * MM, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
+      const cw = textWidth(center, irFont, fSize);
+      drawText(p, center, { x: (W - cw) / 2, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
+      const rw = textWidth((right ?? ""), irFont, fSize);
+      drawText(p, (right ?? ""), { x: W - 18 * MM - rw, y: 11 * MM, size: fSize, font: irFont, color: COLOR.MIST });
     }
     }
     const pages = await combinedDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
