@@ -502,8 +502,8 @@ Deno.serve(async (req) => {
 
     const needsCjk = /[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]/u.test(JSON.stringify([proj, areas, dayNote, areaNotesRows, dayPhotos]));
     const fontBytes = await loadFontBytes(needsCjk);
-    const pjsFont = await pdfDoc.embedFont(fontBytes.bold, { subset: true });
-    const irFont = await pdfDoc.embedFont(fontBytes.regular, { subset: true });
+    const pjsFont = await pdfDoc.embedFont(fontBytes.bold, { subset: !needsCjk });
+    const irFont = needsCjk ? pjsFont : await pdfDoc.embedFont(fontBytes.regular, { subset: true });
 
     // Event logo: prefer per-export override, fall back to the project's saved default logo.
     let eventLogoImage: PDFImage | null = null;
