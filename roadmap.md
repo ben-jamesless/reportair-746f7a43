@@ -19,3 +19,10 @@
 - [x] Verify regression tests and a fresh PDF export.
 # Analytics platform (later)
 - [ ] Replace the unreliable share-link view counters with a proper analytics platform (accurate client opens, team previews, and engagement over time).
+
+# Beta membership simplification
+- [ ] Unlimited beta entitlements, protected billing history and hidden commercial UI.
+- [ ] Owner-only colleague invitations with company/project acceptance and simple roles.
+- [ ] Access-request and approval emails (shared inbox address and sender verification required).
+- [ ] Optional share expiry and admin-only factual usage reporting.
+- [ ] Verify permissions, invitation flow, exports and paid-tier regressions; document exact inventory.
