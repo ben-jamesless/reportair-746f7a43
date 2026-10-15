@@ -278,39 +278,6 @@ export function SharePanel({
                   </div>
                 </section>
 
-                {/* Who can open it */}
-                <section className="mb-6">
-                  <SectionLabel>Who can open it</SectionLabel>
-                  <div className="mb-3 flex items-center gap-2 text-sm" style={{ color: T.ink2 }}>
-                    {link.has_password ? (
-                      <>
-                        <Lock className="h-4 w-4" style={{ color: T.muted }} />
-                        <span>Password required to open</span>
-                      </>
-                    ) : (
-                      <>
-                        <Unlock className="h-4 w-4" style={{ color: T.muted }} />
-                        <span>Anyone with the link can open</span>
-                      </>
-                    )}
-                  </div>
-                  <FieldLabel htmlFor="share-password">Link password</FieldLabel>
-                  <div className="mt-1.5 flex gap-2">
-                    <input
-                      id="share-password"
-                      type="password"
-                      value={passwordDraft}
-                      onChange={(e) => setPasswordDraft(e.target.value)}
-                      placeholder={link.has_password ? "New password (leave blank to remove)" : "Set a password"}
-                      className={fieldClass}
-                      style={fieldStyle}
-                    />
-                    <button type="button" className={inkButtonClass} onClick={setPassword} disabled={savingPassword}>
-                      {savingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : link.has_password && !passwordDraft ? "Remove" : "Save"}
-                    </button>
-                  </div>
-                </section>
-
                 {/* Photo locations */}
                 <section className="mb-6">
                   <SectionLabel>Photo locations</SectionLabel>
