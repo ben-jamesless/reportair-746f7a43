@@ -763,7 +763,7 @@ Deno.serve(async (req) => {
       const dateY = H - 47 * MM;
       page.drawText(reportDateLabel, { x: M + 8, y: dateY, size: 10, font: pjsFont, color: effectiveAccent });
       const dateW = pjsFont.widthOfTextAtSize(reportDateLabel, 10);
-      page.drawText(buildDayLabel, { x: M + 8 + dateW + 10, y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
+      page.drawText(buildDayLabel, { x: W - M - irFont.widthOfTextAtSize(buildDayLabel, 9), y: dateY + 0.5, size: 9, font: irFont, color: COLOR.MIST });
       // The document states the basis of every time it prints.
       page.drawText(tzNote, { x: M + 8, y: dateY - 13, size: 7.5, font: irFont, color: COLOR.MIST });
 
