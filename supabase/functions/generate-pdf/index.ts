@@ -142,17 +142,18 @@ function wrapLines(text: string, font: PDFFont, fontSize: number, maxWidth: numb
     // Hanging indent for wrapped bullet continuation lines.
     const isBullet = /^\u2022\s+/.test(para);
     const indent = isBullet ? "   " : "";
-    const words = para.match(/[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]|[^\s\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]+/gu) ?? [];
+    const words = para.match(/[\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]|[^\s\u2e80-\u9fff\uac00-\ud7af\u3040-\u30ff]+|\s+/gu) ?? [];
     let current = "";
-    let first = true;
+    let separator = "";
     for (const w of words) {
-      const test = current ? `${current} ${w}` : w;
+      if (/^\s+$/.test(w)) { separator = " "; continue; }
+      const test = current ? `${current}${separator}${w}` : w;
       if (textWidth(test, font, fontSize) <= maxWidth) current = test;
       else {
         if (current) out.push(current);
-        current = first ? w : `${indent}${w}`;
+        current = `${indent}${w}`;
       }
-      first = false;
+      separator = "";
     }
     if (current) out.push(current);
   }
