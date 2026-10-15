@@ -49,11 +49,21 @@ function ColorSwatches({ current, onPick }: { current?: string | null; onPick: (
           key={c}
           type="button"
           onClick={() => onPick(c)}
-          className={`h-6 w-6 rounded-full border-2 transition ${current === c ? "border-foreground ring-2 ring-offset-1 ring-foreground/30" : "border-white/60"}`}
+          className={`h-6 w-6 rounded-full border-2 transition ${current === c ? "border-foreground ring-2 ring-offset-1 ring-foreground/30" : "border-background/60"}`}
           style={{ backgroundColor: c }}
           aria-label={`Color ${c}`}
         />
       ))}
+      <label className="col-span-5 mt-1 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+        <input
+          type="color"
+          value={current && /^#[0-9a-f]{6}$/i.test(current) ? current : "#2563EB"}
+          onChange={(e) => onPick(e.target.value)}
+          className="h-6 w-8 cursor-pointer rounded-none border"
+          aria-label="Custom area colour"
+        />
+        Any colour
+      </label>
     </div>
   );
 }
