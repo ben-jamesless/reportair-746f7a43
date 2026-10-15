@@ -19,7 +19,8 @@ async function getCallerUserId(req: Request): Promise<string | null> {
 }
 
 function isInternalCall(req: Request): boolean {
-  return req.headers.get("x-internal-secret") === Deno.env.get("INTERNAL_SECRET");
+  const secret = Deno.env.get("INTERNAL_SECRET");
+  return Boolean(secret && req.headers.get("x-internal-secret") === secret);
 }
 
 // ── Brand helpers (v5) ───────────────────────────────────────────────────────

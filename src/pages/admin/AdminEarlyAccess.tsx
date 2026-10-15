@@ -10,6 +10,11 @@ export default function AdminEarlyAccess() {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const sendApproval = async (id: string) => {
+    const { data, error } = await supabase.functions.invoke("send-transactional-email", { body: { templateName: "beta-approval", requestId: id } });
+    if (error || !data?.success) toast.error("Access approved, but the email couldn’t be queued. Copy the invitation link or retry.");
+    else toast.success("Approval email queued.");
+  };
   useEffect(() => {
     supabase.from("early_access_requests").select("*").order("created_at", { ascending: false }).then(({ data, error }) => {
       if (error) setError("Couldn’t load early-access requests.");
@@ -24,9 +29,10 @@ export default function AdminEarlyAccess() {
     setBusyId(null);
     if (error) return toast.error("Couldn’t update the request.");
     setRows(current => current.map(row => row.id === id ? data : row));
-    toast.success(status === "approved" ? "Access approved. You can now email their invitation." : "Request declined.");
+    if (status === "approved") await sendApproval(id);
+    else toast.success("Request declined.");
   };
-  const invitation = (email: string) => `${window.location.origin}/auth?tab=signup&beta=1&email=${encodeURIComponent(email)}`;
+  const invitation = (email: string) => `https://buildfolder.com/auth?tab=signup&beta=1&email=${encodeURIComponent(email)}`;
   return (
     <section className="space-y-5">
       <h2 className="text-xl font-semibold">Early-access requests</h2>
@@ -41,7 +47,7 @@ export default function AdminEarlyAccess() {
                 {row.status !== "approved" && <Button size="sm" disabled={busyId === row.id} onClick={() => review(row.id, "approved")}><Check />Approve</Button>}
                 {row.status !== "declined" && <Button size="sm" variant="outline" disabled={busyId === row.id} onClick={() => review(row.id, "declined")}><X />Decline</Button>}
                 {row.status === "approved" && <>
-                  <Button asChild size="sm" variant="outline"><a href={`mailto:${row.email}?subject=${encodeURIComponent("Your BuildFolder beta invitation")}&body=${encodeURIComponent(`Hi ${row.full_name},\n\nYou’re invited to try BuildFolder during beta. Create your account using this email address:\n\n${invitation(row.email)}\n\nThanks,\nBuildFolder`)}`}><Mail />Email invitation</a></Button>
+                  <Button size="sm" variant="outline" disabled={busyId === row.id} onClick={async () => { setBusyId(row.id); await sendApproval(row.id); setBusyId(null); }}><Mail />Resend invitation</Button>
                   <Button size="icon" variant="ghost" title="Copy invitation link" aria-label="Copy invitation link" onClick={async () => { try { await navigator.clipboard.writeText(invitation(row.email)); toast.success("Invitation link copied."); } catch { toast.error("Couldn’t copy the invitation link."); } }}><Copy /></Button>
                 </>}
               </div></td>

@@ -22,8 +22,8 @@ Deno.test("buildPriceToPlan maps configured env vars to plan names", () => {
   const map = buildPriceToPlan(env);
   assertEquals(map["price_solo_m"],   "solo");
   assertEquals(map["price_solo_a"],   "solo");
-  assertEquals(map["price_pro_m"],    "pro");
-  assertEquals(map["price_pro_a"],    "pro");
+  assertEquals(map["price_pro_m"],    "crew");
+  assertEquals(map["price_pro_a"],    "crew");
   assertEquals(map["price_studio_m"], "studio");
   assertEquals(map["price_studio_a"], "studio");
   assertEquals(Object.keys(map).length, 6);
@@ -33,12 +33,12 @@ Deno.test("buildPriceToPlan skips unset env vars", () => {
   const env = (k: string) =>
     k === "STRIPE_PRICE_PRO_MONTHLY" ? "price_pro_only" : undefined;
   const map = buildPriceToPlan(env);
-  assertEquals(map, { price_pro_only: "pro" });
+  assertEquals(map, { price_pro_only: "crew" });
 });
 
 Deno.test("resolvePlan returns mapped plan", () => {
-  const map = { price_x: "pro" as const };
-  assertEquals(resolvePlan("price_x", map), "pro");
+  const map = { price_x: "crew" as const };
+  assertEquals(resolvePlan("price_x", map), "crew");
 });
 
 Deno.test("resolvePlan falls back to solo for unknown price", () => {

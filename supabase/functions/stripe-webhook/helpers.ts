@@ -1,13 +1,13 @@
 // Pure helpers extracted from stripe-webhook so they can be unit tested
 // without booting the HTTP server or hitting Stripe/Supabase.
 
-export type PlanName = "solo" | "pro" | "studio";
+export type PlanName = "solo" | "crew" | "studio";
 
 export const PRICE_ENV_PAIRS: Array<[string, PlanName]> = [
   ["STRIPE_PRICE_SOLO_MONTHLY",   "solo"],
   ["STRIPE_PRICE_SOLO_ANNUAL",    "solo"],
-  ["STRIPE_PRICE_PRO_MONTHLY",    "pro"],
-  ["STRIPE_PRICE_PRO_ANNUAL",     "pro"],
+  ["STRIPE_PRICE_PRO_MONTHLY",    "crew"],
+  ["STRIPE_PRICE_PRO_ANNUAL",     "crew"],
   ["STRIPE_PRICE_STUDIO_MONTHLY", "studio"],
   ["STRIPE_PRICE_STUDIO_ANNUAL",  "studio"],
 ];

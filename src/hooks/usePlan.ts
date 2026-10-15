@@ -85,7 +85,7 @@ export const usePlan = (): PlanState => {
       // (a) it under-counts for non-owners, (b) it drifts from the trigger's caps,
       // and (c) it duplicates the RPC's job.
       let memberCount = 0;
-      let canInviteMember = false;
+      let canInviteMember = planName === "beta";
       if (team?.id) {
         const { data: seat } = await supabase.rpc("team_seat_summary", { _team_id: team.id });
         if (seat && typeof seat === "object") {
