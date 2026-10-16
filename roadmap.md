@@ -40,5 +40,5 @@
 - [x] Signed-in role tests (Viewer/Crew/Editor + cross-event isolation) passed on "test 2"
 
 ## Preview visual corrections
-- [ ] Align Share, Members and Settings panels with the current brand tokens.
-- [ ] Correct Library photo viewer framing and verify signed-in desktop/mobile views.
+- [x] Align Share, Members and Settings panels with the current brand tokens.
+- [x] Correct Library photo viewer framing and verify signed-in desktop/mobile views.
