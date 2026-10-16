@@ -421,7 +421,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
         </p>
       )}
       {canManage && teamCandidates.length > 0 && (
-        <section className="space-y-3 rounded-none border bg-card p-4 shadow-none">
+        <section className="space-y-3 border-b border-border pb-5">
           <div>
             <h4 className="text-sm font-semibold">Add from your team</h4>
             <p className="text-xs text-muted-foreground">
@@ -655,7 +655,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
 
       <section>
         <h4 className="mb-2 text-sm font-semibold">Current access ({members.length})</h4>
-        <div className="space-y-1">
+        <div className="divide-y divide-border">
           {members.map((m) => {
             const isSelf = m.user_id === user?.id;
             const isOwnerRow = m.role === "owner";
@@ -666,7 +666,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
             // Owners cannot remove other owners (transfer/demote first), and never themselves.
             const showRemove = canManage && !isSelf && !isOwnerRow;
             return (
-              <div key={m.user_id} className="flex items-center justify-between gap-2 border border-border px-3 py-2 text-sm">
+              <div key={m.user_id} className="flex items-center justify-between gap-3 py-3 text-sm">
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">
                     {m.full_name || m.email || m.user_id.slice(0, 8)}

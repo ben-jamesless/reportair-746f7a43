@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, MapPin, Calendar, MapPinned, ChevronDown } from "lucide-react";
 import { useLightboxSignedUrl, useThumbSignedUrl } from "@/hooks/useSignedUrl";
@@ -153,21 +153,23 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
 
   return (
     <Dialog open={index !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col overflow-hidden border-0 bg-background p-0 sm:h-[92vh] sm:max-h-[92vh] sm:w-[96vw] sm:max-w-6xl [&>button]:hidden">
-        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[1fr_320px] md:overflow-hidden">
-          <div className="relative flex min-h-[45vh] items-center justify-center overflow-hidden bg-black md:min-h-0">
+      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden border-0 bg-background p-0 sm:h-[80dvh] sm:max-h-[900px] sm:w-[96vw] sm:max-w-[1600px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Photo viewer</DialogTitle>
+        <DialogDescription className="sr-only">{photo.caption || photo.file_name}</DialogDescription>
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_320px] md:overflow-hidden">
+          <div className="relative flex h-[55dvh] min-h-0 items-center justify-center overflow-hidden bg-secondary md:h-full">
             {thumbUrl && !url && (
-              <img src={thumbUrl} alt="" aria-hidden className="h-full w-full object-contain blur-sm" />
+              <img src={thumbUrl} alt="" aria-hidden className="absolute inset-0 h-full w-full object-contain blur-sm" />
             )}
             {url && (
-              <img src={url} alt={photo.caption || photo.file_name} className="h-full w-full object-contain" />
+              <img src={url} alt={photo.caption || photo.file_name} className="absolute inset-0 h-full w-full object-contain" />
             )}
             {photos.length > 1 && (
               <>
-                <Button size="icon" variant="secondary" onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full opacity-90">
+                <Button size="icon" variant="secondary" onClick={prev} aria-label="Previous photo" className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full opacity-90">
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <Button size="icon" variant="secondary" onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full opacity-90">
+                <Button size="icon" variant="secondary" onClick={next} aria-label="Next photo" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full opacity-90">
                   <ChevronRight className="h-5 w-5" />
                 </Button>
               </>
@@ -183,7 +185,7 @@ export const PhotoLightbox = ({ photos, index, onClose, onIndexChange, areas = [
             </Button>
           </div>
 
-          <aside className="flex min-h-0 flex-col gap-4 border-l bg-card p-5 md:overflow-y-auto">
+          <aside className="flex min-h-0 flex-col gap-5 border-t border-border bg-card p-5 md:border-l md:border-t-0 md:overflow-y-auto">
             <MobileSection title="Photo" defaultOpen>
               <h3 className="break-all text-sm font-semibold">{photo.file_name}</h3>
               {photo.caption && <p className="mt-2 text-sm text-foreground">{photo.caption}</p>}
