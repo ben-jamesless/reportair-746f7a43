@@ -370,7 +370,7 @@ const Billing = () => {
               <button
                 onClick={() => setAnnual(true)}
                 className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
-                  annual ? "bg-[#D94F2A] text-white shadow-md" : "text-muted-foreground hover:text-foreground"
+                  annual ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Yearly
@@ -378,7 +378,7 @@ const Billing = () => {
               <button
                 onClick={() => setAnnual(false)}
                 className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-sm sm:text-base font-semibold rounded-full transition-all whitespace-nowrap ${
-                  !annual ? "bg-[#D94F2A] text-white shadow-md" : "text-muted-foreground hover:text-foreground"
+                  !annual ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 Monthly
@@ -402,14 +402,14 @@ const Billing = () => {
                 className={cn(
                   "rounded-2xl border-2 p-4 sm:p-6 flex flex-col gap-4 sm:gap-5",
                   isCurrent
-                    ? "border-[#D94F2A] bg-[#D94F2A]/[0.03] shadow-md"
+                    ? "border-foreground bg-primary/[0.03] shadow-md"
                     : "border-border bg-card"
                 )}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold text-foreground">{p.name}</h3>
                   {isCurrent && (
-                    <Badge className="text-xs bg-[#D94F2A] text-white hover:bg-[#D94F2A]">Current</Badge>
+                    <Badge className="text-xs bg-primary text-primary-foreground hover:bg-primary">Current</Badge>
                   )}
                 </div>
 

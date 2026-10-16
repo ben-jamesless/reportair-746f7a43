@@ -331,7 +331,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
     return (
       <div className="space-y-3">
         {header}
-        <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
+        <div className="h-[70vh] min-h-[500px] overflow-hidden border border-border bg-card">
           {geo ? (
             <SiteMapCanvas
               ref={canvasRef}
@@ -407,7 +407,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
             const hasPrimary = items.some((f) => f.is_primary);
             const isActive = drawingAreaId === a.id;
             return (
-              <li key={a.id} className="border border-[#E3DFD4] p-2">
+              <li key={a.id} className="border border-border p-2">
                 <div className="flex items-center justify-between gap-2">
                   {renamingAreaId === a.id ? (
                     <input
@@ -419,7 +419,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
                         if (e.key === "Enter") { e.preventDefault(); commitRename(a); }
                         if (e.key === "Escape") { e.preventDefault(); setRenamingAreaId(null); }
                       }}
-                      className="flex-1 min-w-0 border border-[#E3DFD4] bg-white px-1.5 py-0.5 text-sm font-medium outline-none focus:border-foreground"
+                      className="flex-1 min-w-0 border border-border bg-white px-1.5 py-0.5 text-sm font-medium outline-none focus:border-foreground"
                     />
                   ) : (
                     <button
@@ -568,7 +568,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
       </aside>
 
 
-      <div className="h-[70vh] min-h-[500px] overflow-hidden border border-[#E3DFD4] bg-card">
+      <div className="h-[70vh] min-h-[500px] overflow-hidden border border-border bg-card">
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}

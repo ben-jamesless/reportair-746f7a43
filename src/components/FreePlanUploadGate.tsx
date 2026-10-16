@@ -27,14 +27,14 @@ export function FreePlanUploadGate({
   return (
     <div
       role="status"
-      className="w-full border-y border-[#E3DFD4] bg-[#FAF8F2] px-4 py-2 text-sm text-[#0F1417]"
+      className="w-full border-y border-border bg-secondary px-4 py-2 text-sm text-foreground"
     >
       {isBillingOwner ? (
         <span>
           Your team's plan is at its build-day limit.{" "}
           <Link
             to="/plan"
-            className="font-medium text-[#D94F2A] underline underline-offset-4 hover:text-[#B53D1F]"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-[#B53D1F]"
           >
             Upgrade →
           </Link>

@@ -357,7 +357,7 @@ const Projects = () => {
             <input
               type="text"
               placeholder="Search events…"
-              className="w-full pl-9 pr-3 h-9 rounded-lg border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#D94F2A]/30"
+              className="w-full pl-9 pr-3 h-9 rounded-lg border border-border bg-muted/40 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -381,7 +381,7 @@ const Projects = () => {
                 className={cn(
                   "px-3 h-9 text-sm font-medium rounded-md transition-colors whitespace-nowrap shrink-0",
                   activeTab === tab
-                    ? "text-[#D94F2A] bg-[#D94F2A]/8"
+                    ? "text-foreground bg-primary/8"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
@@ -423,8 +423,8 @@ const Projects = () => {
         />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#D94F2A]/10 flex items-center justify-center mb-4">
-            <CalendarDays className="w-8 h-8 text-[#D94F2A]" />
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <CalendarDays className="w-8 h-8 text-foreground" />
           </div>
           <h2 className="text-base font-semibold text-foreground mb-1">
             {activeTab === "Archived" ? "No archived events" : "No matching events"}
@@ -437,7 +437,7 @@ const Projects = () => {
           {activeTab !== "Archived" && (
             <button
               onClick={() => { setSearch(""); setActiveTab("All Events"); }}
-              className="px-4 h-9 rounded-lg bg-[#D94F2A] text-white text-sm font-medium hover:bg-[#D94F2A]/90"
+              className="px-4 h-9 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
             >
               Clear filters
             </button>
@@ -463,7 +463,7 @@ const Projects = () => {
             return (
               <div
                 key={p.id}
-                className="group relative flex flex-col border border-[#E3DFD4] bg-card cursor-pointer transition-colors hover:border-[#0F1417]/30"
+                className="group relative flex flex-col border border-border bg-card cursor-pointer transition-colors hover:border-foreground/30"
                 onClick={() => navigate(`/projects/${p.id}`)}
                 draggable={isOwner}
                 onDragStart={(e) => {
@@ -473,13 +473,13 @@ const Projects = () => {
                 }}
               >
                 {/* Static map thumbnail */}
-                <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-[#E3DFD4] bg-[#FAF8F2]">
+                <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-border bg-secondary">
                   {/* Placeholder always present — the thumbnail sits on top and hides itself if it fails to load. */}
                   <div
                     className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-foreground/30"
                     style={{
                       background: `linear-gradient(135deg, ${color}22, ${color}0a)`,
-                      fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                      fontFamily: "'Inter Variable', Inter, system-ui, sans-serif",
                     }}
                   >
                     {p.name.slice(0, 2).toUpperCase()}
@@ -500,7 +500,7 @@ const Projects = () => {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className="flex h-8 w-8 items-center justify-center border border-[#E3DFD4] bg-card/95 backdrop-blur hover:bg-muted/40"
+                            className="flex h-8 w-8 items-center justify-center border border-border bg-card/95 backdrop-blur hover:bg-muted/40"
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
                             aria-label="Event actions"
                           >
@@ -575,8 +575,8 @@ const Projects = () => {
                     </h3>
                     {!isOwner && (
                       <span
-                        className="shrink-0 border border-[#E3DFD4] bg-[#FAF8F2] px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground leading-none"
-                        style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
+                        className="shrink-0 border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground leading-none"
+                        style={{ fontFamily: "'Inter Variable', Inter, system-ui, sans-serif" }}
                       >
                         Invited
                       </span>
@@ -598,7 +598,7 @@ const Projects = () => {
                     />
                     <span
                       className="shrink-0 text-[11px] text-muted-foreground"
-                      style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
+                      style={{ fontFamily: "'Inter Variable', Inter, system-ui, sans-serif" }}
                     >
                       {lastUpload ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true }) : "No updates"}
                     </span>
@@ -812,7 +812,7 @@ const Projects = () => {
                 ) : (
                   <button
                     onClick={() => setCreatingNewFolder(true)}
-                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-[#D94F2A] hover:bg-muted"
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
                   >
                     <Plus className="h-4 w-4" />
                     Add a new folder
@@ -854,7 +854,7 @@ function NewEventButton({
         <TooltipTrigger asChild>
           <button
             disabled
-            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-[#D94F2A]/30 text-white/50 text-sm font-medium cursor-not-allowed"
+            className="flex items-center gap-2 px-4 h-9 rounded-lg bg-primary/30 text-white/50 text-sm font-medium cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             New Event
@@ -863,7 +863,7 @@ function NewEventButton({
         </TooltipTrigger>
         <TooltipContent>
           <p>You've used all {maxProjects} event{maxProjects > 1 ? "s" : ""} on your current plan.</p>
-          <Link to="/billing" className="text-[#D94F2A] underline text-xs">Upgrade →</Link>
+          <Link to="/billing" className="text-foreground underline text-xs">Upgrade →</Link>
         </TooltipContent>
       </Tooltip>
     );
@@ -875,8 +875,8 @@ function NewEventButton({
       className={cn(
         "flex items-center gap-2 px-4 h-9 rounded-lg text-sm font-medium transition-colors",
         primary
-          ? "bg-[#D94F2A] text-white hover:bg-[#D94F2A]/90"
-          : "bg-[#D94F2A] text-white hover:bg-[#D94F2A]/90"
+          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+          : "bg-primary text-primary-foreground hover:bg-primary/90"
       )}
     >
       <Plus className="w-4 h-4" />

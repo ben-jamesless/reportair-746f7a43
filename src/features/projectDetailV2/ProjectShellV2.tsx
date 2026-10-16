@@ -343,7 +343,7 @@ function CrewLanding({ projectName }: { projectName: string | null }) {
 
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center gap-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center border border-[#E3DFD4] bg-[#FAF8F2]">
+      <div className="flex h-16 w-16 items-center justify-center border border-border bg-secondary">
         <Camera className="h-7 w-7 text-muted-foreground" />
       </div>
       <div className="space-y-2">
