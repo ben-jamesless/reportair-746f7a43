@@ -120,6 +120,7 @@ export function FlatButton({
       style={{
         ...MONO_LABEL,
         padding: "6px 11px",
+        borderRadius: 6,
         border: `1px solid ${solid ? V2.ink : V2.rule}`,
         backgroundColor: solid ? V2.ink : V2.white,
         color: solid ? V2.inkFg : V2.soft,

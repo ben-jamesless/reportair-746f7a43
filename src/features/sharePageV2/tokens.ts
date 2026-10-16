@@ -23,7 +23,7 @@ export const V2 = {
   bandFg: "var(--v2-band-fg)",
   bandFgSoft: "var(--v2-band-fg-soft)",
   signalRed: "var(--v2-signal-red)",
-  radiusReport: 4,
+  radiusReport: 8,
   mono: "'Inter Variable', Inter, system-ui, sans-serif",
 };
 
