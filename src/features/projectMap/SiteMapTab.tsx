@@ -360,8 +360,8 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
   return (
     <div className="space-y-3">
       {header}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
-      <aside className="space-y-2">
+      <div className="relative flex flex-col gap-4">
+      <aside className="space-y-2 rounded-lg border border-border bg-card p-3 md:absolute md:left-3 md:top-3 md:z-[500] md:max-h-[calc(70vh-24px)] md:w-[300px] md:overflow-y-auto md:shadow-lg">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Areas</h3>
           {drawingKind && (
@@ -568,7 +568,7 @@ export function SiteMapTab({ projectId, color, canEdit, onAreasChanged, onAreaOp
       </aside>
 
 
-      <div className="h-[70vh] min-h-[500px] overflow-hidden border border-border bg-card">
+      <div className="h-[70vh] min-h-[500px] overflow-hidden rounded-lg border border-border bg-card">
         {geo ? (
           <SiteMapCanvas
             ref={canvasRef}

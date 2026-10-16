@@ -274,9 +274,6 @@ export function LibraryTab({ projectId }: { projectId: string }) {
                     </SelectItem>
                   );
                 })}
-                <SelectItem value={REFERENCE}>
-                  Reference{referencePhotos.length > 0 ? ` (${referencePhotos.length})` : ""}
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -331,12 +328,6 @@ export function LibraryTab({ projectId }: { projectId: string }) {
               </FilterChip>
             );
           })}
-          <FilterChip active={areaFilter === REFERENCE} onClick={() => setAreaFilter(REFERENCE)}>
-            Reference
-            {referencePhotos.length > 0 && (
-              <span className="ml-1.5 opacity-70">{referencePhotos.length}</span>
-            )}
-          </FilterChip>
         </div>
 
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
