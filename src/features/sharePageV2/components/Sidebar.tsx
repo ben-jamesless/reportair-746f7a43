@@ -123,7 +123,7 @@ export function DayTimeline({
         title="Build timeline"
         open={open}
         onToggle={() => setOpen((v) => !v)}
-        right={<span style={{ letterSpacing: "0.08em" }}>Photos</span>}
+        right={<span style={{ }}>Photos</span>}
       />
       {open && (
         <div className="max-h-[420px] overflow-y-auto">

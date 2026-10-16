@@ -90,7 +90,7 @@ export function StatusBar({
           <span style={{ width: 1, height: 16, backgroundColor: V2.rule }} />
           <span
            
-            style={{ fontFamily: V2.mono, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: V2.ink }}
+            style={{ fontFamily: V2.mono, fontSize: 11, fontWeight: 700, color: V2.ink }}
           >
             Filed · {filedStamp}
           </span>
@@ -113,7 +113,7 @@ export function StatusBar({
             />
             <span
              
-              style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: V2.ink }}
+              style={{ fontSize: 11, fontWeight: 700, color: V2.ink }}
             >
               Live
             </span>

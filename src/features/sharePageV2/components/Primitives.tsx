@@ -20,7 +20,7 @@ export function StatusPill({
         borderRadius: 3,
         fontSize: small ? 9.5 : 10.5,
         fontWeight: 700,
-        letterSpacing: "0.05em",
+       ,
         padding: small ? "2px 8px 2px 7px" : "4px 11px 4px 9px",
       }}
     >
@@ -38,7 +38,7 @@ export function SectionLabel({ children, className = "" }: { children: React.Rea
         fontFamily: V2.mono,
         fontSize: 9.5,
         fontWeight: 700,
-        letterSpacing: "0.13em",
+       ,
         color: V2.muted,
         borderTop: `1px solid ${V2.rule}`,
         paddingTop: 10,
@@ -77,7 +77,7 @@ export function CollapsibleSectionLabel({
         fontFamily: V2.mono,
         fontSize: 9.5,
         fontWeight: 700,
-        letterSpacing: "0.13em",
+       ,
         color: V2.muted,
         borderTop: `1px solid ${V2.rule}`,
         paddingTop: 10,

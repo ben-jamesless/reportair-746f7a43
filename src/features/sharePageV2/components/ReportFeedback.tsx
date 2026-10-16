@@ -61,7 +61,7 @@ const chipStyle: React.CSSProperties = {
   fontFamily: V2.mono,
   fontSize: 9.5,
   fontWeight: 700,
-  letterSpacing: "0.08em",
+ ,
   
   padding: "3px 6px",
 };
