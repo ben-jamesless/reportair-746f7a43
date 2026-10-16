@@ -33,5 +33,8 @@
 - [~] Phase 2 visual tokens: Inter, ink/zinc palette, progress colours, section-header tokens, sentence case, light sidebar — done; remaining: card/control radii pass, share-page components, PDF fonts (Geist→Inter in generate-pdf, needs function deploy approval)
 - [x] Phase 3 navigation: Overview tab removed (old links open Daily Report), standard toolbar with role-hidden actions, tab highlight spec, Crew capture screen copy
 - [x] Daily Report headers/colours + 6/5/4/3/2 galleries; Library 8/6/4 grid
-- [ ] Phase 3 pages remaining: hide Library Reference filter, Map floating Event areas panel, Export dialog "Export PDF", company branding simplification
-- [ ] Acceptance tests from brief (roles, cross-company, client links)
+- [x] Phase 3 pages: Library Reference filter hidden, Map floating areas panel, Export dialog, branding default colour aligned to terracotta
+- [x] Client share page restyled: sentence-case Inter labels (no mono/uppercase), 6px controls, 8px cards, verified light + dark on a live link
+- [x] Test suite green (24 tests)
+- [ ] PDF fonts (Geist→Inter in generate-pdf) — blocked: changes the shared export function the live site uses; needs Ben's approval
+- [ ] Signed-in role acceptance tests (Viewer/Crew/Editor gating, cross-event role separation)
