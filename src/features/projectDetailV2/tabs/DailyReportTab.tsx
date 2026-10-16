@@ -20,11 +20,19 @@ import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
 
 
 const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
-  { key: "today_objectives", label: "Today's Objectives" },
-  { key: "today_achievements", label: "Today's Achievements" },
-  { key: "tomorrow_objectives", label: "Tomorrow's Objectives", sublabel: "pre-fills next day" },
-  { key: "open_issues", label: "Open Issues / Risks" },
+  { key: "today_objectives", label: "Today's objectives" },
+  { key: "today_achievements", label: "Today's achievements" },
+  { key: "tomorrow_objectives", label: "Tomorrow's objectives", sublabel: "Pre-fills next day" },
+  { key: "open_issues", label: "Open issues / risks" },
 ];
+
+// Brand guide day-summary colours: blue objectives, green achievements, amber tomorrow, red issues.
+const SUMMARY_COLOUR: Record<DailyField, string> = {
+  today_objectives: "var(--v2-st-progress-fg)",
+  today_achievements: "var(--v2-st-complete-fg)",
+  tomorrow_objectives: "var(--v2-st-flagged-fg)",
+  open_issues: "var(--v2-st-delayed-fg)",
+} as Record<DailyField, string>;
 
 // Presentational tokens for the "filed sheet" pattern — themed via CSS vars so dark mode adapts.
 const SHEET_BG = "var(--sheet-bg)";
