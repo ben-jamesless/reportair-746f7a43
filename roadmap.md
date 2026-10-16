@@ -42,3 +42,8 @@
 ## Preview visual corrections
 - [x] Align Share, Members and Settings panels with the current brand tokens.
 - [x] Correct Library photo viewer framing and verify signed-in desktop/mobile views.
+
+## Password-free share links
+- [x] Clear existing passwords with Ben's approval, including live links.
+- [ ] Remove password prompts and stage prevention of future passwords for draft acceptance.
+- [ ] Verify an active share link and unavailable-link handling without passwords.
