@@ -46,7 +46,7 @@ import {
  * Design pass: dashed dividers between blocks, each with a 9px dot label.
  */
 
-const LABEL_INK = "#5C5850";
+
 const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 type ShareLink = {
@@ -242,7 +242,7 @@ export function SharePanel({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto rounded-none p-0 shadow-none sm:max-w-[480px]"
+          className="w-full overflow-y-auto p-0 shadow-elegant sm:max-w-[480px]"
           style={{ backgroundColor: T.paper, borderColor: T.rule }}
         >
           <PanelBar title="Share & deliver" />
@@ -253,7 +253,7 @@ export function SharePanel({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="px-4 py-5">
+          <div className="px-6 py-6">
             {loading ? (
               <div className="flex items-center gap-2 text-sm" style={{ color: T.muted }}>
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading…
@@ -264,10 +264,10 @@ export function SharePanel({
                 <p className="mb-3 text-sm" style={{ color: T.ink2 }}>
                   No client link yet. One live link per project — it updates as you work, with no publish step.
                 </p>
-                <button type="button" className={inkButtonClass} onClick={createLink} disabled={creating}>
+                <Button type="button" className={inkButtonClass} onClick={createLink} disabled={creating}>
                   {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Create client link
-                </button>
+                </Button>
               </section>
             ) : (
               <>
@@ -275,26 +275,26 @@ export function SharePanel({
                 <section className="mb-6">
                   <SectionLabel>Live client link</SectionLabel>
                   <div
-                    className="border p-3 text-xs break-all"
-                    style={{ fontFamily: MONO, borderColor: T.rule, backgroundColor: T.white, borderRadius: 0, color: T.ink }}
+                    className="rounded-md border p-3 text-xs break-all"
+                    style={{ fontFamily: MONO, borderColor: T.rule, backgroundColor: T.white, borderRadius: 6, color: T.ink }}
                   >
                     {shareUrl}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" className={inkButtonClass} onClick={copyUrl}>
+                    <Button type="button" className={inkButtonClass} onClick={copyUrl}>
                       <Copy className="h-4 w-4" /> Copy
-                    </button>
-                    <button type="button" className={quietButtonClass} onClick={() => setQrOpen(true)}>
+                    </Button>
+                    <Button type="button" variant="outline" className={quietButtonClass} onClick={() => setQrOpen(true)}>
                       <QrCode className="h-4 w-4" /> QR
-                    </button>
+                    </Button>
                     <a className={quietButtonClass} href={teamPreviewUrl ?? undefined} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4" /> Open
                     </a>
                   </div>
                   <div className="mt-3">
-                    <button type="button" className={quietButtonClass} onClick={copyShareMessage}>
+                    <Button type="button" variant="outline" className={quietButtonClass} onClick={copyShareMessage}>
                       <Copy className="h-4 w-4" /> Copy message for WhatsApp / email
-                    </button>
+                    </Button>
                     <p className="mt-1.5 text-xs" style={{ color: T.muted }}>
                       Copies the event name plus the same link, ready to paste.
                     </p>
@@ -305,8 +305,8 @@ export function SharePanel({
                   <SectionLabel>Link expiry</SectionLabel>
                   <Label htmlFor="client-link-expiry">Expiry date (optional, end of day UTC)</Label>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Input id="client-link-expiry" type="date" className="w-auto rounded-none" value={expiry} onChange={event => setExpiry(event.target.value)} />
-                    <Button type="button" variant="outline" className="rounded-none" disabled={savingExpiry} onClick={saveExpiry}>{savingExpiry ? "Saving…" : expiry ? "Save expiry" : "No expiry"}</Button>
+                    <Input id="client-link-expiry" type="date" className="w-auto rounded-md" value={expiry} onChange={event => setExpiry(event.target.value)} />
+                    <Button type="button" variant="outline" className="rounded-md" disabled={savingExpiry} onClick={saveExpiry}>{savingExpiry ? "Saving…" : expiry ? "Save expiry" : "No expiry"}</Button>
                     {expiry && <Button type="button" variant="ghost" onClick={() => setExpiry("")}>Clear date</Button>}
                   </div>
                 </section>
@@ -336,9 +336,9 @@ export function SharePanel({
                   <p className="mb-3 text-xs" style={{ color: T.muted }}>
                     Revoking makes this URL stop working immediately. You can create a new one after.
                   </p>
-                  <button type="button" className={quietButtonClass} onClick={() => setConfirmRevoke(true)}>
+                  <Button type="button" variant="outline" className={quietButtonClass} onClick={() => setConfirmRevoke(true)}>
                     <Trash2 className="h-4 w-4" /> Revoke client link
-                  </button>
+                  </Button>
                 </section>
               </>
             )}
@@ -361,7 +361,7 @@ export function SharePanel({
                 width={280}
                 height={280}
                 className="border"
-                style={{ borderColor: "#E3DFD4" }}
+                style={{ borderColor: T.rule }}
               />
               <p className="text-xs text-muted-foreground text-center break-all" style={{ fontFamily: MONO }}>
                 {shareUrl}

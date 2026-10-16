@@ -112,14 +112,14 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
       {trigger !== null && (
         <DialogTrigger asChild>
           {trigger ?? (
-            <Button variant="outline" size="sm" className="rounded-none">
+            <Button variant="outline" size="sm" className="rounded-md">
               <Settings className="mr-2 h-4 w-4" /> Settings
             </Button>
           )}
         </DialogTrigger>
       )}
       <DialogContent
-        className="flex h-[85vh] max-h-[85vh] w-[calc(100%-2rem)] max-w-2xl flex-col overflow-hidden rounded-none p-0 shadow-none"
+        className="flex h-[85dvh] max-h-[85dvh] w-[calc(100%-2rem)] max-w-2xl flex-col overflow-hidden rounded-lg p-0 shadow-elegant"
         style={{ backgroundColor: T.paper, borderColor: T.rule }}
       >
         <PanelBar title="Project settings" />
@@ -128,7 +128,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
           Edit details, areas, albums and the cover photo for this project.
         </DialogDescription>
 
-        <div className="px-4 pt-4">
+        <div className="px-6 pt-5">
           <SegmentedTabs
             value={tab}
             onValueChange={(v) => setTab(v as SettingsTab)}
@@ -141,7 +141,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
             validation error. */}
         <div
           tabIndex={-1}
-          className="min-h-0 flex-1 overflow-y-auto px-4 py-4 outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+          className="min-h-0 flex-1 overflow-y-auto px-6 py-5 outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
         >
           {tab === "details" && (
             <ProjectEditForm
@@ -169,7 +169,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
                   <BulkSetCaptureDateCard projectId={projectId} />
                 </>
               }
-              elsewhereSection={<ElsewhereBlock />}
+              
             />
           )}
           {tab === "areas" && <AreasManager projectId={projectId} onChanged={onChanged} />}
@@ -178,17 +178,17 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
         </div>
 
         <div
-          className="flex items-center justify-between gap-3 px-4 py-3"
+          className="flex items-center justify-between gap-3 px-6 py-4"
           style={{ borderTop: `1px solid ${T.rule}`, backgroundColor: T.paper2 }}
         >
-          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, }}>
+          <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0, color: T.muted, }}>
             {savedAt ? `Saved ${formatAbsoluteStamp(savedAt, eventTz)}` : "No changes saved yet"}
           </span>
           <div className="flex items-center gap-2">
-            <button type="button" className={quietButtonClass} onClick={() => setOpen(false)} disabled={busy}>
+            <Button type="button" variant="outline" className={quietButtonClass} onClick={() => setOpen(false)} disabled={busy}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               className={inkButtonClass}
               disabled={busy || tab !== "details"}
@@ -197,7 +197,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
               Save changes
-            </button>
+            </Button>
           </div>
         </div>
       </DialogContent>
@@ -212,13 +212,13 @@ function ElsewhereBlock() {
       <SectionLabel>Elsewhere</SectionLabel>
       <dl className="space-y-2 text-sm" style={{ color: T.ink2 }}>
         <div className="flex gap-2">
-          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, paddingTop: 3 }}>
+          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0, color: T.muted, paddingTop: 3 }}>
             Share &amp; deliver
           </dt>
           <dd>Client link, password, view counts and Finalise event.</dd>
         </div>
         <div className="flex gap-2">
-          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, paddingTop: 3 }}>
+          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0, color: T.muted, paddingTop: 3 }}>
             Members
           </dt>
           <dd>Teammates, roles and access.</dd>

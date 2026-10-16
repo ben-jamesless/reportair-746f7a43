@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { TeamSeatStrip } from "./TeamSeatStrip";
 import { ApprovalsInbox } from "./ApprovalsInbox";
 import { UnclassifiedMembersPanel } from "./UnclassifiedMembersPanel";
-import { PanelBar } from "@/features/projectSettings/settingsUi";
+import { PanelBar, SectionLabel } from "@/features/projectSettings/settingsUi";
 
 /**
  * Members panel (v2). Wraps the existing InvitesManager and adds the
@@ -22,7 +22,7 @@ import { PanelBar } from "@/features/projectSettings/settingsUi";
  * see counters and pending requests at a glance.
  */
 
-const LABEL_INK = "#5C5850";
+
 
 export function MembersPanel({
   projectId,
@@ -71,7 +71,7 @@ export function MembersPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full rounded-none p-0 shadow-none sm:max-w-[520px] overflow-y-auto"
+        className="w-full p-0 shadow-elegant sm:max-w-[520px] overflow-y-auto"
       >
         <PanelBar title="Members" />
         <SheetHeader className="space-y-1 px-6 pt-5 text-left">
@@ -87,23 +87,7 @@ export function MembersPanel({
           {plan === "beta" && teamId && <CompanyInvites teamId={teamId} initialProjectId={projectId} />}
 
 
-          <div className="mb-4 flex items-center gap-2">
-            <span
-              aria-hidden
-              className="inline-block shrink-0 rounded-full"
-              style={{ width: 9, height: 9, backgroundColor: "#3A6EA5" }}
-            />
-            <span
-              className="font-semibold"
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.08em",
-                color: LABEL_INK,
-              }}
-            >
-              Project access
-            </span>
-          </div>
+          <SectionLabel>Event access</SectionLabel>
           <InvitesManager projectId={projectId} />
         </div>
       </SheetContent>

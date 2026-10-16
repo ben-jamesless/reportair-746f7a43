@@ -14,10 +14,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { outlineButtonClass } from "@/features/projectSettings/settingsUi";
+import { outlineButtonClass, SectionLabel } from "@/features/projectSettings/settingsUi";
 
-const DASH = "1px dashed #E3DFD4";
-const LABEL_INK = "#5C5850";
+
+
 const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 /**
@@ -86,21 +86,12 @@ export function FinaliseEventBlock({ projectId }: { projectId: string }) {
   if (loading) return null;
 
   return (
-    <section style={{ borderTop: DASH, paddingTop: 20 }}>
-      <div className="mb-3 flex items-center gap-2">
-        <span
-          aria-hidden
-          className="inline-block shrink-0 rounded-full"
-          style={{ width: 9, height: 9, backgroundColor: "#4C6B54" }}
-        />
-        <span className="font-semibold" style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}>
-          Finalise event
-        </span>
-      </div>
+    <section className="mb-6">
+      <SectionLabel>Finalise event</SectionLabel>
 
       {finalisedAt ? (
         <>
-          <p className="mb-3 text-xs" style={{ fontFamily: MONO, color: LABEL_INK }}>
+          <p className="mb-3 text-xs text-muted-foreground">
             Filed{" "}
             {new Date(finalisedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} —
             the client link renders the event record.
