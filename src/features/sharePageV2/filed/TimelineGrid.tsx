@@ -125,7 +125,6 @@ export function TimelineGrid({
                   style={{
                     ...MONO_LABEL,
                     fontSize: 8.5,
-                   ,
                     width: s.width,
                     padding: "3px 2px",
                     color: tone ?? "transparent",

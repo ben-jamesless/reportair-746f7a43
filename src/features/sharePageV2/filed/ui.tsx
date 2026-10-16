@@ -119,7 +119,6 @@ export function FlatButton({
       className={`shrink-0 ${className}`}
       style={{
         ...MONO_LABEL,
-       ,
         padding: "6px 11px",
         border: `1px solid ${solid ? V2.ink : V2.rule}`,
         backgroundColor: solid ? V2.ink : V2.white,
