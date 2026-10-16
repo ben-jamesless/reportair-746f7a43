@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ChevronDown, Loader2, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ChevronDown, Loader2, Link2Off } from "lucide-react";
 import { ReportFooter } from "./components/ReportFooter";
 import { useShareV2 } from "./useShareV2";
 import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, parseISO, timeLabel, worstStatus } from "./tokens";
@@ -38,9 +35,8 @@ function timeLabelDate(iso: string): string | null {
 
 export default function SharePageV2() {
   const { token } = useParams<{ token: string }>();
-  const { meta, day, loading, needPassword, passwordError, activeDate, submitPassword, setActiveDate } =
+  const { meta, day, loading, activeDate, setActiveDate } =
     useShareV2(token);
-  const [password, setPassword] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [refLightboxIndex, setRefLightboxIndex] = useState<number | null>(null);
@@ -309,41 +305,16 @@ export default function SharePageV2() {
     );
   }
 
-  if (needPassword || !meta?.ok || !project) {
+  if (!meta?.ok || !project) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-6" style={{ backgroundColor: V2.paper }}>
-        <form
-          className="w-full max-w-sm p-6"
-          style={{ backgroundColor: V2.white, border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitPassword(password);
-          }}
-        >
-          <div className="mb-4 flex items-center gap-2" style={{ color: V2.ink }}>
-            <Lock className="h-4 w-4" />
-            <span style={{ fontWeight: 700 }}>This report is protected</span>
-          </div>
-          <Label htmlFor="v2-pwd" style={{ color: V2.soft }}>
-            Password
-          </Label>
-          <Input
-            id="v2-pwd"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1.5"
-            autoFocus
-          />
-          {passwordError && (
-            <p className="mt-2" style={{ fontSize: 12, color: "#A11616" }}>
-              That link or password isn't valid.
-            </p>
-          )}
-          <Button type="submit" className="mt-4 w-full">
-            View report
-          </Button>
-        </form>
+      <div className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+        <div className="w-full max-w-sm text-center" role="status">
+          <Link2Off className="mx-auto mb-4 h-6 w-6 text-muted-foreground" />
+          <h1 className="text-lg font-semibold">Report unavailable</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This link may have expired or been revoked. Ask the event team for a current link.
+          </p>
+        </div>
       </div>
     );
   }

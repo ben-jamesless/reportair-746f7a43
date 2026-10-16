@@ -1,15 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ShareV2Day, ShareV2Meta } from "./types";
 import { isoToday } from "./tokens";
-import { setSharePassword } from "./sharePassword";
 
 type State = {
   meta: ShareV2Meta | null;
   day: ShareV2Day | null;
   loading: boolean;
-  needPassword: boolean;
-  passwordError: boolean;
   activeDate: string | null;
 };
 
@@ -19,11 +16,8 @@ export function useShareV2(token: string | undefined) {
     meta: null,
     day: null,
     loading: true,
-    needPassword: false,
-    passwordError: false,
     activeDate: null,
   });
-  const pwdRef = useRef<string | null>(null);
 
   const pickDefaultDate = (meta: ShareV2Meta): string | null => {
     const days = (meta.days ?? []).map((d) => d.date).sort();
@@ -35,7 +29,7 @@ export function useShareV2(token: string | undefined) {
   };
 
   const loadMeta = useCallback(
-    async (password: string | null, isRefresh = false) => {
+    async (isRefresh = false) => {
       if (!token) return;
       if (!isRefresh) setState((s) => ({ ...s, loading: true }));
       // ?preview=<signed token> is appended only by the app's own team-facing
@@ -45,7 +39,7 @@ export function useShareV2(token: string | undefined) {
       const previewToken = new URLSearchParams(window.location.search).get("preview");
       const { data, error } = await supabase.rpc("share_meta" as never, {
         _token: token,
-        _password: password,
+        _password: null,
         _preview: previewToken,
       } as never);
       const meta = (data ?? null) as unknown as ShareV2Meta | null;
@@ -54,20 +48,14 @@ export function useShareV2(token: string | undefined) {
         setState((s) => ({
           ...s,
           loading: false,
-          needPassword: true,
-          passwordError: password !== null,
           meta: isRefresh ? s.meta : null,
         }));
         return;
       }
-      pwdRef.current = password;
-      setSharePassword(password);
       setState((s) => ({
         ...s,
         meta,
         loading: false,
-        needPassword: false,
-        passwordError: false,
         activeDate: s.activeDate ?? pickDefaultDate(meta),
       }));
     },
@@ -79,7 +67,7 @@ export function useShareV2(token: string | undefined) {
       if (!token) return;
       const { data } = await supabase.rpc("share_day" as never, {
         _token: token,
-        _password: pwdRef.current,
+        _password: null,
         _date: date,
       } as never);
       const day = (data ?? null) as unknown as ShareV2Day | null;
@@ -89,7 +77,7 @@ export function useShareV2(token: string | undefined) {
   );
 
   useEffect(() => {
-    void loadMeta(null);
+    void loadMeta();
   }, [loadMeta]);
 
   useEffect(() => {
@@ -100,17 +88,16 @@ export function useShareV2(token: string | undefined) {
   useEffect(() => {
     if (!state.meta?.ok) return;
     const id = window.setInterval(() => {
-      void loadMeta(pwdRef.current, true);
+      void loadMeta(true);
       if (state.activeDate) void loadDay(state.activeDate);
     }, 60000);
     return () => window.clearInterval(id);
   }, [state.meta?.ok, state.activeDate, loadMeta, loadDay]);
 
-  const submitPassword = useCallback((pwd: string) => loadMeta(pwd), [loadMeta]);
   const setActiveDate = useCallback(
     (d: string) => setState((s) => (s.activeDate === d ? s : { ...s, activeDate: d, day: null })),
     []
   );
 
-  return { ...state, submitPassword, setActiveDate };
+  return { ...state, setActiveDate };
 }
