@@ -745,7 +745,7 @@ export default function SharePageV2() {
                   <span>
                     <span
                       className="block"
-                      style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.soft }}
+                      style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, color: V2.soft }}
                     >
                       Reference photos
                     </span>
@@ -765,8 +765,8 @@ export default function SharePageV2() {
                     style={{ border: `1px solid ${V2.rule}`, borderTop: "none", backgroundColor: V2.paperDim }}
                   >
                     <span
-                      className="uppercase"
-                      style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.09em", color: V2.soft }}
+                     
+                      style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, color: V2.soft }}
                     >
                       {refFilterLabel ?? areaNameById.get(refAreaFilter) ?? "Area"} · {visibleRefPhotos.length}
                     </span>

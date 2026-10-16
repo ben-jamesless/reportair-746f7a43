@@ -10,10 +10,8 @@ import { V2, parseISO } from "../tokens";
 
 export const MONO_LABEL: React.CSSProperties = {
   fontFamily: V2.mono,
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: "0.14em",
-  
+  fontSize: 11,
+  fontWeight: 600,
 };
 
 /** Mono section label with a hairline rule and an optional right-hand note. */
@@ -121,8 +119,8 @@ export function FlatButton({
       className={`shrink-0 ${className}`}
       style={{
         ...MONO_LABEL,
-        letterSpacing: "0.1em",
         padding: "6px 11px",
+        borderRadius: 6,
         border: `1px solid ${solid ? V2.ink : V2.rule}`,
         backgroundColor: solid ? V2.ink : V2.white,
         color: solid ? V2.inkFg : V2.soft,

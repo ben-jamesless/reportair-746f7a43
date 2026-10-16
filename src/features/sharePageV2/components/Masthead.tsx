@@ -28,7 +28,7 @@ export function Masthead({
     >
       <div className="flex flex-col justify-center gap-1">
         <h1
-          className="uppercase"
+         
           style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.15, color: V2.ink }}
         >
           {project.name}
@@ -53,7 +53,7 @@ export function Masthead({
           )}
         </div>
         {org && (
-          <div className="uppercase" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: V2.ink }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: V2.ink }}>
             {org}
           </div>
         )}

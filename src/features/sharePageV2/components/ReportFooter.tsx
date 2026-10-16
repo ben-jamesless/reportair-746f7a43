@@ -59,19 +59,19 @@ export function ReportFooter({
           )}
           {mode === "filed" && (
             <div
-              className="uppercase"
-              style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.13em", color: V2.muted }}
+             
+              style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, color: V2.muted }}
             >
               {`Event record — ${projectName}${filedStamp ? ` · Filed ${filedStamp}` : ""}`}
             </div>
           )}
         </div>
-        <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
+        <div style={{ fontFamily: V2.mono, fontSize: 9.5, color: V2.muted }}>
           {mode === "filed" ? `Generated ${DATE_LONG.format(stamp)}` : `Report day: ${todayLong}`}
         </div>
       </div>
       <div className="mt-1.5">
-        <div style={{ fontFamily: V2.mono, fontSize: 9.5, letterSpacing: "0.08em", color: V2.muted }}>
+        <div style={{ fontFamily: V2.mono, fontSize: 9.5, color: V2.muted }}>
           {tzNote}
         </div>
       </div>

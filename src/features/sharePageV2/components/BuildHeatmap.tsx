@@ -156,7 +156,6 @@ export function BuildHeatmap({
                       width: s.span * colWidth,
                       fontFamily: V2.mono,
                       fontSize: 8.5,
-                      letterSpacing: "0.08em",
                       fontWeight: 700,
                       padding: "3px 2px",
                       color: tone ?? V2.muted,
@@ -173,13 +172,12 @@ export function BuildHeatmap({
             </div>
           ) : (
             <div
-              className="uppercase"
+             
               style={{
                 marginLeft: nameWidth,
                 marginBottom: 4,
                 fontFamily: V2.mono,
                 fontSize: 8.5,
-                letterSpacing: "0.08em",
                 fontWeight: 700,
                 color: V2.muted,
                 borderBottom: `1px dashed ${V2.rule}`,
@@ -271,7 +269,6 @@ export function BuildHeatmap({
                 width: nameWidth,
                 fontFamily: V2.mono,
                 fontSize: 8.5,
-                letterSpacing: "0.08em",
                 fontWeight: 700,
                 color: V2.muted,
               }}

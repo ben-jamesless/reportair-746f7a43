@@ -10,7 +10,7 @@ function TodaySection({ title, value, tone }: { title: string; value: string | n
     <div className="mb-4 last:mb-0" style={{ borderLeft: `2px solid ${tone}`, paddingLeft: 10 }}>
       <h4
         className="mb-1"
-        style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.1em", color: tone }}
+        style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, color: tone }}
       >
         {title}
       </h4>
@@ -123,7 +123,7 @@ export function DayTimeline({
         title="Build timeline"
         open={open}
         onToggle={() => setOpen((v) => !v)}
-        right={<span style={{ letterSpacing: "0.08em" }}>Photos</span>}
+        right={<span style={{ }}>Photos</span>}
       />
       {open && (
         <div className="max-h-[420px] overflow-y-auto">

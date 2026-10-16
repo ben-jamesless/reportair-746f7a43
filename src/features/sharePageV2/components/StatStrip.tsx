@@ -17,8 +17,8 @@ export function StatStrip({ stats }: { stats: Stat[] }) {
       {stats.map((s) => (
         <div key={s.label} style={{ backgroundColor: V2.white, padding: "14px 16px" }}>
           <div
-            className="uppercase"
-            style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.1em", color: V2.muted, marginBottom: 5 }}
+           
+            style={{ fontSize: 9.5, fontWeight: 700, color: V2.muted, marginBottom: 5 }}
           >
             {s.label}
           </div>
@@ -52,8 +52,8 @@ export function StatTable({ stats }: { stats: Stat[] }) {
         >
           <div className="min-w-0">
             <div
-              className="uppercase"
-              style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.1em", color: V2.muted }}
+             
+              style={{ fontSize: 9.5, fontWeight: 700, color: V2.muted }}
             >
               {s.label}
             </div>

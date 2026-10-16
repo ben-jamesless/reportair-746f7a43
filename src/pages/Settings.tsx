@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 
 
-const DEFAULT_BRAND = "#D94F2A";
+const DEFAULT_BRAND = "#D4573A";
 
 // WCAG relative luminance — returns ratio against white.
 function contrastRatioAgainstWhite(hex: string): number {
@@ -124,7 +124,7 @@ export default function SettingsPage() {
   const handleSaveBrand = async () => {
     if (!teamId) return;
     if (!isValidHex(brandColour)) {
-      toast.error("Please enter a valid hex colour (e.g. #D94F2A).");
+      toast.error("Please enter a valid hex colour (e.g. #D4573A).");
       return;
     }
     setSavingBrand(true);
@@ -288,7 +288,7 @@ export default function SettingsPage() {
                       <Input
                         value={brandColour}
                         onChange={(e) => setBrandColour(e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`)}
-                        placeholder="#D94F2A"
+                        placeholder="#D4573A"
                         className="w-32 font-mono"
                         maxLength={7}
                       />
