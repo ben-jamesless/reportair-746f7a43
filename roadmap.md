@@ -37,4 +37,4 @@
 - [x] Client share page restyled: sentence-case Inter labels (no mono/uppercase), 6px controls, 8px cards, verified light + dark on a live link
 - [x] Test suite green (24 tests)
 - [x] PDF fonts switched to Inter in code — goes live when the draft is accepted
-- [ ] Signed-in role acceptance tests (Viewer/Crew/Editor gating, cross-event role separation)
+- [x] Signed-in role tests (Viewer/Crew/Editor + cross-event isolation) passed on "test 2"
