@@ -60,7 +60,7 @@ export function StatusBar({
             fontFamily: V2.mono,
             fontSize: 10,
             fontWeight: 700,
-            letterSpacing: "0.09em",
+           ,
             color: V2.ink,
             border: `1px solid ${V2.rule}`,
             backgroundColor: V2.white,
@@ -72,7 +72,7 @@ export function StatusBar({
       )}
       <div className="flex items-center gap-2">
         <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: meta.fg }} />
-        <span style={{ fontSize: 12, fontWeight: 700, color: meta.fg, letterSpacing: "0.07em" }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: meta.fg }}>
           {meta.label}
         </span>
       </div>
@@ -129,7 +129,7 @@ export function StatusBar({
               fontFamily: V2.mono,
               fontSize: 10,
               fontWeight: 700,
-              letterSpacing: "0.09em",
+             ,
               color: V2.ink,
               border: `1px solid ${V2.rule}`,
               backgroundColor: V2.white,

@@ -15,7 +15,7 @@ export function StatusMapKey() {
     >
       <span
        
-        style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.09em", color: V2.muted }}
+        style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, color: V2.muted }}
       >
         Status key
       </span>

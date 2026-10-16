@@ -117,7 +117,7 @@ export function PanelHeader({
         fontFamily: V2.mono,
         fontSize: 10,
         fontWeight: 700,
-        letterSpacing: "0.1em",
+       ,
         color: V2.bandFgSoft,
         padding: "12px 16px",
         backgroundColor: V2.band,

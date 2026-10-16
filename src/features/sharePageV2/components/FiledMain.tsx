@@ -73,7 +73,7 @@ function AreaCard({
           <StatusPill status={area.latest_status} small />
         </div>
         <span className="flex items-center justify-between">
-          <span style={{ fontFamily: V2.mono, fontSize: 10.5, letterSpacing: "0.06em", color: V2.muted }}>
+          <span style={{ fontFamily: V2.mono, fontSize: 10.5, color: V2.muted }}>
             {area.photo_count} PHOTO{area.photo_count === 1 ? "" : "S"}
           </span>
           <ChevronDown
@@ -115,7 +115,7 @@ function AreaGallery({ token, area }: { token: string; area: ShareV2AreaMeta }) 
     >
       <div
         className="mb-2"
-        style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.soft }}
+        style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, color: V2.soft }}
       >
         {area.name} · {photos ? `${photos.length} photo${photos.length === 1 ? "" : "s"}` : "loading…"}
       </div>

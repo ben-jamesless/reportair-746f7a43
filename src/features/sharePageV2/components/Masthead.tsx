@@ -53,7 +53,7 @@ export function Masthead({
           )}
         </div>
         {org && (
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: V2.ink }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: V2.ink }}>
             {org}
           </div>
         )}

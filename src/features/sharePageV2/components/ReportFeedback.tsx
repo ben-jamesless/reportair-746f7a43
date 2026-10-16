@@ -78,7 +78,7 @@ function actionStyle(disabled: boolean): React.CSSProperties {
     fontFamily: V2.mono,
     fontSize: 10.5,
     fontWeight: 700,
-    letterSpacing: "0.09em",
+   ,
     
     color: V2.bandFg,
     backgroundColor: disabled ? V2.muted : V2.band,
@@ -401,7 +401,7 @@ export function ReportFeedback({
       <div className="flex items-center justify-between" style={{ backgroundColor: V2.band, padding: "12px 16px" }}>
         <span
          
-          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.bandFgSoft }}
+          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, color: V2.bandFgSoft }}
         >
           {headerTitle}
         </span>
@@ -583,7 +583,7 @@ export function OpsContact({ contact }: { contact: { name: string; role?: string
           fontFamily: V2.mono,
           fontSize: 10,
           fontWeight: 700,
-          letterSpacing: "0.1em",
+         ,
           color: V2.bandFgSoft,
           padding: "12px 16px",
           backgroundColor: V2.band,
