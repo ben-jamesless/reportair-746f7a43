@@ -24,7 +24,7 @@ export const BuildFolderLockup = ({ className, onDark = false, size = 22 }: Lock
       aria-label="BuildFolder"
       role="img"
       style={{
-        font: `900 ${size}px Geist, system-ui, sans-serif`,
+        font: `700 ${size}px "Inter Variable", Inter, system-ui, sans-serif`,
         letterSpacing: "-0.03em",
         lineHeight: 1,
         gap: 0,
