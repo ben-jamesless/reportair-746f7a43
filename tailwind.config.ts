@@ -59,6 +59,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        brand: "hsl(var(--brand))",
+        "section-header": { DEFAULT: "hsl(var(--section-header))", border: "hsl(var(--section-header-border))" },
+        legend: "hsl(var(--legend))",
+        progress: {
+          "not-started": "hsl(var(--progress-not-started))",
+          "in-progress": "hsl(var(--progress-in-progress))",
+          flagged: "hsl(var(--progress-flagged))",
+          delayed: "hsl(var(--progress-delayed))",
+          complete: "hsl(var(--progress-complete))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -76,9 +86,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Geist", "system-ui", "sans-serif"],
-        display: ["Geist", "system-ui", "sans-serif"],
-        mono: ['"Geist Mono"', "ui-monospace", "monospace"],
+        sans: ['"Inter Variable"', "Inter", "system-ui", "sans-serif"],
+        display: ['"Inter Variable"', "Inter", "system-ui", "sans-serif"],
+        // Brand guide: no monospace metadata — mono maps to Inter with tabular numerals.
+        mono: ['"Inter Variable"', "Inter", "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
