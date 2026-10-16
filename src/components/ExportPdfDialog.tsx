@@ -139,14 +139,14 @@ export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, avail
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger ?? <Button variant="outline" size="sm"><FileDown />Export PDF</Button>}</DialogTrigger>
-      <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto rounded-none border-border bg-background p-0 shadow-none">
+      <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto rounded-xl border-border bg-background p-0 shadow-lg">
         <DialogHeader className="border-b border-border px-6 py-5">
           <DialogTitle className="flex items-center gap-2"><FileDown className="h-5 w-5" />Export PDF</DialogTitle>
           <DialogDescription>Portrait report</DialogDescription>
         </DialogHeader>
         <div className="space-y-6 px-6 pb-6">
           <div className="space-y-2">
-            <Label htmlFor="export-date-mode" className="font-mono text-xs text-muted-foreground">Report date</Label>
+            <Label htmlFor="export-date-mode" className="text-xs font-medium text-muted-foreground">Report date</Label>
             <Select value={mode} onValueChange={value => { setMode(value); setFile(null); }} disabled={busy}>
               <SelectTrigger id="export-date-mode" className="rounded-none"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="single">Current date</SelectItem><SelectItem value="range">Date range</SelectItem></SelectContent>
@@ -157,11 +157,11 @@ export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, avail
             <p className="text-xs text-muted-foreground">{loadingDays ? "Loading dates…" : `${count} photos`}</p>
           </div>
           <fieldset className="space-y-3" disabled={busy}>
-            <legend className="font-mono text-xs text-muted-foreground">File size</legend>
+            <legend className="text-xs font-medium text-muted-foreground">File size</legend>
             <div className="grid grid-cols-2 gap-3">
               {[{ value: "compressed", label: "Compressed", detail: "Smaller file" }, { value: "high_res", label: "Large", detail: "Higher image detail" }].map(option => (
-                <label key={option.value} className={cn("flex cursor-pointer items-start gap-2 border p-3", quality === option.value ? "border-primary bg-primary/5" : "border-border")}>
-                  <input type="radio" name="export-quality" value={option.value} checked={quality === option.value} onChange={() => { setQuality(option.value); setFile(null); }} className="mt-1 accent-primary" />
+                <label key={option.value} className={cn("flex cursor-pointer items-start gap-2 rounded-lg border p-3", quality === option.value ? "border-foreground bg-muted" : "border-border")}>
+                  <input type="radio" name="export-quality" value={option.value} checked={quality === option.value} onChange={() => { setQuality(option.value); setFile(null); }} className="mt-1 accent-foreground" />
                   <span><span className="block text-sm font-medium">{option.label}</span><span className="mt-1 block text-xs text-muted-foreground">{option.detail}</span></span>
                 </label>
               ))}
@@ -170,7 +170,7 @@ export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, avail
           {overCap && <p role="alert" className="text-sm text-destructive">This selection exceeds 300 photos. Choose a smaller date range.</p>}
           {!shareToken && !planLoading && !canExportPdf && <p className="text-sm text-destructive">PDF export isn’t available on your current plan or you’ve reached its export limit.</p>}
           {error && <p role="alert" className="break-words border-t border-border pt-4 text-sm text-destructive">{error}</p>}
-          {file ? <div className="space-y-2 border-t border-border pt-4"><p role="status" className="text-sm">Your report is ready.</p><Button onClick={download} className="w-full rounded-none"><Download />Download PDF</Button>{readyUrl && <a href={readyUrl} target="_blank" rel="noopener noreferrer" className="block text-center text-xs text-muted-foreground underline">Open PDF</a>}</div> : <Button onClick={start} disabled={busy || loadingDays || overCap || (!shareToken && (planLoading || !canExportPdf)) || (mode === "range" && (!from || !to))} className="w-full rounded-none">{busy ? <Loader2 className="animate-spin" /> : <FileDown />}{busy ? "Generating report…" : "Generate PDF"}</Button>}
+          {file ? <div className="space-y-2 border-t border-border pt-4"><p role="status" className="text-sm">Your report is ready.</p><Button onClick={download} className="h-10 w-full"><Download />Download PDF</Button>{readyUrl && <a href={readyUrl} target="_blank" rel="noopener noreferrer" className="block text-center text-xs text-muted-foreground underline">Open PDF</a>}</div> : <Button onClick={start} disabled={busy || loadingDays || overCap || (!shareToken && (planLoading || !canExportPdf)) || (mode === "range" && (!from || !to))} className="h-10 w-full">{busy ? <Loader2 className="animate-spin" /> : <FileDown />}{busy ? "Generating report…" : "Generate PDF"}</Button>}
         </div>
       </DialogContent>
     </Dialog>
@@ -178,5 +178,5 @@ export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, avail
 }
 function DateField({ label, value, onChange, min, max, disabled }: { label: string; value: string | null; onChange: (value: string) => void; min?: string | null; max?: string | null; disabled: boolean }) {
   const [open, setOpen] = useState(false);
-  return <div className="space-y-1"><Label className="text-xs text-muted-foreground">{label}</Label><Popover open={open} onOpenChange={setOpen}><PopoverTrigger asChild><Button variant="outline" disabled={disabled} aria-label={label} className="w-full justify-start rounded-none px-2 font-normal"><CalendarIcon />{value ? format(toDate(value), "d MMM yyyy") : "Pick a date"}</Button></PopoverTrigger><PopoverContent className="w-auto rounded-none p-0" align="start"><Calendar mode="single" selected={value ? toDate(value) : undefined} defaultMonth={value ? toDate(value) : undefined} onSelect={date => { if (date) { onChange(dateKey(date)); setOpen(false); } }} disabled={date => !!((min && dateKey(date) < min) || (max && dateKey(date) > max))} initialFocus className="pointer-events-auto p-3" /></PopoverContent></Popover></div>;
+  return <div className="space-y-1"><Label className="text-xs text-muted-foreground">{label}</Label><Popover open={open} onOpenChange={setOpen}><PopoverTrigger asChild><Button variant="outline" disabled={disabled} aria-label={label} className="w-full justify-start px-2 font-normal"><CalendarIcon />{value ? format(toDate(value), "d MMM yyyy") : "Pick a date"}</Button></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={value ? toDate(value) : undefined} defaultMonth={value ? toDate(value) : undefined} onSelect={date => { if (date) { onChange(dateKey(date)); setOpen(false); } }} disabled={date => !!((min && dateKey(date) < min) || (max && dateKey(date) > max))} initialFocus className="pointer-events-auto p-3" /></PopoverContent></Popover></div>;
 }
