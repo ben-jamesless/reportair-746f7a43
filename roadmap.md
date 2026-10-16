@@ -45,5 +45,5 @@
 
 ## Password-free share links
 - [x] Clear existing passwords with Ben's approval, including live links.
-- [ ] Remove password prompts and stage prevention of future passwords for draft acceptance.
-- [ ] Verify an active share link and unavailable-link handling without passwords.
+- [x] Remove password prompts and stage prevention of future passwords for draft acceptance.
+- [x] Verify an active share link and unavailable-link handling without passwords; legacy share page opens and 24 tests pass.
