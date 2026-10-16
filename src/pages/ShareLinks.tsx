@@ -14,7 +14,6 @@ type Row = {
   id: string;
   token: string;
   label: string | null;
-  has_password: boolean;
   expires_at: string | null;
   revoked_at: string | null;
   view_count: number;
@@ -33,7 +32,7 @@ export default function ShareLinksPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,last_accessed_at,created_at,project_id")
+      .select("id,token,label,expires_at,revoked_at,view_count,last_accessed_at,created_at,project_id")
       .order("created_at", { ascending: false });
     if (error) { toast.error(error.message); setRows([]); setLoading(false); return; }
     const links = (data ?? []) as Row[];
@@ -120,7 +119,6 @@ export default function ShareLinksPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-sm font-medium text-foreground">{r.label || "Untitled link"}</span>
                           <Badge variant={isActive ? "default" : "secondary"}>{status}</Badge>
-                          {r.has_password && <Badge variant="outline">Password</Badge>}
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">
                           Project:{" "}

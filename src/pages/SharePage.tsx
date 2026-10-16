@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Lock, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind, Map as MapIcon, Images } from "lucide-react";
+import { Loader2, X, ChevronLeft, ChevronRight, ChevronDown, Download, Calendar, Layers, ImagePlus, MessageSquare, Sun, Moon, Cloud, CloudRain, CloudSnow, CloudFog, CloudLightning, CloudDrizzle, Wind, Map as MapIcon, Images } from "lucide-react";
 import { toast } from "sonner";
 import { groupPhotosByDate } from "@/lib/photoUtils";
 import { cn } from "@/lib/utils";
@@ -191,10 +191,6 @@ const SharePage = () => {
   const isMobile = useIsMobile();
   const [data, setData] = useState<Resolved | null>(null);
   const [loading, setLoading] = useState(true);
-  const [password, setPassword] = useState("");
-  const [needPassword, setNeedPassword] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [activeKey, _setActiveKey] = useState<string>(() => {
     // Hydrate from ?zone= if present
     if (typeof window !== "undefined") {
@@ -244,41 +240,20 @@ const SharePage = () => {
     if (!token) return;
     const stored = localStorage.getItem(guestKey(token));
     if (stored) try { setGuest(JSON.parse(stored)); } catch { /* ignore */ }
-    resolve(null);
+    resolve();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  const resolve = async (pwd: string | null) => {
-    if (lockedUntil && Date.now() < lockedUntil) return;
+  const resolve = async () => {
     setLoading(true);
-    const { data: res, error } = await supabase.rpc("resolve_share_link", { _token: token, _password: pwd });
+    const { data: res, error } = await supabase.rpc("resolve_share_link", { _token: token, _password: null });
     setLoading(false);
     if (error) { toast.error(error.message); return; }
     const r = res as unknown as Resolved;
     if (!r.ok) {
-      if (r.error === "password_required") { setNeedPassword(true); return; }
-      // Server-side rate limit hit — lock the UI for 10 minutes to match server window.
-      if (r.error === "rate_limited") {
-        setLockedUntil(Date.now() + 10 * 60 * 1000);
-        setAttempts(0);
-        setData(r);
-        return;
-      }
-      // Treat any non-ok response when a password was supplied as a wrong-password attempt.
-      if (pwd) {
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-        if (newAttempts >= 5) {
-          setLockedUntil(Date.now() + 60 * 1000);
-          setAttempts(0);
-        }
-      }
       setData(r);
       return;
     }
-    setNeedPassword(false);
-    setAttempts(0);
-    setLockedUntil(null);
     setData(r);
     if (r.project?.name) {
       document.title = `${r.project.name} — BuildFolder`;
@@ -589,36 +564,6 @@ const SharePage = () => {
 
   if (loading && !data) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
-  }
-
-  if (needPassword) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-card p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="space-y-4 pt-6">
-            <div className="text-center">
-              <Lock className="mx-auto h-8 w-8" style={{ color: MUTED }} />
-              <h1 className="mt-2 text-lg font-semibold" style={{ color: NEAR_BLACK }}>Password required</h1>
-              <p className="text-sm" style={{ color: MUTED }}>Enter the password to view this gallery.</p>
-            </div>
-            <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button
-              className="w-full text-white"
-              style={{ backgroundColor: accent }}
-              onClick={() => resolve(password)}
-              disabled={!!(lockedUntil && Date.now() < lockedUntil)}
-            >
-              Unlock
-            </Button>
-            {lockedUntil && Date.now() < lockedUntil && (
-              <p className="text-center text-sm" style={{ color: "#FF3B30" }}>
-                Too many attempts — please try again later
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
   }
 
   if (data && !data.ok) {

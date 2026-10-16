@@ -53,7 +53,6 @@ type ShareLink = {
   id: string;
   token: string;
   label: string | null;
-  has_password: boolean;
   expires_at: string | null;
   revoked_at: string | null;
   view_count: number;
@@ -124,7 +123,7 @@ export function SharePanel({
     setLoading(true);
     const { data } = await supabase
       .from("share_links")
-      .select("id,token,label,has_password,expires_at,revoked_at,view_count,team_view_count,last_accessed_at,created_at,show_photo_pins")
+      .select("id,token,label,expires_at,revoked_at,view_count,team_view_count,last_accessed_at,created_at,show_photo_pins")
       .eq("project_id", projectId)
       .is("revoked_at", null)
       .order("created_at", { ascending: false })
