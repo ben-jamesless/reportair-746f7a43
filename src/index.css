@@ -403,3 +403,16 @@ summary:focus-visible,
   outline-offset: 2px;
 }
 
+
+/* Brand guide photo densities. Report galleries 6/5/4/3/2, Library 8/6/4. */
+.bf-report-grid { display: grid; gap: 8px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.bf-report-grid > * { min-width: 0; }
+.bf-report-grid img { aspect-ratio: 1.15; }
+@media (max-width: 1200px) { .bf-report-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (max-width: 1050px) { .bf-report-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 600px)  { .bf-report-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 420px)  { .bf-report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.bf-library-grid { display: grid; gap: 8px; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.bf-library-grid > * { min-width: 0; }
+@media (max-width: 1150px) { .bf-library-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 520px)  { .bf-library-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

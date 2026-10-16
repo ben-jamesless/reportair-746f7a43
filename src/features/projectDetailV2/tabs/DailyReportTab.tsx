@@ -368,7 +368,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                     readOnly={!canEdit || previewMode}
                   />
                   {ps.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    <div className="bf-report-grid">
                       {ps.map((p) => {
                         const isHidden = hidden.isHidden(p.id, activeDay);
                         return (
@@ -418,7 +418,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
               <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground">
                 Unassigned photos this day
               </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              <div className="bf-report-grid">
                 {(photosByArea.get("__unassigned") ?? []).map((p) => (
                   <PhotoThumb
                     key={p.id}

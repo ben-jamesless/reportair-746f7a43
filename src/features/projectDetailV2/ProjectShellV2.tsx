@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Sun, Moon, Settings as SettingsIcon } from "lucide-react";
+import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Settings as SettingsIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,6 @@ import {
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { inkButtonClass } from "@/features/projectSettings/settingsUi";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -27,27 +26,8 @@ import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
-import { useTheme } from "@/hooks/useTheme";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 
-function ThemeToggleButton() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={toggleTheme}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
-  );
-}
-
-
-
-// Brand guide: Overview tab retired — the Daily Report summary serves that purpose.
-// Legacy `?tab=overview` bookmarks fall through to Daily Report.
 type TabKey = "daily" | "library" | "map";
 const VALID: TabKey[] = ["daily", "library", "map"];
 
