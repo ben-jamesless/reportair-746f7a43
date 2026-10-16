@@ -11,7 +11,7 @@ async function download(url: string): Promise<Uint8Array> {
 }
 
 export async function embedReportFonts(document: PDFDocument, text: string) {
-  brandBytes ??= Promise.all([400, 700].map(weight => download(`https://cdn.jsdelivr.net/npm/@fontsource/geist@5.2.6/files/geist-latin-${weight}-normal.woff`))).catch(error => {
+  brandBytes ??= Promise.all([400, 700].map(weight => download(`https://cdn.jsdelivr.net/npm/@fontsource/inter@5.2.8/files/inter-latin-${weight}-normal.woff`))).catch(error => {
     brandBytes = undefined;
     throw error;
   });

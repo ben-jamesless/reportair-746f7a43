@@ -36,5 +36,5 @@
 - [x] Phase 3 pages: Library Reference filter hidden, Map floating areas panel, Export dialog, branding default colour aligned to terracotta
 - [x] Client share page restyled: sentence-case Inter labels (no mono/uppercase), 6px controls, 8px cards, verified light + dark on a live link
 - [x] Test suite green (24 tests)
-- [ ] PDF fonts (Geist→Inter in generate-pdf) — blocked: changes the shared export function the live site uses; needs Ben's approval
+- [x] PDF fonts switched to Inter in code — goes live when the draft is accepted
 - [ ] Signed-in role acceptance tests (Viewer/Crew/Editor gating, cross-event role separation)
