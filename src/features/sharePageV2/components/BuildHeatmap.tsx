@@ -173,7 +173,7 @@ export function BuildHeatmap({
             </div>
           ) : (
             <div
-              className="uppercase"
+             
               style={{
                 marginLeft: nameWidth,
                 marginBottom: 4,

@@ -400,7 +400,7 @@ export function ReportFeedback({
     >
       <div className="flex items-center justify-between" style={{ backgroundColor: V2.band, padding: "12px 16px" }}>
         <span
-          className="uppercase"
+         
           style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.bandFgSoft }}
         >
           {headerTitle}
@@ -578,7 +578,7 @@ export function OpsContact({ contact }: { contact: { name: string; role?: string
   return (
     <div className="mb-7" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white }}>
       <div
-        className="uppercase"
+       
         style={{
           fontFamily: V2.mono,
           fontSize: 10,

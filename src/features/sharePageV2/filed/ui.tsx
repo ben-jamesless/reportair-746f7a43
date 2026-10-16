@@ -10,10 +10,8 @@ import { V2, parseISO } from "../tokens";
 
 export const MONO_LABEL: React.CSSProperties = {
   fontFamily: V2.mono,
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: "0.14em",
-  
+  fontSize: 11,
+  fontWeight: 600,
 };
 
 /** Mono section label with a hairline rule and an optional right-hand note. */

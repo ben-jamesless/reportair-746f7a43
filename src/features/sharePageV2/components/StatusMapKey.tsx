@@ -14,7 +14,7 @@ export function StatusMapKey() {
       style={{ padding: "10px 12px", borderTop: `1px solid ${V2.rule}`, backgroundColor: V2.white }}
     >
       <span
-        className="uppercase"
+       
         style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.09em", color: V2.muted }}
       >
         Status key
