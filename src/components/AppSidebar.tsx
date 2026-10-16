@@ -69,8 +69,8 @@ interface Props {
 }
 
 const navItems = [
+  // Brand guide: global Share Links is replaced by event-specific Share (route kept for bookmarks).
   { label: "Events", icon: CalendarDays, href: "/projects" },
-  { label: "Share Links", icon: Share2, href: "/share-links" },
 ];
 
 const bottomNavItems = [
@@ -80,6 +80,8 @@ const bottomNavItems = [
 ];
 
 export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onToggleCollapsed }: Props) => {
+  const { theme: sidebarTheme } = useTheme();
+  const isDark = sidebarTheme === "dark";
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -208,7 +210,8 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
 
   const expanded = mobile || !collapsed;
   const labelCls = expanded ? "inline" : "hidden";
-  const folderSectionCls = expanded ? "block" : "hidden";
+  // Folders are retired from everyday UI; records stay in the database.
+  const folderSectionCls = "hidden";
 
   const isActive = (href: string) => {
     if (href === "/projects") return onProjects;
@@ -219,10 +222,10 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "flex flex-col bg-[#0F1417] text-white transition-[width] duration-200",
+          "flex flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200",
           mobile
             ? "h-full w-full"
-            : "hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:border-r md:border-white/10",
+            : "hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:border-r md:border-sidebar-border",
           collapsed ? "md:w-16" : "md:w-56"
         )}
       >
@@ -230,7 +233,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         <div className={cn("flex h-14 items-center", expanded ? "px-3" : "justify-center px-2")}>
           <Link to="/projects" onClick={onNavigate} className="flex items-center gap-2 min-w-0">
             {expanded ? (
-              <img src="/buildfolder-lockup-dark.svg" alt="BuildFolder" className="h-6 w-auto shrink-0" />
+              <img src={isDark ? "/buildfolder-lockup-dark.svg" : "/buildfolder-lockup.svg"} alt="BuildFolder" className="h-6 w-auto shrink-0" />
             ) : (
               <img src="/brand-mark.svg" alt="BuildFolder" className="h-8 w-8 shrink-0" />
             )}
@@ -243,7 +246,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             type="button"
             onClick={onToggleCollapsed}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute right-0 top-1/2 z-10 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-[#0F1417] text-white/70 transition-colors hover:bg-white/10"
+            className="absolute right-0 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-background text-muted-foreground shadow-soft transition-colors hover:bg-muted"
           >
             <ChevronLeft className={cn("h-3 w-3 transition-transform", collapsed && "rotate-180")} />
           </button>
@@ -272,11 +275,11 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                       to={item.href}
                       onClick={onNavigate}
                       className={cn(
-                        "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
+                        "flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors duration-150",
                         expanded ? "justify-start" : "justify-center",
                         active
-                          ? "bg-[#D94F2A] font-medium text-white"
-                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                          ? "bg-sidebar-accent font-medium text-sidebar-foreground after:ml-auto after:h-3 after:w-[5px] after:bg-brand after:content-['']"
+                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -292,7 +295,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
           </nav>
 
           {/* ── Divider ── */}
-          <div className="my-2 border-t border-white/10 mx-2 lg:mx-3" />
+          <div className="my-2 border-t border-sidebar-border mx-2 lg:mx-3" />
 
           {/* ── Bottom nav (Team / Billing / Settings) ── */}
           <nav className="space-y-0.5 px-2 lg:px-3">
@@ -311,11 +314,11 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                       to={item.href}
                       onClick={onNavigate}
                       className={cn(
-                        "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
+                        "flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors duration-150",
                         expanded ? "justify-start" : "justify-center",
                         active
-                          ? "bg-[#D94F2A] font-medium text-white"
-                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                          ? "bg-sidebar-accent font-medium text-sidebar-foreground after:ml-auto after:h-3 after:w-[5px] after:bg-brand after:content-['']"
+                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -337,11 +340,11 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
                     to="/admin"
                     onClick={onNavigate}
                     className={cn(
-                      "flex h-9 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150",
+                      "flex h-10 w-full items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors duration-150",
                       expanded ? "justify-start" : "justify-center",
                       pathname.startsWith("/admin")
-                        ? "bg-[#D94F2A] font-medium text-white"
-                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                        ? "bg-sidebar-accent font-medium text-sidebar-foreground"
+                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                     )}
                   >
                     <Users className="h-4 w-4 shrink-0" />
@@ -357,7 +360,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
 
           {/* ── Folders section (preserved, styled for dark) ── */}
           <div className={cn("mt-4 flex-1 px-2 lg:px-3", folderSectionCls)}>
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/40">
+            <div className="mb-1 text-[10px] font-semibold text-white/40">
               Folders
             </div>
             {folders.map((f) => {
@@ -464,7 +467,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
         </div>
 
         {/* ── Bottom section: user + trial pill ── */}
-        <div className="mt-auto flex flex-col gap-2 border-t border-white/10 px-3 pb-3 pt-2">
+        <div className="mt-auto flex flex-col gap-2 border-t border-sidebar-border px-3 pb-3 pt-2">
           {/* Trial pill */}
           {isTrialing && (
             <Tooltip>
@@ -498,18 +501,18 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10",
+                  "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent",
                   expanded ? "" : "justify-center"
                 )}
               >
                 <Avatar className="h-8 w-8 shrink-0">
                   {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
-                  <AvatarFallback className="bg-[#D94F2A]/20 text-xs text-white">{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-muted text-xs text-foreground">{initials}</AvatarFallback>
                 </Avatar>
                 {expanded && (
                   <div className="min-w-0 flex-1 overflow-hidden">
-                    <p className="truncate text-sm font-medium text-white">{fullName || user?.email}</p>
-                    <p className="truncate text-xs text-white/50">{user?.email}</p>
+                    <p className="truncate text-sm font-medium text-sidebar-foreground">{fullName || user?.email}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                 )}
               </button>
@@ -594,7 +597,7 @@ const ThemeToggle = ({ expanded }: { expanded: boolean }) => {
       type="button"
       onClick={toggleTheme}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10 text-white/70 hover:text-white",
+        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground",
         expanded ? "" : "justify-center"
       )}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

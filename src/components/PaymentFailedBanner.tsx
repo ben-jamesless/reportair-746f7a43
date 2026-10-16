@@ -30,12 +30,12 @@ export function PaymentFailedBanner() {
   };
 
   return (
-    <div className="w-full sticky top-0 z-50 shrink-0 border-b border-[#0F1417]/10 bg-[#D94F2A] text-white">
+    <div className="w-full sticky top-0 z-50 shrink-0 border-b border-foreground/10 bg-primary text-primary-foreground">
       <div className="flex h-10 items-center justify-between px-4">
         <div className="hidden w-40 md:block" />
         <div className="flex flex-1 items-center justify-center gap-2 text-sm">
           <span
-            className="uppercase tracking-wider text-[11px]"
+            className="tracking-wider text-[11px]"
             style={{ fontFamily: "'Geist Mono', ui-monospace, monospace" }}
           >
             <span style={{ fontWeight: 500 }}>Payment failed.</span>{" "}

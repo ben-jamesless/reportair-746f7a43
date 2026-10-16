@@ -9,7 +9,7 @@ function TodaySection({ title, value, tone }: { title: string; value: string | n
   return (
     <div className="mb-4 last:mb-0" style={{ borderLeft: `2px solid ${tone}`, paddingLeft: 10 }}>
       <h4
-        className="mb-1 uppercase"
+        className="mb-1"
         style={{ fontFamily: V2.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.1em", color: tone }}
       >
         {title}

@@ -18,14 +18,14 @@ export function TrialBanner() {
 
   // Treatment B (accent) for last 3 days, Treatment A (quiet) otherwise.
   const wrapClass = urgent
-    ? "w-full sticky top-0 z-40 shrink-0 border-b border-[#0F1417]/10 bg-[#D94F2A] text-white"
-    : "w-full sticky top-0 z-40 shrink-0 border-b border-[#C9C5BC] bg-[#F4F1EA] text-[#0F1417]";
+    ? "w-full sticky top-0 z-40 shrink-0 border-b border-foreground/10 bg-primary text-primary-foreground"
+    : "w-full sticky top-0 z-40 shrink-0 border-b border-[#C9C5BC] bg-[#F4F1EA] text-foreground";
 
   const mutedColor = urgent ? "rgba(255,255,255,0.85)" : "#6B6B66";
   const linkColor = urgent ? "#FFFFFF" : "#D94F2A";
   const ctaClass = urgent
     ? "inline-flex items-center gap-1 rounded-md border border-white/70 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-white/10"
-    : "inline-flex items-center gap-1 rounded-md bg-[#0F1417] px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-[#0F1417]/90";
+    : "inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-primary/90";
 
   return (
     <div
@@ -41,7 +41,7 @@ export function TrialBanner() {
 
         <div className="flex flex-1 items-center justify-center gap-2 text-sm">
           <span
-            className="hidden sm:inline uppercase tracking-wider text-[11px]"
+            className="hidden sm:inline text-[11px]"
             style={{
               fontFamily: "'Geist Mono', ui-monospace, monospace",
               color: mutedColor,
@@ -53,7 +53,7 @@ export function TrialBanner() {
             in your {planLabel} trial.
           </span>
           <span
-            className="sm:hidden uppercase tracking-wider text-[11px]"
+            className="sm:hidden text-[11px]"
             style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", color: mutedColor }}
           >
             <span style={{ color: urgent ? "#FFFFFF" : "#0F1417", fontWeight: 500 }}>

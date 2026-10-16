@@ -4,7 +4,7 @@ import { V2, parseISO } from "../tokens";
  * Shared chrome for the filed (finalised) client record.
  *
  * The filed view is a *document*, not a dashboard: flat sections, hairline
- * rules, mono uppercase labels, square corners, no shadows. Everything here is
+ * rules, mono labels, square corners, no shadows. Everything here is
  * deliberately small and shared so the four tabs cannot drift apart.
  */
 
@@ -13,7 +13,7 @@ export const MONO_LABEL: React.CSSProperties = {
   fontSize: 10,
   fontWeight: 700,
   letterSpacing: "0.14em",
-  textTransform: "uppercase",
+  
 };
 
 /** Mono section label with a hairline rule and an optional right-hand note. */

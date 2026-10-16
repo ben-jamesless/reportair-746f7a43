@@ -215,7 +215,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
           <Button
             onClick={create}
             disabled={busy || !name.trim()}
-            className="bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
+            className="bg-primary hover:bg-primary/90 text-white"
           >
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create event

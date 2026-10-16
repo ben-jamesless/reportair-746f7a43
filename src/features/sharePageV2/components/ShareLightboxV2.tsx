@@ -62,7 +62,7 @@ export function ShareLightboxV2({
                 fontFamily: V2.mono,
                 fontSize: 11,
                 letterSpacing: "0.04em",
-                textTransform: "uppercase",
+                
               }}
             >
               <MessageSquarePlus className="h-3.5 w-3.5" />
@@ -78,7 +78,7 @@ export function ShareLightboxV2({
                 fontFamily: V2.mono,
                 fontSize: 11,
                 letterSpacing: "0.04em",
-                textTransform: "uppercase",
+                
               }}
             >
               <MapPin className="h-3.5 w-3.5" />

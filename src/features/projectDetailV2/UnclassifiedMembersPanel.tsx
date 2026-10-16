@@ -47,7 +47,7 @@ export function UnclassifiedMembersPanel({
   return (
     <div className="mb-6 border" style={{ borderColor: "#E3DFD4", background: "#FAF8F2" }}>
       <div
-        className="border-b px-3 py-2 font-semibold uppercase"
+        className="border-b px-3 py-2 font-semibold"
         style={{ borderColor: "#E3DFD4", fontSize: 10, letterSpacing: "0.08em", color: LABEL_INK }}
       >
         Unclassified members ({s.unclassifiedCount})
@@ -61,7 +61,7 @@ export function UnclassifiedMembersPanel({
                 <div className="truncate text-xs" style={{ color: LABEL_INK }}>{m.email}</div>
               )}
               <div
-                className="font-mono uppercase"
+                className="font-mono"
                 style={{ fontSize: 9, letterSpacing: "0.08em", color: LABEL_INK }}
               >
                 {m.source === "team_member_null" ? "team row · no type" : "project only · no team seat"}

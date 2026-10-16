@@ -3,7 +3,7 @@ import type { AreaStatus } from "@/components/AreaStatusPicker";
 
 /**
  * Phase 4c typographic status — replaces the rounded/filled pill.
- * Layout: dot + JetBrains Mono uppercase label + fixed grey caption.
+ * Layout: dot + JetBrains Mono label + fixed grey caption.
  * Captions are a static lookup by status value — no schema changes.
  */
 
@@ -20,7 +20,7 @@ const META: Record<string, { label: string; caption: string; color: string }> = 
 };
 
 const CAPTION_INK = "#8A867C";
-const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 export function StatusTypographic({
   statusKey,
@@ -53,7 +53,7 @@ export function StatusTypographic({
           fontSize: "11px",
           fontWeight: 600,
           letterSpacing: "0.06em",
-          textTransform: "uppercase",
+          
           color: meta.color,
         }}
       >

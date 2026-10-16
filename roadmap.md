@@ -27,3 +27,10 @@
 - [ ] Verify inbox delivery after sender-domain verification (blocked: notify.reportair.co verification timed out; retry through Cloud → Emails).
 - [x] Optional share expiry and admin-only factual usage reporting.
 - [x] Verify signed-in invitation creation/acceptance/readback, beta PDF download, share expiry/readback, public report and paid-tier regression tests; inventory in beta-membership-verification.md.
+
+## Brand guide rollout (draft "Brand guide rollout" — not published)
+- [x] Phase 1 audit (reported in chat)
+- [~] Phase 2 visual tokens: Inter, ink/zinc palette, progress colours, section-header tokens, sentence case, light sidebar — done; remaining: card/control radii pass, share-page components, PDF fonts (Geist→Inter in generate-pdf, needs function deploy approval)
+- [ ] Phase 3 navigation: remove Overview tab, standard event toolbar, tab highlight spec, Crew capture-only screen
+- [ ] Phase 3 pages: Daily Report headers + 6/5/4/3/2 galleries, Library 8/6/4 grid, Map floating Event areas panel, Export dialog "Export PDF", company branding simplification
+- [ ] Acceptance tests from brief (roles, cross-company, client links)

@@ -53,7 +53,7 @@ export const AreaStatusDot = ({ status, className }: { status: AreaStatus; class
   />
 );
 
-/** Dot + uppercase typographic status; opens a popover to change when interactive. */
+/** Dot + typographic status; opens a popover to change when interactive. */
 export const AreaStatusPicker = ({ value, onChange, className, readOnly = false }: Props) => {
   if (readOnly) {
     return (

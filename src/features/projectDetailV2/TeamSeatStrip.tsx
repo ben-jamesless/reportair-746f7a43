@@ -63,7 +63,7 @@ function Cell({ label, value, hint }: { label: string; value: string; hint?: str
   return (
     <div className="px-3 py-2">
       <div
-        className="font-semibold uppercase"
+        className="font-semibold"
         style={{ fontSize: 10, letterSpacing: "0.08em", color: LABEL_INK }}
       >
         {label}

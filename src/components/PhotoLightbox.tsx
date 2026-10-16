@@ -31,7 +31,7 @@ const MobileSection = ({
         type="button"
         onClick={() => isMobile && setOpen((o) => !o)}
         className={cn(
-          "flex w-full items-center justify-between text-xs uppercase tracking-wide text-muted-foreground",
+          "flex w-full items-center justify-between text-xs tracking-wide text-muted-foreground",
           isMobile ? "cursor-pointer py-1" : "cursor-default mb-1",
         )}
         aria-expanded={expanded}
@@ -300,7 +300,7 @@ const Row = ({ icon, label, children }: { icon: React.ReactNode; label: string; 
   <div className="flex items-start gap-2">
     <span className="mt-0.5 text-muted-foreground">{icon}</span>
     <div className="flex-1">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs tracking-wide text-muted-foreground">{label}</p>
       <div className="text-foreground">{children}</div>
     </div>
   </div>

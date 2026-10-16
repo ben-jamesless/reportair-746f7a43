@@ -94,7 +94,7 @@ export function MembersPanel({
               style={{ width: 9, height: 9, backgroundColor: "#3A6EA5" }}
             />
             <span
-              className="font-semibold uppercase"
+              className="font-semibold"
               style={{
                 fontSize: 11,
                 letterSpacing: "0.08em",

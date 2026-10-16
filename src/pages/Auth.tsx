@@ -177,7 +177,7 @@ const Auth = () => {
   const orDivider = (
     <div className="relative my-6">
       <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-      <div className="relative flex justify-center text-xs uppercase">
+      <div className="relative flex justify-center text-xs">
         <span className="bg-card px-2 text-muted-foreground">or</span>
       </div>
     </div>
@@ -238,7 +238,7 @@ const Auth = () => {
           <Label htmlFor="pw-in">Password</Label>
           <Input id="pw-in" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        <Button type="submit" className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white" disabled={busy}>
+        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Sign in
         </Button>
@@ -285,7 +285,7 @@ const Auth = () => {
           <Label htmlFor="pw-up">Password</Label>
           <Input id="pw-up" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
-        <Button type="submit" className="w-full bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white" disabled={busy}>
+        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white" disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isInvite ? "Create account & join" : "Create account"}
         </Button>
@@ -297,7 +297,7 @@ const Auth = () => {
         <button
           type="button"
           onClick={() => setMode("signin")}
-          className="text-[#D94F2A] hover:underline font-medium"
+          className="text-foreground hover:underline font-medium"
         >
           Sign in →
         </button>

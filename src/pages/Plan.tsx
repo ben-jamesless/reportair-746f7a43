@@ -240,7 +240,7 @@ export default function Plan() {
             onClick={() => setAnnual((a) => !a)}
             className={cn(
               "relative w-10 h-6 rounded-full transition-colors",
-              annual ? "bg-[#D94F2A]" : "bg-[#D4D1CA]"
+              annual ? "bg-primary" : "bg-[#D4D1CA]"
             )}
             aria-label="Toggle annual billing"
           >
@@ -252,7 +252,7 @@ export default function Plan() {
             />
           </button>
           <span className={cn("text-sm font-medium", annual ? "text-foreground" : "text-muted-foreground")}>
-            Annual <span className="text-[#D94F2A] text-xs">(save ~20%)</span>
+            Annual <span className="text-foreground text-xs">(save ~20%)</span>
           </span>
         </div>
 
@@ -266,7 +266,7 @@ export default function Plan() {
                 key={p.key}
                 className={cn(
                   "rounded-xl border p-4 transition-colors",
-                  p.recommended ? "border-[#D94F2A] bg-[#D94F2A]/5" : "border-border bg-card"
+                  p.recommended ? "border-foreground bg-primary/5" : "border-border bg-card"
                 )}
               >
                 <div className="flex items-start justify-between gap-4 mb-2">
@@ -274,7 +274,7 @@ export default function Plan() {
                     <div className="flex items-center gap-2">
                       <h3 className="text-base font-semibold text-foreground">{p.name}</h3>
                       {p.recommended && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D94F2A] text-white font-medium uppercase tracking-wide">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-medium tracking-wide">
                           Popular
                         </span>
                       )}
@@ -300,7 +300,7 @@ export default function Plan() {
                 <ul className="space-y-1 mb-3">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-xs text-foreground/80">
-                      <Check className="h-3.5 w-3.5 text-[#D94F2A] shrink-0" />
+                      <Check className="h-3.5 w-3.5 text-foreground shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -311,7 +311,7 @@ export default function Plan() {
                   className={cn(
                     "w-full",
                     p.recommended
-                      ? "bg-[#D94F2A] hover:bg-[#D94F2A]/90 text-white"
+                      ? "bg-primary hover:bg-primary/90 text-white"
                       : "bg-card border border-border text-foreground hover:bg-muted/40"
                   )}
                 >

@@ -18,7 +18,7 @@ import { outlineButtonClass } from "@/features/projectSettings/settingsUi";
 
 const DASH = "1px dashed #E3DFD4";
 const LABEL_INK = "#5C5850";
-const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 /**
  * Ops-side Finalise / Unfile.
@@ -93,7 +93,7 @@ export function FinaliseEventBlock({ projectId }: { projectId: string }) {
           className="inline-block shrink-0 rounded-full"
           style={{ width: 9, height: 9, backgroundColor: "#4C6B54" }}
         />
-        <span className="font-semibold uppercase" style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}>
+        <span className="font-semibold" style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}>
           Finalise event
         </span>
       </div>

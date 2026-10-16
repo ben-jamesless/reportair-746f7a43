@@ -181,7 +181,7 @@ export const ProjectSettingsDialog = ({ projectId, project, onChanged, defaultTa
           className="flex items-center justify-between gap-3 px-4 py-3"
           style={{ borderTop: `1px solid ${T.rule}`, backgroundColor: T.paper2 }}
         >
-          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, textTransform: "uppercase" }}>
+          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, }}>
             {savedAt ? `Saved ${formatAbsoluteStamp(savedAt, eventTz)}` : "No changes saved yet"}
           </span>
           <div className="flex items-center gap-2">
@@ -212,13 +212,13 @@ function ElsewhereBlock() {
       <SectionLabel>Elsewhere</SectionLabel>
       <dl className="space-y-2 text-sm" style={{ color: T.ink2 }}>
         <div className="flex gap-2">
-          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted, paddingTop: 3 }}>
+          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, paddingTop: 3 }}>
             Share &amp; deliver
           </dt>
           <dd>Client link, password, view counts and Finalise event.</dd>
         </div>
         <div className="flex gap-2">
-          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: T.muted, paddingTop: 3 }}>
+          <dt className="w-40 shrink-0" style={{ fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: T.muted, paddingTop: 3 }}>
             Members
           </dt>
           <dd>Teammates, roles and access.</dd>

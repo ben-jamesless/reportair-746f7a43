@@ -79,7 +79,7 @@ export default function AccountPreviewDialog({
         ) : (
           <div className="space-y-6">
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Team</h3>
+              <h3 className="text-xs font-semibold tracking-wide text-muted-foreground mb-2">Team</h3>
               <div className="flex items-center gap-3">
                 <span className="font-medium">{teamName ?? "—"}</span>
                 <Badge variant="secondary">{PLAN_LABELS[plan ?? ""] ?? plan ?? "—"}</Badge>
@@ -87,7 +87,7 @@ export default function AccountPreviewDialog({
             </section>
 
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              <h3 className="text-xs font-semibold tracking-wide text-muted-foreground mb-2">
                 Events ({projects.length})
               </h3>
               {projects.length === 0 ? (
@@ -117,7 +117,7 @@ export default function AccountPreviewDialog({
             </section>
 
             <section>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              <h3 className="text-xs font-semibold tracking-wide text-muted-foreground mb-2">
                 Members ({members.length})
               </h3>
               {members.length === 0 ? (

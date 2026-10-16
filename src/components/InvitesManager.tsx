@@ -545,7 +545,7 @@ export const InvitesManager = ({ projectId }: { projectId: string }) => {
               const extTone = seat.underRatio ? "#D4A017" : "#5C5850";
               const seatCaption = (text: string, tone: string, dim = false) => (
                 <div
-                  className={`mt-2 border-t border-dashed pt-1.5 font-mono uppercase tabular-nums ${dim ? "opacity-60" : ""}`}
+                  className={`mt-2 border-t border-dashed pt-1.5 font-mono tabular-nums ${dim ? "opacity-60" : ""}`}
                   style={{
                     borderColor: "#E3DFD4",
                     fontSize: 10,

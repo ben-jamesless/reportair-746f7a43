@@ -24,7 +24,7 @@ export const V2 = {
   bandFgSoft: "var(--v2-band-fg-soft)",
   signalRed: "var(--v2-signal-red)",
   radiusReport: 4,
-  mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+  mono: "'Inter Variable', Inter, system-ui, sans-serif",
 };
 
 export type StatusKey = "not_started" | "in_progress" | "flagged" | "delayed" | "complete";
@@ -152,10 +152,10 @@ export const orderDaysForAxis = <T extends { date: string }>(days: T[]): T[] =>
  * (Google Maps polygon options, raw SVG fill/stroke attributes).
  */
 export const STATUS_HEX: Record<StatusKey, string> = {
-  in_progress: "#0B43D6",
-  flagged: "#B4720F",
-  delayed: "#A11616",
-  complete: "#178A4C",
-  not_started: "#85837B",
+  in_progress: "#2563EB",
+  flagged: "#D97706",
+  delayed: "#DC2626",
+  complete: "#16A34A",
+  not_started: "#71717A",
 };
 export const statusHex = (s: string | null | undefined) => STATUS_HEX[normaliseStatus(s)];

@@ -1,4 +1,4 @@
-/* Geist + Geist Mono self-hosted via @font-face in index.html */
+/* Inter (variable) bundled via @fontsource-variable/inter, imported in main.tsx */
 
 @tailwind base;
 @tailwind components;
@@ -56,147 +56,120 @@
     --bs-pdf-rule-strong:#D4D4D4;
     --bs-pdf-muted:      #6B6B70;
 
-    /* ===== shadcn semantic tokens, mapped to BuildFolder (HSL only) ===== */
-    /* paper #F4F1EA (v5) */
-    --background: 42 31% 94%;
-    /* ink #0F1417 (body text) */
-    --foreground: 200 11% 8%;
-    /* ink for headings + wordmark */
-    --heading: 200 11% 8%;
-
-    /* paper-2 cards */
-    --card: 43 32% 93%;
-    --card-foreground: 200 11% 8%;
-
+    /* ===== Semantic tokens — BuildFolder brand guide (Oct 2026), HSL ===== */
+    --background: 0 0% 100%;            /* white #FFFFFF */
+    --foreground: 240 6% 7%;            /* ink #111113 */
+    --heading: 240 6% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 7%;
     --popover: 0 0% 100%;
-    --popover-foreground: 200 11% 8%;
-
-    /* accent orange #D94F2A */
-    --primary: 13 70% 51%;
+    --popover-foreground: 240 6% 7%;
+    --primary: 240 6% 7%;               /* ink primary actions */
     --primary-foreground: 0 0% 100%;
-    /* accent hover #B53D1F */
-    --primary-hover: 13 72% 41%;
-    /* accent tint #FFF4EF */
-    --primary-glow: 17 100% 97%;
-    /* accent soft #FBE6DE */
-    --primary-soft: 18 83% 93%;
-
-    /* paper-2 #F4F1EA */
-    --secondary: 43 32% 93%;
-    --secondary-foreground: 200 11% 8%;
-
-    /* paper-3 #ECE7DA */
-    --muted: 43 32% 89%;
-    /* text-muted #6B6B66 */
-    --muted-foreground: 60 3% 41%;
-
-    /* accent for highlights */
-    --accent: 13 70% 51%;
-    --accent-foreground: 0 0% 100%;
-
-    /* concern red #C7382A */
-    --destructive: 5 65% 47%;
+    --primary-hover: 240 4% 20%;
+    --primary-glow: 240 5% 96%;
+    --primary-soft: 240 5% 96%;
+    --secondary: 0 0% 98%;              /* soft surface #FAFAFA */
+    --secondary-foreground: 240 6% 7%;
+    --muted: 240 5% 96%;                /* hover surface #F4F4F5 */
+    --muted-foreground: 240 4% 46%;     /* #71717A */
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 6% 7%;
+    --destructive: 0 72% 51%;           /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
-
-    /* ontrack green #2EB872 */
-    --success: 150 60% 45%;
+    --success: 142 76% 36%;             /* #16A34A */
     --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;              /* #D97706 */
+    --warning-foreground: 0 0% 100%;
+    --border: 240 6% 90%;               /* #E4E4E7 */
+    --input: 240 6% 90%;
+    --ring: 240 6% 7%;
+    --radius: 0.5rem;                   /* cards 8px, controls 6px (md) */
 
-    /* build-day yellow deep #E0A82E */
-    --warning: 41 75% 53%;
-    --warning-foreground: 200 11% 8%;
+    /* BuildFolder identity — wordmark brackets and small markers only */
+    --brand: 11 64% 53%;                /* #D4573A */
+    --section-header: 240 9% 94%;       /* #EDEDF0 */
+    --section-header-border: 240 7% 84%;/* #D4D4DA */
+    --legend: 240 5% 26%;               /* #3F3F46 */
 
-    /* rule #E5E1D6 */
-    --border: 45 26% 87%;
-    --input: 45 26% 87%;
-    --ring: 200 11% 8%;
+    /* Fixed progress colours */
+    --progress-not-started: 240 4% 46%; /* #71717A */
+    --progress-in-progress: 221 83% 53%;/* #2563EB */
+    --progress-flagged: 32 95% 44%;     /* #D97706 */
+    --progress-delayed: 0 72% 51%;      /* #DC2626 */
+    --progress-complete: 142 76% 36%;   /* #16A34A */
 
-    --radius: 0.75rem;
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 98%), hsl(0 0% 100%));
+    --shadow-soft: 0 1px 2px rgba(17,17,19,0.04), 0 4px 12px rgba(17,17,19,0.06);
+    --shadow-elegant: 0 8px 24px rgba(17,17,19,0.12);
 
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(13 72% 41%));
-    --gradient-subtle: linear-gradient(180deg, hsl(43 32% 93%), hsl(42 36% 96%));
-    --shadow-soft: 0 1px 2px rgba(15,20,23,0.04), 0 4px 12px rgba(15,20,23,0.06);
-    --shadow-elegant: 0 12px 28px rgba(15,20,23,0.10);
-
-    /* Sidebar — dark ink */
-    --sidebar-background: 200 11% 8%;
-    --sidebar-foreground: 42 24% 94%;
-    --sidebar-primary: 13 70% 51%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 6% 7%;
+    --sidebar-primary: 240 6% 7%;
     --sidebar-primary-foreground: 0 0% 100%;
-    /* ink-2 hover */
-    --sidebar-accent: 207 14% 13%;
-    --sidebar-accent-foreground: 42 24% 94%;
-    /* ink-3 border */
-    --sidebar-border: 206 11% 19%;
-    --sidebar-ring: 42 24% 94%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 7%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 240 6% 7%;
 
     /* Filed-sheet surface tokens (Daily Report, share sheets) */
-    --sheet-bg: #FAF8F2;
-    --sheet-border: #E3DFD4;
-    --sheet-label: #5C5850;
-    --sheet-sublabel: #8A867C;
+    --sheet-bg: #FFFFFF;
+    --sheet-border: #E4E4E7;
+    --sheet-label: #3F3F46;
+    --sheet-sublabel: #71717A;
   }
 
   .dark {
-    /* Dark-mode overrides for non-tailwind tokens used in components */
-    --gradient-primary: linear-gradient(135deg, hsl(13 70% 51%), hsl(13 72% 41%));
-    --gradient-subtle: linear-gradient(180deg, hsl(207 14% 13%), hsl(200 11% 8%));
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)));
+    --gradient-subtle: linear-gradient(180deg, hsl(240 6% 7%), hsl(240 6% 10%));
     --shadow-soft: 0 1px 2px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.45);
-    --shadow-elegant: 0 12px 28px rgba(0,0,0,0.55);
-
-
-    --background: 200 11% 8%;
-    --foreground: 42 24% 94%;
-    --heading: 42 24% 94%;
-
-    --card: 207 14% 13%;
-    --card-foreground: 42 24% 94%;
-
-    --popover: 207 14% 13%;
-    --popover-foreground: 42 24% 94%;
-
-    --primary: 13 70% 51%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 13 72% 45%;
-    --primary-glow: 13 70% 60%;
-    --primary-soft: 13 60% 30%;
-
-    --secondary: 207 14% 13%;
-    --secondary-foreground: 42 24% 94%;
-
-    --muted: 206 11% 19%;
-    --muted-foreground: 36 6% 60%;
-
-    --accent: 13 70% 51%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 5 65% 47%;
+    --shadow-elegant: 0 8px 24px rgba(0,0,0,0.55);
+    --background: 240 6% 10%;           /* #18181B */
+    --foreground: 0 0% 98%;
+    --heading: 0 0% 98%;
+    --card: 240 6% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 4% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 6% 7%;
+    --primary-hover: 240 5% 84%;
+    --primary-glow: 240 4% 16%;
+    --primary-soft: 240 4% 16%;
+    --secondary: 240 6% 7%;             /* #111113 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;                /* #27272A */
+    --muted-foreground: 240 5% 65%;     /* #A1A1AA */
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-
-    --success: 150 60% 45%;
+    --success: 142 69% 45%;
     --success-foreground: 0 0% 100%;
-
-    --warning: 41 75% 53%;
-    --warning-foreground: 200 11% 8%;
-
-    --border: 206 11% 19%;
-    --input: 206 11% 19%;
-    --ring: 200 11% 8%;
-
-    --sidebar-background: 200 11% 8%;
-    --sidebar-foreground: 42 24% 94%;
-    --sidebar-primary: 13 70% 51%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 207 14% 13%;
-    --sidebar-accent-foreground: 42 24% 94%;
-    --sidebar-border: 206 11% 19%;
-    --sidebar-ring: 42 24% 94%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 240 6% 7%;
+    --border: 240 4% 20%;               /* #323236 */
+    --input: 240 4% 20%;
+    --ring: 0 0% 98%;
+    --brand: 11 64% 58%;
+    --section-header: 240 5% 20%;       /* #303036 */
+    --section-header-border: 240 6% 29%;/* #45454D */
+    --legend: 240 6% 90%;
+    --sidebar-background: 240 6% 7%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 240 6% 7%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 4% 20%;
+    --sidebar-ring: 0 0% 98%;
 
     /* Filed-sheet surface — dark variant: lifted dark card with warm ink */
-    --sheet-bg: #171A1E;
-    --sheet-border: #2A2E34;
-    --sheet-label: #B8B3AA;
-    --sheet-sublabel: #78746C;
+    --sheet-bg: #18181B;
+    --sheet-border: #323236;
+    --sheet-label: #E4E4E7;
+    --sheet-sublabel: #A1A1AA;
   }
 }
 
@@ -205,61 +178,56 @@
     @apply border-border;
   }
   html {
-    font-family: 'Geist', system-ui, sans-serif;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Geist', system-ui, sans-serif;
-    font-feature-settings: "ss01", "cv11";
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
+    font-feature-settings: "cv11";
+  }
+  time, .tabular, td, [data-numeric] { font-variant-numeric: tabular-nums;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Geist', system-ui, sans-serif;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
     color: hsl(var(--heading, var(--foreground)));
   }
-  h1 { font-weight: 900; letter-spacing: -0.02em; }
-  h2 { font-weight: 700; letter-spacing: -0.015em; }
-  h3 { font-weight: 700; letter-spacing: -0.01em; }
+  h1 { font-weight: 600; letter-spacing: -0.02em; }
+  h2 { font-weight: 600; letter-spacing: -0.01em; }
+  h3 { font-weight: 600; }
   h4, h5, h6 { font-weight: 600; }
   .eyebrow,
   [data-eyebrow] {
-    font-family: 'Geist Mono', ui-monospace, monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
     font-size: 0.75rem;
+    font-weight: 500;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Geist', system-ui, sans-serif;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
   }
   .font-mono-meta {
-    font-family: 'Geist Mono', ui-monospace, monospace;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
   }
   .wordmark {
-    font-family: 'Geist', sans-serif;
+    font-family: 'Inter Variable', Inter, sans-serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
   /* UI Label — Geist Mono caps */
   .ui-label {
-    font-family: 'Geist Mono', ui-monospace, monospace;
-    font-size: 0.6875rem;
+    font-family: 'Inter Variable', Inter, system-ui, sans-serif;
+    font-size: 0.75rem;
     font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: hsl(var(--muted-foreground));
   }
 
   /* Paper grid — continuous warm paper canvas with subtle dot pattern */
   .bs-paper-grid {
-    background-color: #FAF7F0;
-    background-image: radial-gradient(circle, #D9D4C5 1px, transparent 1px);
-    background-size: 24px 24px;
-    background-position: 0 0;
+    background-color: hsl(var(--secondary));
   }
 
   /* BuildFolder icon sizing */
@@ -271,7 +239,7 @@
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 10px;
     border-radius: var(--bs-radius-pill);
-    font: 600 12px/1 'Inter', system-ui, sans-serif;
+    font: 600 12px/1 'Inter Variable', Inter, system-ui, sans-serif;
     white-space: nowrap;
   }
   .bs-pill::before {
@@ -316,45 +284,45 @@
 
 /* ============ Share page v2 — themable tokens ============ */
 :root {
-  --v2-ink: #0F1520;
+  --v2-ink: #111113;
   --v2-ink-fg: #FFFFFF;
-  --v2-soft: #3C4250;
-  --v2-muted: #85837B;
-  --v2-rule: #E3DCD3;
-  --v2-paper: #FBF7F5;
-  --v2-paper-dim: #F3EEE8;
+  --v2-soft: #3F3F46;
+  --v2-muted: #71717A;
+  --v2-rule: #E4E4E7;
+  --v2-paper: #FAFAFA;
+  --v2-paper-dim: #F4F4F5;
   --v2-white: #FFFFFF;
-  --v2-band: #0F1520;
-  --v2-band-fg: #FFFFFF;
-  --v2-band-fg-soft: rgba(255,255,255,.65);
-  --v2-signal-red: #FF3131;
+  --v2-band: #EDEDF0;
+  --v2-band-fg: #111113;
+  --v2-band-fg-soft: #3F3F46;
+  --v2-signal-red: #DC2626;
 
-  --v2-st-progress-fg: #0B43D6; --v2-st-progress-bg: #E9EEFC;
-  --v2-st-flagged-fg:  #B4720F; --v2-st-flagged-bg:  #FBF0DE;
-  --v2-st-delayed-fg:  #A11616; --v2-st-delayed-bg:  #FBEAEA;
-  --v2-st-complete-fg: #178A4C; --v2-st-complete-bg: #E3F3E9;
-  --v2-st-none-fg:     #85837B; --v2-st-none-bg:     #F3EEE8;
+  --v2-st-progress-fg: #1D4ED8; --v2-st-progress-bg: #EFF6FF;
+  --v2-st-flagged-fg:  #A16207; --v2-st-flagged-bg:  #FFFBEB;
+  --v2-st-delayed-fg:  #B91C1C; --v2-st-delayed-bg:  #FEF2F2;
+  --v2-st-complete-fg: #15803D; --v2-st-complete-bg: #F0FDF4;
+  --v2-st-none-fg:     #52525B; --v2-st-none-bg:     #F4F4F5;
 }
 
 [data-v2-theme="dark"] {
-  --v2-ink: #F2EFE9;
-  --v2-ink-fg: #0D1013;
-  --v2-soft: #C3BFB6;
-  --v2-muted: #8C8880;
-  --v2-rule: #2C3037;
-  --v2-paper: #0D1013;
-  --v2-paper-dim: #171A1E;
-  --v2-white: #14171C;
-  --v2-band: #232830;
-  --v2-band-fg: #F2EFE9;
-  --v2-band-fg-soft: rgba(242,239,233,.62);
-  --v2-signal-red: #FF5A5A;
+  --v2-ink: #FAFAFA;
+  --v2-ink-fg: #111113;
+  --v2-soft: #D4D4D8;
+  --v2-muted: #A1A1AA;
+  --v2-rule: #323236;
+  --v2-paper: #111113;
+  --v2-paper-dim: #18181B;
+  --v2-white: #18181B;
+  --v2-band: #303036;
+  --v2-band-fg: #FAFAFA;
+  --v2-band-fg-soft: #D4D4D8;
+  --v2-signal-red: #F87171;
 
-  --v2-st-progress-fg: #6D9BFF; --v2-st-progress-bg: #131C2E;
-  --v2-st-flagged-fg:  #E0AC49; --v2-st-flagged-bg:  #241D0F;
-  --v2-st-delayed-fg:  #F07171; --v2-st-delayed-bg:  #2A1414;
-  --v2-st-complete-fg: #4BC07F; --v2-st-complete-bg: #10241A;
-  --v2-st-none-fg:     #8C8880; --v2-st-none-bg:     #171A1E;
+  --v2-st-progress-fg: #93C5FD; --v2-st-progress-bg: #172A45;
+  --v2-st-flagged-fg:  #FCD34D; --v2-st-flagged-bg:  #352D18;
+  --v2-st-delayed-fg:  #FCA5A5; --v2-st-delayed-bg:  #3E2024;
+  --v2-st-complete-fg: #86EFAC; --v2-st-complete-bg: #173426;
+  --v2-st-none-fg:     #D4D4D8; --v2-st-none-bg:     #27272A;
 }
 
 /* Print: always print the light palette, hide interactive chrome */
