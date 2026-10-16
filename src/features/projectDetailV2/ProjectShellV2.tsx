@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Sun, Moon, Settings as SettingsIcon } from "lucide-react";
+import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Settings as SettingsIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,11 +10,9 @@ import {
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { inkButtonClass } from "@/features/projectSettings/settingsUi";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import { supabase } from "@/integrations/supabase/client";
-import { OverviewTab } from "./tabs/OverviewTab";
 import { DailyReportTab } from "./tabs/DailyReportTab";
 import { LibraryTab } from "./tabs/LibraryTab";
 import { MapTab } from "./tabs/MapTab";
@@ -23,32 +21,15 @@ import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { SharePanel } from "./SharePanel";
 import { MembersPanel } from "./MembersPanel";
 import { useAuth } from "@/hooks/useAuth";
-import { canEditProject, isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
+import { canEditProject, canExportProject, isCrewOnly, type ProjectRole } from "@/lib/projectPermissions";
 import { FreePlanUploadGate } from "@/components/FreePlanUploadGate";
 import { useProjectPlan } from "@/hooks/useProjectPlan";
 import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
-import { useTheme } from "@/hooks/useTheme";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 
-function ThemeToggleButton() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={toggleTheme}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
-  );
-}
-
-
-
-type TabKey = "overview" | "daily" | "library" | "map";
-const VALID: TabKey[] = ["overview", "daily", "library", "map"];
+type TabKey = "daily" | "library" | "map";
+const VALID: TabKey[] = ["daily", "library", "map"];
 
 /**
  * Phase 0 v2 shell. Renders the new 4-tab bar plus the global "Upload photos"
@@ -63,7 +44,7 @@ export default function ProjectShellV2() {
   const { user } = useAuth();
 
   const rawTab = searchParams.get("tab");
-  const tab: TabKey = (VALID as string[]).includes(rawTab ?? "") ? (rawTab as TabKey) : "overview";
+  const tab: TabKey = (VALID as string[]).includes(rawTab ?? "") ? (rawTab as TabKey) : "daily";
 
   useEffect(() => {
     if (!id) return;
@@ -101,8 +82,8 @@ export default function ProjectShellV2() {
   return (
     <AppShell
       crumbs={[
-        { label: "Projects", to: "/projects" },
-        { label: loading ? "…" : projectName ?? "Project" },
+        { label: "Events", to: "/projects" },
+        { label: loading ? "…" : projectName ?? "Event" },
       ]}
     >
       <ShellBody
@@ -145,6 +126,8 @@ function ShellBody({
   const [membersOpen, setMembersOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const canManageMembers = canEditProject(role);
+  const canExport = canExportProject(role);
+  const canUpload = canEditProject(role);
 
   const { limits, isBillingOwner, teamName, billingOwnerName } = useProjectPlan(projectId);
   const { dayCount, loading: daysLoading } = useProjectUpdateDays(
@@ -167,48 +150,51 @@ function ShellBody({
       <div className="w-full space-y-6">
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-between">
-            <TabsList className="hidden sm:inline-grid w-auto grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="daily">Daily Report</TabsTrigger>
-              <TabsTrigger value="library">Library</TabsTrigger>
-              <TabsTrigger value="map">Map</TabsTrigger>
+            <TabsList className="hidden h-auto gap-2 rounded-none bg-transparent p-0 sm:flex">
+              {TAB_ITEMS.map((t) => (
+                <TabsTrigger key={t.key} value={t.key} className={tabTriggerClass}>
+                  {t.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
             <div className="flex flex-wrap items-center gap-2">
-              <UploadButton />
-              <CaptureButton />
-              <ExportPdfDialog
-                projectId={projectId}
-                photoCount={photos.length}
-                trigger={
-                  <Button variant="outline" size="sm" aria-label="Export PDF">
-                    <FileDown className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Export</span>
-                  </Button>
-                }
-              />
-              <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} aria-label="Share">
-                <Share2 className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
+              {canUpload && <UploadButton />}
+              {canUpload && <CaptureButton />}
+              {canExport && (
+                <ExportPdfDialog
+                  projectId={projectId}
+                  photoCount={photos.length}
+                  trigger={
+                    <Button variant="outline" className="h-10" aria-label="Export PDF">
+                      <FileDown className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Export</span>
+                    </Button>
+                  }
+                />
+              )}
               {canManageMembers && (
-                <Button variant="outline" size="sm" onClick={() => setMembersOpen(true)} aria-label="Members">
+                <Button variant="outline" className="h-10" onClick={() => setShareOpen(true)} aria-label="Share">
+                  <Share2 className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+              )}
+              {canManageMembers && (
+                <Button variant="outline" className="h-10" onClick={() => setMembersOpen(true)} aria-label="Team">
                   <Users className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Members</span>
+                  <span className="hidden sm:inline">Team</span>
                 </Button>
               )}
               {canManageMembers && (
-                <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} aria-label="Project settings">
-                  <SettingsIcon className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Settings</span>
+                <Button variant="outline" className="h-10 w-10 px-0" onClick={() => setSettingsOpen(true)} aria-label="Event settings">
+                  <SettingsIcon className="h-4 w-4" />
                 </Button>
               )}
-              <ThemeToggleButton />
               <TabsMenu tab={tab} setTab={setTab} />
 
             </div>
           </div>
 
-          <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />
+          {canManageMembers && <SharePanel projectId={projectId} open={shareOpen} onOpenChange={setShareOpen} />}
           {canManageMembers && (
             <MembersPanel projectId={projectId} open={membersOpen} onOpenChange={setMembersOpen} />
           )}
@@ -234,9 +220,6 @@ function ShellBody({
             </div>
           )}
 
-          <TabsContent value="overview" className="mt-6">
-            <OverviewTab projectId={projectId} />
-          </TabsContent>
           <TabsContent value="daily" className="mt-6">
             <DailyReportTab projectId={projectId} />
           </TabsContent>
@@ -255,7 +238,7 @@ function ShellBody({
 function UploadButton() {
   const { open } = useUploadModal();
   return (
-    <Button size="sm" onClick={() => open()} className={inkButtonClass}>
+    <Button onClick={() => open()} className="h-10">
       <Upload className="h-4 w-4 sm:mr-2" />
       <span className="hidden sm:inline">Upload photos</span>
     </Button>
@@ -298,8 +281,13 @@ function CaptureButton() {
   );
 }
 
+// Tab spec: 12px padding, rounded hover highlight inset 6px vertically, active underline.
+const tabTriggerClass =
+  "relative isolate rounded-none border-b-2 border-transparent bg-transparent p-3 text-[13px] font-medium text-muted-foreground shadow-none " +
+  "before:absolute before:inset-x-0 before:inset-y-1.5 before:-z-10 before:rounded-md before:content-[''] hover:before:bg-muted focus-visible:before:bg-muted " +
+  "data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none";
+
 const TAB_ITEMS: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
-  { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "daily", label: "Daily Report", icon: FileText },
   { key: "library", label: "Library", icon: Images },
   { key: "map", label: "Map", icon: MapIcon },
@@ -343,7 +331,7 @@ function CrewLanding({ projectName }: { projectName: string | null }) {
 
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center gap-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center border border-border bg-secondary">
+      <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-secondary">
         <Camera className="h-7 w-7 text-muted-foreground" />
       </div>
       <div className="space-y-2">
@@ -351,15 +339,15 @@ function CrewLanding({ projectName }: { projectName: string | null }) {
           {projectName ?? "Project"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Point, shoot, done. GPS sorts each photo into the right area
-          automatically.
+          Take or choose photos, then pick the area. Photos with GPS are
+          sorted into areas automatically.
         </p>
       </div>
       <div className="flex w-full flex-col gap-2">
         <Button
           size="lg"
           onClick={() => inputRef.current?.click()}
-          className="h-14 w-full rounded-none text-base"
+          className="h-14 w-full text-base"
         >
           <Camera className="mr-2 h-5 w-5" />
           Take photo
@@ -368,7 +356,7 @@ function CrewLanding({ projectName }: { projectName: string | null }) {
           size="lg"
           variant="outline"
           onClick={() => open()}
-          className="h-12 w-full rounded-none"
+          className="h-12 w-full"
         >
           <ImageIcon className="mr-2 h-4 w-4" />
           Choose from library

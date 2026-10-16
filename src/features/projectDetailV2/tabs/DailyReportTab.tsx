@@ -20,11 +20,19 @@ import { DayFieldContent } from "@/features/projectDetailV2/DayFieldContent";
 
 
 const DAILY_BLOCKS: { key: DailyField; label: string; sublabel?: string }[] = [
-  { key: "today_objectives", label: "Today's Objectives" },
-  { key: "today_achievements", label: "Today's Achievements" },
-  { key: "tomorrow_objectives", label: "Tomorrow's Objectives", sublabel: "pre-fills next day" },
-  { key: "open_issues", label: "Open Issues / Risks" },
+  { key: "today_objectives", label: "Today's objectives" },
+  { key: "today_achievements", label: "Today's achievements" },
+  { key: "tomorrow_objectives", label: "Tomorrow's objectives", sublabel: "Pre-fills next day" },
+  { key: "open_issues", label: "Open issues / risks" },
 ];
+
+// Brand guide day-summary colours: blue objectives, green achievements, amber tomorrow, red issues.
+const SUMMARY_COLOUR: Record<DailyField, string> = {
+  today_objectives: "var(--v2-st-progress-fg)",
+  today_achievements: "var(--v2-st-complete-fg)",
+  tomorrow_objectives: "var(--v2-st-flagged-fg)",
+  open_issues: "var(--v2-st-delayed-fg)",
+} as Record<DailyField, string>;
 
 // Presentational tokens for the "filed sheet" pattern — themed via CSS vars so dark mode adapts.
 const SHEET_BG = "var(--sheet-bg)";
@@ -231,8 +239,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
       {/* Day header — one "filed sheet" card, four rows */}
       <div
-        className="border overflow-hidden"
-        style={{ backgroundColor: SHEET_BG, borderColor: SHEET_BORDER, borderRadius: 0 }}
+        className="overflow-hidden rounded-lg border border-border bg-card"
       >
         {DAILY_BLOCKS.map((b, idx) => {
           const value = dailyFields.get(activeDay)?.[b.key] ?? null;
@@ -242,27 +249,19 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
               key={b.key}
               className="grid grid-cols-1 gap-y-2 px-4 py-4 md:grid-cols-[190px_1fr] md:gap-x-5 md:px-5"
               style={{
-                borderBottom: isLast ? "none" : `1px dashed ${SHEET_BORDER}`,
+                borderBottom: isLast ? "none" : "1px solid hsl(var(--border))",
               }}
             >
               <div className="pt-1">
-                <div
-                  style={{
-                    fontFamily: "'Inter Variable', Inter, system-ui, sans-serif",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    
-                    letterSpacing: "0.05em",
-                    color: LABEL_INK,
-                  }}
-                >
+                <div className="flex items-baseline gap-2 text-[12px] font-medium leading-[18px]" style={{ color: SUMMARY_COLOUR[b.key] }}>
+                  <span aria-hidden className="inline-block h-[5px] w-[5px] shrink-0 translate-y-[-2px] rounded-full" style={{ background: "currentColor" }} />
                   {b.label}
                 </div>
                 {b.sublabel && (
                   <div
                     style={{
                       fontFamily: "'Inter Variable', Inter, system-ui, sans-serif",
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontWeight: 400,
                       color: SUBLABEL_INK,
                       marginTop: "2px",
@@ -298,7 +297,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
       {/* Per-area cards */}
       {areas.length === 0 ? (
         <p className="border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No areas defined yet. Add areas in project settings.
+          No areas defined yet. Add areas on the Map tab.
         </p>
       ) : (
         <div className="space-y-4">
@@ -315,7 +314,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
               <button
                 type="button"
                 onClick={() => setShowQuietAreas(true)}
-                className="flex w-full flex-wrap items-center justify-between gap-2 border border-dashed border-border px-4 py-2.5 text-left"
+                className="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-border px-4 py-2.5 text-left"
               >
                 <span className="text-xs text-muted-foreground">
                   {quiet.length} area{quiet.length === 1 ? "" : "s"} with no update today — {quiet.map((a) => a.name).join(", ")}
@@ -339,16 +338,12 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
             return (
               <article
                 key={ar.id}
-                className="overflow-hidden border bg-card shadow-none"
-                style={{ borderColor: SHEET_BORDER, borderRadius: 0 }}
+                className="overflow-hidden rounded-lg border border-border bg-card"
               >
-                <div
-                  className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-                  style={{ borderBottom: `1px solid ${SHEET_BORDER}` }}
-                >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-section-header-border bg-section-header px-4 py-3 max-[420px]:px-3 max-[420px]:py-2">
                   <span className="text-sm font-semibold text-foreground">{ar.name}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-legend tabular-nums">
                       {ps.length} photo{ps.length === 1 ? "" : "s"}
                     </span>
                     <AreaStatusPicker
@@ -368,7 +363,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                     readOnly={!canEdit || previewMode}
                   />
                   {ps.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    <div className="bf-report-grid">
                       {ps.map((p) => {
                         const isHidden = hidden.isHidden(p.id, activeDay);
                         return (
@@ -414,11 +409,11 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
 
           {/* Unassigned bucket for the day */}
           {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
-            <article className="border border-dashed border-border p-4">
+            <article className="rounded-lg border border-dashed border-border p-4">
               <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground">
                 Unassigned photos this day
               </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              <div className="bf-report-grid">
                 {(photosByArea.get("__unassigned") ?? []).map((p) => (
                   <PhotoThumb
                     key={p.id}

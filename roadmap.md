@@ -31,6 +31,7 @@
 ## Brand guide rollout (draft "Brand guide rollout" — not published)
 - [x] Phase 1 audit (reported in chat)
 - [~] Phase 2 visual tokens: Inter, ink/zinc palette, progress colours, section-header tokens, sentence case, light sidebar — done; remaining: card/control radii pass, share-page components, PDF fonts (Geist→Inter in generate-pdf, needs function deploy approval)
-- [ ] Phase 3 navigation: remove Overview tab, standard event toolbar, tab highlight spec, Crew capture-only screen
-- [ ] Phase 3 pages: Daily Report headers + 6/5/4/3/2 galleries, Library 8/6/4 grid, Map floating Event areas panel, Export dialog "Export PDF", company branding simplification
+- [x] Phase 3 navigation: Overview tab removed (old links open Daily Report), standard toolbar with role-hidden actions, tab highlight spec, Crew capture screen copy
+- [x] Daily Report headers/colours + 6/5/4/3/2 galleries; Library 8/6/4 grid
+- [ ] Phase 3 pages remaining: hide Library Reference filter, Map floating Event areas panel, Export dialog "Export PDF", company branding simplification
 - [ ] Acceptance tests from brief (roles, cross-company, client links)
