@@ -24,7 +24,7 @@ export const V2 = {
   bandFgSoft: "var(--v2-band-fg-soft)",
   signalRed: "var(--v2-signal-red)",
   radiusReport: 4,
-  mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+  mono: "'Inter Variable', Inter, system-ui, sans-serif",
 };
 
 export type StatusKey = "not_started" | "in_progress" | "flagged" | "delayed" | "complete";

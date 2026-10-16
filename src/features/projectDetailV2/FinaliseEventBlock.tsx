@@ -18,7 +18,7 @@ import { outlineButtonClass } from "@/features/projectSettings/settingsUi";
 
 const DASH = "1px dashed #E3DFD4";
 const LABEL_INK = "#5C5850";
-const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 /**
  * Ops-side Finalise / Unfile.

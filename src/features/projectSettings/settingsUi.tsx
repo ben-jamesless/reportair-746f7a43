@@ -28,7 +28,7 @@ export const STATUS = {
 } as const;
 
 export const MONO =
-  "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+  "'Inter Variable', Inter, system-ui, sans-serif";
 
 /** Dark header bar shared by every panel, matching the report rail. */
 export function PanelBar({

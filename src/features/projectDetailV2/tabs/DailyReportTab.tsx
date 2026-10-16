@@ -248,7 +248,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
               <div className="pt-1">
                 <div
                   style={{
-                    fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                    fontFamily: "'Inter Variable', Inter, system-ui, sans-serif",
                     fontSize: "11px",
                     fontWeight: 600,
                     
@@ -261,7 +261,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                 {b.sublabel && (
                   <div
                     style={{
-                      fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+                      fontFamily: "'Inter Variable', Inter, system-ui, sans-serif",
                       fontSize: "11px",
                       fontWeight: 400,
                       color: SUBLABEL_INK,

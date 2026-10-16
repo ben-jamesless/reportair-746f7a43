@@ -20,7 +20,7 @@ const META: Record<string, { label: string; caption: string; color: string }> = 
 };
 
 const CAPTION_INK = "#8A867C";
-const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 export function StatusTypographic({
   statusKey,

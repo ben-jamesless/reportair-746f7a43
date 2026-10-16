@@ -47,7 +47,7 @@ import {
  */
 
 const LABEL_INK = "#5C5850";
-const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+const MONO = "'Inter Variable', Inter, system-ui, sans-serif";
 
 type ShareLink = {
   id: string;
