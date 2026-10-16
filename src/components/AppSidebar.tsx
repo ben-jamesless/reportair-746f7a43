@@ -80,6 +80,8 @@ const bottomNavItems = [
 ];
 
 export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onToggleCollapsed }: Props) => {
+  const { theme: sidebarTheme } = useTheme();
+  const isDark = sidebarTheme === "dark";
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -595,7 +597,7 @@ const ThemeToggle = ({ expanded }: { expanded: boolean }) => {
       type="button"
       onClick={toggleTheme}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/10 text-white/70 hover:text-white",
+        "flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent text-muted-foreground hover:text-sidebar-foreground",
         expanded ? "" : "justify-center"
       )}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
