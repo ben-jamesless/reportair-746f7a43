@@ -13,8 +13,8 @@ interface LockupProps {
  * tightly in two corner brackets (top-left + bottom-right).
  */
 export const BuildFolderLockup = ({ className, onDark = false, size = 22 }: LockupProps) => {
-  const ink = onDark ? "#F4F1EA" : "#0F1417";
-  const accent = "#D94F2A";
+  const ink = onDark ? "#FAFAFA" : "#111113";
+  const accent = "#D4573A";
   const stroke = Math.max(2, Math.round(size * 0.14));
   const arm = Math.round(size * 0.32);
 
