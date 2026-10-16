@@ -117,7 +117,7 @@ export function NewEventPanel({ open, onOpenChange, teamId, onCreated }: Props) 
     toast.success("Event created");
     onCreated?.();
     handleOpenChange(false);
-    navigate(`/projects/${data.id}?tab=overview`);
+    navigate(`/projects/${data.id}?tab=daily`);
   };
 
   return (
