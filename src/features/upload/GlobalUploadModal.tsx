@@ -827,7 +827,7 @@ function ItemCard({
             {item.file.name}
           </p>
           {item.isHeic && (
-            <span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground/80">HEIC</span>
+            <span className="text-[9px] font-medium tracking-wide text-muted-foreground/80">HEIC</span>
           )}
         </div>
       )}

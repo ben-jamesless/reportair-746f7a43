@@ -146,7 +146,7 @@ export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, avail
         </DialogHeader>
         <div className="space-y-6 px-6 pb-6">
           <div className="space-y-2">
-            <Label htmlFor="export-date-mode" className="font-mono text-xs uppercase text-muted-foreground">Report date</Label>
+            <Label htmlFor="export-date-mode" className="font-mono text-xs text-muted-foreground">Report date</Label>
             <Select value={mode} onValueChange={value => { setMode(value); setFile(null); }} disabled={busy}>
               <SelectTrigger id="export-date-mode" className="rounded-none"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="single">Current date</SelectItem><SelectItem value="range">Date range</SelectItem></SelectContent>
@@ -157,7 +157,7 @@ export function ExportPdfDialog({ projectId, photoCount, dayKey, dayLabel, avail
             <p className="text-xs text-muted-foreground">{loadingDays ? "Loading dates…" : `${count} photos`}</p>
           </div>
           <fieldset className="space-y-3" disabled={busy}>
-            <legend className="font-mono text-xs uppercase text-muted-foreground">File size</legend>
+            <legend className="font-mono text-xs text-muted-foreground">File size</legend>
             <div className="grid grid-cols-2 gap-3">
               {[{ value: "compressed", label: "Compressed", detail: "Smaller file" }, { value: "high_res", label: "Large", detail: "Higher image detail" }].map(option => (
                 <label key={option.value} className={cn("flex cursor-pointer items-start gap-2 border p-3", quality === option.value ? "border-primary bg-primary/5" : "border-border")}>

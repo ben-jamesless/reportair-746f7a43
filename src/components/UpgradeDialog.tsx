@@ -150,7 +150,7 @@ export const UpgradeDialog = ({ open, onOpenChange, currentPlan }: Props) => {
               }`}
             >
               {plan.recommended && (
-                <span className="absolute -top-3 left-4 bg-[#01696F] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-white/30">
+                <span className="absolute -top-3 left-4 bg-[#01696F] text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-white/30">
                   Most popular
                 </span>
               )}

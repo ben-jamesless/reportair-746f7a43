@@ -744,7 +744,7 @@ export default function SharePageV2() {
                 >
                   <span>
                     <span
-                      className="block uppercase"
+                      className="block"
                       style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.soft }}
                     >
                       Reference photos

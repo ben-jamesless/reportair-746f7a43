@@ -648,7 +648,7 @@ const SharePage = () => {
       className="rounded-xl border p-5"
       style={{ borderColor: DIVIDER, backgroundColor: SURFACE }}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+      <p className="text-xs font-semibold tracking-wide" style={{ color: MUTED }}>
         Latest update
       </p>
       {latestDayKey ? (() => {
@@ -1030,7 +1030,7 @@ const SharePage = () => {
             {areas.length > 0 && (
               <>
                 <div className="my-2 border-t" style={{ borderColor: DIVIDER }} />
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: MUTED }}>Areas</p>
+                <p className="px-3 pb-1 text-[10px] font-semibold tracking-wide" style={{ color: MUTED }}>Areas</p>
                 {areas.map((ar) => {
                   const key = areaKey(ar.id);
                   const active = activeKey === key;
@@ -1134,7 +1134,7 @@ const SharePage = () => {
                 style={{ color: NEAR_BLACK }}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: MUTED }}>
+                  <span className="text-xs font-semibold tracking-wide" style={{ color: MUTED }}>
                     Latest update
                   </span>
                   {latestDayKey && (
@@ -1595,7 +1595,7 @@ const ShareDailySection = ({ label, text, body }: { label: string; text: string;
           style={{ width: "9px", height: "9px", backgroundColor: dot }}
         />
         <span
-          className="font-semibold uppercase"
+          className="font-semibold"
           style={{
             fontSize: "11px",
             letterSpacing: "0.08em",
@@ -1745,7 +1745,7 @@ const ShareLightbox = ({ token, photos, index, guest, onClose, onIndexChange, on
           <aside className="flex max-h-[80vh] flex-col gap-3 overflow-y-auto border-l bg-card p-5">
             <div className="space-y-2">
 
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Notes</p>
+              <p className="text-xs tracking-wide text-muted-foreground">Notes</p>
               {notes.length === 0 && <p className="text-sm text-muted-foreground">No notes yet.</p>}
               {notes.map((n) => (
                 <div key={n.id} className="rounded-md border bg-background p-3 text-sm">

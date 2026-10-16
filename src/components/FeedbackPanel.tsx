@@ -263,7 +263,7 @@ export const FeedbackPanel = ({ projectId, visiblePhotos, allPhotos, onOpenPhoto
 const ChipKind = ({ kind }: { kind: "client" | "internal" }) => (
   <span
     className={cn(
-      "ml-2 shrink-0 rounded-full border px-1.5 py-px text-[9px] font-medium uppercase tracking-wide",
+      "ml-2 shrink-0 rounded-full border px-1.5 py-px text-[9px] font-medium tracking-wide",
       kind === "client"
         ? "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300"
         : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",

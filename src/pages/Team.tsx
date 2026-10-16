@@ -198,7 +198,7 @@ export default function TeamPage() {
 
         {/* B. Active members */}
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground">
             Active members ({seatCount})
           </h2>
 

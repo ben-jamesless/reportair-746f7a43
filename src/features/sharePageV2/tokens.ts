@@ -152,10 +152,10 @@ export const orderDaysForAxis = <T extends { date: string }>(days: T[]): T[] =>
  * (Google Maps polygon options, raw SVG fill/stroke attributes).
  */
 export const STATUS_HEX: Record<StatusKey, string> = {
-  in_progress: "#0B43D6",
-  flagged: "#B4720F",
-  delayed: "#A11616",
-  complete: "#178A4C",
-  not_started: "#85837B",
+  in_progress: "#2563EB",
+  flagged: "#D97706",
+  delayed: "#DC2626",
+  complete: "#16A34A",
+  not_started: "#71717A",
 };
 export const statusHex = (s: string | null | undefined) => STATUS_HEX[normaliseStatus(s)];

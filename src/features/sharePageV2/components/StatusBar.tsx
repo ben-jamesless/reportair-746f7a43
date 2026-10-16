@@ -124,7 +124,7 @@ export function StatusBar({
             type="button"
             onClick={onExport}
             title="Export this report as a PDF"
-            className="v2-no-print flex items-center gap-1.5 uppercase"
+            className="v2-no-print flex items-center gap-1.5"
             style={{
               fontFamily: V2.mono,
               fontSize: 10,

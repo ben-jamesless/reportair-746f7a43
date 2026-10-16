@@ -75,7 +75,7 @@ export function OverviewTab({ projectId }: { projectId: string }) {
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
+              <span className="text-xs font-medium tracking-wide text-muted-foreground">Day status</span>
               <AreaStatusPicker
                 value={(dayStatus.get(today) ?? "not_started") as AreaStatus}
                 onChange={() => { /* read-only surface — set on Daily Report */ }}
@@ -150,7 +150,7 @@ function Panel({ title, dotColor, children }: { title: string; dotColor?: string
           className="font-semibold"
           style={{
             fontSize: "11px",
-            textTransform: "uppercase",
+            
             letterSpacing: "0.08em",
             color: "#5C5850",
           }}

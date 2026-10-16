@@ -13,7 +13,7 @@ export function StatusPill({
   const meta = noUpdate ? NO_UPDATE : statusMeta(status);
   return (
     <span
-      className="inline-flex shrink-0 items-center gap-[5px] uppercase"
+      className="inline-flex shrink-0 items-center gap-[5px]"
       style={{
         backgroundColor: meta.bg,
         color: meta.fg,
@@ -33,7 +33,7 @@ export function StatusPill({
 export function SectionLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div
-      className={`uppercase ${className}`}
+      className={`${className}`}
       style={{
         fontFamily: V2.mono,
         fontSize: 9.5,
@@ -72,7 +72,7 @@ export function CollapsibleSectionLabel({
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className={`flex w-full items-center gap-2 uppercase ${className}`}
+      className={`flex w-full items-center gap-2 ${className}`}
       style={{
         fontFamily: V2.mono,
         fontSize: 9.5,
@@ -112,7 +112,7 @@ export function PanelHeader({
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className="flex w-full items-center gap-2 uppercase"
+      className="flex w-full items-center gap-2"
       style={{
         fontFamily: V2.mono,
         fontSize: 10,

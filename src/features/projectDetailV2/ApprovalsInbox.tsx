@@ -109,7 +109,7 @@ export function ApprovalsInbox({
           style={{ width: 9, height: 9, backgroundColor: "#D4A017" }}
         />
         <span
-          className="font-semibold uppercase"
+          className="font-semibold"
           style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}
         >
           External access requests ({rows.length})

@@ -476,7 +476,7 @@ const Projects = () => {
                 <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-[#E3DFD4] bg-[#FAF8F2]">
                   {/* Placeholder always present — the thumbnail sits on top and hides itself if it fails to load. */}
                   <div
-                    className="absolute inset-0 flex items-center justify-center text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30"
+                    className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-foreground/30"
                     style={{
                       background: `linear-gradient(135deg, ${color}22, ${color}0a)`,
                       fontFamily: "'JetBrains Mono', ui-monospace, monospace",
@@ -575,7 +575,7 @@ const Projects = () => {
                     </h3>
                     {!isOwner && (
                       <span
-                        className="shrink-0 border border-[#E3DFD4] bg-[#FAF8F2] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground leading-none"
+                        className="shrink-0 border border-[#E3DFD4] bg-[#FAF8F2] px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground leading-none"
                         style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
                       >
                         Invited
@@ -597,7 +597,7 @@ const Projects = () => {
                       showCaption={false}
                     />
                     <span
-                      className="shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted-foreground"
+                      className="shrink-0 text-[11px] text-muted-foreground"
                       style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace" }}
                     >
                       {lastUpload ? formatDistanceToNow(new Date(lastUpload), { addSuffix: true }) : "No updates"}

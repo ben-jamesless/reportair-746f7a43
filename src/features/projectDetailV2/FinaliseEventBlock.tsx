@@ -93,7 +93,7 @@ export function FinaliseEventBlock({ projectId }: { projectId: string }) {
           className="inline-block shrink-0 rounded-full"
           style={{ width: 9, height: 9, backgroundColor: "#4C6B54" }}
         />
-        <span className="font-semibold uppercase" style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}>
+        <span className="font-semibold" style={{ fontSize: 11, letterSpacing: "0.08em", color: LABEL_INK }}>
           Finalise event
         </span>
       </div>

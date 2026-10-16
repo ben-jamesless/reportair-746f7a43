@@ -254,7 +254,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
         {/* Mobile: compact dropdowns */}
         <div className="grid grid-cols-2 gap-2 sm:hidden">
           <div>
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="mb-1 text-[10px] font-semibold tracking-wide text-muted-foreground">
               Area
             </div>
             <Select value={areaFilter} onValueChange={setAreaFilter}>
@@ -281,7 +281,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
             </Select>
           </div>
           <div>
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="mb-1 text-[10px] font-semibold tracking-wide text-muted-foreground">
               Day
             </div>
             <Select value={dayFilter} onValueChange={setDayFilter}>
@@ -302,7 +302,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
 
         {/* Tablet/Desktop: chip rows */}
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="text-[10px] font-semibold tracking-wide text-muted-foreground">
             Area
           </span>
           <FilterChip active={areaFilter === ALL} onClick={() => setAreaFilter(ALL)}>
@@ -340,7 +340,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
         </div>
 
         <div className="hidden flex-wrap items-center gap-2 sm:flex">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <span className="text-[10px] font-semibold tracking-wide text-muted-foreground">
             Day
           </span>
           <FilterChip active={dayFilter === ALL} onClick={() => setDayFilter(ALL)}>
@@ -391,7 +391,7 @@ export function LibraryTab({ projectId }: { projectId: string }) {
             <button
               type="button"
               onClick={() => setDayFilter(UNDATED)}
-              className="shrink-0 border border-border px-3 py-1.5 font-mono text-[11px] uppercase tracking-wide"
+              className="shrink-0 border border-border px-3 py-1.5 font-mono text-[11px] tracking-wide"
             >
               Show them
             </button>

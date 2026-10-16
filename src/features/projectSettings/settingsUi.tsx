@@ -48,7 +48,7 @@ export function PanelBar({
           fontFamily: MONO,
           fontSize: 11,
           letterSpacing: "0.14em",
-          textTransform: "uppercase",
+          
           color: "#F3EFE7",
         }}
       >
@@ -59,7 +59,7 @@ export function PanelBar({
   );
 }
 
-/** Mono uppercase section label + hairline rule. Replaces nested cards. */
+/** Mono section label + hairline rule. Replaces nested cards. */
 export function SectionLabel({
   children,
   className,
@@ -77,7 +77,7 @@ export function SectionLabel({
             fontFamily: MONO,
             fontSize: 10,
             letterSpacing: "0.14em",
-            textTransform: "uppercase",
+            
             color: T.muted,
           }}
         >
@@ -110,7 +110,7 @@ export function Section({
   );
 }
 
-/** Mono uppercase field label sitting above its input. */
+/** Mono field label sitting above its input. */
 export function FieldLabel({
   htmlFor,
   children,
@@ -128,7 +128,7 @@ export function FieldLabel({
         fontFamily: MONO,
         fontSize: 9.5,
         letterSpacing: "0.12em",
-        textTransform: "uppercase",
+        
         color: T.muted,
       }}
     >
@@ -212,7 +212,7 @@ export function SegmentedTabs({
             style={{
               fontFamily: MONO,
               letterSpacing: "0.1em",
-              textTransform: "uppercase",
+              
               fontSize: 10.5,
               borderLeft: i === 0 ? "none" : `1px solid ${T.rule}`,
               backgroundColor: active ? T.ink : "transparent",

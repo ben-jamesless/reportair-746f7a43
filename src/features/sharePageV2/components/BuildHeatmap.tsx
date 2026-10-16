@@ -151,7 +151,7 @@ export function BuildHeatmap({
                 return (
                   <div
                     key={i}
-                    className="truncate text-center uppercase"
+                    className="truncate text-center"
                     style={{
                       width: s.span * colWidth,
                       fontFamily: V2.mono,
@@ -266,7 +266,7 @@ export function BuildHeatmap({
           {/* Worst status per day */}
           <div className="flex items-center" style={{ marginTop: 6, paddingTop: 6, borderTop: `1px dashed ${V2.rule}` }}>
             <div
-              className="uppercase pr-2"
+              className="pr-2"
               style={{
                 width: nameWidth,
                 fontFamily: V2.mono,

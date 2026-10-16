@@ -98,7 +98,7 @@ const AdminLeadMagnet = () => {
       ) : (
         <div className="overflow-x-auto rounded-md border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+            <thead className="bg-muted/40 text-left text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2">Email</th>
                 <th className="px-3 py-2">Signed up</th>

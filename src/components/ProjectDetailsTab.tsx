@@ -44,7 +44,7 @@ const Row = ({
   children: React.ReactNode;
 }) => (
   <div className="grid grid-cols-1 gap-1 border-b border-border/60 py-3 last:border-b-0 sm:grid-cols-[180px_1fr] sm:items-center sm:gap-4">
-    <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground sm:text-sm sm:normal-case sm:tracking-normal">
+    <dt className="text-xs font-medium tracking-wide text-muted-foreground sm:text-sm sm:normal-case sm:tracking-normal">
       {label}
     </dt>
     <dd className="px-1 text-sm">{children}</dd>

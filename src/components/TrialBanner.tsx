@@ -41,7 +41,7 @@ export function TrialBanner() {
 
         <div className="flex flex-1 items-center justify-center gap-2 text-sm">
           <span
-            className="hidden sm:inline uppercase tracking-wider text-[11px]"
+            className="hidden sm:inline text-[11px]"
             style={{
               fontFamily: "'Geist Mono', ui-monospace, monospace",
               color: mutedColor,
@@ -53,7 +53,7 @@ export function TrialBanner() {
             in your {planLabel} trial.
           </span>
           <span
-            className="sm:hidden uppercase tracking-wider text-[11px]"
+            className="sm:hidden text-[11px]"
             style={{ fontFamily: "'Geist Mono', ui-monospace, monospace", color: mutedColor }}
           >
             <span style={{ color: urgent ? "#FFFFFF" : "#0F1417", fontWeight: 500 }}>

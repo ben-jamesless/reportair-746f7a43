@@ -114,7 +114,7 @@ function AreaGallery({ token, area }: { token: string; area: ShareV2AreaMeta }) 
       style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white, padding: 10 }}
     >
       <div
-        className="mb-2 uppercase"
+        className="mb-2"
         style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: V2.soft }}
       >
         {area.name} · {photos ? `${photos.length} photo${photos.length === 1 ? "" : "s"}` : "loading…"}

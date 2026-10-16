@@ -357,7 +357,7 @@ export const AppSidebar = ({ mobile = false, onNavigate, collapsed = false, onTo
 
           {/* ── Folders section (preserved, styled for dark) ── */}
           <div className={cn("mt-4 flex-1 px-2 lg:px-3", folderSectionCls)}>
-            <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/40">
+            <div className="mb-1 text-[10px] font-semibold text-white/40">
               Folders
             </div>
             {folders.map((f) => {

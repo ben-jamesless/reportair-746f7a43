@@ -251,7 +251,7 @@ export const PhotoCommentsThread = ({ projectId, photoId, isOwner }: Props) => {
 
   return (
     <div className="border-t pt-4">
-      <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+      <p className="mb-2 text-xs tracking-wide text-muted-foreground">
         Comments <span className="ml-1 text-foreground/60">{comments.length}</span>
       </p>
 

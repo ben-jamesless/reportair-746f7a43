@@ -186,7 +186,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Day status</span>
+          <span className="text-xs font-medium tracking-wide text-muted-foreground">Day status</span>
           <AreaStatusPicker
             value={(dayStatus.get(activeDay) ?? "not_started") as AreaStatus}
             onChange={(s) => setDayStatus(activeDay, s)}
@@ -251,7 +251,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                     fontFamily: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
                     fontSize: "11px",
                     fontWeight: 600,
-                    textTransform: "uppercase",
+                    
                     letterSpacing: "0.05em",
                     color: LABEL_INK,
                   }}
@@ -397,7 +397,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
                             {isHidden && (
                               <Badge
                                 variant="secondary"
-                                className="absolute bottom-1 left-1 text-[10px] uppercase tracking-wide"
+                                className="absolute bottom-1 left-1 text-[10px] tracking-wide"
                               >
                                 Hidden
                               </Badge>
@@ -415,7 +415,7 @@ export function DailyReportTab({ projectId }: { projectId: string }) {
           {/* Unassigned bucket for the day */}
           {(photosByArea.get("__unassigned")?.length ?? 0) > 0 && (
             <article className="border border-dashed border-border p-4">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground">
                 Unassigned photos this day
               </p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

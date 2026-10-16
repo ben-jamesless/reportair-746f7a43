@@ -178,7 +178,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                <p className="text-xs tracking-wide text-muted-foreground">Email</p>
                 <p className="truncate text-sm font-medium">{email || <Skeleton className="h-4 w-40" />}</p>
               </div>
               {!isBeta && (planLoading ? (

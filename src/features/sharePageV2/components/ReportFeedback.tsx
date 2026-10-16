@@ -62,7 +62,7 @@ const chipStyle: React.CSSProperties = {
   fontSize: 9.5,
   fontWeight: 700,
   letterSpacing: "0.08em",
-  textTransform: "uppercase",
+  
   padding: "3px 6px",
 };
 
@@ -79,7 +79,7 @@ function actionStyle(disabled: boolean): React.CSSProperties {
     fontSize: 10.5,
     fontWeight: 700,
     letterSpacing: "0.09em",
-    textTransform: "uppercase",
+    
     color: V2.bandFg,
     backgroundColor: disabled ? V2.muted : V2.band,
     padding: "9px 14px",
