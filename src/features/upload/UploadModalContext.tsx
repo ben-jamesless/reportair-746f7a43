@@ -95,19 +95,34 @@ export function UploadModalProvider({
         <button
           type="button"
           onClick={restore}
-          className="fixed bottom-4 right-4 z-50 flex items-center gap-2.5 rounded-full border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-colors hover:bg-muted"
+          aria-label="Upload in progress — click to view"
+          className="fixed bottom-4 right-4 z-50 w-64 border border-border bg-background p-3 text-left shadow-lg transition-colors hover:bg-muted/50"
         >
-          {bgProgress ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              Uploading {bgProgress.done} of {bgProgress.total}…
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              Upload in progress
-            </>
-          )}
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Upload className="h-4 w-4" style={{ color: TERRACOTTA }} />
+              {bgProgress
+                ? `Uploading ${bgProgress.done} of ${bgProgress.total}`
+                : "Upload in progress"}
+            </span>
+            {bgProgress && (
+              <span className="text-xs font-medium tabular-nums text-muted-foreground">
+                {Math.round((bgProgress.done / bgProgress.total) * 100)}%
+              </span>
+            )}
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden bg-muted">
+            <div
+              className="h-full transition-[width] duration-300 ease-out"
+              style={{
+                backgroundColor: TERRACOTTA,
+                width: bgProgress
+                  ? `${Math.max(4, (bgProgress.done / bgProgress.total) * 100)}%`
+                  : "15%",
+              }}
+            />
+          </div>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">Click to view upload</p>
         </button>
       )}
     </UploadModalCtx.Provider>
