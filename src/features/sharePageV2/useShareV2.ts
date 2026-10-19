@@ -2,12 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ShareV2Day, ShareV2Meta } from "./types";
 import { isoToday } from "./tokens";
+import { pickDefaultDate as pick } from "./pickDefaultDate";
 
 type State = {
   meta: ShareV2Meta | null;
   day: ShareV2Day | null;
   loading: boolean;
   activeDate: string | null;
+  /** Today is empty, so the page opened on the latest earlier update. */
+  fallbackFrom: string | null;
 };
 
 /** Fetches share_meta once (polled every 60s) and share_day for the active date. */
@@ -17,16 +20,8 @@ export function useShareV2(token: string | undefined) {
     day: null,
     loading: true,
     activeDate: null,
+    fallbackFrom: null,
   });
-
-  const pickDefaultDate = (meta: ShareV2Meta): string | null => {
-    const days = (meta.days ?? []).map((d) => d.date).sort();
-    if (days.length === 0) return null;
-    const today = isoToday();
-    if (days.includes(today)) return today;
-    const past = days.filter((d) => d <= today);
-    return past.length ? past[past.length - 1] : days[days.length - 1];
-  };
 
   const loadMeta = useCallback(
     async (isRefresh = false) => {
@@ -56,7 +51,12 @@ export function useShareV2(token: string | undefined) {
         ...s,
         meta,
         loading: false,
-        activeDate: s.activeDate ?? pickDefaultDate(meta),
+        ...(s.activeDate
+          ? {}
+          : (() => {
+              const p = pick(meta.days ?? [], isoToday());
+              return { activeDate: p.date, fallbackFrom: p.isFallback ? isoToday() : null };
+            })()),
       }));
     },
     [token]
@@ -95,7 +95,7 @@ export function useShareV2(token: string | undefined) {
   }, [state.meta?.ok, state.activeDate, loadMeta, loadDay]);
 
   const setActiveDate = useCallback(
-    (d: string) => setState((s) => (s.activeDate === d ? s : { ...s, activeDate: d, day: null })),
+    (d: string) => setState((s) => (s.activeDate === d ? s : { ...s, activeDate: d, day: null, fallbackFrom: null })),
     []
   );
 

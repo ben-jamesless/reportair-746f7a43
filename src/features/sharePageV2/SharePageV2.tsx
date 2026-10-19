@@ -35,7 +35,7 @@ function timeLabelDate(iso: string): string | null {
 
 export default function SharePageV2() {
   const { token } = useParams<{ token: string }>();
-  const { meta, day, loading, activeDate, setActiveDate } =
+  const { meta, day, loading, activeDate, setActiveDate, fallbackFrom } =
     useShareV2(token);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -417,6 +417,15 @@ export default function SharePageV2() {
 
 
 
+  const longDay = (iso: string) =>
+    new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(parseISO(iso));
+  const latestActive =
+    (meta.days ?? [])
+      .filter((d) => d.date < isoToday() && (d.photo_count > 0 || d.has_notes))
+      .map((d) => d.date)
+      .sort()
+      .pop() ?? null;
+
   const stats = [
     buildWindow.dayNo
       ? {
@@ -434,7 +443,7 @@ export default function SharePageV2() {
           sub: lastCapture ? `Last capture ${timeLabel(lastCapture)}` : "No captures yet",
         },
     {
-      label: !isToday ? "Photos" : "Photos today",
+      label: isToday ? "Photos today" : activeDate ? `Photos on ${timeLabelDate(activeDate) ?? activeDate}` : "Photos",
       value: String(dayPhotos.length),
       sub: `Across ${photosByArea.size} area${photosByArea.size === 1 ? "" : "s"}`,
     },
@@ -592,6 +601,39 @@ export default function SharePageV2() {
                   </>
                 )}
 
+                {hasBuildTimeline && fallbackFrom && activeDate && activeDate !== fallbackFrom && (
+                  <div
+                    className="mt-7 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3"
+                    style={{ border: `1px solid ${V2.rule}`, backgroundColor: V2.paperDim, fontSize: 13.5, color: V2.soft }}
+                  >
+                    <span>
+                      Today's update ({longDay(fallbackFrom)}) usually arrives at the end of the day. Showing the latest
+                      update from <strong style={{ color: V2.ink }}>{longDay(activeDate)}</strong>.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveDate(fallbackFrom)}
+                      style={{ color: V2.ink, textDecoration: "underline" }}
+                    >
+                      View today
+                    </button>
+                  </div>
+                )}
+                {hasBuildTimeline && isToday && !fallbackFrom && dayPhotos.length === 0 && latestActive && (
+                  <div
+                    className="mt-7 flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3"
+                    style={{ border: `1px solid ${V2.rule}`, backgroundColor: V2.paperDim, fontSize: 13.5, color: V2.soft }}
+                  >
+                    <span>No photos uploaded yet today. Updates usually arrive at the end of the day.</span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveDate(latestActive)}
+                      style={{ color: V2.ink, textDecoration: "underline" }}
+                    >
+                      See latest: {timeLabelDate(latestActive) ?? latestActive} →
+                    </button>
+                  </div>
+                )}
                 {hasBuildTimeline && (
                   <>
                 <CollapsibleSectionLabel
