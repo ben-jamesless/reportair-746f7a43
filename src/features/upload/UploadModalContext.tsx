@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { Loader2, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { GlobalUploadModal } from "./GlobalUploadModal";
+
+// Brand terracotta accent — used for the background-upload progress fill.
+const TERRACOTTA = "#D4573A";
 
 type OpenOpts = {
   areaId?: string | null;
