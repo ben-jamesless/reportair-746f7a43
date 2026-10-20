@@ -1,3 +1,4 @@
+import { PlanCategoriesManager } from "@/features/plans/PlanCategoriesManager";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -166,6 +167,8 @@ export default function TeamPage() {
         </div>
 
         {teamId && plan === "beta" && <CompanyInvites teamId={teamId} onAccepted={load} />}
+
+        {teamId && <PlanCategoriesManager teamId={teamId} />}
 
         {/* A. Seat bar */}
         <div className="rounded-lg border bg-card p-4">

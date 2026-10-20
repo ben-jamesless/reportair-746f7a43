@@ -11,6 +11,7 @@ import { StatTable } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
 import { AreaGlance, TodayBox } from "./components/Sidebar";
+import { SharePlansCard } from "@/features/plans/SharePlansCard";
 import { BuildCalendar } from "./components/BuildCalendar";
 import { BuildHeatmap } from "./components/BuildHeatmap";
 import { ShareMapV2 } from "./components/ShareMapV2";
@@ -857,6 +858,7 @@ export default function SharePageV2() {
                     photos: a.photo_count,
                   }))}
                 />
+                <SharePlansCard token={token ?? ""} areas={(meta.areas ?? []).map((x) => ({ id: x.id, name: x.name }))} />
                 <BuildCalendar
                   days={meta.days ?? []}
                   phases={meta.phases ?? []}
@@ -888,6 +890,7 @@ export default function SharePageV2() {
                   }))}
                 />
               )}
+              <SharePlansCard token={token ?? ""} areas={(meta.areas ?? []).map((x) => ({ id: x.id, name: x.name }))} />
               {/* Redundant with the build calendar heatmap on desktop. */}
               {/* The calendar is gone at every breakpoint: it has no area axis,
                   so it can never answer "when was this area worked on". The day

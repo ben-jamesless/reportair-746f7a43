@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Settings as SettingsIcon } from "lucide-react";
+import { Upload, Share2, Camera, Users, Image as ImageIcon, Menu, LayoutDashboard, FileText, Images, Map as MapIcon, Check, FileDown, Settings as SettingsIcon, FolderOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { DailyReportTab } from "./tabs/DailyReportTab";
 import { LibraryTab } from "./tabs/LibraryTab";
 import { MapTab } from "./tabs/MapTab";
+import { PlansTab } from "@/features/plans/PlansTab";
+import { PLANS_SHOW_NEW_BADGE } from "@/features/plans/planRules";
 import { UploadModalProvider, useUploadModal } from "@/features/upload/UploadModalContext";
 import { useProjectDetail } from "@/features/projectDetail/useProjectDetail";
 import { SharePanel } from "./SharePanel";
@@ -28,8 +30,8 @@ import { useProjectUpdateDays } from "@/hooks/useProjectUpdateDays";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { ProjectSettingsDialog } from "@/components/ProjectSettingsDialog";
 
-type TabKey = "daily" | "library" | "map";
-const VALID: TabKey[] = ["daily", "library", "map"];
+type TabKey = "daily" | "library" | "map" | "plans";
+const VALID: TabKey[] = ["daily", "library", "map", "plans"];
 
 /**
  * Phase 0 v2 shell. Renders the new 4-tab bar plus the global "Upload photos"
@@ -154,6 +156,9 @@ function ShellBody({
               {TAB_ITEMS.map((t) => (
                 <TabsTrigger key={t.key} value={t.key} className={tabTriggerClass}>
                   {t.label}
+                  {t.key === "plans" && PLANS_SHOW_NEW_BADGE && (
+                    <span className="ml-1.5 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">New</span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -229,6 +234,9 @@ function ShellBody({
           <TabsContent value="map" className="mt-6">
             <MapTab projectId={projectId} />
           </TabsContent>
+          <TabsContent value="plans" className="mt-6">
+            <PlansTab projectId={projectId} canEdit={canEditProject(role)} isOwner={role === "owner"} />
+          </TabsContent>
         </Tabs>
       </div>
     </UploadModalProvider>
@@ -291,6 +299,7 @@ const TAB_ITEMS: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] 
   { key: "daily", label: "Daily Report", icon: FileText },
   { key: "library", label: "Library", icon: Images },
   { key: "map", label: "Map", icon: MapIcon },
+  { key: "plans", label: "Plans", icon: FolderOpen },
 ];
 
 function TabsMenu({ tab, setTab }: { tab: TabKey; setTab: (t: string) => void }) {
