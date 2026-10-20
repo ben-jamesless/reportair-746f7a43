@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { V2 } from "../tokens";
+import { PanelHeader } from "./Primitives";
 
 export const MAX_COMMENT_LENGTH = 1000;
 
@@ -228,6 +229,7 @@ export function ReportFeedback({
 }) {
   const [rows, setRows] = useState<CommentRow[]>([]);
   const [role, setRole] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
   const [anchor, setAnchor] = useState<CommentAnchor | null>(null);
   const [replyTo, setReplyTo] = useState<string | null>(null);

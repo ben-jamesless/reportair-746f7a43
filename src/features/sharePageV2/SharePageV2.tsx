@@ -7,7 +7,6 @@ import { V2, daysBetween, deriveAreaStatus, isoToday, normaliseStatus, parseISO,
 import { Masthead } from "./components/Masthead";
 import { FiledReport } from "./filed/FiledReport";
 import { StatusBar } from "./components/StatusBar";
-import { StatTable } from "./components/StatStrip";
 import { ZoneCard } from "./components/ZoneCard";
 import { CollapsibleSectionLabel, SectionLabel } from "./components/Primitives";
 import { AreaGlance, TodayBox } from "./components/Sidebar";
@@ -46,7 +45,7 @@ export default function SharePageV2() {
   const [refAreaFilter, setRefAreaFilter] = useState<string | null>(null);
   // Label of the specific map feature clicked (a feature is narrower than its area group).
   const [refFilterLabel, setRefFilterLabel] = useState<string | null>(null);
-  const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null } | null>(null);
+  const [opsContact, setOpsContact] = useState<{ name: string; role?: string | null; email?: string | null } | null>(null);
   // Export uses the app's existing PDF export dialog when the viewer is signed
   // in (ops/team). Public visitors without an account fall back to print-to-PDF.
   const [exportOpen, setExportOpen] = useState(false);
@@ -77,7 +76,7 @@ export default function SharePageV2() {
     let alive = true;
     (async () => {
       const { data } = await supabase.rpc("share_ops_contact" as never, { _token: token } as never);
-      if (alive) setOpsContact((data as { name: string; role?: string | null } | null) ?? null);
+      if (alive) setOpsContact((data as { name: string; role?: string | null; email?: string | null } | null) ?? null);
     })();
     return () => {
       alive = false;
@@ -897,11 +896,6 @@ export default function SharePageV2() {
                   list is the navigator; the heatmap grid carries the rest. */}
 
               {/* Headline stats as a rail table, above the feedback panel. */}
-              {hasBuildTimeline && (
-                <div className="mt-7">
-                  <StatTable stats={stats} />
-                </div>
-              )}
 
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}
