@@ -10,3 +10,4 @@
 - Keep billing email calls isolated from the registered app-email sender; validate app-email actors and derive recipients and links server-side to prevent arbitrary sends.
 - Keep event settings, member and delivery panels on the shared semantic settings presentation tokens and standard controls so light/dark themes stay aligned.
 - Enforce password-free share links with a table trigger while retaining legacy RPC signatures and generated columns for compatibility; expiry and revocation remain authoritative.
+- Plans documents live in their own tables and private bucket; clients reach them only via token-checked RPC + short-lived signed URLs, and only filed, client-visible current revisions, so sharing stays deliberate.

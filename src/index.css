@@ -81,6 +81,14 @@
     --success-foreground: 0 0% 100%;
     --warning: 32 95% 44%;              /* #D97706 */
     --warning-foreground: 0 0% 100%;
+    /* Plans file-type tiles (white text on each) */
+    --plan-pdf: 0 65% 42%;
+    --plan-cad: 221 70% 42%;
+    --plan-doc: 214 60% 40%;
+    --plan-sheet: 145 55% 30%;
+    --plan-image: 262 35% 42%;
+    --plan-link: 240 4% 36%;
+    --plan-tile-fg: 0 0% 100%;
     --border: 240 6% 90%;               /* #E4E4E7 */
     --input: 240 6% 90%;
     --ring: 240 6% 7%;
