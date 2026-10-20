@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 import { Upload } from "lucide-react";
 import { GlobalUploadModal } from "./GlobalUploadModal";
 
@@ -48,10 +48,16 @@ export function UploadModalProvider({
   >({ open: false });
   const [minimized, setMinimized] = useState(false);
   const [bgProgress, setBgProgress] = useState<{ done: number; total: number } | null>(null);
+  const [instance, setInstance] = useState(0);
+  const uploadingRef = useRef(false);
 
   const open = useCallback(
     (opts?: OpenOpts) => {
       setMinimized(false);
+      // An upload is still running in the background: just bring it back
+      // rather than discarding it. Otherwise start a fresh modal instance.
+      if (uploadingRef.current) return;
+      setInstance((n) => n + 1);
       setOpenState({
         open: true,
         areaId: opts?.areaId ?? null,
@@ -66,13 +72,16 @@ export function UploadModalProvider({
     setOpenState({ open: false });
     setMinimized(false);
     setBgProgress(null);
+    uploadingRef.current = false;
   }, []);
 
   const minimize = useCallback(() => setMinimized(true), []);
   const restore = useCallback(() => setMinimized(false), []);
 
   const handleProgress = useCallback((done: number, total: number) => {
-    setBgProgress(total > 0 && done < total ? { done, total } : null);
+    const running = total > 0 && done < total;
+    uploadingRef.current = running;
+    setBgProgress(running ? { done, total } : null);
   }, []);
 
   const value = useMemo<Ctx>(() => ({ open, isOpen: openState.open }), [open, openState.open]);
@@ -82,6 +91,7 @@ export function UploadModalProvider({
       {children}
       {openState.open && (
         <GlobalUploadModal
+          key={instance}
           projectId={projectId}
           areas={areas}
           initialAreaId={openState.areaId}

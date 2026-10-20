@@ -520,6 +520,12 @@ export function GlobalUploadModal({
     if (phase === "uploading") onProgress?.(uploadProgress.done, uploadProgress.total);
   }, [phase, uploadProgress, onProgress]);
 
+  // A backgrounded upload that finishes closes itself so the pill clears and
+  // the next upload starts from a fresh modal.
+  useEffect(() => {
+    if (phase === "done" && hidden) onClose();
+  }, [phase, hidden, onClose]);
+
   const handleClose = useCallback(() => {
     if (phase === "uploading") {
       // Mid-upload: minimise instead of closing so the upload keeps running.
