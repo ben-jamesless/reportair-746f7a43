@@ -18,7 +18,7 @@ export default function AdminEarlyAccess() {
   useEffect(() => {
     supabase.from("early_access_requests").select("*").order("created_at", { ascending: false }).then(({ data, error }) => {
       if (error) setError("Couldn’t load early-access requests.");
-      else setRows(data ?? []);
+      else setRows([...(data ?? [])].sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending")));
       setLoading(false);
     });
   }, []);
@@ -35,7 +35,7 @@ export default function AdminEarlyAccess() {
   const invitation = (email: string) => `https://buildfolder.com/auth?tab=signup&beta=1&email=${encodeURIComponent(email)}`;
   return (
     <section className="space-y-5">
-      <h2 className="text-xl font-semibold">Early-access requests</h2>
+      <h2 className="text-xl font-semibold">Access requests</h2>
       {loading ? <Loader2 className="animate-spin" /> : error ? <p role="alert" className="text-destructive">{error}</p> : (
         <div className="overflow-x-auto border border-border">
           <table className="w-full text-left text-sm">
