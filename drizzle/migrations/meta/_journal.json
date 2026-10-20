@@ -29,6 +29,13 @@
       "when": 1792137562512,
       "tag": "0003_password_free_share_links",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792490486445,
+      "tag": "0004_plans_feature",
+      "breakpoints": true
     }
   ]
 }

@@ -1029,6 +1029,176 @@ export type Database = {
           },
         ]
       }
+      plan_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          is_hidden: boolean
+          name: string
+          sort_order: number
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_hidden?: boolean
+          name: string
+          sort_order?: number
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_hidden?: boolean
+          name?: string
+          sort_order?: number
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_categories_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_file_versions: {
+        Row: {
+          change_note: string | null
+          file_ext: string | null
+          id: string
+          mime_type: string | null
+          plan_file_id: string
+          preview_storage_path: string | null
+          project_id: string
+          revision_label: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          change_note?: string | null
+          file_ext?: string | null
+          id?: string
+          mime_type?: string | null
+          plan_file_id: string
+          preview_storage_path?: string | null
+          project_id: string
+          revision_label?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          change_note?: string | null
+          file_ext?: string | null
+          id?: string
+          mime_type?: string | null
+          plan_file_id?: string
+          preview_storage_path?: string | null
+          project_id?: string
+          revision_label?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_file_versions_plan_file_id_fkey"
+            columns: ["plan_file_id"]
+            isOneToOne: false
+            referencedRelation: "plan_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_files: {
+        Row: {
+          area_ids: string[]
+          category_id: string | null
+          client_visible: boolean
+          created_at: string
+          created_by: string | null
+          crew_visible: boolean
+          current_version_id: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          kind: string
+          name: string
+          project_id: string
+          team_id: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          area_ids?: string[]
+          category_id?: string | null
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          crew_visible?: boolean
+          current_version_id?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          kind?: string
+          name: string
+          project_id: string
+          team_id: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          area_ids?: string[]
+          category_id?: string | null
+          client_visible?: boolean
+          created_at?: string
+          created_by?: string | null
+          crew_visible?: boolean
+          current_version_id?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          project_id?: string
+          team_id?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_files_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "plan_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_files_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "plan_file_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auth_method: string | null
@@ -1979,6 +2149,10 @@ export type Database = {
         Args: { _photo_id: string; _token: string }
         Returns: string
       }
+      get_share_plan_path: {
+        Args: { _plan_file_id: string; _preview?: boolean; _token: string }
+        Returns: string
+      }
       get_share_project_center: { Args: { _token: string }; Returns: Json }
       get_team_export_count: { Args: { _team_id: string }; Returns: number }
       get_team_pending_invites: {
@@ -2190,6 +2364,7 @@ export type Database = {
         Args: { _password?: string; _token: string }
         Returns: Json
       }
+      seed_plan_categories: { Args: { _team_id: string }; Returns: undefined }
       seed_todays_objectives: {
         Args: { _date_key: string; _project_id: string }
         Returns: boolean
@@ -2244,6 +2419,24 @@ export type Database = {
         Returns: Json
       }
       share_ops_contact: { Args: { _token: string }; Returns: Json }
+      share_plan_files: {
+        Args: { _token: string }
+        Returns: {
+          area_ids: string[]
+          category: string
+          category_order: number
+          file_ext: string
+          has_preview: boolean
+          id: string
+          kind: string
+          mime_type: string
+          name: string
+          revision_label: string
+          size_bytes: number
+          updated_at: string
+          url: string
+        }[]
+      }
       share_preview_is_team: {
         Args: { _link_id: string; _preview: string; _project_id: string }
         Returns: boolean
