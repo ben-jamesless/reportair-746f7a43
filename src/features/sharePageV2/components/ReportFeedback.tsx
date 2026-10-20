@@ -395,8 +395,8 @@ export function ReportFeedback({
   return (
     <div
       ref={rootRef}
-      className="mb-7 overflow-hidden"
-      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
+      className="overflow-hidden"
+      style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, marginBottom: panelOpen ? 28 : 8 }}
     >
       <PanelHeader
         title={headerTitle}
@@ -574,7 +574,7 @@ export function OpsContact({ contact }: { contact: { name: string; role?: string
   const [open, setOpen] = useState(true);
   if (!contact?.name) return null;
   return (
-    <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white }}>
+    <div className="overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white, marginBottom: open ? 28 : 8 }}>
       <PanelHeader title="Ops contact" open={open} onToggle={() => setOpen((v) => !v)} />
       {open && (
         <div className="px-3.5 py-3.5">
