@@ -518,6 +518,7 @@ export function GlobalUploadModal({
   // Report upload progress to the provider so the background pill stays in sync.
   useEffect(() => {
     if (phase === "uploading") onProgress?.(uploadProgress.done, uploadProgress.total);
+    else if (phase === "done") onProgress?.(0, 0);
   }, [phase, uploadProgress, onProgress]);
 
   // A backgrounded upload that finishes closes itself so the pill clears and
