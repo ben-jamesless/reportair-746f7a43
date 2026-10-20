@@ -12,7 +12,7 @@ type Member = { user_id: string; email: string | null; full_name: string | null;
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
-function CompanyDetail({ teamId, onOwner }: { teamId: string; onOwner: (email: string | null) => void }) {
+function CompanyDetail({ teamId }: { teamId: string }) {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
 
@@ -25,7 +25,6 @@ function CompanyDetail({ teamId, onOwner }: { teamId: string; onOwner: (email: s
     const mem = (m.data as Member[]) ?? [];
     setProjects((p.data as Project[]) ?? []);
     setMembers(mem);
-    onOwner(mem.find((x) => x.role === "owner")?.email ?? null);
   };
   useEffect(() => { void load(); }, [teamId]);
 
@@ -84,7 +83,15 @@ export default function AdminCompanies() {
 
   useEffect(() => {
     void (async () => {
-      const [c, s] = await Promise.all([supabase.rpc("admin_beta_usage"), supabase.rpc("admin_summary" as never)]);
+      const [c, s, u] = await Promise.all([
+        supabase.rpc("admin_beta_usage"),
+        supabase.rpc("admin_summary" as never),
+        supabase.rpc("admin_list_users_with_accounts" as never),
+      ]);
+      const own: Record<string, string | null> = {};
+      ((u.data ?? []) as { team_id: string | null; team_role: string | null; email: string | null }[])
+        .forEach((x) => { if (x.team_id && x.team_role === "owner") own[x.team_id] = x.email; });
+      setOwners(own);
       if (c.error) toast.error(c.error.message);
       setRows(((c.data ?? []) as unknown as Company[]));
       setTotals((s.data as Totals) ?? null);
@@ -124,7 +131,7 @@ export default function AdminCompanies() {
                 </tr>
                 {open === r.id && (
                   <tr className="border-t border-border"><td colSpan={7} className="px-3">
-                    <CompanyDetail teamId={r.id} onOwner={(e) => setOwners((o) => ({ ...o, [r.id]: e }))} />
+                    <CompanyDetail teamId={r.id} />
                   </td></tr>
                 )}
               </Fragment>
