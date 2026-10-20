@@ -34,7 +34,6 @@ const SharePage = lazy(() => import("./pages/SharePage.tsx"));
 const SharePageV2 = lazy(() => import("./features/sharePageV2/SharePageV2.tsx"));
 const CompanyInviteAccept = lazy(() => import("./pages/CompanyInviteAccept.tsx"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe.tsx"));
-const AdminBetaUsage = lazy(() => import("./pages/admin/AdminBetaUsage.tsx"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept.tsx"));
 const Billing = lazy(() => import("./pages/Billing.tsx"));
 
@@ -42,11 +41,9 @@ const ShareLinks = lazy(() => import("./pages/ShareLinks.tsx"));
 const Team = lazy(() => import("./pages/Team.tsx"));
 const Settings = lazy(() => import("./pages/Settings.tsx"));
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.tsx"));
-const AdminSummary = lazy(() => import("./pages/admin/AdminSummary.tsx"));
+const AdminRequests = lazy(() => import("./pages/admin/AdminRequests.tsx"));
+const AdminCompanies = lazy(() => import("./pages/admin/AdminCompanies.tsx"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers.tsx"));
-const AdminProjects = lazy(() => import("./pages/admin/AdminProjects.tsx"));
-const AdminEarlyAccess = lazy(() => import("./pages/admin/AdminEarlyAccess.tsx"));
-const AdminLeadMagnet = lazy(() => import("./pages/admin/AdminLeadMagnet.tsx"));
 
 
 
@@ -96,14 +93,17 @@ const App = () => (
                 <Route path="/s2/:token" element={<ErrorBoundary label="page"><SharePageV2 /></ErrorBoundary>} />
                 <Route path="/s1/:token" element={<ErrorBoundary label="page"><SharePage /></ErrorBoundary>} />
                 <Route path="/admin" element={<ErrorBoundary label="page"><ProtectedRoute><AdminRoute><AdminLayout /></AdminRoute></ProtectedRoute></ErrorBoundary>}>
-                  <Route index element={<AdminSummary />} />
-                  <Route path="summary" element={<AdminSummary />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="accounts" element={<AdminUsers />} />
-                  <Route path="projects" element={<AdminProjects />} />
-                  <Route path="signups" element={<AdminLeadMagnet />} />
-                  <Route path="early-access" element={<AdminEarlyAccess />} />
-                  <Route path="beta" element={<AdminBetaUsage />} />
+                  <Route index element={<Navigate to="requests" replace />} />
+                  <Route path="requests" element={<AdminRequests />} />
+                  <Route path="companies" element={<AdminCompanies />} />
+                  <Route path="people" element={<AdminUsers />} />
+                  <Route path="early-access" element={<Navigate to="/admin/requests" replace />} />
+                  <Route path="signups" element={<Navigate to="/admin/requests" replace />} />
+                  <Route path="beta" element={<Navigate to="/admin/companies" replace />} />
+                  <Route path="summary" element={<Navigate to="/admin/companies" replace />} />
+                  <Route path="projects" element={<Navigate to="/admin/companies" replace />} />
+                  <Route path="users" element={<Navigate to="/admin/people" replace />} />
+                  <Route path="accounts" element={<Navigate to="/admin/people" replace />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

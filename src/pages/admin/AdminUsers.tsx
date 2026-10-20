@@ -9,7 +9,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import AccountPreviewDialog from "@/components/admin/AccountPreviewDialog";
 
 type UnifiedRow = {
@@ -32,21 +33,6 @@ type UnifiedRow = {
   team_project_count: number | null;
   has_payment_method: boolean | null;
 };
-
-const daysUntil = (iso: string | null) => {
-  if (!iso) return null;
-  const ms = new Date(iso).getTime() - Date.now();
-  return Math.max(0, Math.ceil(ms / 86_400_000));
-};
-
-const PLAN_LABELS: Record<string, string> = {
-  solo: "Solo", pro: "Pro", studio: "Studio",
-};
-
-const fmtHKD = (n: number | null | undefined) =>
-  n == null || Number(n) === 0
-    ? "—"
-    : new Intl.NumberFormat("en-HK", { style: "currency", currency: "HKD", maximumFractionDigits: 0 }).format(Number(n));
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString() : "—");
 
@@ -123,7 +109,7 @@ const AdminUsers = () => {
   return (
     <div className="space-y-4">
       <Input
-        placeholder="Search by email, name, team, plan…"
+        placeholder="Search by name, email or company…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         className="max-w-sm"
@@ -132,95 +118,52 @@ const AdminUsers = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Signed Up</TableHead>
-              <TableHead>Last Active</TableHead>
-              <TableHead>Auth</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead>Plan</TableHead>
-              <TableHead>MRR</TableHead>
+              <TableHead>Person</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Joined</TableHead>
+              <TableHead>Last active</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={10} className="text-center py-8">
-                  <Loader2 className="h-4 w-4 animate-spin inline" />
-                </TableCell>
-              </TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="h-4 w-4 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-                  No users
-                </TableCell>
-              </TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No people</TableCell></TableRow>
             ) : filtered.map((r) => {
               const hasTeam = !!r.team_id;
               return (
                 <TableRow key={`${r.user_id}-${r.team_id ?? "none"}`}>
-                  <TableCell className="font-medium">{r.email ?? "—"}</TableCell>
-                  <TableCell>{r.full_name ?? "—"}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{r.full_name ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">{r.email ?? "—"}</div>
+                  </TableCell>
+                  <TableCell>{r.team_name ?? <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell className="capitalize">{r.team_role ?? "—"}</TableCell>
                   <TableCell>{fmtDate(r.user_created_at)}</TableCell>
                   <TableCell>{fmtDate(r.last_active_at)}</TableCell>
-                  <TableCell className="text-xs">{r.auth_method ?? "password"}</TableCell>
                   <TableCell>
-                    {hasTeam ? (
-                      <div className="flex flex-col">
-                        <span>{r.team_name}</span>
-                        <span className="text-xs text-muted-foreground capitalize">{r.team_role}</span>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                    {r.user_suspended_at || r.team_suspended_at ? <Badge variant="destructive">Suspended</Badge>
+                      : !hasTeam ? <Badge variant="outline">No company</Badge>
+                      : <Badge variant="secondary">Active</Badge>}
                   </TableCell>
-                  <TableCell>
-                    {hasTeam ? (PLAN_LABELS[r.plan ?? ""] ?? r.plan ?? "—") : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell>
-                    {hasTeam ? fmtHKD(r.mrr_hkd) : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell>
-                    {r.user_suspended_at ? (
-                      <Badge variant="destructive">Suspended</Badge>
-                    ) : !hasTeam ? (
-                      <Badge className="bg-amber-500 text-white hover:bg-amber-500/90">No account</Badge>
-                    ) : r.team_suspended_at ? (
-                      <Badge variant="destructive">Team suspended</Badge>
-                    ) : r.subscription_status === "trialing" ? (
-                      <div className="flex flex-col gap-1 items-start">
-                        <Badge className="bg-amber-500 text-white hover:bg-amber-500/90 whitespace-nowrap">
-                          Trial · {daysUntil(r.trial_ends_at) ?? "?"}d left
-                        </Badge>
-                        <span className={`text-[10px] font-medium whitespace-nowrap ${r.has_payment_method ? "text-emerald-600" : "text-muted-foreground"}`}>
-                          {r.has_payment_method ? "Card on file" : "No card"}
-                        </span>
-                      </div>
-                    ) : (
-                      <Badge variant="secondary">Active</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right space-x-2 whitespace-nowrap">
-                    <Button size="sm" variant="outline" onClick={() => sendReset(r.email)}>Send reset</Button>
-                    <Button size="sm" variant="outline" onClick={() => openPreview(r)} disabled={!r.team_id}>Account preview</Button>
-                    {hasTeam && (
-                      <Button
-                        size="sm"
-                        variant={r.user_suspended_at ? "outline" : "secondary"}
-                        onClick={() => toggleSuspend(r)}
-                      >
-                        {r.user_suspended_at ? "Unsuspend" : "Suspend"}
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => setDeleteTarget(r)}
-                    >
-                      Delete
-                    </Button>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" aria-label={`Actions for ${r.email ?? "user"}`}><MoreHorizontal className="h-4 w-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => sendReset(r.email)}>Send password reset</DropdownMenuItem>
+                        <DropdownMenuItem disabled={!hasTeam} onClick={() => openPreview(r)}>View company</DropdownMenuItem>
+                        {hasTeam && (
+                          <DropdownMenuItem onClick={() => toggleSuspend(r)}>{r.user_suspended_at ? "Unsuspend" : "Suspend"}</DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(r)}>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               );

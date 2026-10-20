@@ -3,12 +3,9 @@ import { AppShell } from "@/components/AppShell";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { to: "/admin/beta", label: "Beta companies" },
-  { to: "/admin/summary", label: "Summary" },
-  { to: "/admin/users", label: "Users" },
-  { to: "/admin/projects", label: "Projects" },
-  { to: "/admin/signups", label: "Signups" },
-  { to: "/admin/early-access", label: "Early access" },
+  { to: "/admin/requests", label: "Requests" },
+  { to: "/admin/companies", label: "Companies" },
+  { to: "/admin/people", label: "People" },
 ];
 
 const AdminLayout = () => {
