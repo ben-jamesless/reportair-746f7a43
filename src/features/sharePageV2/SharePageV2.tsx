@@ -869,7 +869,7 @@ export default function SharePageV2() {
                 {day && (day.today_objectives || day.today_achievements || day.open_issues || day.tomorrow_objectives || day.notes) && (
                   <TodayBox day={day} />
                 )}
-                <div className="mt-7">
+                <div>
                   <ReportFeedback token={token ?? ""} readOnly onAreaCounts={setAreaCommentCounts} />
                   <OpsContact contact={opsContact} />
                 </div>
@@ -899,7 +899,7 @@ export default function SharePageV2() {
 
               {/* Feedback + ops contact anchor the rail: the only thing in it
                   pre-build, and the bottom block once the build is running. */}
-              <div className={hasBuildTimeline ? "mt-7" : undefined}>
+              <div>
                 <ReportFeedback
                   onAreaCounts={setAreaCommentCounts}
                   token={token ?? ""}
