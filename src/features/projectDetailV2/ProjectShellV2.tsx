@@ -234,7 +234,8 @@ function ShellBody({
           <TabsContent value="map" className="mt-6">
             <MapTab projectId={projectId} />
           </TabsContent>
-          <TabsContent value="plans" className="mt-6">
+          {/* Kept mounted so Plans uploads keep running when you switch tabs. */}
+          <TabsContent value="plans" forceMount className="mt-6 data-[state=inactive]:hidden">
             <PlansTab projectId={projectId} canEdit={canEditProject(role)} isOwner={role === "owner"} />
           </TabsContent>
         </Tabs>
