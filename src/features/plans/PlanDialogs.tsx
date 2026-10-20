@@ -1,4 +1,7 @@
 import { useRef, useState } from "react";
+
+// Brand terracotta accent — matches the photo background-upload card.
+const TERRACOTTA = "#D4573A";
 import { Upload, X, RotateCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -57,11 +60,15 @@ export function AddFilesDialog({ open, onOpenChange, projectId, userId, categori
   const [rejected, setRejected] = useState<{ name: string; reason: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
+  const [minimized, setMinimized] = useState(false);
+  const minimizedRef = useRef(false);
+  const minimize = (v: boolean) => { minimizedRef.current = v; setMinimized(v); };
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const reset = () => { setRows([]); setRejected([]); setBusy(false); };
-  const close = (o: boolean) => { if (busy) return; if (!o) reset(); onOpenChange(o); };
+  const reset = () => { setRows([]); setRejected([]); setBusy(false); minimize(false); };
+  // Closing mid-upload sends it to the background instead of cancelling.
+  const close = (o: boolean) => { if (busy && !o) { minimize(true); return; } if (!o) reset(); onOpenChange(o); };
 
   const addFiles = (list: File[]) => {
     const ok: Row[] = []; const bad: { name: string; reason: string }[] = [];
@@ -80,26 +87,51 @@ export function AddFilesDialog({ open, onOpenChange, projectId, userId, categori
 
   const run = async (targets: Row[]) => {
     setBusy(true);
+    let failures = 0;
     for (const r of targets) {
       patch(r.key, { status: "uploading", error: undefined });
       try {
         await createPlanFile({ projectId, userId, file: r.file, categoryId: r.categoryId, areaIds: r.area === ALL ? [] : [r.area], revision: r.revision });
         patch(r.key, { status: "done" });
       } catch (e: any) {
+        failures++;
         patch(r.key, { status: "failed", error: e?.message ?? "Upload failed" });
       }
     }
     setBusy(false);
     onAdded();
+    // Finished in the background with nothing to fix: tidy away.
+    if (minimizedRef.current && failures === 0) { reset(); onOpenChange(false); }
   };
 
   const pending = rows.filter((r) => r.status !== "done");
   const failed = rows.filter((r) => r.status === "failed");
   const unsorted = pending.filter((r) => !r.categoryId).length;
   const allDone = rows.length > 0 && pending.length === 0;
+  const batch = rows.filter((r) => r.status !== "ready" || busy);
+  const batchDone = batch.filter((r) => r.status === "done" || r.status === "failed").length;
+  const pct = batch.length ? Math.round((batchDone / batch.length) * 100) : 0;
+  const inFlight = busy || (minimized && failed.length > 0);
 
   return (
-    <Dialog open={open} onOpenChange={close}>
+    <>
+    {open && minimized && inFlight && (
+      <button type="button" onClick={() => minimize(false)} aria-label="Plans upload in progress — click to view"
+        className="fixed bottom-4 right-4 z-50 w-64 border border-border bg-background p-3 text-left shadow-lg transition-colors hover:bg-muted/50">
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Upload className="h-4 w-4" style={{ color: TERRACOTTA }} />
+            {busy ? `Uploading plans ${batchDone} of ${batch.length}` : `${failed.length} plan${failed.length === 1 ? "" : "s"} failed`}
+          </span>
+          {busy && <span className="text-xs font-medium tabular-nums text-muted-foreground">{pct}%</span>}
+        </div>
+        <div className="mt-2 h-1.5 w-full overflow-hidden bg-muted">
+          <div className="h-full transition-[width] duration-300 ease-out" style={{ backgroundColor: TERRACOTTA, width: `${Math.max(4, pct)}%` }} />
+        </div>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">{busy ? "Click to view upload" : "Click to retry"}</p>
+      </button>
+    )}
+    <Dialog open={open && !minimized} onOpenChange={close}>
       <DialogContent className="max-h-[92dvh] w-[calc(100vw-1.5rem)] max-w-4xl overflow-y-auto overflow-x-hidden">
         <DialogHeader><DialogTitle>Add files</DialogTitle></DialogHeader>
 
@@ -178,13 +210,28 @@ export function AddFilesDialog({ open, onOpenChange, projectId, userId, categori
           </>
         )}
 
+        {busy && (
+          <div>
+            <div className="mb-1 flex justify-between text-xs tabular-nums text-muted-foreground">
+              <span>Uploading {batchDone} of {batch.length}</span><span>{pct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden bg-muted">
+              <div className="h-full transition-[width] duration-300 ease-out" style={{ backgroundColor: TERRACOTTA, width: `${Math.max(4, pct)}%` }} />
+            </div>
+          </div>
+        )}
+
         <DialogFooter className="flex-col gap-2 sm:flex-row sm:items-center">
           <p className="mr-auto text-xs text-muted-foreground">All files are added as Internal</p>
           {allDone ? (
             <Button className="h-10" onClick={() => close(false)}>Done</Button>
           ) : (
             <>
-              <Button variant="outline" className="h-10" disabled={busy} onClick={() => close(false)}>Cancel</Button>
+              {busy ? (
+                <Button variant="outline" className="h-10" onClick={() => minimize(true)}>Continue in background</Button>
+              ) : (
+                <Button variant="outline" className="h-10" onClick={() => close(false)}>Cancel</Button>
+              )}
               {failed.length > 0 && !busy && (
                 <Button variant="outline" className="h-10" onClick={() => run(failed)}><RotateCw className="mr-2 h-4 w-4" />Retry {failed.length}</Button>
               )}
@@ -197,6 +244,7 @@ export function AddFilesDialog({ open, onOpenChange, projectId, userId, categori
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
 
