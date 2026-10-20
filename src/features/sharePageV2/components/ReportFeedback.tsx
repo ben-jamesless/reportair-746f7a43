@@ -396,14 +396,11 @@ export function ReportFeedback({
       className="mb-7 overflow-hidden"
       style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport }}
     >
-      <div className="flex items-center justify-between" style={{ backgroundColor: V2.band, padding: "12px 16px" }}>
-        <span
-         
-          style={{ fontFamily: V2.mono, fontSize: 10, fontWeight: 700, color: V2.bandFgSoft }}
-        >
-          {headerTitle}
-        </span>
-        <span
+      <PanelHeader
+        title={headerTitle}
+        open={panelOpen}
+        onToggle={() => setPanelOpen((v) => !v)}
+        right={<span
           style={{ fontFamily: V2.mono, fontSize: 12, fontWeight: 700, color: V2.bandFg }}
           title={readOnly ? "Archived threads" : "Open threads"}
         >
@@ -411,10 +408,10 @@ export function ReportFeedback({
           <span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.7 }}>
             {readOnly ? (headerCount === 1 ? " THREAD" : " THREADS") : " OPEN"}
           </span>
-        </span>
-      </div>
+        </span>}
+      />
 
-      <div style={{ backgroundColor: V2.white }}>
+      {panelOpen && <div style={{ backgroundColor: V2.white }}>
         {threads.length === 0 && (
           <p className="px-4 py-4" style={{ fontSize: 12.5, color: V2.muted }}>
             {readOnly ? "No feedback was left on this report." : "No comments yet."}
@@ -566,36 +563,32 @@ export function ReportFeedback({
             )}
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
 
-export function OpsContact({ contact }: { contact: { name: string; role?: string | null } | null }) {
+export function OpsContact({ contact }: { contact: { name: string; role?: string | null; email?: string | null } | null }) {
+  const [open, setOpen] = useState(true);
   if (!contact?.name) return null;
   return (
-    <div className="mb-7" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white }}>
-      <div
-       
-        style={{
-          fontFamily: V2.mono,
-          fontSize: 10,
-          fontWeight: 700,
-          color: V2.bandFgSoft,
-          padding: "12px 16px",
-          backgroundColor: V2.band,
-        }}
-      >
-        Ops contact
-      </div>
-      <div className="px-3.5 py-3.5">
-        <p style={{ fontSize: 14, fontWeight: 700, color: V2.ink }}>{contact.name}</p>
-        {contact.role && (
-          <p className="capitalize" style={{ fontSize: 12.5, color: V2.muted }}>
-            {contact.role}
-          </p>
-        )}
-      </div>
+    <div className="mb-7 overflow-hidden" style={{ border: `1px solid ${V2.rule}`, borderRadius: V2.radiusReport, backgroundColor: V2.white }}>
+      <PanelHeader title="Ops contact" open={open} onToggle={() => setOpen((v) => !v)} />
+      {open && (
+        <div className="px-3.5 py-3.5">
+          <p style={{ fontSize: 14, fontWeight: 700, color: V2.ink }}>{contact.name}</p>
+          {contact.role && (
+            <p className="capitalize" style={{ fontSize: 12.5, color: V2.muted }}>
+              {contact.role}
+            </p>
+          )}
+          {contact.email && (
+            <a href={`mailto:${contact.email}`} className="underline break-all" style={{ fontSize: 12.5, color: V2.ink }}>
+              {contact.email}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
